@@ -1,0 +1,209 @@
+<script type="text/javascript"
+src="/js/dygraph-combined.js"></script>
+
+
+<script src="/js/dygraph-combined.js"></script>
+<script src="/js/spin-1.3.0.min.js"></script>
+<script src="/js/moment-2.1.0.min.js"></script>
+
+<script src="/js/dynamic_dygraph.js"></script>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    var graphs = [];
+    var blockRedraw = false;
+
+
+    $(document).ready(function() {
+        var t;
+
+        var accl_config = {
+            $graphCont: $("#graph_accl"),
+            uuid: "{{{data}}}",
+            axes: "accl_x,accl_y,accl_z"
+        };
+        t = new SRLM.DynamicGraph(accl_config);
+        t.init();
+        graphs.push(t);
+
+
+
+
+        var gyro_config = {
+            $graphCont: $("#graph_gyro"),
+            uuid: "{{{data}}}",
+            axes: "gyro_x,gyro_y,gyro_z"
+        };
+        //(new SRLM.DynamicGraph(gyro_config)).init();
+        t = new SRLM.DynamicGraph(gyro_config);
+        t.init();
+        graphs.push(t);
+
+        var magn_config = {
+            $graphCont: $("#graph_magn"),
+            uuid: "{{{data}}}",
+            axes: "magn_x,magn_y,magn_z"
+        };
+        //(new SRLM.DynamicGraph(magn_config)).init();
+        t = new SRLM.DynamicGraph(magn_config);
+        t.init();
+        graphs.push(t);
+
+        var baro_config = {
+            $graphCont: $("#graph_baro"),
+            uuid: "{{{data}}}",
+            axes: "baro"
+        };
+        //(new SRLM.DynamicGraph(baro_config)).init();
+        t = new SRLM.DynamicGraph(baro_config);
+        t.init();
+        graphs.push(t);
+
+        var temp_config = {
+            $graphCont: $("#graph_temp"),
+            uuid: "{{{data}}}",
+            axes: "temp"
+        };
+        //(new SRLM.DynamicGraph(temp_config)).init();
+        t = new SRLM.DynamicGraph(temp_config);
+        t.init();
+        graphs.push(t);
+
+
+        //var socket = io.connect();
+
+
+
+
+        $("#delete").click(function() {
+            alert("As if. You thought something would happen, didn't you?");
+        });
+
+    });
+
+</script>
+
+
+<h3> Download:<br />
+
+
+    <a download="{{data}}-panel.csv" href="/download/raw_data/{{data}}">Panel</a></h3>
+<h5> <a download="{{data}}-accl.csv" target="_blank" href="/download/raw_data/{{data}}?columns=accl_x,accl_y,accl_z">Accelerometer</a>
+    ~ <a download="{{data}}-gyro.csv" target="_blank" href="/download/raw_data/{{data}}?columns=gyro_x,gyro_y,gyro_z">Gyroscope</a>
+    ~ <a download="{{data}}-magn.csv" target="_blank" href="/download/raw_data/{{data}}?columns=magn_x,magn_y,magn_z">Magnetometer</a>
+    ~ <a download="{{data}}-baro.csv" target="_blank" href="/download/raw_data/{{data}}?columns=baro">Barometer</a>
+    ~ <a download="{{data}}-temp.csv" target="_blank" href="/download/raw_data/{{data}}?columns=temp">Temperature</a>
+</h5>
+<br />
+
+<h3>Dataset Info:</h3>
+<table cellpadding="3" cellspacing="3" class="table table-striped" >
+    <tr>
+        <td><b>Dataset Title</b></td>
+        <td>{{{name}}}</td>
+    </tr>
+    <tr>
+        <td><b>Submit Date</b></td>
+        <td>{{{submit_date}}}</td>
+    </tr>
+    <tr>
+        <td><b>Submit User</b></td>
+        <td><a href="/user/{{submit_user.id}}">{{{submit_user.display_name}}}</a></td>
+    </tr>
+    <tr>
+        <td><b>Start Time</b></td>
+        <td>{{{start_time}}}</td>
+    </tr>
+    <tr>
+        <td><b>End Time</b></td>
+        <td>{{{end_time}}}</td>
+    </tr>
+    <tr>
+        <td><b>Event Type</b></td>
+        <td>{{{event_type}}}</td>
+    </tr>
+    <tr>
+        <td><b>Description</b></td>
+        <td>{{{description}}}</td>
+    </tr>
+</table>
+
+<h3>Management:</h3>
+<div id="delete">
+    <a class="btn btn-mini btn-danger">Delete</a>
+</div>
+
+
+
+<br />
+<br />
+
+(<b>zoom</b>: click and drag, <b>pan</b> shift-click and drag, <b>unzoom</b> double-click, <b>lock highlight</b>: click on series)
+<br /><input type="checkbox" id="sync_graph_checkbox" name="sync_graph_checkbox"/> Synchronize Graphs
+<br />
+<br />
+<br />
+
+</div>
+<div class="container-fluid">
+
+    <div class="row-fluid">
+        <div id="graph_accl" class="span5 offset1"
+             style="height:350px;"></div>
+        <div id="graph_gyro" class="span5"
+             style="height:350px;"></div>
+    </div>
+
+    <br />
+    <br />
+
+    <div class="row-fluid">
+        <div id="graph_magn" class="span5 offset1"
+             style="height:350px;"></div>
+        <div id="graph_baro" class="span5"
+             style="height:350px;"></div>
+    </div>
+
+    <br />
+    <br />
+
+    <div class="row-fluid">
+        <div id="graph_temp" class="span10 offset1"
+             style="height:350px;"></div>
+    </div>
+
+
+
+</div>
+<div class="container">
+
+    <h2>Meta:</h2>
+    <pre><code>
+{{{metadata}}}
+    </pre></code>
+
+<h2>Processing Notes:</h2>
+<pre><code>
+{{{processing_stdout}}}
+</pre></code>
+
+
+<h2>Errors:</h2>
+<pre><code>
+{{{processing_stderr}}}
+</code></pre>
+
+<h2>Processing Configuration:</h2>
+<pre><code>
+{{{processing_config}}}
+</code>
+</pre>
+
+<br />
+<br />
+<b>Dataset UUID: </b> {{id}} <br/>
+<b>Raw Data UUID: </b> {{data}} <br/>
+
+
+

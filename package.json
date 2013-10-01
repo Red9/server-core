@@ -1,0 +1,22 @@
+{
+  "name": "rnb2rnt_Web",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "latest",
+    "node-cassandra-cql": "git://github.com/jorgebay/node-cassandra-cql.git",
+    "hbs" : "latest",
+    "lazy" : "latest",
+    "async": "latest",
+    "socket.io": "latest",
+    "passport": "latest",
+    "passport-google": "latest",
+    "winston": "latest",
+    "bytes": "latest",
+    "nodetime": "latest"
+
+  }
+}
