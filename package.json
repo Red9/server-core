@@ -16,7 +16,8 @@
     "passport-google": "latest",
     "winston": "latest",
     "bytes": "latest",
-    "nodetime": "latest"
+    "nodetime": "latest",
+    "stdio": "latest"
 
   }
 }

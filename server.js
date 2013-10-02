@@ -3,16 +3,33 @@
  * Module dependencies.
  */
 require('nodetime').profile({
-    accountKey: 'b0bde370aeb47c1330dbded1c830a5d93be1e5e2', 
+    accountKey: 'b0bde370aeb47c1330dbded1c830a5d93be1e5e2',
     appName: 'Node.js Application'
-  });
+});
 
-var port = process.env.PORT || 8080;
+
 
 var log = require('./support/logger').log;
 var request_logger = require('./support/logger').logger;
 
 log.info("Node.js server started.");
+
+
+var stdio = require('stdio');
+var ops = stdio.getopt({
+    'realm': {key: 'r', args: 1, description: "The realm for google authentication. Include the full domain."}
+});
+
+var port = process.env.PORT || 8080;
+
+var realm = "http://localhost:" + port;
+if (typeof ops.realm !== "undefined") {
+    realm = ops.realm;
+
+}
+
+log.info("Using realm: " + realm);
+
 
 var express = require('express');
 var routes = require('./routes');
@@ -32,36 +49,36 @@ var authenticate = require('./support/authenticate');
 
 
 passport.use(new GoogleStrategy({
-    returnURL: 'http://localhost:' + port + '/login/google/return',
-    realm: 'http://localhost:' + port
+    returnURL: realm + '/login/google/return',
+    realm: realm
 },
 function(identifier, profile, done) {
     authenticate.CheckUserForLogin(identifier, profile, function(user_info) {
-        if ( typeof user_info !== "undefined") {
-            log.info("Login attempt (successful)",{profile:profile, id:identifier.toString(), user_info:user_info});
+        if (typeof user_info !== "undefined") {
+            log.info("Login attempt (successful)", {profile: profile, id: identifier.toString(), user_info: user_info});
             done(null, user_info);
         } else {
-            log.info("Login attempt (failed)",{profile:profile, id:identifier.toString(), user_info:user_info});
-            
+            log.info("Login attempt (failed)", {profile: profile, id: identifier.toString(), user_info: user_info});
+
             var email_domain = "";
-            try{
-                 email_domain = profile.emails[0].value.replace(/.*@/, "");
-            }catch(ex){
+            try {
+                email_domain = profile.emails[0].value.replace(/.*@/, "");
+            } catch (ex) {
                 //Do nothing...
                 log.info("Could not parse login email: %s", ex.toString());
             }
-            
-            
+
+
             log.info("attempt domain: " + email_domain);
-            if(email_domain === "redninesensor.com"){
-                    authenticate.AddUser(identifier, profile, function(new_user_info){
-                        done(null, new_user_info);
-                    });
-                }else{
-            
-            
+            if (email_domain === "redninesensor.com") {
+                authenticate.AddUser(identifier, profile, function(new_user_info) {
+                    done(null, new_user_info);
+                });
+            } else {
+
+
                 done(null, false);
-                }
+            }
         }
     });
 
