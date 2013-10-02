@@ -1,0 +1,46 @@
+//DROP KEYSPACE dev;
+CREATE KEYSPACE dev WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor': 1};
+USE dev;
+CREATE TABLE raw_data(
+	id uuid,
+	time timestamp,
+	data list<float>,
+	PRIMARY KEY (id, time)
+);
+CREATE TABLE dataset (
+	id uuid,
+	data uuid,
+	name varchar,
+	submit_date timestamp,
+	submit_user uuid,
+	start_time timestamp,
+	end_time timestamp,
+	processing_config varchar,
+	processing_stdout varchar,
+	processing_stderr varchar,
+	metadata varchar,
+	video list<varchar>,
+	event_type varchar,
+	description varchar,
+	number_points int,
+	filename varchar,
+	release_level varchar,
+	PRIMARY KEY (id)
+);
+CREATE TABLE users (
+	id uuid PRIMARY KEY,
+	display_name varchar,
+	google_id varchar,
+	email varchar,
+	first varchar,
+	last varchar,
+	group varchar
+);
+
+// Note that google_id changes with the domain. So, for now, we won't use that to authenticate.
+CREATE INDEX users_email ON users (email);
+CREATE INDEX users_google_id ON users (google_id);
+
+
+INSERT INTO users(id,display_name,email,first,last,google_id,group)
+ VALUES (fadedcab-0528-e834-b47d-c80e3696846c,'srlm','srlm@srlmproductions.com','Cody','Lewis','https://www.google.com/accounts/o8/id?id=AItOawlM7qpXhEIaTbJZ7cL6LYASXf170NyWLqI','admin');

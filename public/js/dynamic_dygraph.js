@@ -147,7 +147,7 @@
         this.showSpinner(true);
 
 
-        var request = "http://localhost:3700/download/raw_data/"
+        var request = "/download/raw_data/"
                 + this.uuid
                 + "?columns=" + this.axes
                 + "&buckets=400";

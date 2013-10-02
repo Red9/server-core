@@ -7,7 +7,7 @@ require('nodetime').profile({
     appName: 'Node.js Application'
   });
 
-var port = process.env.PORT || 3700;
+var port = process.env.PORT || 8080;
 
 var log = require('./support/logger').log;
 var request_logger = require('./support/logger').logger;

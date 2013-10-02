@@ -2,7 +2,7 @@
 
 var Client = require('node-cassandra-cql').Client;
 var hosts = ['localhost:9042'];
-var database = new Client({hosts: hosts, keyspace: 'app'});
+var database = new Client({hosts: hosts, keyspace: 'dev'});
 
 var dataset_schema = ['id', 'data', 'name', 'submit_date', 'submit_user',
     'start_time', 'end_time', 'processing_config', 'processing_stdout',
