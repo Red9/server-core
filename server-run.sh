@@ -7,4 +7,4 @@ cd /home/${USER}/dev-website
 git fetch origin
 git reset --hard origin/master
 npm install
-node server.js
+node server.js --realm http://ec2-54-243-23-223.compute-1.amazonaws.com

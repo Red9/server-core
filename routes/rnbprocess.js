@@ -131,7 +131,7 @@ exports.post = function(req, res) {
     var dataset_uuid = guid();
 
     console.log("Starting to Convert " + filename);
-    exec("rm -f /tmp/rnb2rnt/" + filename + "*", function(rm_err, rm_stdout, rm_stderr) {
+    exec("mkdir -p /tmp/rnb2rnt; rm -f /tmp/rnb2rnt/" + filename + "*", function(rm_err, rm_stdout, rm_stderr) {
         var process = spawn('java', parameters);
         process.stdout.setEncoding('utf8');
         process.stderr.setEncoding('utf8');
