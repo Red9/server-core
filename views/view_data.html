@@ -20,7 +20,7 @@ src="/js/dygraph-combined.js"></script>
 
         var accl_config = {
             $graphCont: $("#graph_accl"),
-            uuid: "{{{data}}}",
+            uuid: "{{{id}}}",
             axes: "accl_x,accl_y,accl_z"
         };
         t = new SRLM.DynamicGraph(accl_config);
@@ -32,7 +32,7 @@ src="/js/dygraph-combined.js"></script>
 
         var gyro_config = {
             $graphCont: $("#graph_gyro"),
-            uuid: "{{{data}}}",
+            uuid: "{{{id}}}",
             axes: "gyro_x,gyro_y,gyro_z"
         };
         //(new SRLM.DynamicGraph(gyro_config)).init();
@@ -42,7 +42,7 @@ src="/js/dygraph-combined.js"></script>
 
         var magn_config = {
             $graphCont: $("#graph_magn"),
-            uuid: "{{{data}}}",
+            uuid: "{{{id}}}",
             axes: "magn_x,magn_y,magn_z"
         };
         //(new SRLM.DynamicGraph(magn_config)).init();
@@ -52,7 +52,7 @@ src="/js/dygraph-combined.js"></script>
 
         var baro_config = {
             $graphCont: $("#graph_baro"),
-            uuid: "{{{data}}}",
+            uuid: "{{{id}}}",
             axes: "baro"
         };
         //(new SRLM.DynamicGraph(baro_config)).init();
@@ -62,7 +62,7 @@ src="/js/dygraph-combined.js"></script>
 
         var temp_config = {
             $graphCont: $("#graph_temp"),
-            uuid: "{{{data}}}",
+            uuid: "{{{id}}}",
             axes: "temp"
         };
         //(new SRLM.DynamicGraph(temp_config)).init();
@@ -75,9 +75,15 @@ src="/js/dygraph-combined.js"></script>
 
 
 
-
+        
+        var counter = 0;
         $("#delete").click(function() {
-            alert("As if. You thought something would happen, didn't you?");
+            counter ++;
+            if(counter === 0){
+                alert("No.");
+            }else{
+                alert("I thought I said no...");
+            }
         });
 
     });
@@ -88,12 +94,12 @@ src="/js/dygraph-combined.js"></script>
 <h3> Download:<br />
 
 
-    <a download="{{data}}-panel.csv" href="/download/raw_data/{{data}}">Panel</a></h3>
-<h5> <a download="{{data}}-accl.csv" target="_blank" href="/download/raw_data/{{data}}?columns=accl_x,accl_y,accl_z">Accelerometer</a>
-    ~ <a download="{{data}}-gyro.csv" target="_blank" href="/download/raw_data/{{data}}?columns=gyro_x,gyro_y,gyro_z">Gyroscope</a>
-    ~ <a download="{{data}}-magn.csv" target="_blank" href="/download/raw_data/{{data}}?columns=magn_x,magn_y,magn_z">Magnetometer</a>
-    ~ <a download="{{data}}-baro.csv" target="_blank" href="/download/raw_data/{{data}}?columns=baro">Barometer</a>
-    ~ <a download="{{data}}-temp.csv" target="_blank" href="/download/raw_data/{{data}}?columns=temp">Temperature</a>
+    <a download="{{id}}-panel.csv" href="/download/raw_data/{{id}}">Panel</a></h3>
+<h5> <a download="{{id}}-accl.csv" target="_blank" href="/download/raw_data/{{id}}?columns=accl_x,accl_y,accl_z">Accelerometer</a>
+    ~ <a download="{{id}}-gyro.csv" target="_blank" href="/download/raw_data/{{id}}?columns=gyro_x,gyro_y,gyro_z">Gyroscope</a>
+    ~ <a download="{{id}}-magn.csv" target="_blank" href="/download/raw_data/{{id}}?columns=magn_x,magn_y,magn_z">Magnetometer</a>
+    ~ <a download="{{id}}-baro.csv" target="_blank" href="/download/raw_data/{{id}}?columns=baro">Barometer</a>
+    ~ <a download="{{id}}-temp.csv" target="_blank" href="/download/raw_data/{{id}}?columns=temp">Temperature</a>
 </h5>
 <br />
 

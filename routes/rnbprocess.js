@@ -52,13 +52,13 @@ function StoreFileInDatabase(my_uuid, panel_filename, callback) {
             var data = [];
 
             for (var i = 1; i < columns.length; i++) {
-                data[i - 1] = parseFloat(columns[i]);
+                data[i - 1] = {hint:'float', value:parseFloat(columns[i])};
             }
 
             
 
             database.execute("INSERT INTO raw_data(id, time, data) VALUES (?,?,?)",
-                    [my_uuid, time, data],
+                    [my_uuid, {hint:'timestamp', value: time}, {hint:'list', value:data}],
                     database_error_callback);
         } else {
             firstLine = false;
@@ -153,10 +153,10 @@ exports.post = function(req, res) {
                     data.push(dataset_uuid);
                     data.push(raw_data_uuid);
                     data.push(req.body.title);
-                    data.push(Date.now()); //TODO(SRLM): This won't give the submit date/time relative to user!
-                    data.push(req.user.id);//Fake user
-                    data.push(start_time);
-                    data.push(end_time);
+                    data.push({hint:'timestamp', value: Date.now()}); //TODO(SRLM): This won't give the submit date/time relative to user!
+                    data.push(req.user.id);
+                    data.push({hint:'timestamp', value: start_time});
+                    data.push({hint:'timestamp', value: end_time});
                     data.push(req.body.config);
                     data.push(result);
                     data.push(errors);
@@ -167,7 +167,7 @@ exports.post = function(req, res) {
                     
                     console.log("Getting ready to store dataset...");
 
-                    database.execute(create_dataset_command, data, function(err) {
+                    database.executeAsPrepared(create_dataset_command, data, function(err) {
                         if (err) {
                             console.log("Database error: ", err);
                         } else {

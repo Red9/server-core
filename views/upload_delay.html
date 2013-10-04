@@ -1,14 +1,22 @@
 
 We're Processing! Please wait.
 <br />
-Your unique dataset ID:
 <br />
-<a href="/view/data/{{{uuid}}}">{{{uuid}}}</a>
+
+Since processing may take a while (a few seconds up to a few minutes), we're going to redirect you to your <a href='/view/index'>dataset index</a>. Please refresh that page when you think processing is done.
+
+<br />
+<br />
+The UUID of the dataset we're processing:
+<br />
+{{{uuid}}}
+
+
 
 
 <script type="text/javascript">
     
-    setTimeout(function(){window.location.replace("/view/data/{{{uuid}}}");}, 2000);
+    setTimeout(function(){window.location.replace("/view/index");}, 2000);
     
 </script>
 

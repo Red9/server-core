@@ -1,5 +1,11 @@
-#!/bin/bash
+#!/usr/bin/screen -S /home/ubuntu/dev-website/server-run.sh /bin/bash
+
+## #!/bin/bash
 cd /home/${USER}/data-processing
+git fetch origin
+git reset --hard origin/master
+
+cd /home/${USER}/downsampler
 git fetch origin
 git reset --hard origin/master
 
