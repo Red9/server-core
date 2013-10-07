@@ -1,23 +1,83 @@
 
-We're Processing! Please wait.
-<br />
-<br />
+<style>
+    #processing_notes {
+        color: #DDD;
+        background: #222;
+        padding: 4px 6px;
+        border: 1px #222 solid;
+        font-family: Consolas, sans-serif;
+        font-size: 13px;
+    }
+    #processing_notes #processing_note {
+        margin: 0;
+        padding: 3px 6px;
+    }
+    #processing_notes #processing_note:nth-child(odd) {
+        background: #333;
+    }
+    #processing_notes {
+        max-height: 600px;
+        overflow: scroll;
+        padding: 0;
+    }
 
-Since processing may take a while (a few seconds up to a few minutes), we're going to redirect you to your <a href='/view/index'>dataset index</a>. Please refresh that page when you think processing is done.
+</style>
+
+<div>
+    <p>We're Processing! Please wait.</p>
+
+    <p>Since processing may take a while (a few seconds up to a few minutes), you can go to your <a href='/view/index'>dataset index</a> to view previously uploaded data. Please refresh that page when you think processing is done.</p>
+
+    <p>Otherwise, hang around and watch the processing magic:</p>
+</div>
+
+<div id="processing_notes">    
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var socket = io.connect();
+    socket.emit('page_uuid', {page_uuid: '{{page_uuid}}'});
+    jQuery(function($) {
+        var processing_notes = $('#processing_notes');
+        socket.on('note', function(data) {
+            processing_notes.append('<p class="#processing_note">' + data.text + '</p>');
+
+            $('#processing_notes').stop().animate({
+                scrollTop: $("#processing_notes")[0].scrollHeight
+            }, 800);
+
+
+            //var objDiv = document.getElementById('processing_notes');
+            //objDiv.scrollTop = objDiv.scrollHeight;
+        });
+        socket.on('done_processing', function(data) {
+            console.log("Done processing. Redirecting now...");
+            window.location.replace("/view/data/{{{uuid}}}");
+        });
+    });
+</script>
+
+<!-- Source: http://stackoverflow.com/questions/5517597/plain-count-up-timer-in-javascript -->
+<h5>Processing Duration: <b id="minutes">00</b>:<b id="seconds">00</b></h5>
+<script type="text/javascript">
+    var sec = 0;
+    function pad(val) {
+        return val > 9 ? val : "0" + val;
+    }
+    setInterval(function() {
+        $("#seconds").html(pad(++sec % 60));
+        $("#minutes").html(pad(parseInt(sec / 60, 10)));
+    }, 1000);
+</script>
+
+
 
 <br />
 <br />
-The UUID of the dataset we're processing:
+Just FYI, the UUID of the dataset we're processing:
 <br />
 {{{uuid}}}
 
-
-
-
-<script type="text/javascript">
-    
-    setTimeout(function(){window.location.replace("/view/index");}, 2000);
-    
-</script>
 
 

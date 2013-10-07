@@ -27,9 +27,6 @@ src="/js/dygraph-combined.js"></script>
         t.init();
         graphs.push(t);
 
-
-
-
         var gyro_config = {
             $graphCont: $("#graph_gyro"),
             uuid: "{{{id}}}",
@@ -70,20 +67,15 @@ src="/js/dygraph-combined.js"></script>
         t.init();
         graphs.push(t);
 
-
-        //var socket = io.connect();
-
-
-
-        
         var counter = 0;
         $("#delete").click(function() {
-            counter ++;
-            if(counter === 0){
+
+            if (counter === 0) {
                 alert("No.");
-            }else{
-                alert("I thought I said no...");
+            } else {
+                alert("I thought I said No.");
             }
+            counter++;
         });
 
     });
@@ -133,6 +125,23 @@ src="/js/dygraph-combined.js"></script>
         <td><b>Description</b></td>
         <td>{{{description}}}</td>
     </tr>
+    <tr>
+        <td><b>Submitted Filename</b></td>
+        <td>{{{filename}}}</td>
+    </tr>
+    <tr>
+        <td><b>Number of Rows</b></td>
+        <td>{{{number_rows}}}</td>
+    </tr>
+    
+    <tr>
+        <td><b>SCAD Unit</b></td>
+        <td>{{{scad_unit}}}</td>
+    </tr>
+    
+    
+    
+    
 </table>
 
 <h3>Management:</h3>
@@ -155,61 +164,83 @@ src="/js/dygraph-combined.js"></script>
 <div class="container-fluid">
 
     <div class="row-fluid">
-        <div id="graph_accl" class="span5 offset1"
-             style="height:350px;"></div>
-        <div id="graph_gyro" class="span5"
-             style="height:350px;"></div>
+
+        <div  class="span5 offset1">
+            <h3>Accelerometer</h3>    
+
+            <div id="graph_accl"
+                 style="height:350px;"></div>
+        </div>
+        <div class ="span5">
+            <h3>Gyroscope</h3>
+            <div id="graph_gyro"
+                 style="height:350px;"></div>
+        </div>
     </div>
 
     <br />
     <br />
 
     <div class="row-fluid">
-        <div id="graph_magn" class="span5 offset1"
-             style="height:350px;"></div>
-        <div id="graph_baro" class="span5"
-             style="height:350px;"></div>
+        <div  class="span5 offset1">
+            <h3>Magnetometer</h3>
+            <div id="graph_magn"
+                 style="height:350px;"></div>
+        </div>
+        <div  class="span5">
+            <h3>Barometer</h3>
+            <div id="graph_baro"
+                 style="height:350px;"></div>
+        </div>
     </div>
 
     <br />
     <br />
 
     <div class="row-fluid">
-        <div id="graph_temp" class="span10 offset1"
-             style="height:350px;"></div>
+        <div class="span10 offset1">
+            <h3>Thermometer</h3>    
+
+            <div id="graph_temp"
+                 style="height:350px;"></div>
+        </div>
     </div>
 
 
 
 </div>
+
+<br />
+
 <div class="container">
+    
 
     <h2>Meta:</h2>
     <pre><code>
 {{{metadata}}}
-    </pre></code>
-
-<h2>Processing Notes:</h2>
-<pre><code>
-{{{processing_stdout}}}
-</pre></code>
-
-
-<h2>Errors:</h2>
-<pre><code>
-{{{processing_stderr}}}
 </code></pre>
 
-<h2>Processing Configuration:</h2>
-<pre><code>
+    <h2>Processing Notes:</h2>
+    <pre><code>
+{{{processing_notes}}}
+</code></pre>
+
+
+    <h2>Processing Statistics:</h2>
+    <pre><code>
+{{{processing_statistics}}}
+</code></pre>
+
+    <h2>Processing Configuration:</h2>
+    <pre><code>
 {{{processing_config}}}
 </code>
-</pre>
+    </pre>
 
-<br />
-<br />
-<b>Dataset UUID: </b> {{id}} <br/>
-<b>Raw Data UUID: </b> {{data}} <br/>
+    <br />
+    <br />
+    <b>Dataset UUID: </b> {{id}} <br/>
+    <b>Raw Data UUID: </b> {{data}} <br/>
 
 
 

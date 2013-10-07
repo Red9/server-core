@@ -5,8 +5,19 @@ var hosts = ['localhost:9042'];
 var database = new Client({hosts: hosts, keyspace: 'dev'});
 
 var dataset_schema = ['id', 'data', 'name', 'submit_date', 'submit_user',
-    'start_time', 'end_time', 'processing_config', 'processing_stdout',
-    'processing_stderr', 'metadata', 'video', 'event_type', 'description'];
+    'start_time', 'end_time', 'processing_config', 'processing_notes',
+    'processing_statistics', 'metadata', 'video', 'event_type', 'description',
+    'number_rows', 'filename', 'release_level', 'scad_unit', 'column_titles', 'fuel'];
+
+
+var raw_data_column_titles = [
+    'accl_x', 'accl_y', 'accl_z',
+    'gyro_x', 'gyro_y', 'gyro_z',
+    'magn_x', 'magn_y', 'magn_z',
+    'baro', 'temp',
+    'lat', 'long', 'alt', 'speed', 'hdop',
+    'quat_w', 'quat_x', 'quat_y', 'quat_z'
+];
 
 var log = require('./logger').log;
 
@@ -26,6 +37,9 @@ exports.GenerateUUID = function() {
 };
 
 
+exports.getDefaultRawDataColumnTitles = function() {
+    return raw_data_column_titles;
+};
 
 exports.GetDisplayName = function(uuid, callback) {
     database.execute("SELECT display_name FROM users WHERE id=?", [uuid], function(err, response) {
@@ -144,7 +158,7 @@ exports.GetDataset = function(dataset_uuid, callback) {
 /** 
  * @param {type} dataset_uuid
  * @param {type} callback(dataset_json)
-     same as GetDataset, but will:
+ same as GetDataset, but will:
  *  1. Format the dates and times as UTC string
  *  2. Replace submit_user with submit_user:{id:"",display_name:""}
  *  
@@ -164,7 +178,7 @@ exports.GetDatasetFormatted = function(dataset_uuid, callback) {
                 };
                 callback(content);
             });
-        }else {
+        } else {
             callback(content);
         }
     });

@@ -16,15 +16,18 @@ CREATE TABLE dataset (
 	start_time timestamp,
 	end_time timestamp,
 	processing_config varchar,
-	processing_stdout varchar,
-	processing_stderr varchar,
+	processing_notes varchar,
+	processing_statistics varchar,
 	metadata varchar,
 	video list<varchar>,
 	event_type varchar,
 	description varchar,
-	number_points int,
+	number_rows int,
 	filename varchar,
 	release_level varchar,
+	scad_unit varchar,
+	column_titles list<varchar>,
+	fuel list<float>,
 	PRIMARY KEY (id)
 );
 CREATE TABLE users (

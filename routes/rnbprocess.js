@@ -2,9 +2,17 @@ var spawn = require('child_process').spawn;
 var exec = require('child_process').exec;
 
 var fs = require('fs');
-var lazy = require('lazy');
 
-database = require('./../support/database').database;
+var database = require('./../support/database');
+var database2 = require('./../support/database').database;
+
+var log = require('./../support/logger').log;
+
+
+var page_uuid_list = {};
+
+
+
 
 
 /**
@@ -25,53 +33,14 @@ function guid() {
 
 var database_error_callback = function(err) {
     if (err) {
-        console.log(err);
+        log.err(err);
     }
 };
-
-// 135769
-
-function StoreFileInDatabase(my_uuid, panel_filename, callback) {
-    var firstLine = true;
-
-    var start_time, end_time;
-
-    var lineNumber = 0;
-    new lazy(fs.createReadStream(panel_filename)).lines.map(String).forEach(function(line) {
-        lineNumber++;
-
-        var columns = line.split(",");
-        if (firstLine === false) {
-            var time = new Date(parseFloat(columns[0]));
-
-            if (typeof start_time === "undefined") {
-                start_time = time;
-            }
-            end_time = time;
-
-            var data = [];
-
-            for (var i = 1; i < columns.length; i++) {
-                data[i - 1] = {hint:'float', value:parseFloat(columns[i])};
-            }
-
-            
-
-            database.execute("INSERT INTO raw_data(id, time, data) VALUES (?,?,?)",
-                    [my_uuid, {hint:'timestamp', value: time}, {hint:'list', value:data}],
-                    database_error_callback);
-        } else {
-            firstLine = false;
-        }
-    }).join(function() {
-        callback(start_time, end_time);
-    });
-}
 
 function GetMetadata(meta_filename, callback) {
     fs.readFile(meta_filename, function(err, metadata) {
         if (err) {
-            console.log("Error: ", err);
+            log.err("Error: ", err);
         } else {
             callback(metadata);
         }
@@ -79,106 +48,175 @@ function GetMetadata(meta_filename, callback) {
 }
 
 
+function SocketAvailable(page_uuid) {
+    return typeof page_uuid_list[page_uuid] !== "undefined" && page_uuid_list[page_uuid] !== null;
+}
+
+function SendOnSocket(page_uuid, text) {
+    if (SocketAvailable(page_uuid) === true) {
+        page_uuid_list[page_uuid].emit('note', {text: text});
+    }
+}
+
+function SendOnSocketDone(page_uuid) {
+    if (SocketAvailable(page_uuid) === true) {
+        console.log("Done processing. Redirecting now...");
+        page_uuid_list[page_uuid].emit('done_processing', {});
+    } else {
+        console.log("Could not find a socket to emit redirection...");
+    }
+
+    delete page_uuid_list[page_uuid];
+}
+
+exports.NewSocket = function(new_socket, socket_page_uuid) {
+    log.info("Does rnbprocess have a page_uuid handler?");
+    if (typeof page_uuid_list[socket_page_uuid] !== "undefined") {
+        log.info("Yes!");
+        page_uuid_list[socket_page_uuid] = new_socket;
+        SendOnSocket(socket_page_uuid, "found handler!");
+    }
+};
+
+
 exports.post = function(req, res) {
 
+    var page_uuid = guid();
+    page_uuid_list[page_uuid] = null;
 
-/*
-    var output_elements = "";
-    if (req.body.outputelement_accl !== undefined) {
-        output_elements += "A";
-    }
-    if (req.body.outputelement_gyro !== undefined) {
-        output_elements += "G";
-    }
-    if (req.body.outputelement_magn !== undefined) {
-        output_elements += "M";
-    }
-    if (req.body.outputelement_fuel !== undefined) {
-        output_elements += "F";
-    }
-    if (req.body.outputelement_gps !== undefined) {
-        output_elements += "P";
-    }
-    if (req.body.outputelement_baro !== undefined) {
-        output_elements += "E";
-    }*/
+    var raw_data_uuid = guid();
+    var dataset_uuid = guid();
+    var start_time;
+    var end_time;
+    var row_count;
+    var scad_unit = "unknown";
 
     var filename = req.files.rnbfile.name.split(".")[0];
+    var filename_with_extension = req.files.rnbfile.name;
 
-    var panel_filename = '/tmp/rnb2rnt/' + filename + '-panel.txt';
     var meta_filename = '/tmp/rnb2rnt/' + filename + '-meta.txt';
 
     var parameters = [];
     parameters.push('-jar');
-    parameters.push('rnb2rnt.jar');
-    parameters.push('-i');
+    parameters.push('rnb2rnt-server.jar');
+    parameters.push('--nodeaddress');
+    parameters.push('localhost');
+    parameters.push('--input');
     parameters.push(req.files.rnbfile.path);
-    parameters.push('-p');
-    parameters.push(panel_filename);
+    parameters.push('--uuid');
+    parameters.push(raw_data_uuid);
     parameters.push('-m');
-    parameters.push('/tmp/rnb2rnt/' + filename + '-meta.txt');
+    parameters.push(meta_filename);
 
-    console.log("crossSection: ", parseInt(req.body.crosssectionfrequency));
 
-   /* if (output_elements !== "") {
-        parameters.push('-e');
-        parameters.push(output_elements);
-        parameters.push('-o');
-        parameters.push('/tmp/rnb2rnt/' + filename + '-element.txt');
-    }*/
+    var command = "java";
+    for (var i = 0; i < parameters.length; i++) {
+        command += " " + parameters[i];
+    }
+    log.info("Command: '" + command + "'");
 
-    var raw_data_uuid = guid();
-    var dataset_uuid = guid();
+    //TODO(SRLM): Add crossSection parameter and configuration parameter
 
-    console.log("Starting to Convert " + filename);
+
+
+    log.info("Starting to Convert " + filename);
     exec("mkdir -p /tmp/rnb2rnt; rm -f /tmp/rnb2rnt/" + filename + "*", function(rm_err, rm_stdout, rm_stderr) {
-        var process = spawn('java', parameters);
-        process.stdout.setEncoding('utf8');
-        process.stderr.setEncoding('utf8');
+        var rnb2rnt = spawn('java', parameters);
+        rnb2rnt.stdout.setEncoding('utf8');
+        rnb2rnt.stderr.setEncoding('utf8');
 
-        process.on('exit', function(code, signal) {
 
-            var result = process.stdout.read();
-            var errors = process.stderr.read();
+        var processing_notes = "";
+
+        rnb2rnt.stderr.on('data', function(data) {
+            processing_notes += data;
+            if (SocketAvailable(page_uuid) === true) {
+                SendOnSocket(page_uuid, data);
+            }
+        });
+
+
+
+        rnb2rnt.on('exit', function(code, signal) {
+
+            var processing_statistics = rnb2rnt.stdout.read();
+
+            //SendOnSocket(page_uuid, rnb2rnt.stderr.read());
+
+
+            var lines = processing_statistics.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                var parts = lines[i].split(':', 2);
+
+                var key = parts[0];
+                var value = parts[1];
+
+                if (key === "row_count") {
+                    row_count = parseInt(value);
+                } else if (key === "start_time") {
+                    start_time = new Date(parseInt(value));
+                } else if (key === "end_time") {
+                    end_time = new Date(parseInt(value));
+                } else if (key === "scad_unit") {
+                    scad_unit = value;
+                } else {
+                    log.warn("Warning: rnb2rnt-server.jar: Could not parse key '" + key + "', value '" + value + "'");
+                }
+
+
+            }
 
             GetMetadata(meta_filename, function(metadata) {
-                StoreFileInDatabase(raw_data_uuid, panel_filename, function(start_time, end_time) {                    
-                    var videos = [];
-                    if(typeof req.body.video_url !== "undefined" && req.body.video_url !== ""){
-                        videos.push(req.body.video_url);
-                    }
-                    
-                    var create_dataset_command = "INSERT INTO dataset(id, data, name, submit_date, submit_user, start_time, end_time, processing_config, processing_stdout, processing_stderr, metadata, video, event_type, description) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-                    var data = [];
-                    data.push(dataset_uuid);
-                    data.push(raw_data_uuid);
-                    data.push(req.body.title);
-                    data.push({hint:'timestamp', value: Date.now()}); //TODO(SRLM): This won't give the submit date/time relative to user!
-                    data.push(req.user.id);
-                    data.push({hint:'timestamp', value: start_time});
-                    data.push({hint:'timestamp', value: end_time});
-                    data.push(req.body.config);
-                    data.push(result);
-                    data.push(errors);
-                    data.push(metadata.toString());
-                    data.push(videos);
-                    data.push(req.body.event_type);
-                    data.push(req.body.description);
-                    
-                    console.log("Getting ready to store dataset...");
+                //StoreFileInDatabase(raw_data_uuid, panel_filename, function(start_time, end_time) {                    
+                var videos = [];
+                if (typeof req.body.video_url !== "undefined" && req.body.video_url !== "") {
+                    videos.push(req.body.video_url);
+                }
 
-                    database.executeAsPrepared(create_dataset_command, data, function(err) {
-                        if (err) {
-                            console.log("Database error: ", err);
-                        } else {
-                            console.log("Done storing " + dataset_uuid + " in database");
-                        }
-                    });
+                var title = req.body.title;
+                if (title === "") {
+                    title = filename;
+                }
+                var create_dataset_command = "INSERT INTO dataset"
+                        + "(id, data, name, submit_date, submit_user, start_time, end_time, processing_config, processing_statistics, processing_notes, metadata, video, event_type, description, filename, number_rows, scad_unit, column_titles)"
+                        + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                var data = [];
+                data.push(dataset_uuid);
+                data.push(raw_data_uuid);
+                data.push(title);
+                data.push({hint: 'timestamp', value: Date.now()}); //TODO(SRLM): This won't give the submit date/time relative to user!
+                data.push(req.user.id);
+                data.push({hint: 'timestamp', value: start_time});
+                data.push({hint: 'timestamp', value: end_time});
+                data.push(req.body.config);
+                data.push(processing_statistics);
+                data.push(processing_notes);
+                data.push(metadata.toString());
+                data.push(videos);
+                data.push(req.body.event_type);
+                data.push(req.body.description);
+                data.push(filename_with_extension);
+                data.push(row_count);
+                data.push(scad_unit);
+                data.push(database.getDefaultRawDataColumnTitles());
+
+                console.log("Getting ready to store dataset...");
+
+                database2.executeAsPrepared(create_dataset_command, data, function(err) {
+                    if (err) {
+                        console.log("Database error: ", err);
+                    } else {
+                        console.log("Done storing " + dataset_uuid + " in database");
+                    }
+                    SendOnSocketDone(page_uuid);
                 });
             });
         });
     });
 
-    res.render("upload_delay", {uuid: dataset_uuid});
+
+
+
+    res.render("upload_delay", {uuid: dataset_uuid, page_uuid: page_uuid});
 
 };

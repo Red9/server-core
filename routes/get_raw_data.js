@@ -40,7 +40,7 @@ exports.get = function(req, res) {
 
     }
 
-    var command = "java -jar downsample.jar";
+    var command = "java -jar downsampler.jar";
     command += " --uuid " + req.params.uuid;
 
     if (typeof req.param('startTime') !== "undefined") {

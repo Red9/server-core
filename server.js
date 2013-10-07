@@ -164,3 +164,24 @@ var server = http.createServer(app);
 server.listen(app.get('port'), function() {
     log.info('Express server listening on port ' + app.get('port'));
 });
+
+
+io = require('socket.io').listen(server);
+
+
+var socket_routes = [];
+socket_routes.push(require('./routes/rnbprocess').NewSocket);
+
+
+io.sockets.on('connection', function(socket) {
+    socket.on('page_uuid', function(data) {
+        var page_uuid = data.page_uuid;
+        log.info("Got new page uuid (" + page_uuid + "). Searching for handler.");
+        var i = 0;
+        while(i < socket_routes.length && socket_routes[i](socket, page_uuid)){
+            i++;
+        }
+    });
+});
+
+
