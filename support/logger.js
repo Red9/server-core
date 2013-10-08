@@ -192,18 +192,24 @@ exports.logger = function(options) {
 
         function logRequestPart(fmt, log, console) {
             var line = fmt(exports, req, res);
-            if (null == line)
+            if (null === line)
                 return;
+
+                var datetime = (new Date()).toLocaleString();
 
             if (req.isAuthenticated()) {
                 var display_name = req.user.display_name;
                 var id = req.user.id;
                 
-                line = "user:'" + display_name + "'(" + id + ") " + line;
-                if(console === true){
+                line = datetime + " user:'" + display_name + "'(" + id + ") " + line;
+                
+            }else{
+                line = datetime + " " + line;
+            }
+            
+            if(console === true){
                     line = '\x1b[90m' + line;
                 }
-            }
 
             var status = res.statusCode;
             if (status >= 500) {

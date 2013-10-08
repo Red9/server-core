@@ -127,12 +127,22 @@ exports.post = function(req, res) {
 
 
         var processing_notes = "";
-
+        var data_to_send = "";
         rnb2rnt.stderr.on('data', function(data) {
             processing_notes += data;
-            if (SocketAvailable(page_uuid) === true) {
-                SendOnSocket(page_uuid, data);
+            data_to_send += data;
+
+            var lines = data_to_send.split("\n");
+            while (lines.length > 1) {
+                var line = lines.shift();
+                if (SocketAvailable(page_uuid) === true) {
+                    SendOnSocket(page_uuid, line);
+                }
             }
+            data_to_send = lines[0];
+
+
+
         });
 
 
