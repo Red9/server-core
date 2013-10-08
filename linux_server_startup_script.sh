@@ -88,7 +88,7 @@ yes | git clone git@bitbucket.org:rednine/downsampler.git
 cd /home/${USER}/
 yes | git clone git@bitbucket.org:rednine/dev-website.git
 cd dev-website
-ln -s /home/${USER}/data-processing/store/rnb2rnt.jar
+ln -s /home/${USER}/data-processing/store/rnb2rnt-server.jar
 ln -s /home/${USER}/downsampler/target/downsampler.jar
 mkdir logs
 ./server_run.sh

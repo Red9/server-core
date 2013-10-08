@@ -29,7 +29,36 @@ column_names["baro"] = column_base + 9;
 column_names["temp"] = column_base + 10;
 
 
+
+var user_requests = {};
+
+function SerializeUserRequests(user_id){
+    if(user_requests[user_id].length === 0){
+        //all done
+        delete user_requests[user_id];
+    }else{
+        var next_request = user_requests[user_id].shift();
+        ProcessRequest(next_request.req, next_request.res, user_id, SerializeUserRequests);
+    }
+}
+
+
 exports.get = function(req, res) {
+    //req.user.id;
+    var user_id = req.user.id;
+    if(typeof user_requests[user_id] === "undefined"){
+        user_requests[user_id] = [];
+        user_requests[user_id].push({req:req,res:res});
+        SerializeUserRequests(user_id);
+    }else{
+        user_requests[user_id].push({req:req,res:res});
+    }
+};
+
+
+
+function ProcessRequest(req, res, user_id, callback){
+    
     var startTime = "undefined";
     var endTime = "undefined";
 //    var numIntervals = Number.MAX_VALUE;
@@ -99,10 +128,7 @@ exports.get = function(req, res) {
             res.write(stdout);
             res.end();
         }
+        callback(user_id);
     });
 
-    
-
-
-};
-
+}

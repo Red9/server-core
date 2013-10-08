@@ -40,6 +40,17 @@ CREATE TABLE users (
 	group varchar
 );
 
+CREATE TABLE raw_data_cache (
+	id uuid,
+	buckets int,
+	start_time timestamp,
+	end_time timestamp,
+	time timestamp,
+	data list<float>,
+	PRIMARY KEY(id,buckets,start_time,end_time,time)
+);
+
+
 // Note that google_id changes with the domain. So, for now, we won't use that to authenticate.
 CREATE INDEX users_email ON users (email);
 CREATE INDEX users_google_id ON users (google_id);
