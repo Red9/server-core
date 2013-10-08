@@ -13,6 +13,7 @@ var bytes = require('bytes');
 
 
 var winston = require('winston');
+var Loggly = require('winston-loggly').Loggly;
 
 /*
  winston.loggers.add('global', {
@@ -39,6 +40,10 @@ var file_t = new (winston.transports.File)({
     filename: 'logs/server.log',
     maxsize: 1024 * 1024/*,
      handleExceptions: true*/});
+var loggly_t = new (winston.transports.Loggly)({
+    subdomain:'rednine',
+    inputToken:'32232891-eb88-4b91-a206-fb7cd33ed747'
+});
 
 winston.loggers.add('console', {
     transports: [
@@ -48,14 +53,16 @@ winston.loggers.add('console', {
 
 winston.loggers.add('full', {
     transports: [
-        file_t
+        file_t,
+        loggly_t
     ]
 });
 
 winston.loggers.add('all', {
     transports: [
         console_t,
-        file_t
+        file_t,
+        loggly_t
     ]
 });
 
@@ -195,21 +202,21 @@ exports.logger = function(options) {
             if (null === line)
                 return;
 
-                var datetime = (new Date()).toLocaleString();
+            var datetime = (new Date()).toLocaleString();
 
             if (req.isAuthenticated()) {
                 var display_name = req.user.display_name;
                 var id = req.user.id;
-                
+
                 line = datetime + " user:'" + display_name + "'(" + id + ") " + line;
-                
-            }else{
+
+            } else {
                 line = datetime + " " + line;
             }
-            
-            if(console === true){
-                    line = '\x1b[90m' + line;
-                }
+
+            if (console === true) {
+                line = '\x1b[90m' + line;
+            }
 
             var status = res.statusCode;
             if (status >= 500) {

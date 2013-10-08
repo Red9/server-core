@@ -2,10 +2,20 @@
 /**
  * Module dependencies.
  */
-require('nodetime').profile({
-    accountKey: 'b0bde370aeb47c1330dbded1c830a5d93be1e5e2',
-    appName: 'Node.js Application'
+var port = process.env.PORT || 8080;
+var stdio = require('stdio');
+var ops = stdio.getopt({
+    'realm': {key: 'r', args: 1, description: "The realm for google authentication. Include the full domain."}
 });
+var realm = "http://localhost:" + port;
+if (typeof ops.realm !== "undefined") {
+    realm = ops.realm;
+
+    require('nodetime').profile({
+        accountKey: 'b0bde370aeb47c1330dbded1c830a5d93be1e5e2',
+        appName: 'Dev Website'
+    });
+}
 
 
 
@@ -15,18 +25,9 @@ var request_logger = require('./support/logger').logger;
 log.info("Node.js server started.");
 
 
-var stdio = require('stdio');
-var ops = stdio.getopt({
-    'realm': {key: 'r', args: 1, description: "The realm for google authentication. Include the full domain."}
-});
 
-var port = process.env.PORT || 8080;
 
-var realm = "http://localhost:" + port;
-if (typeof ops.realm !== "undefined") {
-    realm = ops.realm;
 
-}
 
 log.info("Using realm: " + realm);
 
@@ -178,7 +179,7 @@ io.sockets.on('connection', function(socket) {
         var page_uuid = data.page_uuid;
         log.info("Got new page uuid (" + page_uuid + "). Searching for handler.");
         var i = 0;
-        while(i < socket_routes.length && socket_routes[i](socket, page_uuid)){
+        while (i < socket_routes.length && socket_routes[i](socket, page_uuid)) {
             i++;
         }
     });
