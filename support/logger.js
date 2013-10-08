@@ -13,7 +13,8 @@ var bytes = require('bytes');
 
 
 var winston = require('winston');
-var Loggly = require('winston-loggly').Loggly;
+//var Loggly = require('winston-loggly').Loggly;
+var Papertrail = require('winston-papertrail').Papertrail;
 
 /*
  winston.loggers.add('global', {
@@ -40,21 +41,27 @@ var file_t = new (winston.transports.File)({
     filename: 'logs/server.log',
     maxsize: 1024 * 1024/*,
      handleExceptions: true*/});
-var loggly_t = new (winston.transports.Loggly)({
+/*var loggly_t = new (winston.transports.Loggly)({
     subdomain:'rednine',
     inputToken:'32232891-eb88-4b91-a206-fb7cd33ed747'
+});*/
+
+var papertrail_t = new Papertrail({
+    host:'logs.papertrailapp.com',
+    port: 19395,
+    colorize:true
 });
 
-winston.loggers.add('console', {
+winston.loggers.add('color', {
     transports: [
-        console_t
+        console_t,
+        papertrail_t
     ]
 });
 
-winston.loggers.add('full', {
+winston.loggers.add('standard', {
     transports: [
-        file_t,
-        loggly_t
+        file_t
     ]
 });
 
@@ -62,16 +69,16 @@ winston.loggers.add('all', {
     transports: [
         console_t,
         file_t,
-        loggly_t
+        papertrail_t
     ]
 });
 
-var log_console = winston.loggers.get('console');
-var log_full = winston.loggers.get('full');
+var log_color = winston.loggers.get('color');
+var log_standard = winston.loggers.get('standard');
 var log_all = winston.loggers.get('all');
 
 exports.log = log_all;
-exports.console = log_console;
+exports.color = log_color;
 
 /**
  * Logger:
@@ -238,8 +245,8 @@ exports.logger = function(options) {
         function logRequest() {
             res.removeListener('finish', logRequest);
             res.removeListener('close', logRequest);
-            logRequestPart(dev_fmt, log_console, true);
-            logRequestPart(full_fmt, log_full, false);
+            logRequestPart(dev_fmt, log_color, true);
+            logRequestPart(full_fmt, log_standard, false);
         }
         ;
 

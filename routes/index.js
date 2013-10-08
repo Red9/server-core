@@ -50,6 +50,7 @@ module.exports = function(app, passport) {
     app.get('/', IsAuthenticated, require('./dataindex').get);
     app.get('/download/raw_data/:uuid', IsAuthenticated, require('./get_raw_data').get);
 
+    app.get('/monitor', IsAuthenticated, require('./monitoring_tools').get);
 
     
 
