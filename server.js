@@ -160,6 +160,10 @@ if ('development' === app.get('env')) {
 require('./routes')(app, passport);
 
 
+app.use(function(req, res, next) {
+    res.status(404).render('404_error_template', {title: "Sorry, page not found"});
+});
+
 var server = http.createServer(app);
 
 server.listen(app.get('port'), function() {

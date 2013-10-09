@@ -1,0 +1,212 @@
+<form class="form-horizontal">
+    <fieldset>
+
+        <!-- Form Name -->
+        <legend>Download Dataset</legend>
+
+        <!-- Prepended checkbox -->
+        <div class="control-group">
+            <label class="control-label" for="start_time_input">Start Time</label>
+            <div class="controls">
+                <div class="input-prepend">
+                    <span class="add-on">
+                        <label class="checkbox">
+                            <input id="start_time_checkbox" type="checkbox">
+                        </label>
+                    </span>
+                    <input id="start_time_input" name="start_time_checkbox" class="input-xlarge" type="text" placeholder="eg 123456789">
+                </div>
+                <p class="help-block">The start time of the dataset to download. Minimum is <b id="minimum_start_time">[unknown]</b></p>
+            </div>
+        </div>
+
+        <!-- Prepended checkbox -->
+        <div class="control-group">
+            <label class="control-label" for="end_time_input">End Time</label>
+            <div class="controls">
+                <div class="input-prepend">
+                    <span class="add-on">
+                        <label class="checkbox">
+                            <input type="checkbox" id="end_time_checkbox">
+                        </label>
+                    </span>
+                    <input id="end_time_input" name="end_time_checkbox" class="input-xlarge" type="text" placeholder="eg 987654321">
+                </div>
+                <p class="help-block">The end time of the dataset to download. Maximum is <b id="maximum_end_time">[unknown]</b></p>
+            </div>
+        </div>
+
+        <!-- Prepended checkbox -->
+        <div class="control-group">
+            <label class="control-label" for="bucket_input">Bucketize</label>
+            <div class="controls">
+                <div class="input-prepend">
+                    <span class="add-on">
+                        <label class="checkbox">
+                            <input type="checkbox" id="bucket_checkbox">
+                        </label>
+                    </span>
+                    <input id="bucket_input" name="bucket_input" class="input-xlarge" type="text" placeholder="eg 100">
+                </div>
+                <p class="help-block">Choose the number of buckets (output rows) to force the data into.</p>
+            </div>
+        </div>
+
+        <!-- Multiple Checkboxes -->
+        <div class="control-group">
+            <label class="control-label" for="column_checkboxes">Columns</label>
+
+            <div id="column_checkboxes_container" class="controls">
+
+
+
+                <a rel="column_checkboxes_container" href="#select_all">Select All</a>
+                ~ <a rel="column_checkboxes_container" href="#select_none">Select None</a>
+                ~ <a rel="column_checkboxes_container" href="#invert_selection">Invert Selection</a>
+
+
+                {{#each column_titles}}
+                <label class="checkbox" for="column_checkboxes-{{ this }}">
+                    <input type="checkbox" name="column_checkboxes[]" id="column_checkboxes-{{ this }}" value="{{ this }}">
+                    {{ this }}
+                </label>
+                {{else}}
+                <p class="form-control-static">Sorry, no columns. Probably a bug. Please report.</p>
+                {{/each}}
+            </div>
+
+
+        </div>
+
+
+
+        <!-- Button -->
+        <div class="control-group">
+            <label class="control-label" for="download"></label>
+            <div class="controls">
+                <button type="button" id="download" name="download" class="btn btn-default">Download</button>
+            </div>
+        </div>
+
+
+
+
+    </fieldset>
+</form>
+
+
+
+
+<script>
+
+
+    // Select all/none/invert taken from http://www.abeautifulsite.net/blog/2007/12/jquery-checkboxes-select-all-select-none-and-invert-selection/
+    $(document).ready(function() {
+
+        // Select all
+        $("A[href='#select_all']").click(function() {
+            $("#" + $(this).attr('rel') + " INPUT[type='checkbox']").prop('checked', true);
+            return false;
+        });
+
+        // Select none
+        $("A[href='#select_none']").click(function() {
+            $("#" + $(this).attr('rel') + " INPUT[type='checkbox']").prop('checked', false);
+            return false;
+        });
+
+        // Invert selection
+        $("A[href='#invert_selection']").click(function() {
+            $("#" + $(this).attr('rel') + " INPUT[type='checkbox']").each(function() {
+                $(this).prop('checked', !$(this).prop('checked'));
+            });
+            return false;
+        });
+
+    });
+
+
+    function ParseTime(start_time, end_time, user_request) {
+        var milliseconds = parseFloat(user_request);
+        if (isNaN(milliseconds) === true) {
+            milliseconds = Date.parse(user_request);
+        }
+        if (isNaN(milliseconds) === true || milliseconds < start_time || milliseconds > end_time) {
+            return null;
+        } else {
+            return milliseconds;
+        }
+    }
+
+    function ParseBuckets(user_request) {
+
+        console.log("buckets user_request: " + user_request);
+        var buckets = parseInt(user_request);
+        if (isNaN(buckets) === true || buckets < 1) {
+            return 0;
+        } else {
+            return buckets;
+        }
+    }
+
+    var start_time = Date.parse("{{start_time}}");
+    var end_time = Date.parse("{{end_time}}");
+    $('#minimum_start_time').text(start_time);
+    $('#maximum_end_time').text(end_time);
+    $("#download").click(function() {
+        console.log("Button clicked");
+        var raw_data_id = "{{id}}";
+        var user_start_time = start_time;
+        var user_end_time = end_time;
+        if ($("#start_time_checkbox").is(':checked')) {
+            var temp = ParseTime(start_time, end_time, $("#start_time_input").val());
+            if (temp !== null) {
+                user_start_time = temp;
+            } else {
+                alert("Could not parse start time");
+            }
+        }
+
+        if ($("#end_time_checkbox").is(':checked')) {
+            var temp = ParseTime(start_time, end_time, $("#end_time_input").val());
+            if (temp !== null) {
+                user_end_time = temp;
+            } else {
+                alert("Could not parse end time");
+            }
+        }
+
+        var buckets = 0;
+        if ($("#bucket_checkbox").is(":checked")) {
+            buckets = ParseBuckets($("#bucket_input").val());
+            console.log("Buckets: " + buckets);
+        }
+
+        var columns = new Array();
+        $.each($("input[name='column_checkboxes[]']:checked"), function() {
+            columns.push($(this).val());
+        });
+        console.log("Columns: ", columns);
+        if (columns.length < 1) {
+            alert("Error: must select at least one column.");
+        } else {
+
+            var request_url = '/download/raw_data/' + raw_data_id + "?columns=";
+            request_url += columns[0];
+            for (var i = 1; i < columns.length; i++) {
+                request_url += "," + columns[i];
+            }
+
+            request_url += "&start_time=" + user_start_time;
+            request_url += "&end_time=" + user_end_time;
+            if (buckets > 0) {
+                request_url += "&buckets=" + buckets;
+            }
+
+            window.location = request_url;
+        }
+    });
+
+
+
+</script>

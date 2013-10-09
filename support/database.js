@@ -21,6 +21,8 @@ var raw_data_column_titles = [
 
 var log = require('./logger').log;
 
+var async = require('async');
+
 /**
  * Generates a GUID string, according to RFC4122 standards.
  * @returns {String} The generated GUID.
@@ -117,6 +119,43 @@ exports.GetUserByEmail = function(email, callback) {
 };
 
 
+function ExtractDatasetInformation(row) {
+    content = {};
+    for (var i = 0; i < dataset_schema.length; i++) {
+        content[dataset_schema[i]] = row.get(dataset_schema[i]);
+    }
+    return content;
+}
+
+
+exports.GetAllDataset = function(callback) {
+    var database_command = "SELECT * FROM dataset";
+    database.execute(database_command, function(err, result) {
+        var datasets = [];
+        if (err) {
+            log.error("GetAllDataset error: ", err);
+            callback(datasets);
+        } else {
+
+            
+            async.eachLimit(result.rows, 10, function(row, callback){
+                FormatDatasetInformation(ExtractDatasetInformation(row), function(content) {
+                    datasets.push(content);
+                    callback();
+                });
+            }, function(err){
+                if(err){
+                    log.warn("Some sort of error on get all dataset.)");
+                }
+                log.info("Done getting all datasets");
+                callback(datasets);
+            });
+        }
+
+    });
+
+};
+
 /**
  * 
  * @param {type} dataset_uuid
@@ -143,11 +182,7 @@ exports.GetDataset = function(dataset_uuid, callback) {
             if (result.rows.length !== 1) {
                 log.error("Database Error: GetDataset: Incorrect number of results (" + result.rows.length + ") for query! ");
             } else {
-                content = {};
-                for (var i = 0; i < dataset_schema.length; i++) {
-                    content[dataset_schema[i]] = result.rows[0].get(dataset_schema[i]);
-                }
-
+                content = ExtractDatasetInformation(result.rows[0]);
             }
         }
         callback(content);
@@ -155,34 +190,121 @@ exports.GetDataset = function(dataset_uuid, callback) {
 };
 
 
+
+/**
+ * Format a duration in milliseconds to a human readable format, e.g.
+ * "4y 2d 3h 10m 10s 255ms". Negative durations are formatted like "- 8h 30s".
+ * Granularity is always ms.
+ * 
+ * Source: https://gist.github.com/betamos/6306412
+ * 
+ *
+ * @param t Duration in milliseconds
+ * @return A formatted string containing the duration or "" if t=0
+ */
+var readableDuration = (function() {
+ 
+	// Each unit is an object with a suffix s and divisor d
+	var units = [
+		{s: 'ms', d: 1},
+		{s: 's', d: 1000},
+		{s: 'm', d: 60},
+		{s: 'h', d: 60},
+		{s: 'd', d: 24},
+		{s: 'y', d: 365} // final unit
+	];
+ 
+	// Closure function
+	return function(t) {
+		t = parseInt(t); // In order to use modulus
+		var trunc, n = Math.abs(t), i, out = []; // out: list of strings to concat
+		for (i = 0; i < units.length; i++) {
+			n = Math.floor(n / units[i].d); // Total number of this unit
+			// Truncate e.g. 26h to 2h using modulus with next unit divisor
+			trunc = (i+1 < units.length) ? n % units[i+1].d : n; // …if not final unit
+			trunc ? out.unshift(''+ trunc + units[i].s) : null; // Output if non-zero
+		}
+		(t < 0) ? out.unshift('-') : null; // Handle negative durations
+		return out.join(' ');
+	};
+})();
+
+
+/**
+ * 
+ * @param {type} content The dataset to get the user from.
+ * @param {type} callback function(dataset_content)
+ * will:
+ *  1. Format the dates and times as UTC string
+ *  2. Replace submit_user with submit_user:{id:"",display_name:""}
+ *  3. Add field "duration" (difference in time between start and end, formatted in HH:MM:SS.SSSS
+ *  
+ * 
+ * @returns {undefined}
+ */
+function FormatDatasetInformation(content, callback) {
+    if (typeof content !== "undefined") {
+        content['submit_date'] = (new Date(content['submit_date'])).toUTCString();
+        var start_time = (new Date(content['start_time']));
+        var end_time = (new Date(content['end_time']));
+        content['start_time'] = start_time.toUTCString();
+        content['end_time'] = end_time.toUTCString();
+        content['duration'] = readableDuration((end_time.getTime() - start_time.getTime())/1000);
+
+        exports.GetDisplayName(content['submit_user'], function(display_name) {
+            content['submit_user'] = {id: content['submit_user'],
+                display_name: display_name
+            };
+            
+            
+            
+            
+            callback(content);
+        });
+    } else {
+        callback(content);
+    }
+}
+
 /** 
  * @param {type} dataset_uuid
  * @param {type} callback(dataset_json)
- same as GetDataset, but will:
- *  1. Format the dates and times as UTC string
- *  2. Replace submit_user with submit_user:{id:"",display_name:""}
- *  
+ same as GetDataset, but formats the username and dates.
  * 
  */
 exports.GetDatasetFormatted = function(dataset_uuid, callback) {
     exports.GetDataset(dataset_uuid, function(content) {
+        FormatDatasetInformation(content, callback);
+    });
+};
 
-        if (typeof content !== "undefined") {
-            content['submit_date'] = (new Date(content['submit_date'])).toUTCString();
-            content['start_time'] = (new Date(content['start_time'])).toUTCString();
-            content['end_time'] = (new Date(content['end_time'])).toUTCString();
+/**
+ * 
+ * @param {string} dataset_uuid
+ * @param {function} callback parameter of true if sucessfully deleted, false otherwise.
+ * @returns {undefined}
+ */
+exports.DeleteDataset = function(dataset_uuid, callback) {
+    exports.GetDataset(dataset_uuid, function(content) {
 
-            exports.GetDisplayName(content['submit_user'], function(display_name) {
-                content['submit_user'] = {id: content['submit_user'],
-                    display_name: display_name
-                };
-                callback(content);
-            });
+        if (typeof content === "undefined") {
+            callback(false);
         } else {
-            callback(content);
+            var raw_data_uuid = content.data;
+
+            database.execute("DELETE FROM dataset WHERE id=?", [dataset_uuid], function(err1) {
+                database.execute("DELETE FROM raw_data WHERE id=?", [raw_data_uuid], function(err2) {
+                    if (err1 || err2) {
+                        log.error("Error deleting dataset: ", err1, err2);
+                    }
+                    callback(true);
+                });
+            });
+
         }
     });
 };
+
 
 
 exports.database = database;

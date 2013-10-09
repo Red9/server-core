@@ -14,10 +14,16 @@ sudo umount /dev/xvdb
 #sudo mdadm --remove /dev/md0
 #sudo mdadm --zero-superblock /dev/xvdb /dev/xvdc
 
+# m1.large
+#sudo yes | sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/xvdb /dev/xvdc
+#echo 'DEVICE /dev/xvdb /dev/xvdc' | sudo tee -a /etc/mdadm.conf
+#sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf
 
-sudo yes | sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/xvdb /dev/xvdc
-echo 'DEVICE /dev/xvdb /dev/xvdc' | sudo tee -a /etc/mdadm.conf
+# m1.xlarge
+sudo yes | sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde
+echo 'DEVICE /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde' | sudo tee -a /etc/mdadm.conf
 sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf
+
 
 
 

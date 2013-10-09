@@ -66,7 +66,7 @@ function ProcessRequest(req, res, user_id, callback){
     var output_column_indexes = [];
 
     if (typeof req.params.uuid === "undefined") {
-
+        log.error("UUID should not be undefined!");
     }
 
     var command = "java -jar downsampler.jar";

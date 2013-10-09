@@ -4,13 +4,10 @@
 
 <link rel="stylesheet" type="text/css" href="/stylesheets/DT_bootstrap.css">
 
- <!-- DataTables -->
-<script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+<!-- DataTables -->
+<script type="text/javascript" charset="utf-8" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
 
 <script type="text/javascript" charset="utf-8" language="javascript" src="/js/DT_bootstrap.js"></script>
-
-
-<a class="btn btn-primary" href="/upload/rnb">Upload New RNB</a><br /><br />
 
 <h1>{{title}}</h1>
 
@@ -19,6 +16,7 @@
         <thead>
             <tr>
                 <th>Title</th>
+                <th>User</th>
                 <th>Submitted</th>
                 <th>Event Type</th>
                 <th>Duration</th>
@@ -28,12 +26,16 @@
         <tbody>
 
             {{#each datasets}}   
-            <tr>
+            <tr id="dataset_list_row_{{{id}}}">
                 <td>{{{name}}}</td>
+                <td><a href="/user/{{{submit_user.id}}}">{{{submit_user.display_name}}}</a></td>
                 <td>{{{submit_date}}}</td>
                 <td>{{{event_type}}}</td>
                 <td>{{{duration}}}</td>
-                <td><a class="btn btn-mini btn-primary" href="/view/data/{{{id}}}">Go!</a></td>
+
+                <td><a class="btn btn-mini btn-primary" href="/view/data/{{{id}}}">Go!</a>
+                    <a class="btn btn-mini btn-danger" onclick='deleteDataset("{{{id}}}")'>Delete</a>
+                </td>
             </tr>
             {{/each}}
 
@@ -43,11 +45,42 @@
 </div>
 
 
-<script type="text/javascript" charset="utf8">
-    $(document).ready(function() {
-        $('#dataset_list').dataTable({
-            "aaSorting":[[1,"desc"]],
-            "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
-        });
-    });
+<script>
+                        var oTable;
+                        $(document).ready(function() {
+                            oTable = $('#dataset_list').dataTable({
+                                "aaSorting": [[2, "desc"]],
+                                "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+                            });
+                        });
+
+
+                        function deleteDataset(id) {
+
+
+
+                            var row_id = "#dataset_list_row_" + id;
+                            var row = $(row_id);
+                            row.addClass('error');
+
+                            $.get(
+                                    "/delete/" + id,
+                                    function() {
+                                        //var oTable = $('#dataset_list').dataTable();
+                                        //var row = document.getElementById('dataset_list_row_' + id);
+                                        //var row = $("#dataset_list_row_" + id);
+                                        //row.addClass('danger');
+
+                                        row.hide("slow", function() {
+                                            oTable.fnDeleteRow(row[0]);
+                                        });
+
+                                    }
+                            ).fail(function() {
+                                alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
+                            });
+                        }
+
+
+
 </script>

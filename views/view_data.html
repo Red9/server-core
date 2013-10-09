@@ -69,13 +69,14 @@ src="/js/dygraph-combined.js"></script>
 
         var counter = 0;
         $("#delete").click(function() {
-
-            if (counter === 0) {
-                alert("No.");
-            } else {
-                alert("I thought I said No.");
-            }
-            counter++;
+            $.get(
+                    "/delete/{{id}}",
+                    function() {
+                        window.location.replace('/view/index');
+                    }
+            ).fail(function() {
+                alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
+            });
         });
 
     });
@@ -86,7 +87,11 @@ src="/js/dygraph-combined.js"></script>
 <h3> Download:<br />
 
 
-    <a download="{{id}}-panel.csv" href="/download/raw_data/{{id}}">Panel</a></h3>
+    <a download="{{id}}-panel.csv" href="/download/raw_data/{{id}}">Panel</a>
+    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+    <a href="/download/raw_data/{{id}}/form">Custom</a>
+
+</h3>
 <h5> <a download="{{id}}-accl.csv" target="_blank" href="/download/raw_data/{{id}}?columns=accl_x,accl_y,accl_z">Accelerometer</a>
     ~ <a download="{{id}}-gyro.csv" target="_blank" href="/download/raw_data/{{id}}?columns=gyro_x,gyro_y,gyro_z">Gyroscope</a>
     ~ <a download="{{id}}-magn.csv" target="_blank" href="/download/raw_data/{{id}}?columns=magn_x,magn_y,magn_z">Magnetometer</a>
@@ -133,14 +138,14 @@ src="/js/dygraph-combined.js"></script>
         <td><b>Number of Rows</b></td>
         <td>{{{number_rows}}}</td>
     </tr>
-    
+
     <tr>
         <td><b>SCAD Unit</b></td>
         <td>{{{scad_unit}}}</td>
     </tr>
-    
-    
-    
+
+
+
 </table>
 
 <h3>Management:</h3>
@@ -212,7 +217,7 @@ src="/js/dygraph-combined.js"></script>
 <br />
 
 <div class="container">
-    
+
 
     <h2>Meta:</h2>
     <pre><code>
