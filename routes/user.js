@@ -4,5 +4,5 @@
  */
 
 exports.get = function(req, res){
-  res.send("respond with a resource");
+  res.send("Here be User Page");
 };

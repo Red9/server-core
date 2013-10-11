@@ -9,7 +9,7 @@ var lazy = require('lazy');
 
 var log = require('./../support/logger').log;
 
-var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 
 
 var database = require('./../support/database').database;
@@ -27,16 +27,28 @@ column_names["magn_y"] = column_base + 7;
 column_names["magn_z"] = column_base + 8;
 column_names["baro"] = column_base + 9;
 column_names["temp"] = column_base + 10;
+column_names["lat"] = column_base + 11;
+column_names["long"] = column_base + 12;
+column_names["alt"] = column_base + 13;
+column_names["speed"] = column_base + 14;
+column_names["hdop"] = column_base + 15;
+column_names["quat_w"] = column_base + 16;
+column_names["quat_x"] = column_base + 17;
+column_names["quat_y"] = column_base + 18;
+column_names["quat_z"] = column_base + 19;
+
+
+
 
 
 
 var user_requests = {};
 
-function SerializeUserRequests(user_id){
-    if(user_requests[user_id].length === 0){
+function SerializeUserRequests(user_id) {
+    if (user_requests[user_id].length === 0) {
         //all done
         delete user_requests[user_id];
-    }else{
+    } else {
         var next_request = user_requests[user_id].shift();
         ProcessRequest(next_request.req, next_request.res, user_id, SerializeUserRequests);
     }
@@ -46,48 +58,70 @@ function SerializeUserRequests(user_id){
 exports.get = function(req, res) {
     //req.user.id;
     var user_id = req.user.id;
-    if(typeof user_requests[user_id] === "undefined"){
+    if (typeof user_requests[user_id] === "undefined") {
         user_requests[user_id] = [];
-        user_requests[user_id].push({req:req,res:res});
+        user_requests[user_id].push({req: req, res: res});
         SerializeUserRequests(user_id);
-    }else{
-        user_requests[user_id].push({req:req,res:res});
+    } else {
+        user_requests[user_id].push({req: req, res: res});
     }
 };
 
 
 
-function ProcessRequest(req, res, user_id, callback){
-    
-    var startTime = "undefined";
-    var endTime = "undefined";
-//    var numIntervals = Number.MAX_VALUE;
+function ProcessRequest(req, res, user_id, callback) {
 
-    var output_column_indexes = [];
+
+    var parameters = [];
+    parameters.push('-jar');
+    parameters.push('downsampler.jar');
+    parameters.push('--uuid');
+    parameters.push(req.params.uuid);
+    
+    //var startTime = "undefined";
+    //var endTime = "undefined";
+
+    //var output_column_indexes = [];
 
     if (typeof req.params.uuid === "undefined") {
         log.error("UUID should not be undefined!");
     }
+    
+    
 
-    var command = "java -jar downsampler.jar";
-    command += " --uuid " + req.params.uuid;
+    //var command = "java -jar downsampler.jar";
+    //command += " --uuid " + req.params.uuid;
+    
 
     if (typeof req.param('startTime') !== "undefined") {
         var start_time = new Date(Math.floor(parseFloat(req.param('startTime'))));
-        command += " --start_time " + start_time.getTime();
+        parameters.push('--start_time');
+        parameters.push(start_time.getTime());
+        
+        //command += " --start_time " + start_time.getTime();
     }
 
     if (typeof req.param('endTime') !== "undefined") {
         var end_time = new Date(Math.ceil(parseFloat(req.param('endTime'))));
-        command += " --end_time " + end_time.getTime();
+        parameters.push('--end_time');
+        parameters.push(end_time.getTime());
+        //command += " --end_time " + end_time.getTime();
     }
 
 
     if (typeof req.param('buckets') !== "undefined") {
         var buckets = parseInt(req.param('buckets'));
-        command += " --buckets " + buckets;
+        parameters.push('--buckets');
+        parameters.push(buckets);
+        //command += " --buckets " + buckets;
+    }
+    
+    if(typeof req.param('columns') !== "undefined"){
+        parameters.push('--columns');
+        parameters.push(req.param('columns'));
     }
 
+/*
     if (typeof req.param('columns') !== "undefined") {
         var requested_columns = req.param('columns').split(",");
 
@@ -115,20 +149,44 @@ function ProcessRequest(req, res, user_id, callback){
         }
 
 
-    }
+    }*/
     
-    log.info("Downsample command: '" + command + "'");
     
-    exec(command, function(err, stdout, stderr){
-        if(typeof err !== "undefined" && err !== null){
-            log.warn("Downsampling error: ", err);
-            log.warn("    ---: ", stderr);
-            res.end();
-        }else{
-            res.write(stdout);
-            res.end();
+    log.info("Downsample command: '" + parameters + "'");
+    
+    var downsampler = spawn("java", parameters);
+    var errors = "";
+    downsampler.stdout.on('data', function(data){
+        console.log("downsampling data!");
+        res.write(data);
+    });
+    downsampler.stderr.on('data', function(data){
+        errors += data;
+    });
+    
+    downsampler.on('close', function(code){
+        res.end();
+        
+        if(errors !== ""){
+            log.Warn("Downsampling error for parameters '" + parameters + "': '" + errors + "'");
         }
+        
         callback(user_id);
     });
 
+//    
+/*
+    exec(command, function(err, stdout, stderr) {
+        /*if (typeof err !== "undefined" && err !== null) {
+            var error = "Downsampling error (err):'" + err + "'";
+            error += "\nstderr ---: '" + stderr + "'";
+            log.warn(error);
+            res.send(error);
+        } else {
+            res.write(stdout);
+            res.end();
+        }*/
+  /*      callback(user_id);
+    });
+*/
 }

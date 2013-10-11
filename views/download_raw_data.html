@@ -1,4 +1,4 @@
-<form class="form-horizontal">
+<form id="download_form" class="form-horizontal">
     <fieldset>
 
         <!-- Form Name -->
@@ -84,7 +84,10 @@
         <div class="control-group">
             <label class="control-label" for="download"></label>
             <div class="controls">
-                <button type="button" id="download" name="download" class="btn btn-default">Download</button>
+                <button type="button" id="generate_download_link_button" name="generate_download_link_button" class="btn btn-default">Generate Link</button>
+                <br />
+                <br />
+                <a download="{{data}}-custom.txt" id="download_button" class="btn btn-large btn-success" href="">Download</a>
             </div>
         </div>
 
@@ -98,10 +101,17 @@
 
 
 <script>
+    
+ 
+
+
+
 
 
     // Select all/none/invert taken from http://www.abeautifulsite.net/blog/2007/12/jquery-checkboxes-select-all-select-none-and-invert-selection/
     $(document).ready(function() {
+        
+        $("#download_button").hide(); 
 
         // Select all
         $("A[href='#select_all']").click(function() {
@@ -153,7 +163,18 @@
     var end_time = Date.parse("{{end_time}}");
     $('#minimum_start_time').text(start_time);
     $('#maximum_end_time').text(end_time);
-    $("#download").click(function() {
+
+    $("#download_button").click(function(){
+        $("#download_button").hide("slow");
+    });
+
+    //$("#download_form :input").change(function() {
+    $("#generate_download_link_button").click(function() {
+
+        console.log("Form changed!");
+
+
+        
         console.log("Button clicked");
         var raw_data_id = "{{id}}";
         var user_start_time = start_time;
@@ -203,10 +224,14 @@
                 request_url += "&buckets=" + buckets;
             }
 
-            window.location = request_url;
-        }
-    });
 
+            //window.location = request_url;
+            $("#download_button").attr("href", request_url);
+            $("#download_button").show('slow'); 
+        }
+        //});
+
+    });
 
 
 </script>

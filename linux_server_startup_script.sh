@@ -20,7 +20,7 @@ sudo umount /dev/xvdb
 #sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf
 
 # m1.xlarge
-sudo yes | sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde
+sudo yes | sudo mdadm --create /dev/md0 --level=1 --raid-devices=4 /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde
 echo 'DEVICE /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde' | sudo tee -a /etc/mdadm.conf
 sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf
 
@@ -36,7 +36,7 @@ sudo -e /etc/apt/sources.list
 sudo add-apt-repository 'deb http://www.apache.org/dist/cassandra/debian 20x main'
 sudo yes | sudo add-apt-repository ppa:chris-lea/node.js
 sudo apt-get update
-sudo yes | sudo apt-get install openjdk-7-jre gcc g++ jsvc cassandra git make ec2-api-tools nodejs maven
+sudo yes | sudo apt-get install openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven
 
 
 cd /home/${USER}/
@@ -54,6 +54,7 @@ echo ""
 echo "Please go to these repositories and add the key that is on the previous lines:"
 echo "https://bitbucket.org/rednine/dev-website/admin/deploy-keys"
 echo "https://bitbucket.org/rednine/data-processing/admin/deploy-keys"
+echo "https://bitbucket.org/rednine/downsampler/admin/deploy-keys"
 
 
 # NOTE: the IP redirection needs to be run on every boot!!!
@@ -85,6 +86,8 @@ sudo chown -R ${USER}:${USER} /ephemeral0
 sudo mkdir /ephemeral0/cassandra
 sudo chown -R cassandra:cassandra /ephemeral0/cassandra
 
+read -p "Press [Enter] key to continue after adding Git keys (see above)"
+
 cd /home/${USER}/
 yes | git clone git@bitbucket.org:rednine/data-processing.git
 
@@ -94,11 +97,14 @@ yes | git clone git@bitbucket.org:rednine/downsampler.git
 cd /home/${USER}/
 yes | git clone git@bitbucket.org:rednine/dev-website.git
 cd dev-website
-ln -s /home/${USER}/data-processing/store/rnb2rnt-server.jar
+ln -s /home/${USER}/data-processing/target/rnb2rnt-server.jar
 ln -s /home/${USER}/downsampler/target/downsampler.jar
+cqlsh -f cassandra_dev_website_create_database.txt
 mkdir logs
-./server_run.sh
+chmod +x /home/${USER}/dev-website/server_run.sh
+/home/${USER}/dev-website/server_run.sh
 
+echo "Don't forget to edit /etc/cassandra/cassandra.yaml for the correct (ephemeral0) directories!"
 
 
 
