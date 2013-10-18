@@ -8,80 +8,69 @@
         <meta name="author" content="">
 
         <script src="/js/jquery-2.0.3.js"></script>
+        <script src="/js/jquery-ui-1.10.3.js"></script>
 
 
-        <!-- Le styles -->
         <link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
         <style>
             body {
                 padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
             }
         </style>
-        <link href="/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 
+        <link href="/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="/stylesheets/jquery-ui-1.10.3.css" rel="stylesheet">
+        
+        <script src="/bootstrap/js/bootstrap.js"></script>
     </head>
 
     <body>
-
         <div class="navbar navbar-inverse navbar-fixed-top">
-            <div class="navbar-inner">
-                <div class="container">
-                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+
+
+
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"> <span class="glyphicon glyphicon-bar"></span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="brand" href="/">rnb2rnt.jar</a>
-                    <div class="nav-collapse collapse">
-                        <ul class="nav">
-                            {{#if user.display_name}}
-                            <li><a href="/upload/rnb">Upload RNB</a></li>
-                            {{/if}}                   
-
-                        </ul>
-                        <ul class="nav pull-right">
-
-                            {{#if user.display_name}}
-
-                            <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.display_name}}<b class="caret"></b></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="/user/{{user.id}}">Profile</a></li>
-                                    <li><a href="/logout">Logout</a></li>
-                                </ul>
-                            </li>
-
-                            {{else}}
-                            <li><a href="/login">Login</a></li>
-                            {{/if}}
-                        </ul>
-                    </div><!--/.nav-collapse -->
+                    <a class="navbar-brand" href="/">rnb2rnt.jar</a>
                 </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">{{#if user.display_name}}
+                        <li><a href="/upload/rnb">Upload RNB</a>
+                        </li>{{/if}}
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">{{#if user.display_name}}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.display_name}}<b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/user/{{user.id}}">Profile</a></li>
+                                <li><a href="/logout">Logout</a></li>
+                            </ul>
+                        </li>
+                        {{else}}<li><a href="/login">Login</a></li>{{/if}}
+                    </ul>
+                </div>
+                <!--/.navbar-collapse -->
+
             </div>
         </div>
-
-        <div class="container">
-
-            {{{body}}}
-
-        </div> <!-- /container -->
-
-
-
-
+        <div class="container">{{{body}}}</div>
+        <!-- /container -->
         <br />
         <br />
         <div class="navbar">
             <div class="navbar-inner">
                 <div class="width-constraint clearfix">
                     <p class="pull-left muted credit">{{site.title}}: {{site.description}}</p>
-
-                    <p class="pull-right muted credit">&copy;2013 RedNine. Designed by <a target="_blank" href="mailto:{{author.email}}">{{author.display_name}}</a></p>
+                    <p class="pull-right muted credit">©2013 RedNine. Designed by <a target="_blank" href="mailto:{{author.email}}">{{author.display_name}}</a> &nbsp;&nbsp;&nbsp;
+                    </p>
                 </div>
             </div>
         </div>
-
         <!-- Placed at the end of the document so the pages load faster -->
-        <script src="/bootstrap/js/bootstrap.js"></script>
     </body>
 </html>

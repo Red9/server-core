@@ -1,8 +1,5 @@
-<script type="text/javascript"
-src="/js/dygraph-combined.js"></script>
-
-
 <script src="/js/dygraph-combined.js"></script>
+<script src="/js/dygraph-extra.js"></script>
 <script src="/js/spin-1.3.0.min.js"></script>
 <script src="/js/moment-2.1.0.min.js"></script>
 
@@ -10,62 +7,124 @@ src="/js/dygraph-combined.js"></script>
 
 <script src="/socket.io/socket.io.js"></script>
 
+<script type="text/javascript"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzYsEDTVazN_ic9SsHVvhcSCLwlLEHd7Q&sensor=true">
+</script>
+
+<style>
+    .modal-dialog-center {
+        margin-top: 30%;
+    }
+</style>
+
 <script>
+
+    var raw_data_id = "{{{id}}}";
+
+    var graph_configurations = [];
+
     var graphs = [];
     var blockRedraw = false;
 
+    function AddPathToMap(map) {
+        $.get("/download/raw_data/{{{id}}}?columns=lat,long&buckets=5000&minmax=false", function(data) {
+
+            var lineCoordinates = [];
+
+            var bounds = new google.maps.LatLngBounds();
+            var lines = data.split("\n");
+            for (var i = 1; i < lines.length; i++) { // start at 1 to throw away header
+                var line = lines[i].split(",");
+                var lat = parseFloat(line[1]);
+                var long = parseFloat(line[2]);
+
+                //console.log("Line: '" + lines[i] + "' (" + lat + "," + long + ")");
+                if (isNaN(lat) === false && isNaN(long) === false) {
+                    var point = new google.maps.LatLng(lat, long);
+                    lineCoordinates.push(point);
+                    bounds.extend(point);
+                }
+            }
+
+            var flightPath = new google.maps.Polyline({
+                path: lineCoordinates,
+                geodesic: true,
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2
+            });
+            flightPath.setMap(map);
+            map.fitBounds(bounds);
+        });
+    }
+    function InitializeGraph(i) {
+
+        var config = graph_configurations[i];
+        config["uuid"] = "{{{id}}}";
+        var t = new SRLM.DynamicGraph(config);
+        t.init();
+        graphs.push(t);
+        
+        $("#" + config["img_button"]).click(function() {
+            var requestURL = Dygraph.Export.asCanvas(t.getGraph()).toDataURL();
+            $("#" + config["img_button"]).attr("href", requestURL);
+        });
+
+        $("#" + config["download_button"]).click(function() {
+            var range = t.getGraph().xAxisRange();
+            var min_x = range[0];
+            var max_x = range[1];
+
+
+            var request_url = '/download/raw_data/' + raw_data_id + "?columns=" + config["axes"];
+            request_url += "&startTime=" + min_x;
+            request_url += "&endTime=" + max_x;
+            request_url += "&minmax=false";
+
+            $("#" + config["download_button"]).attr("href", request_url);
+
+        });
+
+        $("#" + config["custom_button"]).click(function() {
+            var range = t.getGraph().xAxisRange();
+            var min_x = range[0];
+            var max_x = range[1];
+
+            var request_url = '/download/raw_data/' + raw_data_id + '/form?columns=' + config["axes"];
+            ;
+            request_url += "&startTime=" + min_x;
+            request_url += "&endTime=" + max_x;
+
+
+            $("#" + config["custom_button"]).attr("href", request_url);
+        });
+
+        $("#" + config["toggle_display_button"]).click(function() {
+            $("#" + config["section_div"]).toggle("slow");
+            $("#" + config["toggle_display_icon"]).toggleClass("glyphicon-resize-full .glyphicon-remove")
+                    //toggleClass("", 200);
+        });
+
+
+
+
+    }
+
 
     $(document).ready(function() {
-        var t;
 
-        var accl_config = {
-            $graphCont: $("#graph_accl"),
-            uuid: "{{{id}}}",
-            axes: "accl_x,accl_y,accl_z"
+        var mapOptions = {
+            zoom: 3,
+            center: new google.maps.LatLng(42.228147, -103.541772),
+            mapTypeId: google.maps.MapTypeId.SATELLITE
         };
-        t = new SRLM.DynamicGraph(accl_config);
-        t.init();
-        graphs.push(t);
 
-        var gyro_config = {
-            $graphCont: $("#graph_gyro"),
-            uuid: "{{{id}}}",
-            axes: "gyro_x,gyro_y,gyro_z"
-        };
-        //(new SRLM.DynamicGraph(gyro_config)).init();
-        t = new SRLM.DynamicGraph(gyro_config);
-        t.init();
-        graphs.push(t);
+        var map = new google.maps.Map(document.getElementById('map-canvas'),
+                mapOptions);
 
-        var magn_config = {
-            $graphCont: $("#graph_magn"),
-            uuid: "{{{id}}}",
-            axes: "magn_x,magn_y,magn_z"
-        };
-        //(new SRLM.DynamicGraph(magn_config)).init();
-        t = new SRLM.DynamicGraph(magn_config);
-        t.init();
-        graphs.push(t);
-
-        var baro_config = {
-            $graphCont: $("#graph_baro"),
-            uuid: "{{{id}}}",
-            axes: "baro"
-        };
-        //(new SRLM.DynamicGraph(baro_config)).init();
-        t = new SRLM.DynamicGraph(baro_config);
-        t.init();
-        graphs.push(t);
-
-        var temp_config = {
-            $graphCont: $("#graph_temp"),
-            uuid: "{{{id}}}",
-            axes: "temp"
-        };
-        //(new SRLM.DynamicGraph(temp_config)).init();
-        t = new SRLM.DynamicGraph(temp_config);
-        t.init();
-        graphs.push(t);
+        for (var j = 0; j < graph_configurations.length; j++) {
+            InitializeGraph(j);
+        }
 
         var counter = 0;
         $("#delete").click(function() {
@@ -79,172 +138,184 @@ src="/js/dygraph-combined.js"></script>
             });
         });
 
+        AddPathToMap(map);
     });
 
 </script>
 
-
-<h3> Download:<br />
-
-
-    <a download="{{id}}-panel.csv" href="/download/raw_data/{{id}}">Panel</a>
-    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
-    <a href="/download/raw_data/{{id}}/form">Custom</a>
-
-</h3>
-<h5> <a download="{{id}}-accl.csv" target="_blank" href="/download/raw_data/{{id}}?columns=accl_x,accl_y,accl_z">Accelerometer</a>
-    ~ <a download="{{id}}-gyro.csv" target="_blank" href="/download/raw_data/{{id}}?columns=gyro_x,gyro_y,gyro_z">Gyroscope</a>
-    ~ <a download="{{id}}-magn.csv" target="_blank" href="/download/raw_data/{{id}}?columns=magn_x,magn_y,magn_z">Magnetometer</a>
-    ~ <a download="{{id}}-baro.csv" target="_blank" href="/download/raw_data/{{id}}?columns=baro">Barometer</a>
-    ~ <a download="{{id}}-temp.csv" target="_blank" href="/download/raw_data/{{id}}?columns=temp">Temperature</a>
-</h5>
-<br />
+<!-- /.modal -->
 
 <h3>Dataset Info:</h3>
-<table cellpadding="3" cellspacing="3" class="table table-striped" >
+<table cellpadding="3" cellspacing="3" class="table table-striped">
     <tr>
-        <td><b>Dataset Title</b></td>
+        <td><b>Dataset Title</b>
+        </td>
         <td>{{{name}}}</td>
     </tr>
     <tr>
-        <td><b>Submit Date</b></td>
+        <td><b>Submit Date</b>
+        </td>
         <td>{{{submit_date}}}</td>
     </tr>
     <tr>
-        <td><b>Submit User</b></td>
-        <td><a href="/user/{{submit_user.id}}">{{{submit_user.display_name}}}</a></td>
+        <td><b>Submit User</b>
+        </td>
+        <td><a href="/user/{{submit_user.id}}">{{{submit_user.display_name}}}</a>
+        </td>
     </tr>
     <tr>
-        <td><b>Start Time</b></td>
+        <td><b>Start Time</b>
+        </td>
         <td>{{{start_time}}}</td>
     </tr>
     <tr>
-        <td><b>End Time</b></td>
+        <td><b>End Time</b>
+        </td>
         <td>{{{end_time}}}</td>
     </tr>
     <tr>
-        <td><b>Event Type</b></td>
+        <td><b>Event Type</b>
+        </td>
         <td>{{{event_type}}}</td>
     </tr>
     <tr>
-        <td><b>Description</b></td>
+        <td><b>Description</b>
+        </td>
         <td>{{{description}}}</td>
     </tr>
     <tr>
-        <td><b>Submitted Filename</b></td>
+        <td><b>Submitted Filename</b>
+        </td>
         <td>{{{filename}}}</td>
     </tr>
     <tr>
-        <td><b>Number of Rows</b></td>
+        <td><b>Number of Rows</b>
+        </td>
         <td>{{{number_rows}}}</td>
     </tr>
-
     <tr>
-        <td><b>SCAD Unit</b></td>
+        <td><b>SCAD Unit</b>
+        </td>
         <td>{{{scad_unit}}}</td>
     </tr>
-
-
-
 </table>
-
-<h3>Management:</h3>
-<div id="delete">
-    <a class="btn btn-mini btn-danger">Delete</a>
+<div id="delete"> <a class="btn btn-xs btn-danger">Delete Dataset</a>
 </div>
-
-
-
 <br />
-<br />
-
-(<b>zoom</b>: click and drag, <b>pan</b> shift-click and drag, <b>unzoom</b> double-click, <b>lock highlight</b>: click on series)
-<br /><input type="checkbox" id="sync_graph_checkbox" name="sync_graph_checkbox"/> Synchronize Graphs
-<br />
-<br />
+<br />(<b>zoom</b>: click and drag, <b>pan</b> shift-click and drag, <b>unzoom</b> double-click, <b>lock highlight</b>:
+click on series)
 <br />
 
-</div>
-<div class="container-fluid">
-
-    <div class="row-fluid">
-
-        <div  class="span5 offset1">
-            <h3>Accelerometer</h3>    
-
-            <div id="graph_accl"
-                 style="height:350px;"></div>
-        </div>
-        <div class ="span5">
-            <h3>Gyroscope</h3>
-            <div id="graph_gyro"
-                 style="height:350px;"></div>
-        </div>
-    </div>
-
-    <br />
-    <br />
-
-    <div class="row-fluid">
-        <div  class="span5 offset1">
-            <h3>Magnetometer</h3>
-            <div id="graph_magn"
-                 style="height:350px;"></div>
-        </div>
-        <div  class="span5">
-            <h3>Barometer</h3>
-            <div id="graph_baro"
-                 style="height:350px;"></div>
-        </div>
-    </div>
-
-    <br />
-    <br />
-
-    <div class="row-fluid">
-        <div class="span10 offset1">
-            <h3>Thermometer</h3>    
-
-            <div id="graph_temp"
-                 style="height:350px;"></div>
-        </div>
-    </div>
-
-
-
-</div>
-
+<input type="checkbox" id="sync_graph_checkbox" name="sync_graph_checkbox"/>Synchronize Graphs
 <br />
+
 
 <div class="container">
 
+    {{#each column_group}}
 
+    <!-- Modal
+    -->
+    <div class="modal fade" id="graph_{{id}}_menu" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-center">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">{{title}} Graph Actions</h4>
+                </div>
+                <div class="modal-body">
+
+                    <a download="{{columns}}-image.png" id="clip_to_img_{{id}}_button" class="btn btn-default btn-block">Clip to PNG</a>
+                    <a download="{{columns}}-data.txt" id="download_{{id}}_button" class="btn btn-default btn-block">Clip to Download</a>
+                    <a id="download_custom_{{id}}_button" class="btn btn-default btn-block">Clip to Custom Download</a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <!--                    <button type="button" class="btn btn-primary">Save changes</button>-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div class="row">
+        <h3>{{title}}
+            <div class="pull-right">
+                <a data-toggle="modal" href="#graph_{{id}}_menu" class="btn btn-link btn-lg">
+                    <span class="glyphicon glyphicon-export"></span></a>
+                <a id="graph_{{id}}_toggle" class="btn btn-link btn-lg">
+                    <span id="graph_{{id}}_toggle_display_icon" class="glyphicon glyphicon-remove"></span></a>
+            </div>
+        </h3>
+
+        <div id="{{id}}_section"  >
+            <div id="graph_{{id}}" style="height: 300px;"></div>
+        </div>
+        <script>
+            graph_configurations.push({
+                $graphCont: $("#graph_{{id}}"),
+                axes: "{{columns}}",
+                img_button: "clip_to_img_{{id}}_button",
+                download_button: "download_{{id}}_button",
+                custom_button: "download_custom_{{id}}_button",
+                toggle_display_button: "graph_{{id}}_toggle",
+                toggle_display_icon: "graph_{{id}}_toggle_display_icon",
+                section_div: "{{id}}_section"
+            });
+        </script>
+    </div>
+    {{/each}}
+
+
+    <div class="row">
+        <h3>Map</h3>
+        <div id="map-canvas" class="google-maps" style="height: 500px;"></div>
+    </div>
+    <br />
+
+    <h3> Download:
+        <a download="{{id}}-panel.csv" href="/download/raw_data/{{id}}">Complete Panel</a>
+        ~ <a href="/download/raw_data/{{id}}/form">Custom Panel</a>
+    </h3>
+    <h5>Download Sensors: <a download="{{id}}-accl.csv" target="_blank" href="/download/raw_data/{{id}}?columns=accl_x,accl_y,accl_z">Accelerometer</a>
+        ~ <a download="{{id}}-gyro.csv" target="_blank" href="/download/raw_data/{{id}}?columns=gyro_x,gyro_y,gyro_z">Gyroscope</a>
+        ~ <a download="{{id}}-magn.csv" target="_blank" href="/download/raw_data/{{id}}?columns=magn_x,magn_y,magn_z">Magnetometer</a>
+        ~ <a download="{{id}}-baro.csv" target="_blank" href="/download/raw_data/{{id}}?columns=baro">Barometer</a>
+        ~ <a download="{{id}}-temp.csv" target="_blank" href="/download/raw_data/{{id}}?columns=temp">Temperature</a>
+        ~ <a download="{{id}}-gps.csv" target="_blank" href="/download/raw_data/{{id}}?columns=lat,long">GPS</a>
+
+    </h5>
+    <br />
     <h2>Meta:</h2>
     <pre><code>
-{{{metadata}}}
-</code></pre>
 
+{{{metadata}}}
+
+</code></pre>
     <h2>Processing Notes:</h2>
     <pre><code>
+
 {{{processing_notes}}}
+
 </code></pre>
-
-
     <h2>Processing Statistics:</h2>
     <pre><code>
-{{{processing_statistics}}}
-</code></pre>
 
+{{{processing_statistics}}}
+
+</code></pre>
     <h2>Processing Configuration:</h2>
     <pre><code>
+
 {{{processing_config}}}
+
 </code>
+
     </pre>
-
     <br />
+    <br /> <b>Dataset UUID: </b> {{id}}
+    <br /> <b>Raw Data UUID: </b> {{data}}
     <br />
-    <b>Dataset UUID: </b> {{id}} <br/>
-    <b>Raw Data UUID: </b> {{data}} <br/>
-
-
-
+</div>

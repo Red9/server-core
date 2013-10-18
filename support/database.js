@@ -137,14 +137,14 @@ exports.GetAllDataset = function(callback) {
             callback(datasets);
         } else {
 
-            
-            async.eachLimit(result.rows, 10, function(row, callback){
+
+            async.eachLimit(result.rows, 10, function(row, callback) {
                 FormatDatasetInformation(ExtractDatasetInformation(row), function(content) {
                     datasets.push(content);
                     callback();
                 });
-            }, function(err){
-                if(err){
+            }, function(err) {
+                if (err) {
                     log.warn("Some sort of error on get all dataset.)");
                 }
                 log.info("Done getting all datasets");
@@ -203,30 +203,30 @@ exports.GetDataset = function(dataset_uuid, callback) {
  * @return A formatted string containing the duration or "" if t=0
  */
 var readableDuration = (function() {
- 
-	// Each unit is an object with a suffix s and divisor d
-	var units = [
-		{s: 'ms', d: 1},
-		{s: 's', d: 1000},
-		{s: 'm', d: 60},
-		{s: 'h', d: 60},
-		{s: 'd', d: 24},
-		{s: 'y', d: 365} // final unit
-	];
- 
-	// Closure function
-	return function(t) {
-		t = parseInt(t); // In order to use modulus
-		var trunc, n = Math.abs(t), i, out = []; // out: list of strings to concat
-		for (i = 0; i < units.length; i++) {
-			n = Math.floor(n / units[i].d); // Total number of this unit
-			// Truncate e.g. 26h to 2h using modulus with next unit divisor
-			trunc = (i+1 < units.length) ? n % units[i+1].d : n; // …if not final unit
-			trunc ? out.unshift(''+ trunc + units[i].s) : null; // Output if non-zero
-		}
-		(t < 0) ? out.unshift('-') : null; // Handle negative durations
-		return out.join(' ');
-	};
+
+    // Each unit is an object with a suffix s and divisor d
+    var units = [
+        {s: 'ms', d: 1},
+        {s: 's', d: 1000},
+        {s: 'm', d: 60},
+        {s: 'h', d: 60},
+        {s: 'd', d: 24},
+        {s: 'y', d: 365} // final unit
+    ];
+
+    // Closure function
+    return function(t) {
+        t = parseInt(t); // In order to use modulus
+        var trunc, n = Math.abs(t), i, out = []; // out: list of strings to concat
+        for (i = 0; i < units.length; i++) {
+            n = Math.floor(n / units[i].d); // Total number of this unit
+            // Truncate e.g. 26h to 2h using modulus with next unit divisor
+            trunc = (i + 1 < units.length) ? n % units[i + 1].d : n; // …if not final unit
+            trunc ? out.unshift('' + trunc + units[i].s) : null; // Output if non-zero
+        }
+        (t < 0) ? out.unshift('-') : null; // Handle negative durations
+        return out.join(' ');
+    };
 })();
 
 
@@ -249,16 +249,16 @@ function FormatDatasetInformation(content, callback) {
         var end_time = (new Date(content['end_time']));
         content['start_time'] = start_time.toUTCString();
         content['end_time'] = end_time.toUTCString();
-        content['duration'] = readableDuration((end_time.getTime() - start_time.getTime())/1000);
+        content['duration'] = readableDuration((end_time.getTime() - start_time.getTime()) / 1000);
 
         exports.GetDisplayName(content['submit_user'], function(display_name) {
             content['submit_user'] = {id: content['submit_user'],
                 display_name: display_name
             };
-            
-            
-            
-            
+
+
+
+
             callback(content);
         });
     } else {
@@ -304,6 +304,51 @@ exports.DeleteDataset = function(dataset_uuid, callback) {
         }
     });
 };
+
+
+
+/**
+ * 
+ * @param {map} param
+ * @param {function} callback
+ * @returns {undefined}
+ */
+exports.InsertDataset = function(param, callback) {
+    var create_dataset_command = "INSERT INTO dataset"
+            + "(id, data, name, submit_date, submit_user, start_time, end_time, processing_config, processing_statistics, processing_notes, metadata, video, event_type, description, filename, number_rows, scad_unit, column_titles)"
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    var data = [];
+    data.push(param.dataset_uuid);
+    data.push(param.raw_data_uuid);
+    data.push({hint: 'varchar', value:param.title});
+    data.push({hint: 'timestamp', value: param.submit_time}); //TODO(SRLM): This won't give the submit date/time relative to user!
+    data.push({hint: 'uuid', value:param.submit_user});//req.user.id
+    data.push({hint: 'timestamp', value: param.start_time});
+    data.push({hint: 'timestamp', value: param.end_time});
+    data.push(param.processing_config);//req.body.config
+    data.push(param.processing_statistics);
+    data.push(param.processing_notes);
+    data.push(param.metadata); // metadata.toString()
+    data.push(param.videos); // videos
+    data.push(param.type); // req.body.event_type
+    data.push(param.description); // req.body.description
+    data.push(param.filename_with_extension); // filename_with_extension
+    data.push(param.row_count); // row_count
+    data.push(param.scad_unit); // scad_unit
+    data.push(param.column_titles); // database.getDefaultRawDataColumnTitles()
+
+    database.execute(create_dataset_command, data, function(err) {
+        if (err) {
+            log.error("Database error: " + err);
+            callback(err);
+        } else {
+            callback();
+        }
+    });
+
+
+};
+
 
 
 

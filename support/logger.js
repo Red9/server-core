@@ -215,7 +215,7 @@ exports.logger = function(options) {
                 var display_name = req.user.display_name;
                 var id = req.user.id;
 
-                line = datetime + " user:'" + display_name + "'(" + id + ") " + line;
+                line = datetime + " user:+++" + display_name + "+++(" + id + ") " + line;
 
             } else {
                 line = datetime + " " + line;

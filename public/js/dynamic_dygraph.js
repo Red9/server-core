@@ -20,6 +20,8 @@
         this.isRangeSelectorActive = false;
 
     };
+    
+    
 
     /**
      * Starts everything by requesting initial data load. For example's purposes, initial date extents are hardcoded.
@@ -272,6 +274,11 @@
         }
 
     };
+    
+    SRLM.DynamicGraph.prototype.getGraph = function(){
+        //console.log("getGraph! this.graph: '" + this.graph + "'");
+        return this.graph;
+    };
 
     /**
      * Dygraphs zoom callback handler
@@ -331,7 +338,6 @@
      */
     SRLM.DynamicGraph.prototype.showSpinner = function(show) {
         if (show === true) {
-            console.log("Show spinner");
             if (this.spinner == null) {
                 var opts = {
                     lines: 13, // The number of lines to draw

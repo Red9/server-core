@@ -5,71 +5,80 @@
         <legend>Download Dataset</legend>
 
         <!-- Prepended checkbox -->
-        <div class="control-group">
-            <label class="control-label" for="start_time_input">Start Time</label>
-            <div class="controls">
-                <div class="input-prepend">
-                    <span class="add-on">
-                        <label class="checkbox">
-                            <input id="start_time_checkbox" type="checkbox">
-                        </label>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="start_time_input">Start Time</label>
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-addon">
+
+                        <input id="start_time_checkbox" type="checkbox">
+
                     </span>
-                    <input id="start_time_input" name="start_time_checkbox" class="input-xlarge" type="text" placeholder="eg 123456789">
+                    <input id="start_time_input" name="start_time_checkbox" class="form-control" type="text" placeholder="eg 123456789">
                 </div>
                 <p class="help-block">The start time of the dataset to download. Minimum is <b id="minimum_start_time">[unknown]</b></p>
             </div>
         </div>
 
         <!-- Prepended checkbox -->
-        <div class="control-group">
-            <label class="control-label" for="end_time_input">End Time</label>
-            <div class="controls">
-                <div class="input-prepend">
-                    <span class="add-on">
-                        <label class="checkbox">
-                            <input type="checkbox" id="end_time_checkbox">
-                        </label>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="end_time_input">End Time</label>
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        <input type="checkbox" id="end_time_checkbox">
                     </span>
-                    <input id="end_time_input" name="end_time_checkbox" class="input-xlarge" type="text" placeholder="eg 987654321">
+                    <input id="end_time_input" name="end_time_checkbox" class="form-control" type="text" placeholder="eg 987654321">
                 </div>
                 <p class="help-block">The end time of the dataset to download. Maximum is <b id="maximum_end_time">[unknown]</b></p>
             </div>
         </div>
 
         <!-- Prepended checkbox -->
-        <div class="control-group">
-            <label class="control-label" for="bucket_input">Bucketize</label>
-            <div class="controls">
-                <div class="input-prepend">
-                    <span class="add-on">
-                        <label class="checkbox">
-                            <input type="checkbox" id="bucket_checkbox">
-                        </label>
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="bucket_input">Bucketize</label>
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-addon">
+
+                        <input type="checkbox" id="bucket_checkbox">
+
                     </span>
-                    <input id="bucket_input" name="bucket_input" class="input-xlarge" type="text" placeholder="eg 100">
+                    <input id="bucket_input" name="bucket_input" class="form-control" type="text" placeholder="eg 100">
                 </div>
                 <p class="help-block">Choose the number of buckets (output rows) to force the data into.</p>
             </div>
         </div>
 
-        <!-- Multiple Checkboxes -->
-        <div class="control-group">
-            <label class="control-label" for="column_checkboxes">Columns</label>
 
-            <div id="column_checkboxes_container" class="controls">
-
-
-
-                <a rel="column_checkboxes_container" href="#select_all">Select All</a>
-                ~ <a rel="column_checkboxes_container" href="#select_none">Select None</a>
-                ~ <a rel="column_checkboxes_container" href="#invert_selection">Invert Selection</a>
-
-
-                {{#each column_titles}}
-                <label class="checkbox" for="column_checkboxes-{{ this }}">
-                    <input type="checkbox" name="column_checkboxes[]" id="column_checkboxes-{{ this }}" value="{{ this }}">
-                    {{ this }}
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="include_min_max_label">Min/Max</label>
+            <div class="col-lg-8">
+                <label class="checkbox-inline" for="include_min_max_checkbox">
+                    <input type="checkbox" name="include_min_max_label" id="include_min_max_checkbox" value="true" checked>
+                    Include Minimum and Maximum
                 </label>
+            </div>
+        </div>
+
+
+        <!-- Multiple Checkboxes -->
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="column_checkboxes">Columns</label>
+
+            <a rel="column_checkboxes_container" href="#select_all">Select All</a>
+            ~ <a rel="column_checkboxes_container" href="#select_none">Select None</a>
+            ~ <a rel="column_checkboxes_container" href="#invert_selection">Invert Selection</a>
+
+
+            <div id="column_checkboxes_container" class="input-group">
+                {{#each column_titles}}
+                <div class="checkbox col-lg-8">
+                    <label for="column_checkboxes-{{ this }}">
+                        <input type="checkbox" name="column_checkboxes[]" id="column_checkboxes-{{ this }}" value="{{ this }}">
+                        {{ this }}
+                    </label>
+                </div>
                 {{else}}
                 <p class="form-control-static">Sorry, no columns. Probably a bug. Please report.</p>
                 {{/each}}
@@ -80,17 +89,16 @@
 
 
 
+
         <!-- Button -->
-        <div class="control-group">
-            <label class="control-label" for="download"></label>
-            <div class="controls">
-                <button type="button" id="generate_download_link_button" name="generate_download_link_button" class="btn btn-default">Generate Link</button>
-                <br />
-                <br />
-                <a download="{{data}}-custom.txt" id="download_button" class="btn btn-large btn-success" href="">Download</a>
+
+
+        <div class="form-group">
+            <label class="col-md-3 control-label" for="singlebutton"></label>
+            <div class="col-lg-6">
+                <a download="{{data}}-custom.txt" id="download_button" class="col-md-3 btn btn-large btn-default" href="">Download</a>
             </div>
         </div>
-
 
 
 
@@ -101,8 +109,8 @@
 
 
 <script>
-    
- 
+
+
 
 
 
@@ -110,8 +118,6 @@
 
     // Select all/none/invert taken from http://www.abeautifulsite.net/blog/2007/12/jquery-checkboxes-select-all-select-none-and-invert-selection/
     $(document).ready(function() {
-        
-        $("#download_button").hide(); 
 
         // Select all
         $("A[href='#select_all']").click(function() {
@@ -164,17 +170,13 @@
     $('#minimum_start_time').text(start_time);
     $('#maximum_end_time').text(end_time);
 
-    $("#download_button").click(function(){
-        $("#download_button").hide("slow");
-    });
-
-    //$("#download_form :input").change(function() {
-    $("#generate_download_link_button").click(function() {
+    $("#download_button").click(function() {
 
         console.log("Form changed!");
 
+        var include_min_max = $("#include_min_max_checkbox").is(':checked');
 
-        
+
         console.log("Button clicked");
         var raw_data_id = "{{id}}";
         var user_start_time = start_time;
@@ -224,10 +226,11 @@
                 request_url += "&buckets=" + buckets;
             }
 
+            request_url += "&minmax=" + include_min_max.toString();
 
             //window.location = request_url;
             $("#download_button").attr("href", request_url);
-            $("#download_button").show('slow'); 
+            //$("#download_button").show('slow');
         }
         //});
 
