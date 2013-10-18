@@ -13,6 +13,7 @@
 
         this.axes = configuration.axes;
         this.uuid = configuration.uuid;
+        this.buckets = configuration.buckets;
 
         //this.graphDataProvider = new JGS.GraphDataProvider();
         //this.graphDataProvider.newGraphDataCallbacks.add($.proxy(this._onNewGraphData, this));
@@ -152,7 +153,7 @@
         var request = "/download/raw_data/"
                 + this.uuid
                 + "?columns=" + this.axes
-                + "&buckets=400";
+                + "&buckets=" + this.buckets;
 
         if (minX !== null) {
             request += "&startTime=";

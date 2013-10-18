@@ -27,7 +27,7 @@
     var blockRedraw = false;
 
     function AddPathToMap(map) {
-        $.get("/download/raw_data/{{{id}}}?columns=lat,long&buckets=5000&minmax=false", function(data) {
+        $.get("/download/raw_data/{{{id}}}?columns=lat,long&buckets=1000&minmax=false", function(data) {
 
             var lineCoordinates = [];
 
@@ -109,7 +109,8 @@
 
 
     }
-
+    
+    
 
     $(document).ready(function() {
 
@@ -257,6 +258,7 @@ click on series)
             graph_configurations.push({
                 $graphCont: $("#graph_{{id}}"),
                 axes: "{{columns}}",
+                buckets: "1000",
                 img_button: "clip_to_img_{{id}}_button",
                 download_button: "download_{{id}}_button",
                 custom_button: "download_custom_{{id}}_button",
