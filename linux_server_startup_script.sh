@@ -36,7 +36,7 @@ sudo -e /etc/apt/sources.list
 sudo add-apt-repository 'deb http://www.apache.org/dist/cassandra/debian 20x main'
 sudo yes | sudo add-apt-repository ppa:chris-lea/node.js
 sudo apt-get update
-sudo yes | sudo apt-get install openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven
+sudo yes | sudo apt-get install python-software-properties python openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven
 
 
 cd /home/${USER}/

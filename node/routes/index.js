@@ -30,30 +30,19 @@ module.exports = function(app, passport) {
     }));
     
 
-    //app.get('/', require('./login').get);
     app.get('/user/:param', require('./user').get);
-    
-    
-    app.get('/map', function(req, res){
-        res.render('map');
-    });
-    
-    
-    app.get('/ping', IsAuthenticated, require('./ping').get);
-
-
 
     app.get('/upload/rnb', IsAuthenticated, require('./rnbupload').get);
     app.post('/upload/process', IsAuthenticated, require('./rnbprocess').post);
-    app.get('/view/data/:uuid', IsAuthenticated, require('./datadisplay').get);
-    app.get('/view/index', IsAuthenticated, require('./dataindex').get);
-    app.get('/', IsAuthenticated, require('./dataindex').get);
+    app.get('/view/data/:uuid', IsAuthenticated, require('./datasetdisplay').get);
+    app.get('/view/index', IsAuthenticated, require('./datasetindex').get);
+    app.get('/', IsAuthenticated, require('./datasetindex').get);
     
-    app.get('/download/raw_data/:uuid/form', IsAuthenticated, require('./download_raw_data_form').get);
-    app.get('/download/raw_data/:uuid', IsAuthenticated, require('./get_raw_data').get);
-    app.get('/delete/:uuid', IsAuthenticated, require('./delete_dataset').get);
+    app.get('/download/raw_data/:uuid/form', IsAuthenticated, require('./customdownload').get);
+    app.get('/download/raw_data/:uuid', IsAuthenticated, require('./getrawdata').get);
+    app.get('/delete/:uuid', IsAuthenticated, require('./deletedataset').get);
 
-    app.get('/monitor', IsAuthenticated, require('./monitoring_tools').get);
+    app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
 };
 
 

@@ -28,7 +28,7 @@ exports.get = function(req, res) {
         };
 
 
-        res.render('form', parameters);
+        res.render('rnbupload', parameters);
 
     });
 

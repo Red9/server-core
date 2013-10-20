@@ -12,7 +12,7 @@ exports.get = function(req, res){
     database.GetDataset(req.params.uuid, function(content){
         
         
-        res.render("download_raw_data", content);
+        res.render("customdownload", content);
     });
     
     

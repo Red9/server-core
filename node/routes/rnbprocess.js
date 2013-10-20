@@ -234,6 +234,6 @@ exports.post = function(req, res) {
     });
 
 
-    res.render("upload_delay", {uuid: dataset["dataset_uuid"], page_uuid: page_uuid});
+    res.render("rnbprocess", {uuid: dataset["dataset_uuid"], page_uuid: page_uuid});
 
 };
