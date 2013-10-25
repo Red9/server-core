@@ -1,7 +1,8 @@
-
 var database = require('./../support/database');
 
-function GetDefaultColumnGroups(dataset) {
+
+// TODO(SRLM): Make this get/calculate the column groups based on the dataset column schema.
+function GetDefaultColumnGroups() {
     var column_groups = [];
     column_groups.push({title: "Accelerometer", id: "accl", columns: "accl_x,accl_y,accl_z"});
     column_groups.push({title: "Gyroscope", id: "gyro", columns: "gyro_x,gyro_y,gyro_z"});
@@ -14,15 +15,21 @@ function GetDefaultColumnGroups(dataset) {
 }
 
 
-exports.get = function(req, res, next) {
-    database.GetDatasetFormatted(req.params.uuid, function(dataset) {
-        if (typeof dataset === "undefined") {
+exports.get = function(req, res, next){
+    database.GetRow("event", "id", req.params.uuid, function(event){
+        if(typeof event === "undefined"){
             next();
-        } else {
+        }else{
             var content = [];
-            content["title"] = dataset["name"];
-            content["dataset"] = dataset;
-            res.render('datasetdisplay', content);
+            content["title"] = "Event";
+            content["event"] = event;
+            content["column_group"] = GetDefaultColumnGroups();
+            
+            res.render("eventdisplay", content);
+            
         }
     });
+    
 };
+
+

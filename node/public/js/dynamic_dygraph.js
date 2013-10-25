@@ -20,9 +20,12 @@
 
         this.isRangeSelectorActive = false;
 
+        this.initial_start_time = configuration.start_time;
+        this.initial_end_time = configuration.end_time;
+
     };
-    
-    
+
+
 
     /**
      * Starts everything by requesting initial data load. For example's purposes, initial date extents are hardcoded.
@@ -45,7 +48,7 @@
         //detailStartMom.add('day', -120);
 
 
-        this.loadData(null, null);
+        this.loadData(this.initial_start_time, this.initial_end_time);
 
         //this.graphDataProvider.loadData("Series-A", rangeStartMom.toDate(), rangeEndMom.toDate(), detailStartMom.toDate(), detailEndMom.toDate(), this.$graphCont.width());
 
@@ -150,7 +153,7 @@
         this.showSpinner(true);
 
 
-        var request = "/download/raw_data/"
+        var request = "/api/dataset/"
                 + this.uuid
                 + "?columns=" + this.axes
                 + "&buckets=" + this.buckets;
@@ -167,15 +170,20 @@
 
         var self = this;
 
-        $.get(request, function(responseText) {
+
+        /*$.get(request, function(responseText) {
+         self.drawDygraph(responseText);
+         self.showSpinner(false);
+         });*/
+
+        var callback = function(responseText) {
+            console.log("ResponseText");
             self.drawDygraph(responseText);
             self.showSpinner(false);
+        };
+
+        AddToRequestQueue({request: request, callback:callback
         });
-
-
-
-
-
     };
 
     /*
@@ -275,8 +283,8 @@
         }
 
     };
-    
-    SRLM.DynamicGraph.prototype.getGraph = function(){
+
+    SRLM.DynamicGraph.prototype.getGraph = function() {
         //console.log("getGraph! this.graph: '" + this.graph + "'");
         return this.graph;
     };

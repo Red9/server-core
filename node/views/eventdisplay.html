@@ -1,0 +1,296 @@
+<script src="/js/dygraph-combined.js"></script>
+<script src="/js/dygraph-extra.js"></script>
+<script src="/js/spin-1.3.0.min.js"></script>
+<script src="/js/moment-2.1.0.min.js"></script>
+
+<script src="/js/dynamic_dygraph.js"></script>
+
+<script type="text/javascript"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzYsEDTVazN_ic9SsHVvhcSCLwlLEHd7Q&sensor=true&amp;libraries=geometry">
+</script>
+
+<style>
+    .modal-dialog-center {
+        margin-top: 30%;
+    }
+</style>
+
+<script>
+
+    var dataset_id = "{{{event.dataset}}}";
+    var event_id = "{{{event.id}}}";
+
+    var graph_configurations = [];
+
+    var graphs = [];
+    var blockRedraw = false;
+
+    function AddPathToMap(map) {
+        $.get("/api/dataset/" + dataset_id + "?columns=lat,long&buckets=1000&minmax=false", function(data) {
+
+            var lineCoordinates = [];
+
+            var bounds = new google.maps.LatLngBounds();
+            var lines = data.split("\n");
+            for (var i = 1; i < lines.length; i++) { // start at 1 to throw away header
+                var line = lines[i].split(",");
+                var lat = parseFloat(line[1]);
+                var long = parseFloat(line[2]);
+
+                if (isNaN(lat) === false && isNaN(long) === false) {
+                    var point = new google.maps.LatLng(lat, long);
+                    lineCoordinates.push(point);
+                    bounds.extend(point);
+                }
+            }
+
+            // Define a symbol using a predefined path (an arrow)
+            // supplied by the Google Maps JavaScript API.
+            var lineSymbol = {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                scale: 3,
+                strokeOpacity: 0.75,
+                strokeColor: '#FFFFFF'
+            };
+
+            var polyline = new google.maps.Polyline({
+                map: map,
+                path: lineCoordinates,
+                geodesic: true,
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                icons: [{
+                        icon: lineSymbol,
+                        repeat: '10%'
+                    }]
+            });
+
+            polyline.setMap(map);
+            map.fitBounds(bounds);
+        });
+    }
+    function InitializeGraph(index) {
+
+        var config = graph_configurations[index];
+
+        config["start_time"] = Date.parse("{{{event.start_time}}}");
+        config["end_time"] = Date.parse("{{{event.end_time}}}");
+
+
+        config["uuid"] = dataset_id;
+        var t = new SRLM.DynamicGraph(config);
+        t.init();
+        graphs.push(t);
+
+        //Add button listeners
+        config["$img_button"].click(function() {
+            var requestURL = Dygraph.Export.asCanvas(t.getGraph()).toDataURL();
+            config["$img_button"].attr("href", requestURL);
+        });
+
+        config["$download_button"].click(function() {
+            var range = t.getGraph().xAxisRange();
+            var min_x = range[0];
+            var max_x = range[1];
+
+
+            var request_url = '/api/dataset/' + dataset_id + "?columns=" + config["axes"];
+            request_url += "&startTime=" + min_x;
+            request_url += "&endTime=" + max_x;
+            request_url += "&minmax=false";
+
+            config["$download_button"].attr("href", request_url);
+
+        });
+
+        config["$custom_button"].click(function() {
+            var range = t.getGraph().xAxisRange();
+            var min_x = range[0];
+            var max_x = range[1];
+
+            var request_url = '/dataset/' + dataset_id + '/download?columns=' + config["axes"];
+
+            request_url += "&startTime=" + min_x;
+            request_url += "&endTime=" + max_x;
+
+            config["$custom_button"].attr("href", request_url);
+        });
+
+        config["$event_button"].click(function() {
+
+            var range = t.getGraph().xAxisRange();
+            var min_x = range[0];
+            var max_x = range[1];
+
+            var request_url = '/snippet/createeventmodal'
+                    + '?parent=' + event_id
+                    + "&startTime=" + min_x
+                    + "&endTime=" + max_x;
+
+            $("#create_event_modal").load(request_url, function() {
+                $("#new_event_modal").modal('show');
+            });
+        });
+
+
+        config["$toggle_display_button"].click(function() {
+            config["$section_div"].toggle("slow");
+            config["$toggle_display_icon"].toggleClass("glyphicon-resize-full .glyphicon-remove");
+        });
+    }
+
+
+    function sleepFor(sleepDuration) {
+        var now = new Date().getTime();
+        while (new Date().getTime() < now + sleepDuration) { /* do nothing */
+        }
+    }
+
+    var requestQueue = [];
+
+    var ProcessQueue = function() {
+        $.get(requestQueue[0].request, function(data) {
+            callback = requestQueue[0].callback;
+            requestQueue.shift();
+            if (requestQueue.length > 0) {
+                ProcessQueue();
+            }
+            callback(data);
+        });
+    };
+
+    var AddToRequestQueue = function(param) {
+        console.log("Attempting request: '" + param.request + "'");
+
+        requestQueue.push(param);
+        if (requestQueue.length === 1) {
+            ProcessQueue();
+        }
+    };
+
+    $(document).ready(function() {
+        var event_tree_url = "/snippet/eventtree?id=" + event_id;
+        $("#insert_event_tree").load(event_tree_url)
+        
+        
+        
+        
+
+        var mapOptions = {
+            zoom: 3,
+            center: new google.maps.LatLng(42.228147, -103.541772),
+            mapTypeId: google.maps.MapTypeId.SATELLITE
+        };
+
+        var map = new google.maps.Map(document.getElementById('map-canvas'),
+                mapOptions);
+
+        for (var j = 0; j < graph_configurations.length; j++) {
+            InitializeGraph(j);
+        }
+        /*
+         $("#delete").click(function() {
+         $.ajax(
+         "/api/dataset/{{dataset.id}}",
+         {type: "delete"}
+         ).done(function() {
+         window.location.replace('/');
+         }
+         ).fail(function() {
+         alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
+         });
+         });*/
+
+        AddPathToMap(map);
+
+
+
+    });
+
+</script>
+
+<a class="btn btn-sm btn-default" href="/dataset/{{{event.dataset}}}"><span class="glyphicon glyphicon-arrow-left"></span> Dataset</a>
+{{#if event.parent}}
+<a class="btn btn-sm btn-default" href="/event/{{{event.parent}}}"><span class="glyphicon glyphicon-arrow-left"></span> Parent Event</a>
+{{/if}}
+
+<h1>"{{event.type}}" event</h1>
+
+<div id="insert_event_tree"></div>
+
+<div id="create_event_modal">
+    <!--Loaded by jQuery-->
+</div>
+
+<br />
+<br />(<b>zoom</b>: click and drag, <b>pan</b> shift-click and drag, <b>unzoom</b> double-click, <b>lock highlight</b>:
+click on series)
+<br />
+
+<input type="checkbox" id="sync_graph_checkbox" name="sync_graph_checkbox"/>Synchronize Graphs
+<br />
+
+<div class="container">
+    {{#each column_group}}
+    <!-- Clip to "..." Modal -->
+    <div class="modal fade" id="graph_{{id}}_menu" tabindex="-1" role="dialog">
+
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h4 class="modal-title">{{title}} Graph Actions</h4>
+        </div>
+        <div class="modal-body">
+
+            <a download="{{columns}}-image.png" id="clip_to_img_{{id}}_button" class="btn btn-default btn-block">Clip to PNG</a>
+            <a download="{{columns}}-data.txt" id="download_{{id}}_button" class="btn btn-default btn-block">Clip to Download</a>
+            <a id="download_custom_{{id}}_button" class="btn btn-default btn-block">Clip to Custom Download</a>
+            <a id="create_event_{{id}}_button" class="btn btn-default btn-block">Clip to New Event</a>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <!--                    <button type="button" class="btn btn-primary">Save changes</button>-->
+        </div>
+
+    </div>
+
+
+
+
+    <div class="row">
+        <h3>{{title}}
+            <div class="pull-right">
+                <a data-toggle="modal" href="#graph_{{id}}_menu" class="btn btn-link btn-lg">
+                    <span class="glyphicon glyphicon-export"></span></a>
+                <a id="graph_{{id}}_toggle" class="btn btn-link btn-lg">
+                    <span id="graph_{{id}}_toggle_display_icon" class="glyphicon glyphicon-remove"></span></a>
+            </div>
+        </h3>
+
+        <div id="{{id}}_section"  >
+            <div id="graph_{{id}}" style="height: 300px;"></div>
+        </div>
+        <script>
+            graph_configurations.push({
+                axes: "{{columns}}",
+                buckets: "1000",
+                $graphCont: $("#graph_{{id}}"),
+                $img_button: $("#clip_to_img_{{id}}_button"),
+                $download_button: $("#download_{{id}}_button"),
+                $custom_button: $("#download_custom_{{id}}_button"),
+                $toggle_display_button: $("#graph_{{id}}_toggle"),
+                $toggle_display_icon: $("#graph_{{id}}_toggle_display_icon"),
+                $section_div: $("#{{id}}_section"),
+                $event_button: $("#create_event_{{id}}_button"),
+                $clip_modal: $("#graph_{{id}}_menu")
+            });
+        </script>
+    </div>
+    {{/each}}
+
+
+    <div class="row">
+        <h3>Map</h3>
+        <div id="map-canvas" class="google-maps" style="height: 500px;"></div>
+    </div>
+    <br />

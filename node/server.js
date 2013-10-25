@@ -172,7 +172,7 @@ server.listen(app.get('port'), function() {
 
 
 io = require('socket.io').listen(server);
-
+io.set('log level', 2); // reduce logging
 
 var socket_routes = [];
 socket_routes.push(require('./routes/rnbprocess').NewSocket);

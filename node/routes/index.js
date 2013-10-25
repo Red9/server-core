@@ -1,13 +1,8 @@
 
-/*
- * GET home page.
- */
-
-
-function IsAuthenticated(req,res,next){
-    if(req.isAuthenticated()){
+function IsAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
         next();
-    }else{
+    } else {
         //next();
         res.redirect('/login');
     }
@@ -16,38 +11,43 @@ function IsAuthenticated(req,res,next){
 
 
 module.exports = function(app, passport) {
-    
-    
-    
-    
     app.get('/login', require('./login').get);
     app.get('/logout', require('./logout').get);
 
     app.get('/login/google', passport.authenticate('google'));
-    app.get('/login/google/return', passport.authenticate('google', 
-    {successRedirect: '/view/index',
-        failureRedirect: '/login'
-    }));
-    
+    app.get('/login/google/return', passport.authenticate('google',
+            {
+                successRedirect: '/',
+                failureRedirect: '/login?failed_login=true'
+            }));
+
 
     app.get('/user/:param', require('./user').get);
 
     app.get('/upload/rnb', IsAuthenticated, require('./rnbupload').get);
     app.post('/upload/process', IsAuthenticated, require('./rnbprocess').post);
-    app.get('/view/data/:uuid', IsAuthenticated, require('./datasetdisplay').get);
-    app.get('/view/index', IsAuthenticated, require('./datasetindex').get);
-    app.get('/', IsAuthenticated, require('./datasetindex').get);
     
-    app.get('/download/raw_data/:uuid/form', IsAuthenticated, require('./customdownload').get);
-    app.get('/download/raw_data/:uuid', IsAuthenticated, require('./getrawdata').get);
-    app.get('/delete/:uuid', IsAuthenticated, require('./deletedataset').get);
+    app.get('/event/:uuid', IsAuthenticated, require('./eventdisplay').get);
+    
+    app.get('/dataset/:uuid', IsAuthenticated, require('./datasetdisplay').get);
+    app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
+    app.get('/', IsAuthenticated, require('./datasetindex').get);
+
+    app.get('/dataset/:uuid/download', IsAuthenticated, require('./customdownload').get);
+    
+    app.get('/api/dataset/:uuid', IsAuthenticated, require('./getrawdata').get);
+    app.delete('/api/dataset/:uuid', IsAuthenticated, require('./deletedataset').delete);
+    
+    app.get('/snippet/:type', IsAuthenticated, require('./getsnippet').get);
+    
+    
+    app.get('/api/event/tree/:uuid', IsAuthenticated, require('./geteventtree').get);
+    
+    app.post('/api/event/:uuid', IsAuthenticated, require('./postevent').post);
+    //app.get('/api/event/:uuid', IsAuthenticated, require('./getevent').get);
+    
+        
+    
 
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
 };
-
-
-/*
- exports.index = function(req, res){
- res.render('index', { title: 'Home' });
- };
- */

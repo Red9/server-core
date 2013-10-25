@@ -1,4 +1,4 @@
-//DROP KEYSPACE dev;
+DROP KEYSPACE dev;
 CREATE KEYSPACE dev WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor': 1};
 USE dev;
 CREATE TABLE raw_data(
@@ -6,38 +6,6 @@ CREATE TABLE raw_data(
 	time timestamp,
 	data list<float>,
 	PRIMARY KEY (id, time)
-);
-CREATE TABLE dataset (
-	id uuid,
-	data uuid,
-	name varchar,
-	submit_date timestamp,
-	submit_user uuid,
-	start_time timestamp,
-	end_time timestamp,
-	processing_config varchar,
-	processing_notes varchar,
-	processing_statistics varchar,
-	metadata varchar,
-	video list<varchar>,
-	event_type varchar,
-	description varchar,
-	number_rows int,
-	filename varchar,
-	release_level varchar,
-	scad_unit varchar,
-	column_titles list<varchar>,
-	fuel list<float>,
-	PRIMARY KEY (id)
-);
-CREATE TABLE users (
-	id uuid PRIMARY KEY,
-	display_name varchar,
-	google_id varchar,
-	email varchar,
-	first varchar,
-	last varchar,
-	group varchar
 );
 
 CREATE TABLE raw_data_cache (
@@ -48,13 +16,69 @@ CREATE TABLE raw_data_cache (
 	time timestamp,
 	data list<float>,
 	PRIMARY KEY(id,buckets,start_time,end_time,time)
+) with GC_Grace_Seconds=1;
+
+CREATE TABLE dataset (
+	id uuid,
+	raw_data uuid,
+	name varchar,
+	create_time timestamp,
+	create_user uuid,
+	start_time timestamp,
+	end_time timestamp,
+	processing_config varchar,
+	processing_notes varchar,
+	processing_statistics varchar,
+	summary_statistics varchar,
+	number_rows int,
+	filename varchar,
+	scad_unit varchar,
+	column_titles list<varchar>,
+	event_tree uuid,
+	PRIMARY KEY (id)
 );
 
+CREATE TABLE event (
+	id uuid,
+	dataset uuid,
+	start_time timestamp,
+	end_time timestamp,
+	confidence int,
+	parent uuid,
+	children list<uuid>,
+	type varchar,
+	parameters map<varchar, varchar>,
+	source varchar,
+	create_time timestamp,
+	PRIMARY KEY(id)
+);
+
+CREATE TABLE comment (
+	id uuid,
+	create_time timestamp,
+	comment_on uuid,
+	user uuid,
+	comment varchar,
+	PRIMARY KEY(id, create_time)
+);
+
+CREATE TABLE user (
+	id uuid,
+	display_name varchar,
+	google_id varchar,
+	email varchar,
+	first varchar,
+	last varchar,
+	create_time timestamp,
+	PRIMARY KEY(id)
+);
+
+CREATE INDEX comments_users ON comment(user);
 
 // Note that google_id changes with the domain. So, for now, we won't use that to authenticate.
-CREATE INDEX users_email ON users (email);
-CREATE INDEX users_google_id ON users (google_id);
+CREATE INDEX users_email ON user (email);
+CREATE INDEX users_google_id ON user (google_id);
 
-
-INSERT INTO users(id,display_name,email,first,last,google_id,group)
- VALUES (fadedcab-0528-e834-b47d-c80e3696846c,'srlm','srlm@srlmproductions.com','Cody','Lewis','https://www.google.com/accounts/o8/id?id=AItOawlM7qpXhEIaTbJZ7cL6LYASXf170NyWLqI','admin');
+INSERT INTO user(id, display_name, email, first, last, google_id, create_time)
+ VALUES (fadedcab-0528-e834-b47d-c80e3696846c,'srlm','srlm@srlmproductions.com','Cody','Lewis','https://www.google.com/accounts/o8/id?id=AItOawlM7qpXhEIaTbJZ7cL6LYASXf170NyWLqI', 946684799999);
+ 

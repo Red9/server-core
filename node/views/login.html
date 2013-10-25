@@ -1,3 +1,9 @@
 <h1>Please Login:</h1>
 
+{{#if failed_login}}
+<div class="alert alert-danger">
+    <p>Your login attempt failed! Make sure you are using your redninesensor.com Google account.</p>
+</div>
+{{/if}}
+
 <a href="/login/google"><img  src="/images/google_signin.png" width="25%"></a>

@@ -1,323 +1,113 @@
-<script src="/js/dygraph-combined.js"></script>
-<script src="/js/dygraph-extra.js"></script>
-<script src="/js/spin-1.3.0.min.js"></script>
-<script src="/js/moment-2.1.0.min.js"></script>
-
-<script src="/js/dynamic_dygraph.js"></script>
-
-<script src="/socket.io/socket.io.js"></script>
-
-<script type="text/javascript"
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzYsEDTVazN_ic9SsHVvhcSCLwlLEHd7Q&sensor=true">
-</script>
-
-<style>
-    .modal-dialog-center {
-        margin-top: 30%;
-    }
-</style>
-
 <script>
-
-    var raw_data_id = "{{{id}}}";
-
-    var graph_configurations = [];
-
-    var graphs = [];
-    var blockRedraw = false;
-
-    function AddPathToMap(map) {
-        $.get("/download/raw_data/{{{id}}}?columns=lat,long&buckets=1000&minmax=false", function(data) {
-
-            var lineCoordinates = [];
-
-            var bounds = new google.maps.LatLngBounds();
-            var lines = data.split("\n");
-            for (var i = 1; i < lines.length; i++) { // start at 1 to throw away header
-                var line = lines[i].split(",");
-                var lat = parseFloat(line[1]);
-                var long = parseFloat(line[2]);
-
-                //console.log("Line: '" + lines[i] + "' (" + lat + "," + long + ")");
-                if (isNaN(lat) === false && isNaN(long) === false) {
-                    var point = new google.maps.LatLng(lat, long);
-                    lineCoordinates.push(point);
-                    bounds.extend(point);
-                }
-            }
-
-            var flightPath = new google.maps.Polyline({
-                path: lineCoordinates,
-                geodesic: true,
-                strokeColor: '#FF0000',
-                strokeOpacity: 1.0,
-                strokeWeight: 2
-            });
-            flightPath.setMap(map);
-            map.fitBounds(bounds);
-        });
-    }
-    function InitializeGraph(i) {
-
-        var config = graph_configurations[i];
-        config["uuid"] = "{{{id}}}";
-        var t = new SRLM.DynamicGraph(config);
-        t.init();
-        graphs.push(t);
-        
-        $("#" + config["img_button"]).click(function() {
-            var requestURL = Dygraph.Export.asCanvas(t.getGraph()).toDataURL();
-            $("#" + config["img_button"]).attr("href", requestURL);
-        });
-
-        $("#" + config["download_button"]).click(function() {
-            var range = t.getGraph().xAxisRange();
-            var min_x = range[0];
-            var max_x = range[1];
-
-
-            var request_url = '/download/raw_data/' + raw_data_id + "?columns=" + config["axes"];
-            request_url += "&startTime=" + min_x;
-            request_url += "&endTime=" + max_x;
-            request_url += "&minmax=false";
-
-            $("#" + config["download_button"]).attr("href", request_url);
-
-        });
-
-        $("#" + config["custom_button"]).click(function() {
-            var range = t.getGraph().xAxisRange();
-            var min_x = range[0];
-            var max_x = range[1];
-
-            var request_url = '/download/raw_data/' + raw_data_id + '/form?columns=' + config["axes"];
-            ;
-            request_url += "&startTime=" + min_x;
-            request_url += "&endTime=" + max_x;
-
-
-            $("#" + config["custom_button"]).attr("href", request_url);
-        });
-
-        $("#" + config["toggle_display_button"]).click(function() {
-            $("#" + config["section_div"]).toggle("slow");
-            $("#" + config["toggle_display_icon"]).toggleClass("glyphicon-resize-full .glyphicon-remove")
-                    //toggleClass("", 200);
-        });
-
-
-
-
-    }
-    
-    
-
     $(document).ready(function() {
-
-        var mapOptions = {
-            zoom: 3,
-            center: new google.maps.LatLng(42.228147, -103.541772),
-            mapTypeId: google.maps.MapTypeId.SATELLITE
-        };
-
-        var map = new google.maps.Map(document.getElementById('map-canvas'),
-                mapOptions);
-
-        for (var j = 0; j < graph_configurations.length; j++) {
-            InitializeGraph(j);
-        }
-
-        var counter = 0;
         $("#delete").click(function() {
-            $.get(
-                    "/delete/{{id}}",
-                    function() {
-                        window.location.replace('/view/index');
-                    }
+            $.ajax(
+                    "/api/dataset/{{dataset.id}}",
+                    {type: "delete"}
+            ).done(function() {
+                window.location.replace('/');
+            }
             ).fail(function() {
                 alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
             });
         });
-
-        AddPathToMap(map);
     });
 
 </script>
 
-<!-- /.modal -->
 
-<h3>Dataset Info:</h3>
+<h3>Summary</h3>
 <table cellpadding="3" cellspacing="3" class="table table-striped">
     <tr>
         <td><b>Dataset Title</b>
         </td>
-        <td>{{{name}}}</td>
+        <td>{{{dataset.name}}}</td>
     </tr>
     <tr>
-        <td><b>Submit Date</b>
+        <td><b>Created</b>
         </td>
-        <td>{{{submit_date}}}</td>
+        <td>{{{dataset.create_time}}}</td>
     </tr>
     <tr>
         <td><b>Submit User</b>
         </td>
-        <td><a href="/user/{{submit_user.id}}">{{{submit_user.display_name}}}</a>
+        <td><a href="/user/{{dataset.create_user.id}}">{{{dataset.create_user.display_name}}}</a>
         </td>
     </tr>
     <tr>
         <td><b>Start Time</b>
         </td>
-        <td>{{{start_time}}}</td>
+        <td>{{{dataset.start_time}}}</td>
     </tr>
     <tr>
         <td><b>End Time</b>
         </td>
-        <td>{{{end_time}}}</td>
-    </tr>
-    <tr>
-        <td><b>Event Type</b>
-        </td>
-        <td>{{{event_type}}}</td>
-    </tr>
-    <tr>
-        <td><b>Description</b>
-        </td>
-        <td>{{{description}}}</td>
+        <td>{{{dataset.end_time}}}</td>
     </tr>
     <tr>
         <td><b>Submitted Filename</b>
         </td>
-        <td>{{{filename}}}</td>
+        <td>{{{dataset.filename}}}</td>
     </tr>
     <tr>
         <td><b>Number of Rows</b>
         </td>
-        <td>{{{number_rows}}}</td>
+        <td>{{{dataset.number_rows}}}</td>
     </tr>
     <tr>
         <td><b>SCAD Unit</b>
         </td>
-        <td>{{{scad_unit}}}</td>
+        <td>{{{dataset.scad_unit}}}</td>
     </tr>
 </table>
 <div id="delete"> <a class="btn btn-xs btn-danger">Delete Dataset</a>
 </div>
-<br />
-<br />(<b>zoom</b>: click and drag, <b>pan</b> shift-click and drag, <b>unzoom</b> double-click, <b>lock highlight</b>:
-click on series)
-<br />
-
-<input type="checkbox" id="sync_graph_checkbox" name="sync_graph_checkbox"/>Synchronize Graphs
-<br />
 
 
-<div class="container">
+<br><br>
+<a class="btn btn-default btn-block btn-large" href="/event/{{dataset.event_tree}}">View Full Data</a>
 
-    {{#each column_group}}
-
-    <!-- Modal
-    -->
-    <div class="modal fade" id="graph_{{id}}_menu" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-dialog-center">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h4 class="modal-title">{{title}} Graph Actions</h4>
-                </div>
-                <div class="modal-body">
-
-                    <a download="{{columns}}-image.png" id="clip_to_img_{{id}}_button" class="btn btn-default btn-block">Clip to PNG</a>
-                    <a download="{{columns}}-data.txt" id="download_{{id}}_button" class="btn btn-default btn-block">Clip to Download</a>
-                    <a id="download_custom_{{id}}_button" class="btn btn-default btn-block">Clip to Custom Download</a>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <!--                    <button type="button" class="btn btn-primary">Save changes</button>-->
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-
-    <div class="row">
-        <h3>{{title}}
-            <div class="pull-right">
-                <a data-toggle="modal" href="#graph_{{id}}_menu" class="btn btn-link btn-lg">
-                    <span class="glyphicon glyphicon-export"></span></a>
-                <a id="graph_{{id}}_toggle" class="btn btn-link btn-lg">
-                    <span id="graph_{{id}}_toggle_display_icon" class="glyphicon glyphicon-remove"></span></a>
-            </div>
-        </h3>
-
-        <div id="{{id}}_section"  >
-            <div id="graph_{{id}}" style="height: 300px;"></div>
-        </div>
-        <script>
-            graph_configurations.push({
-                $graphCont: $("#graph_{{id}}"),
-                axes: "{{columns}}",
-                buckets: "1000",
-                img_button: "clip_to_img_{{id}}_button",
-                download_button: "download_{{id}}_button",
-                custom_button: "download_custom_{{id}}_button",
-                toggle_display_button: "graph_{{id}}_toggle",
-                toggle_display_icon: "graph_{{id}}_toggle_display_icon",
-                section_div: "{{id}}_section"
-            });
-        </script>
-    </div>
-    {{/each}}
-
-
-    <div class="row">
-        <h3>Map</h3>
-        <div id="map-canvas" class="google-maps" style="height: 500px;"></div>
-    </div>
-    <br />
 
     <h3> Download:
-        <a download="{{id}}-panel.csv" href="/download/raw_data/{{id}}">Complete Panel</a>
-        ~ <a href="/download/raw_data/{{id}}/form">Custom Panel</a>
+        <a download="{{dataset.id}}-panel.csv" href="/api/dataset/{{dataset.id}}">Complete Panel</a>
+        ~ <a href="/dataset/{{dataset.id}}/download">Custom Panel</a>
     </h3>
-    <h5>Download Sensors: <a download="{{id}}-accl.csv" target="_blank" href="/download/raw_data/{{id}}?columns=accl_x,accl_y,accl_z">Accelerometer</a>
-        ~ <a download="{{id}}-gyro.csv" target="_blank" href="/download/raw_data/{{id}}?columns=gyro_x,gyro_y,gyro_z">Gyroscope</a>
-        ~ <a download="{{id}}-magn.csv" target="_blank" href="/download/raw_data/{{id}}?columns=magn_x,magn_y,magn_z">Magnetometer</a>
-        ~ <a download="{{id}}-baro.csv" target="_blank" href="/download/raw_data/{{id}}?columns=baro">Barometer</a>
-        ~ <a download="{{id}}-temp.csv" target="_blank" href="/download/raw_data/{{id}}?columns=temp">Temperature</a>
-        ~ <a download="{{id}}-gps.csv" target="_blank" href="/download/raw_data/{{id}}?columns=lat,long">GPS</a>
+    <h5>Download Sensors: <a download="{{dataset.id}}-accl.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=accl_x,accl_y,accl_z">Accelerometer</a>
+        ~ <a download="{{dataset.id}}-gyro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=gyro_x,gyro_y,gyro_z">Gyroscope</a>
+        ~ <a download="{{dataset.id}}-magn.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=magn_x,magn_y,magn_z">Magnetometer</a>
+        ~ <a download="{{dataset.id}}-baro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=baro">Barometer</a>
+        ~ <a download="{{dataset.id}}-temp.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=temp">Temperature</a>
+        ~ <a download="{{dataset.id}}-gps.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=lat,long">GPS</a>
 
     </h5>
     <br />
-    <h2>Meta:</h2>
+    <h2>Summary Statistics</h2>
     <pre><code>
 
-{{{metadata}}}
+{{{dataset.summary_statistics}}}
 
 </code></pre>
-    <h2>Processing Notes:</h2>
+    <h2>Processing Notes</h2>
     <pre><code>
 
-{{{processing_notes}}}
+{{{dataset.processing_notes}}}
 
 </code></pre>
-    <h2>Processing Statistics:</h2>
+    <h2>Processing Statistics</h2>
     <pre><code>
 
-{{{processing_statistics}}}
+{{{dataset.processing_statistics}}}
 
 </code></pre>
-    <h2>Processing Configuration:</h2>
+    <h2>Processing Configuration</h2>
     <pre><code>
 
-{{{processing_config}}}
+{{{dataset.processing_config}}}
 
 </code>
 
     </pre>
     <br />
-    <br /> <b>Dataset UUID: </b> {{id}}
-    <br /> <b>Raw Data UUID: </b> {{data}}
+    <br /> <b>Dataset UUID: </b> {{dataset.id}}
+    <br /> <b>Raw Data UUID: </b> {{dataset.raw_data}}
     <br />
-</div>

@@ -10,7 +10,7 @@ var log = require('./../support/logger').log;
  * @returns {undefined}
  */
 exports.CheckUserForLogin = function(id, user, callback) {
-    database.GetUserByEmail(user.emails[0].value, function(result) {
+    database.GetRow("user", "email", user.emails[0].value, function(result) {
         callback(result);
     });
 };
@@ -32,10 +32,11 @@ exports.AddUser = function(identifier, profile, callback) {
         google_id: identifier,
         email: profile.emails[0].value,
         first: profile.name.givenName,
-        last: profile.name.familyName
+        last: profile.name.familyName,
+        create_time: Date.now()
     };
 
-    database.InsertUser(user_params, function() {
+    database.InsertRow("user", user_params, function(err) {
         callback(user_params);
     });
 };

@@ -1,9 +1,9 @@
 var log = require('./../support/logger').log;
-
 var spawn = require('child_process').spawn;
-
 var database = require('./../support/database').database;
 
+var config = require('./../config');
+/*
 var user_requests = {};
 
 function SerializeUserRequests(user_id) {
@@ -27,14 +27,27 @@ exports.get = function(req, res) {
         user_requests[user_id].push({req: req, res: res});
     }
 };
+*/
+function LogDownsampleCommand(parameters) {
+    var downsample_command = "Downsample command: 'java";
+    for (var i = 0; i < parameters.length; i++) {
+        downsample_command += " " + parameters[i];
+    }
+    downsample_command += "'";
+    log.info(downsample_command);
+}
 
+
+exports.get = function(req, res){
+    ProcessRequest(req, res);
+};
 
 
 function ProcessRequest(req, res, user_id, callback) {
 
     var parameters = [];
     parameters.push('-jar');
-    parameters.push('downsampler.jar');
+    parameters.push(config.downsamplerPath);
     parameters.push('--uuid');
     parameters.push(req.params.uuid);
 
@@ -46,13 +59,11 @@ function ProcessRequest(req, res, user_id, callback) {
         parameters.push('--minmax');
     }
 
-
     if (typeof req.params.uuid === "undefined") {
         var error_message = "UUID should not be undefined!";
         log.error(error_message);
         res.send(error_message);
     }
-
 
     if (typeof req.param('startTime') !== "undefined") {
         var start_time = new Date(Math.floor(parseFloat(req.param('startTime'))));
@@ -66,7 +77,6 @@ function ProcessRequest(req, res, user_id, callback) {
         parameters.push(end_time.getTime());
     }
 
-
     if (typeof req.param('buckets') !== "undefined") {
         var buckets = parseInt(req.param('buckets'));
         parameters.push('--buckets');
@@ -78,14 +88,7 @@ function ProcessRequest(req, res, user_id, callback) {
         parameters.push(req.param('columns'));
     }
 
-    var downsample_command = "Downsample command: 'java";
-    for(var i = 0; i < parameters.length; i++){
-        downsample_command += " " + parameters[i];
-    }
-    
-    log.info(downsample_command);
-        
-    
+    LogDownsampleCommand(parameters);
 
     var downsampler = spawn("java", parameters);
     var errors = "";
@@ -102,6 +105,6 @@ function ProcessRequest(req, res, user_id, callback) {
             log.warn("Downsampling error for parameters '" + parameters + "': '" + errors + "'");
         }
 
-        callback(user_id);
+        //callback(user_id);
     });
 }

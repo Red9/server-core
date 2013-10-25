@@ -1,0 +1,120 @@
+
+<div class="modal fade" id="new_event_modal" tabindex="-1" style="display: none;">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Create Event</h4>
+    </div>
+    <div class="modal-body">
+        <form id="create_event_form">
+            <fieldset>
+
+                <!-- Form Name -->
+
+                <!--<legend>Create New Event</legend>-->
+
+
+                <!-- Prepended checkbox -->
+                <div class="form-group">
+                    <label for="event_form_start_time">Start Time</label>
+
+                    <input class="form-control" id="event_form_start_time" name="event_form_start_time" value="{{{start_time}}}" type="text">
+
+                    <p class="help-block">Start time to clip a new event from</p>
+                </div>
+
+                <!-- Prepended checkbox -->
+                <div class="form-group">
+                    <label for="event_form_end_time">End Time</label>
+
+                    <input class="form-control"  value="{{{end_time}}}" id="event_form_end_time" name="event_form_end_time" placeholder="eg 9999999" type="text">
+
+                    <p class="help-block">End time to clip a new event from</p>
+                </div>
+
+                <!-- Select Basic -->
+                <div class="form-group">
+
+                    <label for="event_form_type">Event Type</label>
+                    <select class="form-control " id="event_form_type" name="event_form_type">
+                        {{#each EventType}}<option>{{name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+
+
+            </fieldset>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="new_event_modal_submit">Clip to Event</button>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function() {
+        var validator = $('#create_event_form').validate({
+            rules: {
+                event_form_start_time: {
+                    required: true,
+                    min: 0
+                },
+                event_form_end_time: {
+                    required: true,
+                    min: 0
+                }
+
+            },
+            messages: {
+                event_form_start_time: {
+                    required: "Please enter a start time",
+                    min: "Time must be greater than 0"
+                },
+                event_form_end_time: {
+                    required: "Please enter an end time",
+                    min: "Time must be greater than start time"
+                }
+            },
+            submitHandler: function(form) {
+                console.log("Form submitted!");
+            }
+
+        });
+
+
+        $('#new_event_modal_submit').click(function() {
+            if (validator.form() === true) {
+                var data = {
+                    start_time: $('#event_form_start_time').val(),
+                    end_time: $('#event_form_end_time').val(),
+                    confidence: 100,
+                    parent: "{{{parent}}}",
+                    parameters: {},
+                    type: $('#event_form_type').val(),
+                    source: "user"
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/event/create',
+                    dataType: 'json',
+                    async: false,
+                    data: data,
+                    success: function(data) {
+                        console.log("Done posting");
+                        console.log("Returned data: '" + data + "'");
+
+                        //window.replace("/api/event/ ")
+                    },
+                    error: function() {
+                        alert("something went wrong");
+                    }
+
+                });
+            }
+        });
+
+    });
+
+</script>

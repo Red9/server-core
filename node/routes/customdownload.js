@@ -2,20 +2,19 @@
 var log = require('./../support/logger').log;
 var database = require('./../support/database');
 
-exports.get = function(req, res){
-    
-    
+exports.get = function(req, res, next){
     if (typeof req.params.uuid === "undefined") {
         log.error("UUID should not be undefined!");        
+        next();
     }
     
     database.GetDataset(req.params.uuid, function(content){
-        
-        
-        res.render("customdownload", content);
+        if(typeof content === "undefined"){
+            next();
+        }else{
+            content["page_title"] = "Custom Download";
+            res.render("customdownload", content);
+        }
     });
-    
-    
-    
 }
 

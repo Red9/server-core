@@ -214,7 +214,7 @@
             alert("Error: must select at least one column.");
         } else {
 
-            var request_url = '/download/raw_data/' + raw_data_id + "?columns=";
+            var request_url = '/api/dataset/' + raw_data_id + "?columns=";
             request_url += columns[0];
             for (var i = 1; i < columns.length; i++) {
                 request_url += "," + columns[i];

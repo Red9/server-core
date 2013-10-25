@@ -1,4 +1,4 @@
 exports.get = function(req, res){
-    res.render('monitoringtools');
+    res.render('monitoringtools', {page_title:"Monitoring Tools"});
 };
 

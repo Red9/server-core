@@ -27,7 +27,7 @@
 <div>
     <p>We're Processing! Please wait.</p>
 
-    <p>Since processing may take a while (a few seconds up to a few minutes), you can go to your <a href='/view/index'>dataset index</a> to view previously uploaded data. Please refresh that page when you think processing is done.</p>
+    <p>Since processing may take a while (a few seconds up to a few minutes), you can go to your <a href='/dataset'>dataset index</a> to view previously uploaded data. Please refresh that page when you think processing is done.</p>
 
     <p>Otherwise, hang around and watch the processing magic:</p>
 </div>
@@ -72,7 +72,7 @@
             
             clearInterval(clock_updater);
             
-            var result_href = "/view/data/{{{uuid}}}";
+            var result_href = "/dataset/{{{uuid}}}";
             
             if ($('#redirect_checkbox').is(":checked")) {
                 window.location.replace(result_href);

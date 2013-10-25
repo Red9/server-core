@@ -1,27 +1,26 @@
 
-
+var async = require('async');
 var Client = require('node-cassandra-cql').Client;
+var log = require('./logger').log;
+
 var hosts = ['localhost:9042'];
 var database = new Client({hosts: hosts, keyspace: 'dev'});
 
-var dataset_schema = ['id', 'data', 'name', 'submit_date', 'submit_user',
+var dataset_schema = ['id', 'raw_data', 'name', 'create_time', 'create_user',
     'start_time', 'end_time', 'processing_config', 'processing_notes',
-    'processing_statistics', 'metadata', 'video', 'event_type', 'description',
-    'number_rows', 'filename', 'release_level', 'scad_unit', 'column_titles', 'fuel'];
+    'processing_statistics', 'summary_statistics', 'number_rows', 'filename',
+    'scad_unit', 'column_titles', 'event_tree'];
 
+var event_schema = ['id', 'dataset', 'start_time', 'end_time', 'confidence',
+    'parent', 'children', 'type', 'parameters', 'source', 'create_time'];
 
-var raw_data_column_titles = [
-    'accl_x', 'accl_y', 'accl_z',
-    'gyro_x', 'gyro_y', 'gyro_z',
-    'magn_x', 'magn_y', 'magn_z',
-    'baro', 'temp',
-    'lat', 'long', 'alt', 'speed', 'hdop',
-    'quat_w', 'quat_x', 'quat_y', 'quat_z'
-];
+var user_schema = ['id', 'display_name', 'google_id', 'email', 'first', 'last', 'create_time'];
 
-var log = require('./logger').log;
-
-var async = require('async');
+var schemas = {
+    dataset: dataset_schema,
+    event: event_schema,
+    user: user_schema
+};
 
 /**
  * Generates a GUID string, according to RFC4122 standards.
@@ -38,154 +37,148 @@ exports.GenerateUUID = function() {
     return (_p8() + _p8(true) + _p8(true) + _p8());
 };
 
+exports.InsertRow = function(tableName, parameters, callback) {
+    var schema = schemas[tableName];
 
-exports.getDefaultRawDataColumnTitles = function() {
-    return raw_data_column_titles;
-};
+    var query = "INSERT INTO " + tableName + " (";
+    var query_placeholders = ") VALUES (";
+    var first_parameter = true;
 
-exports.GetDisplayName = function(uuid, callback) {
-    database.execute("SELECT display_name FROM users WHERE id=?", [uuid], function(err, response) {
-        var result = "";
-        if (err) {
-            log.error("Database Error: GetDisplayName: ", err);
-            result = "[database error]";
-        } else {
-            if (response.rows.length !== 1) {
-                log.error("Database Error: GetDisplayName: Incorrect number of rows on user " + uuid + " request!");
-                result = "[wrong row count]";
-            } else {
-                var display_name = response.rows[0].get("display_name");
-                result = display_name;
+    var database_parameters = [];
+
+    for (var i = 0; i < schema.length; i++) {
+        var parameter = parameters[schema[i]];
+        if (typeof parameter !== "undefined") {
+            if (first_parameter === false) {
+                query += ",";
+                query_placeholders += ",";
             }
+            query += schema[i];
+            query_placeholders += "?";
+            database_parameters.push(parameter);
+            first_parameter = false;
         }
-        callback(result);
-    });
-};
-
-
-exports.InsertUser = function(user_parameters, callback) {
-
-    var query = "INSERT INTO users (id,display_name,google_id,email,first,last) VALUES (?,?,?,?,?,?)";
-    var parameters = [
-        user_parameters.id,
-        user_parameters.display_name,
-        user_parameters.google_id,
-        user_parameters.email,
-        user_parameters.first,
-        user_parameters.last
-    ];
-
-    for (var i = 0; i < parameters.length; i++) {
-        log.info("Parameters[" + i + "] === " + parameters[i]);
     }
 
-    database.execute(query, parameters, function(err) {
+    query += query_placeholders + ")";
+    log.info("Database command: '" + query + "' with parameters '" + database_parameters + "'");
+
+    database.execute(query, database_parameters, function(err) {
         if (err) {
-            log.error("Database: InsertUser: ", err);
+            log.error("Database InsertRow!" + err);
+            callback(err);
         } else {
             callback();
         }
     });
-
 };
 
-exports.GetUserByEmail = function(email, callback) {
-    // Note that google_id depends on the domain, so for now we won't use it to authenticate.
-    //var query = "SELECT id,display_name FROM users WHERE email=? AND google_id=? ALLOW FILTERING";
-    //var parameters = [user.emails[0].value, id];
+//UPDATE users
+//  SET top_places = [ 'the shire' ] + top_places WHERE user_id = 'frodo';
 
-    var query = "SELECT id,display_name,google_id,email,first,last FROM users WHERE email=? ALLOW FILTERING";
-    var parameters = [email];
-
-    database.execute(query, parameters, function(err, result) {
-        var user;
-        if (result.rows.length === 0) {
-
-        } else if (result.rows.length > 1) {
-            log.error("Database Error: GetUserByEmail:  too many users found for " + email + " (found " + result.rows.length + ")");
-        } else { // === 1
-            var row = result.rows[0];
-            user = {
-                id: row.get('id'),
-                display_name: row.get('display_name'),
-                google_id: row.get('google_id'),
-                email: row.get('email'),
-                first: row.get('first'),
-                last: row.get('last')
-            };
+exports.UpdateRowAddToList = function(tableName, key, value, column, data, callback){
+    var query = "UPDATE " + tableName + " SET " + column + " = " + column + " + [?] WHERE " + key + " = ?";
+    var database_parameters = [data,value];
+    
+    log.info("Database command: '" + query + "' with parameters '" + database_parameters + "'");
+    
+    database.execute(query, database_parameters, function(err){
+        if(err){
+            log.warn("Update error: " + err);
+            callback(err);
+        }else{
+            callback();
         }
-        callback(user);
     });
 };
 
 
-function ExtractDatasetInformation(row) {
+/** Get a single row identified by id from the table specified.
+ * 
+ * @param {string} tableName The CQL name of the table.
+ * @param {string} key The cassandra table key
+ * @param {string or map} value the value to pass.
+ * @param {function} callback(content) If not found content is undefined. Otherwise it's a JSON with tabel schema.
+ * @returns {undefined}
+ */
+exports.GetRow = function(tableName, key, value, callback) {
+    var database_command = "SELECT ";
+    var schema = schemas[tableName];
+
+    database_command += schema[0];
+    for (var i = 1; i < schema.length; i++) {
+        database_command += "," + schema[i];
+    }
+
+    database_command += " FROM " + tableName + " WHERE " + key + " = ?";
+
+    database.execute(database_command, [value], function(err, result) {
+        var content;
+        if (err) {
+            log.warn("Error from database command '" + database_command + "' with parameter '" + value + "'");
+        } else {
+            if (result.rows.length !== 1) {
+                log.error("Database errror: UUID not unique! Incorrect number of results ("
+                        + result.rows.length + ") for query '" + database_command + "' with parameter '" + value + "'");
+            } else {
+                content = ExtractRowToJSON(schema, result.rows[0]);
+            }
+        }
+        callback(content);
+    });
+};
+
+exports.GetAllRows = function(tableName, callback) {
+    var database_command = "SELECT * FROM " + tableName;
+    database.execute(database_command, function(err, result) {
+
+        if (err) {
+            log.error("GetAllFromTable error: " + err);
+            callback([]);
+        } else {
+            if (tableName === "dataset") {
+                ParseDatasetCollection(result.rows, callback);
+            } else {
+                var datasets = [];
+                //TODO(SRLM): for each row...
+                callback(datasets);
+            }
+        }
+    });
+};
+
+
+function ParseDatasetCollection(rows, callback) {
+    var datasets = [];
+    async.eachLimit(rows, 10, function(row, callback) {
+        FormatDatasetInformation(ExtractRowToJSON(schemas["dataset"], row), function(content) {
+            datasets.push(content);
+            callback();
+        });
+    }, function(err) {
+        if (err) {
+            log.warn("Some sort of error on get all dataset.)");
+        }
+        callback(datasets);
+    });
+}
+
+
+function ExtractRowToJSON(schema, row) {
     content = {};
-    for (var i = 0; i < dataset_schema.length; i++) {
-        content[dataset_schema[i]] = row.get(dataset_schema[i]);
+    for (var i = 0; i < schema.length; i++) {
+        content[schema[i]] = row.get(schema[i]);
     }
     return content;
 }
 
-
-exports.GetAllDataset = function(callback) {
-    var database_command = "SELECT * FROM dataset";
-    database.execute(database_command, function(err, result) {
-        var datasets = [];
-        if (err) {
-            log.error("GetAllDataset error: ", err);
-            callback(datasets);
+exports.GetDisplayName = function(id, callback) {
+    exports.GetRow("user", "id", id, function(data) {
+        if (typeof data === "undefined") {
+            callback("[database error]");
         } else {
-
-
-            async.eachLimit(result.rows, 10, function(row, callback) {
-                FormatDatasetInformation(ExtractDatasetInformation(row), function(content) {
-                    datasets.push(content);
-                    callback();
-                });
-            }, function(err) {
-                if (err) {
-                    log.warn("Some sort of error on get all dataset.)");
-                }
-                log.info("Done getting all datasets");
-                callback(datasets);
-            });
+            callback(data["display_name"]);
         }
-
-    });
-
-};
-
-/**
- * 
- * @param {type} dataset_uuid
- * @param {type} callback(content) If not found content is undefined. Otherwise it's a JSON with dataset_schema.
- * @returns {undefined}
- */
-exports.GetDataset = function(dataset_uuid, callback) {
-
-
-
-    var database_command = "SELECT ";
-    database_command += dataset_schema[0];
-    for (var i = 1; i < dataset_schema.length; i++) {
-        database_command += "," + dataset_schema[i];
-    }
-
-    database_command += " FROM dataset WHERE id = ?";
-
-    database.execute(database_command, [dataset_uuid], function(err, result) {
-        var content;
-        if (err) {
-            log.error("Database Error: GetDataset: ", err);
-        } else {
-            if (result.rows.length !== 1) {
-                log.error("Database Error: GetDataset: Incorrect number of results (" + result.rows.length + ") for query! ");
-            } else {
-                content = ExtractDatasetInformation(result.rows[0]);
-            }
-        }
-        callback(content);
     });
 };
 
@@ -244,21 +237,17 @@ var readableDuration = (function() {
  */
 function FormatDatasetInformation(content, callback) {
     if (typeof content !== "undefined") {
-        content['submit_date'] = (new Date(content['submit_date'])).toUTCString();
+        content['create_time'] = (new Date(content['create_time'])).toUTCString();
         var start_time = (new Date(content['start_time']));
         var end_time = (new Date(content['end_time']));
         content['start_time'] = start_time.toUTCString();
         content['end_time'] = end_time.toUTCString();
         content['duration'] = readableDuration((end_time.getTime() - start_time.getTime()) / 1000);
 
-        exports.GetDisplayName(content['submit_user'], function(display_name) {
-            content['submit_user'] = {id: content['submit_user'],
+        exports.GetDisplayName(content['create_user'], function(display_name) {
+            content['create_user'] = {id: content['create_user'],
                 display_name: display_name
             };
-
-
-
-
             callback(content);
         });
     } else {
@@ -272,8 +261,8 @@ function FormatDatasetInformation(content, callback) {
  same as GetDataset, but formats the username and dates.
  * 
  */
-exports.GetDatasetFormatted = function(dataset_uuid, callback) {
-    exports.GetDataset(dataset_uuid, function(content) {
+exports.GetDatasetFormatted = function(id, callback) {
+    exports.GetRow("dataset", "id", id, function(content) {
         FormatDatasetInformation(content, callback);
     });
 };
@@ -285,12 +274,12 @@ exports.GetDatasetFormatted = function(dataset_uuid, callback) {
  * @returns {undefined}
  */
 exports.DeleteDataset = function(dataset_uuid, callback) {
-    exports.GetDataset(dataset_uuid, function(content) {
+    exports.GetRow("dataset", "id", dataset_uuid, function(content) {
 
         if (typeof content === "undefined") {
             callback(false);
         } else {
-            var raw_data_uuid = content.data;
+            var raw_data_uuid = content["raw_data"];
 
             database.execute("DELETE FROM dataset WHERE id=?", [dataset_uuid], function(err1) {
                 database.execute("DELETE FROM raw_data WHERE id=?", [raw_data_uuid], function(err2) {
@@ -304,55 +293,3 @@ exports.DeleteDataset = function(dataset_uuid, callback) {
         }
     });
 };
-
-
-
-/**
- * 
- * @param {map} param
- * @param {function} callback
- * @returns {undefined}
- */
-exports.InsertDataset = function(param, callback) {
-    var create_dataset_command = "INSERT INTO dataset"
-            + "(id, data, name, submit_date, submit_user, start_time, end_time, processing_config, processing_statistics, processing_notes, metadata, video, event_type, description, filename, number_rows, scad_unit, column_titles)"
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    var data = [];
-    data.push(param.dataset_uuid);
-    data.push(param.raw_data_uuid);
-    data.push({hint: 'varchar', value:param.title});
-    data.push({hint: 'timestamp', value: param.submit_time}); //TODO(SRLM): This won't give the submit date/time relative to user!
-    data.push({hint: 'uuid', value:param.submit_user});//req.user.id
-    data.push({hint: 'timestamp', value: param.start_time});
-    data.push({hint: 'timestamp', value: param.end_time});
-    data.push(param.processing_config);//req.body.config
-    data.push(param.processing_statistics);
-    data.push(param.processing_notes);
-    data.push(param.metadata); // metadata.toString()
-    data.push(param.videos); // videos
-    data.push(param.type); // req.body.event_type
-    data.push(param.description); // req.body.description
-    data.push(param.filename_with_extension); // filename_with_extension
-    data.push(param.row_count); // row_count
-    data.push(param.scad_unit); // scad_unit
-    data.push(param.column_titles); // database.getDefaultRawDataColumnTitles()
-
-    database.execute(create_dataset_command, data, function(err) {
-        if (err) {
-            log.error("Database error: " + err);
-            callback(err);
-        } else {
-            callback();
-        }
-    });
-
-
-};
-
-
-
-
-exports.database = database;
-exports.dataset_schema = dataset_schema;
-
-
