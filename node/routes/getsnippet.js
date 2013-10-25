@@ -23,30 +23,34 @@ exports.get = function(req, res, next) {
             end_time: end_time,
             parent: parent,
             EventType: [
-                {name: "swimming"},
-                {name: "jumping"},
-                {name: "waving"},
-                {name: "dancing"}
+                {name: "take-off"},
+                {name: "ride"},
+                {name: "carve"},
+                {name: "cutback"},
+                {name: "air"},
+                {name: "wipe out"},
+                {name: "wait"},
+                {name: "walk"}
             ]
         };
         res.render('snippets/createeventmodal', parameters);
 
     } else if (snippet_type === "eventtree") {
-        
-        if(typeof req.param("id") !== "undefined"){
-            
+
+        if (typeof req.param("id") !== "undefined") {
+
             var parameters = {
-                layout:false,
-                event:{
-                    id:req.param("id")
+                layout: false,
+                event: {
+                    id: req.param("id")
                 }
-                
+
             };
-            
-            
+
+
             res.render('snippets/eventtree', parameters);
         }
-        
+
     } else {
 
 

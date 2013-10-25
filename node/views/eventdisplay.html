@@ -19,14 +19,21 @@
 
     var dataset_id = "{{{event.dataset}}}";
     var event_id = "{{{event.id}}}";
+    var start_time = Date.parse("{{{event.start_time}}}");
+    var end_time = Date.parse("{{{event.end_time}}}");
 
     var graph_configurations = [];
 
     var graphs = [];
     var blockRedraw = false;
 
-    function AddPathToMap(map) {
-        $.get("/api/dataset/" + dataset_id + "?columns=lat,long&buckets=1000&minmax=false", function(data) {
+
+    var map_request_url = "/api/dataset/" + dataset_id + "?columns=lat,long&buckets=1000&minmax=false"
+            + "&startTime=" + start_time + "&endTime=" + end_time;
+
+
+    function AddPathToMap(request_url, map) {
+        $.get(request_url, function(data) {
 
             var lineCoordinates = [];
 
@@ -74,8 +81,11 @@
 
         var config = graph_configurations[index];
 
-        config["start_time"] = Date.parse("{{{event.start_time}}}");
-        config["end_time"] = Date.parse("{{{event.end_time}}}");
+        config["start_time"] = start_time;
+        config["end_time"] = end_time;
+
+
+
 
 
         config["uuid"] = dataset_id;
@@ -172,10 +182,10 @@
     $(document).ready(function() {
         var event_tree_url = "/snippet/eventtree?id=" + event_id;
         $("#insert_event_tree").load(event_tree_url)
-        
-        
-        
-        
+
+
+
+
 
         var mapOptions = {
             zoom: 3,
@@ -202,7 +212,7 @@
          });
          });*/
 
-        AddPathToMap(map);
+        AddPathToMap(map_request_url, map);
 
 
 
@@ -222,6 +232,14 @@
 <div id="create_event_modal">
     <!--Loaded by jQuery-->
 </div>
+
+
+
+<div class="row">
+    <div id="map-canvas" class="google-maps" style="height: 500px;"></div>
+</div>
+
+
 
 <br />
 <br />(<b>zoom</b>: click and drag, <b>pan</b> shift-click and drag, <b>unzoom</b> double-click, <b>lock highlight</b>:
@@ -289,8 +307,5 @@ click on series)
     {{/each}}
 
 
-    <div class="row">
-        <h3>Map</h3>
-        <div id="map-canvas" class="google-maps" style="height: 500px;"></div>
-    </div>
+
     <br />

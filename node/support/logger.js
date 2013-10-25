@@ -54,8 +54,8 @@ var papertrail_t = new Papertrail({
 
 winston.loggers.add('color', {
     transports: [
-        console_t,
-        papertrail_t
+        console_t//,
+        //papertrail_t
     ]
 });
 
@@ -68,8 +68,8 @@ winston.loggers.add('standard', {
 winston.loggers.add('all', {
     transports: [
         console_t,
-        file_t,
-        papertrail_t
+        file_t//,
+        //papertrail_t
     ]
 });
 

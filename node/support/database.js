@@ -76,17 +76,17 @@ exports.InsertRow = function(tableName, parameters, callback) {
 //UPDATE users
 //  SET top_places = [ 'the shire' ] + top_places WHERE user_id = 'frodo';
 
-exports.UpdateRowAddToList = function(tableName, key, value, column, data, callback){
+exports.UpdateRowAddToList = function(tableName, key, value, column, data, callback) {
     var query = "UPDATE " + tableName + " SET " + column + " = " + column + " + [?] WHERE " + key + " = ?";
-    var database_parameters = [data,value];
-    
+    var database_parameters = [data, value];
+
     log.info("Database command: '" + query + "' with parameters '" + database_parameters + "'");
-    
-    database.execute(query, database_parameters, function(err){
-        if(err){
+
+    database.execute(query, database_parameters, function(err) {
+        if (err) {
             log.warn("Update error: " + err);
             callback(err);
-        }else{
+        } else {
             callback();
         }
     });
@@ -292,4 +292,18 @@ exports.DeleteDataset = function(dataset_uuid, callback) {
 
         }
     });
+};
+
+
+
+exports.StripHintsFromJSON = function(set) {
+    var result = {};
+    for (var key in set) {
+        var value = set[key];
+        if (typeof set[key].value !== "undefined") {
+            value = set[key].value;
+        }
+        result[key] = value;
+    }
+    return result;
 };

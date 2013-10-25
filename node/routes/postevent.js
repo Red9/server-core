@@ -5,6 +5,12 @@ exports.post = function(req, res, next) {
     console.log("Post result, straight: '" + req.body + "'");
     console.log("Post result: '%j'", req.body);
 
+
+    var parameters = req.body.parameters;
+    if(typeof parameters === "undefined"){
+        parameters = {};
+    }
+
     var event = {};
 
     event["id"] = {hint:"uuid", value:database.GenerateUUID()};
@@ -15,7 +21,7 @@ exports.post = function(req, res, next) {
     event["parent"] = {hint: "uuid", value: req.body.parent};
     event["children"] = {hint: "list", value: []};
     event["type"] = req.body.type;
-    event["parameters"] = {hint: "map", value: req.body.parameters};
+    event["parameters"] = {hint: "map", value: parameters};
     event["source"] = req.body.source;
     event["create_time"] = new Date(Date.now());
 
@@ -37,6 +43,8 @@ exports.post = function(req, res, next) {
                         if (err) {
                             res.send(500, 'Something broke: ' + err);
                         } else {
+                            event = database.StripHintsFromJSON(event);
+                            
                             res.json(event);
                         }
 

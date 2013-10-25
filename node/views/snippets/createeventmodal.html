@@ -104,11 +104,16 @@
                     success: function(data) {
                         console.log("Done posting");
                         console.log("Returned data: '" + data + "'");
+                        
+                        console.log("Data: '" + data + "'");
+                        console.log("Data: '" + JSON.stringify(data) + "'");
+                        
+                        window.location.replace("/event/" + data.id);
 
                         //window.replace("/api/event/ ")
                     },
                     error: function() {
-                        alert("something went wrong");
+                        alert("Something went wrong!");
                     }
 
                 });
