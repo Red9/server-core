@@ -3,47 +3,50 @@ var spawn = require('child_process').spawn;
 var database = require('./../support/database').database;
 
 var config = require('./../config');
-/*
-var user_requests = {};
 
-function SerializeUserRequests(user_id) {
-    if (user_requests[user_id].length === 0) {
-        //all done
-        delete user_requests[user_id];
-    } else {
-        var next_request = user_requests[user_id].shift();
-        ProcessRequest(next_request.req, next_request.res, user_id, SerializeUserRequests);
+function LogDownsampleCommand(parameters) {
+    var downsampleCommand = "Downsample command: 'java";
+    for (var i = 0; i < parameters.length; i++) {
+        downsampleCommand += " " + parameters[i];
     }
+    downsampleCommand += "'";
+    log.info(downsampleCommand);
 }
 
 
 exports.get = function(req, res) {
-    var user_id = req.user.id;
-    if (typeof user_requests[user_id] === "undefined") {
-        user_requests[user_id] = [];
-        user_requests[user_id].push({req: req, res: res});
-        SerializeUserRequests(user_id);
-    } else {
-        user_requests[user_id].push({req: req, res: res});
-    }
-};
-*/
-function LogDownsampleCommand(parameters) {
-    var downsample_command = "Downsample command: 'java";
-    for (var i = 0; i < parameters.length; i++) {
-        downsample_command += " " + parameters[i];
-    }
-    downsample_command += "'";
-    log.info(downsample_command);
-}
-
-
-exports.get = function(req, res){
     ProcessRequest(req, res);
 };
 
+function ConvertToJson(text) {
+    var lines = text.split('\n');
+    var labels = lines[0].split(',');
+
+    var values = [];
+    for (var i = 1; i < lines.length; i++) {
+        if (lines[i] !== "") {
+            var line = lines[i].split(',');
+            var value = [];
+            for (var j = 0; j < line.length; j++) {
+                if (line[j].split(';').length > 1) {
+                    value.push(line[j].split(';'));
+                } else {
+                    value.push(line[j]);
+                }
+            }
+            values.push(value);
+        }
+    }
+
+
+    var result = {values: values, labels: labels};
+    return result;
+}
+
 
 function ProcessRequest(req, res, user_id, callback) {
+
+    var resulttype = "text";
 
     var parameters = [];
     parameters.push('-jar');
@@ -57,6 +60,12 @@ function ProcessRequest(req, res, user_id, callback) {
         }
     } else {
         parameters.push('--minmax');
+    }
+    
+    if (typeof req.param('cache') !== "undefined") {
+        if (req.param('cache') === "false") {
+            parameters.push('--nocache');
+        }
     }
 
     if (typeof req.params.uuid === "undefined") {
@@ -88,23 +97,37 @@ function ProcessRequest(req, res, user_id, callback) {
         parameters.push(req.param('columns'));
     }
 
+    if (typeof req.param('resulttype') !== "undefined") {
+        resulttype = req.param('resulttype');
+    }
+
     LogDownsampleCommand(parameters);
+
 
     var downsampler = spawn("java", parameters);
     var errors = "";
+    var text = "";
     downsampler.stdout.on('data', function(data) {
-        res.write(data);
+        if (resulttype === "json") {
+            text += data;
+        } else {
+            res.write(data);
+        }
     });
     downsampler.stderr.on('data', function(data) {
         errors += data;
     });
 
     downsampler.on('close', function(code) {
-        res.end();
+        if (resulttype === "json") {
+            var json = ConvertToJson(text);
+            res.json(json);
+        } else {
+            res.end();
+        }
+
         if (errors !== "") {
             log.warn("Downsampling error for parameters '" + parameters + "': '" + errors + "'");
         }
-
-        //callback(user_id);
     });
 }

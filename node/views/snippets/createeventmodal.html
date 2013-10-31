@@ -8,40 +8,33 @@
         <form id="create_event_form">
             <fieldset>
 
-                <!-- Form Name -->
-
-                <!--<legend>Create New Event</legend>-->
-
-
-                <!-- Prepended checkbox -->
                 <div class="form-group">
                     <label for="event_form_start_time">Start Time</label>
-
                     <input class="form-control" id="event_form_start_time" name="event_form_start_time" value="{{{start_time}}}" type="text">
-
                     <p class="help-block">Start time to clip a new event from</p>
                 </div>
 
-                <!-- Prepended checkbox -->
                 <div class="form-group">
                     <label for="event_form_end_time">End Time</label>
-
                     <input class="form-control"  value="{{{end_time}}}" id="event_form_end_time" name="event_form_end_time" placeholder="eg 9999999" type="text">
-
                     <p class="help-block">End time to clip a new event from</p>
                 </div>
 
-                <!-- Select Basic -->
                 <div class="form-group">
-
                     <label for="event_form_type">Event Type</label>
                     <select class="form-control " id="event_form_type" name="event_form_type">
                         {{#each EventType}}<option>{{name}}</option>
                         {{/each}}
                     </select>
                 </div>
-
-
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="redirect_checkbox" checked>&nbsp;Redirect?
+                    </label>
+                    <p class="help-block">Redirect page to new event?</p>
+                </div>
+                
             </fieldset>
         </form>
     </div>
@@ -60,11 +53,12 @@
                     required: true,
                     min: 0
                 },
+                // The minimum for end_time should be at least start time + 1, 
+                // but I don't know how to do that
                 event_form_end_time: {
                     required: true,
                     min: 0
                 }
-
             },
             messages: {
                 event_form_start_time: {
@@ -75,13 +69,8 @@
                     required: "Please enter an end time",
                     min: "Time must be greater than start time"
                 }
-            },
-            submitHandler: function(form) {
-                console.log("Form submitted!");
             }
-
         });
-
 
         $('#new_event_modal_submit').click(function() {
             if (validator.form() === true) {
@@ -95,6 +84,7 @@
                     source: "user"
                 };
 
+                
                 $.ajax({
                     type: 'POST',
                     url: '/api/event/create',
@@ -108,9 +98,12 @@
                         console.log("Data: '" + data + "'");
                         console.log("Data: '" + JSON.stringify(data) + "'");
                         
-                        window.location.replace("/event/" + data.id);
-
-                        //window.replace("/api/event/ ")
+                        
+                        if($('#redirect_checkbox').prop('checked', true)){
+                            window.location.replace("/event/" + data.id);
+                        }else{
+                            $('#new_event_modal').modal('hide');
+                        }
                     },
                     error: function() {
                         alert("Something went wrong!");

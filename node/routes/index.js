@@ -1,4 +1,3 @@
-
 function IsAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         next();
@@ -7,7 +6,6 @@ function IsAuthenticated(req, res, next) {
         res.redirect('/login');
     }
 }
-
 
 
 module.exports = function(app, passport) {
@@ -21,33 +19,30 @@ module.exports = function(app, passport) {
                 failureRedirect: '/login?failed_login=true'
             }));
 
-
-    app.get('/user/:param', require('./user').get);
-
-    app.get('/upload/rnb', IsAuthenticated, require('./rnbupload').get);
-    app.post('/upload/process', IsAuthenticated, require('./rnbprocess').post);
+    // --------------------------------------------
+    // Authentication Barrier
+    // --------------------------------------------
+    app.get('/', IsAuthenticated, require('./datasetindex').get);
+    
+    app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
+    app.get('/dataset/:uuid', IsAuthenticated, require('./datasetdisplay').get);
+    app.get('/dataset/:uuid/download', IsAuthenticated, require('./customdownload').get);
     
     app.get('/event/:uuid', IsAuthenticated, require('./eventdisplay').get);
     
-    app.get('/dataset/:uuid', IsAuthenticated, require('./datasetdisplay').get);
-    app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
-    app.get('/', IsAuthenticated, require('./datasetindex').get);
-
-    app.get('/dataset/:uuid/download', IsAuthenticated, require('./customdownload').get);
+    app.get('/user/:param', require('./user').get);
     
-    app.get('/api/dataset/:uuid', IsAuthenticated, require('./getrawdata').get);
+    app.get( '/upload/rnb', IsAuthenticated, require('./rnbupload').get);
+    app.post('/upload/process', IsAuthenticated, require('./rnbprocess').post);
+
+    app.get( '/snippet/:type', IsAuthenticated, require('./getsnippet').get);
+    
+    app.get(   '/api/dataset/:uuid', IsAuthenticated, require('./getrawdata').get);
     app.delete('/api/dataset/:uuid', IsAuthenticated, require('./deletedataset').delete);
     
-    app.get('/snippet/:type', IsAuthenticated, require('./getsnippet').get);
-    
-    
-    app.get('/api/event/tree/:uuid', IsAuthenticated, require('./geteventtree').get);
-    
-    app.post('/api/event/:uuid', IsAuthenticated, require('./postevent').post);
-    //app.get('/api/event/:uuid', IsAuthenticated, require('./getevent').get);
-    
-        
-    
+    app.get(   '/api/event/tree/:uuid', IsAuthenticated, require('./geteventtree').get);    
+    app.post(  '/api/event/:uuid', IsAuthenticated, require('./postevent').post);
+    app.delete('/api/event/:uuid', IsAuthenticated, require('./deleteevent').delete);    
 
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
 };

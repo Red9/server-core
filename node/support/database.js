@@ -1,7 +1,7 @@
 
 var async = require('async');
 var Client = require('node-cassandra-cql').Client;
-var log = require('./logger').log;
+var log = require('./../support/logger').log;
 
 var hosts = ['localhost:9042'];
 var database = new Client({hosts: hosts, keyspace: 'dev'});
@@ -37,35 +37,57 @@ exports.GenerateUUID = function() {
     return (_p8() + _p8(true) + _p8(true) + _p8());
 };
 
+/** Convenience function.
+ * 
+ * @param {type} query
+ * @param {type} parameters
+ * @returns {undefined}
+ */
+function LogCommand(query, parameters) {
+    log.info("Database command: '" + query + "' with parameters '" + parameters + "'");
+}
+
+function LogError(functionName, error) {
+    log.error("Database Error in function " + functionName + ": '" + error + "'");
+}
+
+/**
+ * 
+ * @param {string} tableName
+ * @param {map} parameters The values to insert. Should be a map with the keys taken from the table schema.
+ * @param {function} callback Returns undefined for success, err for error.
+ */
 exports.InsertRow = function(tableName, parameters, callback) {
     var schema = schemas[tableName];
 
     var query = "INSERT INTO " + tableName + " (";
-    var query_placeholders = ") VALUES (";
-    var first_parameter = true;
+    var queryPlaceholders = ") VALUES (";
+    var firstParameter = true;
 
-    var database_parameters = [];
+    var databaseParameters = [];
 
     for (var i = 0; i < schema.length; i++) {
         var parameter = parameters[schema[i]];
         if (typeof parameter !== "undefined") {
-            if (first_parameter === false) {
+            if (firstParameter === false) {
                 query += ",";
-                query_placeholders += ",";
+                queryPlaceholders += ",";
+            } else {
+                firstParameter = false;
             }
             query += schema[i];
-            query_placeholders += "?";
-            database_parameters.push(parameter);
-            first_parameter = false;
+            queryPlaceholders += "?";
+            databaseParameters.push(parameter);
         }
     }
 
-    query += query_placeholders + ")";
-    log.info("Database command: '" + query + "' with parameters '" + database_parameters + "'");
+    query += queryPlaceholders + ")";
 
-    database.execute(query, database_parameters, function(err) {
+    LogCommand(query, databaseParameters);
+
+    database.execute(query, databaseParameters, function(err) {
         if (err) {
-            log.error("Database InsertRow!" + err);
+            LogError("InsertRow", err);
             callback(err);
         } else {
             callback();
@@ -73,53 +95,70 @@ exports.InsertRow = function(tableName, parameters, callback) {
     });
 };
 
-//UPDATE users
-//  SET top_places = [ 'the shire' ] + top_places WHERE user_id = 'frodo';
+/**
+ * 
+ * @param {string} tableName The table to update a row in.
+ * @param {string} key The column key to match value to.
+ * @param {string} value The column key value to select the row to update.
+ * @param {string} listColumnName The column in the matched row with a list to update.
+ * @param {type} data The data to modify the list with.
+ * @param {string} operation The operation ("add", "remove")
+ * @param {function} callback Returns undefined for success, err for error.
+ */
+exports.UpdateRowModifyList = function(tableName, key, value, listColumnName, data, operation, callback) {
+    var operator;
+    if (operation === "add") {
+        operator = "+";
+    } else if (operation === "remove") {
+        operator = "-";
+    } else {
+        // Error,
+        var err = "Invalid list operation: " + operation;
+        LogError("UpdateRowModifyList", err);
+        callback(err);
+    }
 
-exports.UpdateRowAddToList = function(tableName, key, value, column, data, callback) {
-    var query = "UPDATE " + tableName + " SET " + column + " = " + column + " + [?] WHERE " + key + " = ?";
+    var query = "UPDATE " + tableName
+            + " SET " + listColumnName + " = " + listColumnName
+            + " " + operator + " [?] WHERE " + key + " = ?";
     var database_parameters = [data, value];
 
-    log.info("Database command: '" + query + "' with parameters '" + database_parameters + "'");
-
     database.execute(query, database_parameters, function(err) {
         if (err) {
-            log.warn("Update error: " + err);
+            LogError("UpdateRowModifyList", err);
             callback(err);
         } else {
             callback();
         }
     });
 };
-
 
 /** Get a single row identified by id from the table specified.
  * 
  * @param {string} tableName The CQL name of the table.
- * @param {string} key The cassandra table key
- * @param {string or map} value the value to pass.
- * @param {function} callback(content) If not found content is undefined. Otherwise it's a JSON with tabel schema.
- * @returns {undefined}
+ * @param {string} key The cassandra row key
+ * @param {string or node-cassandra-cql datatype} value the value for that key.
+ * @param {function} callback(content) If not found content is undefined. Otherwise it's a JSON with table schema.
  */
 exports.GetRow = function(tableName, key, value, callback) {
-    var database_command = "SELECT ";
+    var databaseCommand = "SELECT ";
     var schema = schemas[tableName];
 
-    database_command += schema[0];
+    databaseCommand += schema[0];
     for (var i = 1; i < schema.length; i++) {
-        database_command += "," + schema[i];
+        databaseCommand += "," + schema[i];
     }
 
-    database_command += " FROM " + tableName + " WHERE " + key + " = ?";
+    databaseCommand += " FROM " + tableName + " WHERE " + key + " = ?";
 
-    database.execute(database_command, [value], function(err, result) {
+    database.execute(databaseCommand, [value], function(err, result) {
         var content;
         if (err) {
-            log.warn("Error from database command '" + database_command + "' with parameter '" + value + "'");
+            LogError("GetRow", err);
         } else {
             if (result.rows.length !== 1) {
-                log.error("Database errror: UUID not unique! Incorrect number of results ("
-                        + result.rows.length + ") for query '" + database_command + "' with parameter '" + value + "'");
+                LogError("GetRow", "Database errror: UUID not unique! Incorrect number of results ("
+                        + result.rows.length + ") for query '" + databaseCommand + "' with parameter '" + value + "'");
             } else {
                 content = ExtractRowToJSON(schema, result.rows[0]);
             }
@@ -128,19 +167,29 @@ exports.GetRow = function(tableName, key, value, callback) {
     });
 };
 
+
+/**
+ * 
+ * @warning For now, only works with the dataset table.
+ * 
+ * @param {type} tableName
+ * @param {type} callback
+ * @returns {undefined}
+ */
 exports.GetAllRows = function(tableName, callback) {
     var database_command = "SELECT * FROM " + tableName;
     database.execute(database_command, function(err, result) {
 
         if (err) {
-            log.error("GetAllFromTable error: " + err);
+            LogError("GetAllRows", err);
             callback([]);
         } else {
             if (tableName === "dataset") {
                 ParseDatasetCollection(result.rows, callback);
             } else {
+                //TODO(SRLM): Add options for other tables besides datasets.
+                // For now, return empty list.
                 var datasets = [];
-                //TODO(SRLM): for each row...
                 callback(datasets);
             }
         }
@@ -148,6 +197,30 @@ exports.GetAllRows = function(tableName, callback) {
 };
 
 
+/**
+ * 
+ * @param {string} tableName The database table to delete from
+ * @param {string} key The column of the key
+ * @param {string} value The key value
+ * @param {function} callback Called when done. Parameter err if error, undefined otherwise.
+ */
+exports.DeleteRow = function(tableName, key, value, callback) {
+    var databaseCommand = "DELETE FROM " + tableName + " WHERE " + key + " = ?";
+    database.execute(databaseCommand, [value], function(err) {
+        if (err) {
+            LogError("DeleteRow", err);
+            callback(err);
+        } else {
+            callback();
+        }
+    });
+};
+
+/**
+ * 
+ * @param {node-cassandra-cql row} rows The result rows from a query. Should be dataset rows.
+ * @param {function} callback parameter of a non-empty list of dataset maps if successful, an empty list otherwise.
+ */
 function ParseDatasetCollection(rows, callback) {
     var datasets = [];
     async.eachLimit(rows, 10, function(row, callback) {
@@ -157,13 +230,18 @@ function ParseDatasetCollection(rows, callback) {
         });
     }, function(err) {
         if (err) {
-            log.warn("Some sort of error on get all dataset.)");
+            LogError("ParseDatasetCollection", err);
         }
         callback(datasets);
     });
 }
 
 
+/**
+ * @param {map} schema The schema to extract from the row
+ * @param {node-cassandra-cql row} row
+ * @returns {map} where key:value pairs whose keys are schema.
+ */
 function ExtractRowToJSON(schema, row) {
     content = {};
     for (var i = 0; i < schema.length; i++) {
@@ -172,15 +250,65 @@ function ExtractRowToJSON(schema, row) {
     return content;
 }
 
+/** Get the display name associated with a user ID.
+ * 
+ * @param {string UUID} id The user id
+ * @param {function} callback (string) with user ID if successful, empty string if not.
+ */
 exports.GetDisplayName = function(id, callback) {
     exports.GetRow("user", "id", id, function(data) {
         if (typeof data === "undefined") {
-            callback("[database error]");
+            callback("");
         } else {
             callback(data["display_name"]);
         }
     });
 };
+
+
+/** same as GetDataset, but formats the username and dates in a human readable way.
+ * 
+ * @param {string uuid} id
+ * @param {function} callback (dataset_json)
+ * 
+ */
+exports.GetDatasetFormatted = function(id, callback) {
+    exports.GetRow("dataset", "id", id, function(content) {
+        FormatDatasetInformation(content, callback);
+    });
+};
+
+/**
+ *  will:
+ *  1. Format the dates and times as UTC string
+ *  2. Replace submit_user with submit_user:{id:"",display_name:""}
+ *  3. Add field "duration" (difference in time between start and end, formatted in HH:MM:SS.SSSS
+ *  
+ * 
+ * @param {map} content The dataset to get the user from.
+ * @param {function} callback function(dataset_content)
+ */
+function FormatDatasetInformation(content, callback) {
+    if (typeof content !== "undefined") {
+        content['create_time'] = (new Date(content['create_time'])).toUTCString();
+        var start_time = (new Date(content['start_time']));
+        var end_time = (new Date(content['end_time']));
+        content['start_time'] = start_time.toUTCString();
+        content['end_time'] = end_time.toUTCString();
+        content['duration'] = readableDuration(end_time.getTime() - start_time.getTime());
+
+        exports.GetDisplayName(content['create_user'], function(display_name) {
+            content['create_user'] = {
+                id: content['create_user'],
+                display_name: display_name
+            };
+            callback(content);
+        });
+    } else {
+        callback(content);
+    }
+}
+
 
 
 
@@ -196,7 +324,6 @@ exports.GetDisplayName = function(id, callback) {
  * @return A formatted string containing the duration or "" if t=0
  */
 var readableDuration = (function() {
-
     // Each unit is an object with a suffix s and divisor d
     var units = [
         {s: 'ms', d: 1},
@@ -222,60 +349,13 @@ var readableDuration = (function() {
     };
 })();
 
-
-/**
- * 
- * @param {type} content The dataset to get the user from.
- * @param {type} callback function(dataset_content)
- * will:
- *  1. Format the dates and times as UTC string
- *  2. Replace submit_user with submit_user:{id:"",display_name:""}
- *  3. Add field "duration" (difference in time between start and end, formatted in HH:MM:SS.SSSS
- *  
- * 
- * @returns {undefined}
- */
-function FormatDatasetInformation(content, callback) {
-    if (typeof content !== "undefined") {
-        content['create_time'] = (new Date(content['create_time'])).toUTCString();
-        var start_time = (new Date(content['start_time']));
-        var end_time = (new Date(content['end_time']));
-        content['start_time'] = start_time.toUTCString();
-        content['end_time'] = end_time.toUTCString();
-        content['duration'] = readableDuration((end_time.getTime() - start_time.getTime()) / 1000);
-
-        exports.GetDisplayName(content['create_user'], function(display_name) {
-            content['create_user'] = {id: content['create_user'],
-                display_name: display_name
-            };
-            callback(content);
-        });
-    } else {
-        callback(content);
-    }
-}
-
-/** 
- * @param {type} dataset_uuid
- * @param {type} callback(dataset_json)
- same as GetDataset, but formats the username and dates.
- * 
- */
-exports.GetDatasetFormatted = function(id, callback) {
-    exports.GetRow("dataset", "id", id, function(content) {
-        FormatDatasetInformation(content, callback);
-    });
-};
-
 /**
  * 
  * @param {string} dataset_uuid
  * @param {function} callback parameter of true if sucessfully deleted, false otherwise.
- * @returns {undefined}
  */
 exports.DeleteDataset = function(dataset_uuid, callback) {
     exports.GetRow("dataset", "id", dataset_uuid, function(content) {
-
         if (typeof content === "undefined") {
             callback(false);
         } else {
@@ -284,9 +364,13 @@ exports.DeleteDataset = function(dataset_uuid, callback) {
             database.execute("DELETE FROM dataset WHERE id=?", [dataset_uuid], function(err1) {
                 database.execute("DELETE FROM raw_data WHERE id=?", [raw_data_uuid], function(err2) {
                     if (err1 || err2) {
-                        log.error("Error deleting dataset: ", err1, err2);
+                        LogError("DeleteDataset", err1 + ', ' + err2);
+                        callback(false);
+                    } else {
+                        callback(true);
                     }
-                    callback(true);
+
+                    //TODO (SRLM): Delete the event tree as well.
                 });
             });
 
@@ -306,4 +390,55 @@ exports.StripHintsFromJSON = function(set) {
         result[key] = value;
     }
     return result;
+};
+
+/** Deletes this event, and recurses to delete all child events (and all their
+ * children). Aka, prunes tree.
+ * 
+ * @param {string uuid} event_id
+ * @param {bool} deleteChildInParent If true, will remove the child from parent's list of children. Should almost always be true.
+ * @param {function} callback false if error occured, undefined otherwise.
+ */
+exports.DeleteEvent = function(event_id, deleteChildInParent, callback) {
+    exports.GetRow("event", "id", event_id, function(event) {
+        if (typeof event !== "undefined") {
+
+            // Remove from parent's list of children
+            if (event.parent !== "undefined" && deleteChildInParent === true) {
+                exports.UpdateRowModifyList("event", "id", event["parent"], "children", event["id"], "remove",
+                        function(err) {
+                            if (err) {
+                                LogError("DeleteEvent", err);
+                            }
+                        });
+            }
+
+            var cleanup = function(err1) {
+                exports.DeleteRow("event", "id", event_id, function(err2) {
+                    if (err1 || err2) {
+                        LogError("DeleteEvent", err1 + ", " + err2);
+                        callback(false);
+                    } else {
+                        callback();
+                    }
+                });
+            };
+
+            //log.info("Children of this event: " + event["children"]);
+            //log.info("Event: " + event);
+
+            if (event["children"] !== null) {
+                // Recursively remove each child in series
+                async.eachSeries(event["children"], function(child, childCallback) {
+                    exports.DeleteEvent(child, false, childCallback);
+                }, cleanup);
+            } else {
+                // No children to delete.
+                cleanup();
+            }
+        } else {
+            callback(false);
+        }
+    });
+
 };

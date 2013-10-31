@@ -8,7 +8,7 @@ exports.get = function(req, res, next){
         next();
     }
     
-    database.GetDataset(req.params.uuid, function(content){
+    database.GetRow("dataset", "id", req.params.uuid, function(content){
         if(typeof content === "undefined"){
             next();
         }else{
@@ -16,5 +16,5 @@ exports.get = function(req, res, next){
             res.render("customdownload", content);
         }
     });
-}
+};
 

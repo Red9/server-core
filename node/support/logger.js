@@ -80,7 +80,7 @@ var log_all = winston.loggers.get('all');
 exports.log = log_all;
 exports.color = log_color;
 
-/**
+/** Connect middleware logger
  * Logger:
  *
  * Log requests with the given `options` or a `format` string.

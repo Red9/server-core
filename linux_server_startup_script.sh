@@ -96,11 +96,14 @@ yes | git clone git@bitbucket.org:rednine/downsampler.git
 
 cd /home/${USER}/
 yes | git clone git@bitbucket.org:rednine/dev-website.git
-cd dev-website
+
+cd dev-website/node/
 ln -s /home/${USER}/data-processing/target/rnb2rnt-server.jar
 ln -s /home/${USER}/downsampler/target/downsampler.jar
-cqlsh -f cassandra_dev_website_create_database.txt
 mkdir logs
+
+cd ../
+cqlsh -f cassandra_dev_website_create_database.txt
 chmod +x /home/${USER}/dev-website/server_run.sh
 /home/${USER}/dev-website/server_run.sh
 

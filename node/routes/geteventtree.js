@@ -47,9 +47,6 @@ exports.get = function(req, res, next) {
     if (typeof root_id === "undefined") {
         next();
     } else {
-
-
-
         database.GetRow("event", "id", root_id, function(row) {
 
             // If node has parent then include that in the graph.

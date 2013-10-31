@@ -15,7 +15,7 @@ CREATE TABLE raw_data_cache (
 	end_time timestamp,
 	time timestamp,
 	data list<float>,
-	PRIMARY KEY(id,buckets,start_time,end_time,time)
+	PRIMARY KEY((id,buckets,start_time,end_time),time)
 ) with GC_Grace_Seconds=1;
 
 CREATE TABLE dataset (

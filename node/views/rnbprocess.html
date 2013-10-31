@@ -1,5 +1,7 @@
 
 <style>
+    
+    /* Styles for a "console like" appearance */
     #processing_notes {
         color: #DDD;
         background: #222;
@@ -43,33 +45,38 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
     var socket = io.connect();
+    
+    // Connect to the server Socket.io for this page
     socket.emit('page_uuid', {page_uuid: '{{page_uuid}}'});
+    
     jQuery(function($) {
-
         var sec = 0;
         function pad(val) {
             return val > 9 ? val : "0" + val;
         }
+        
         var clock_updater = setInterval(function() {
             $("#seconds").html(pad(++sec % 60));
             $("#minutes").html(pad(parseInt(sec / 60, 10)));
         }, 1000);
 
 
+        
         var processing_notes = $('#processing_notes');
+        
+        // Add text as it comes in from the server
         socket.on('note', function(data) {
             processing_notes.append('<p class="#processing_note">' + data.text + '</p>');
 
             $('#processing_notes').stop().animate({
                 scrollTop: $("#processing_notes")[0].scrollHeight
-            }, 800);
-
-
-            //var objDiv = document.getElementById('processing_notes');
-            //objDiv.scrollTop = objDiv.scrollHeight;
+            }, 500);
         });
+        
+        // Redirect (or at least stop timer) when done.
         socket.on('done_processing', function(data) {
             
+            // Stop clock (clear is a bit of a misnomer).
             clearInterval(clock_updater);
             
             var result_href = "/dataset/{{{uuid}}}";
@@ -77,6 +84,7 @@
             if ($('#redirect_checkbox').is(":checked")) {
                 window.location.replace(result_href);
             }else{
+                // They want to stay, so give them a handy link to continue when ready.
                 $('#redirect_area').html('<h3><a href="' + result_href + '">View your dataset</a></h3>');
             }
         });

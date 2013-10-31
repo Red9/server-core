@@ -39,7 +39,7 @@ exports.post = function(req, res, next) {
                     res.json({});
                 } else {
                     //TODO(SRLM): Add event to children of parent.
-                    database.UpdateRowAddToList("event", "id", event["parent"], "children", event["id"], function(err) {
+                    database.UpdateRowModifyList("event", "id", event["parent"], "children", event["id"], "add", function(err) {
                         if (err) {
                             res.send(500, 'Something broke: ' + err);
                         } else {

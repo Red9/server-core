@@ -1,5 +1,12 @@
 <script>
     $(document).ready(function() {
+        var eventTree = "{{{dataset.event_tree}}}";
+
+        // Dynamically load snippets.
+        var event_tree_url = "/snippet/eventtree?id=" + eventTree;
+        $("#insert_event_tree").load(event_tree_url);
+
+
         $("#delete").click(function() {
             $.ajax(
                     "/api/dataset/{{dataset.id}}",
@@ -15,20 +22,17 @@
 
 </script>
 
-
 <div class="row">
     <div class="col-xs-6">
         <h3>Summary</h3>
     </div>
-    <div class="col-xd-6">
-        <div id="delete"> <h3><a class="btn btn-xs btn-danger pull-right">Delete Dataset</a></h3>
-        </div>
+
+    <div class="col-xs-6">
+        <div id="delete"> <h3><a class="btn btn-xs btn-danger pull-right">Delete Dataset</a></h3></div>
+        <h3><a class="btn btn-default btn-xs pull-right" href="/event/{{dataset.event_tree}}">View Maps and Graphs</a></h3>
+        
     </div>
 </div>
-
-
-
-
 
 
 <table cellpadding="3" cellspacing="3" class="table table-striped">
@@ -59,6 +63,11 @@
         <td>{{{dataset.end_time}}}</td>
     </tr>
     <tr>
+        <td><b>Duration</b>
+        </td>
+        <td>{{{dataset.duration}}}</td>
+    </tr>
+    <tr>
         <td><b>Submitted Filename</b>
         </td>
         <td>{{{dataset.filename}}}</td>
@@ -75,27 +84,27 @@
     </tr>
 </table>
 
+<hr>
+<div id="insert_event_tree"> <!--Loaded by jQuery--> </div>
+<hr>
 
-
-<div class="row">
-    <div class="col-sm-8 col-sm-offset-2 col-xs-12">
-<a class="btn btn-info btn-block btn-large" href="/event/{{dataset.event_tree}}">View Full Data</a>
-</div>
-</div>
 
 <h3> Download:
-    <a download="{{dataset.id}}-panel.csv" href="/api/dataset/{{dataset.id}}">Complete Panel</a>
+    <a download="{{dataset.id}}-panel.csv" href="/api/dataset/{{dataset.id}}?minmax=false">Complete Panel</a>
     ~ <a href="/dataset/{{dataset.id}}/download">Custom Panel</a>
 </h3>
-<h5>Download Sensors: <a download="{{dataset.id}}-accl.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=accl_x,accl_y,accl_z">Accelerometer</a>
-    ~ <a download="{{dataset.id}}-gyro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=gyro_x,gyro_y,gyro_z">Gyroscope</a>
-    ~ <a download="{{dataset.id}}-magn.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=magn_x,magn_y,magn_z">Magnetometer</a>
-    ~ <a download="{{dataset.id}}-baro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=baro">Barometer</a>
-    ~ <a download="{{dataset.id}}-temp.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=temp">Temperature</a>
-    ~ <a download="{{dataset.id}}-gps.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=lat,long">GPS</a>
+
+<h5>Download Sensors: <a download="{{dataset.id}}-accl.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=accl_x,accl_y,accl_z&minmax=false">Accelerometer</a>
+    ~ <a download="{{dataset.id}}-gyro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=gyro_x,gyro_y,gyro_z&minmax=false">Gyroscope</a>
+    ~ <a download="{{dataset.id}}-magn.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=magn_x,magn_y,magn_z&minmax=false">Magnetometer</a>
+    ~ <a download="{{dataset.id}}-baro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=baro&minmax=false">Barometer</a>
+    ~ <a download="{{dataset.id}}-temp.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=temp&minmax=false">Temperature</a>
+    ~ <a download="{{dataset.id}}-gps.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=lat,long&minmax=false">GPS</a>
 
 </h5>
-<br />
+
+<hr>
+
 <h2>Summary Statistics</h2>
 <pre><code>
 
