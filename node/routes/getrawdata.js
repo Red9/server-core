@@ -62,10 +62,14 @@ function ProcessRequest(req, res, user_id, callback) {
         parameters.push('--minmax');
     }
     
+    
+    // Default to nocache.
     if (typeof req.param('cache') !== "undefined") {
         if (req.param('cache') === "false") {
             parameters.push('--nocache');
         }
+    }else{
+        parameters.push('--nocache');
     }
 
     if (typeof req.params.uuid === "undefined") {

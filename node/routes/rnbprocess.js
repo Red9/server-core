@@ -12,7 +12,7 @@ var page_uuid_list = {};
 function GetMetadata(meta_filename, callback) {
     fs.readFile(meta_filename, function(err, metadata) {
         if (err) {
-            log.err("Error: ", err);
+            log.error("Error: ", err);
         } else {
             callback(metadata);
         }
@@ -146,7 +146,12 @@ exports.post = function(req, res) {
 
             rnb2rnt.on('exit', function(code, signal) {
                 var processing_statistics = rnb2rnt.stdout.read();
-
+                
+                // For some reason, processing_statistics was null. This happened when reading a large file. Relevant?
+                if(processing_statistics === null){
+                    processing_statistics = "";
+                }
+                
 
                 var lines = processing_statistics.split('\n');
                 for (var i = 0; i < lines.length; i++) {
