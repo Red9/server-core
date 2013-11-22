@@ -69,7 +69,7 @@ function ProcessRequest(req, res, user_id, callback) {
             parameters.push('--nocache');
         }
     }else{
-        parameters.push('--nocache');
+        //parameters.push('--nocache');
     }
 
     if (typeof req.params.uuid === "undefined") {

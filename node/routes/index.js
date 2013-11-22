@@ -32,6 +32,9 @@ module.exports = function(app, passport) {
     
     app.get('/user/:param', require('./user').get);
     
+    app.get('/bluetooth', IsAuthenticated, require('./bluetooth').get);
+   
+    
     app.get( '/upload/rnb', IsAuthenticated, require('./rnbupload').get);
     app.post('/upload/process', IsAuthenticated, require('./rnbprocess').post);
 

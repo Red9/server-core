@@ -1,0 +1,182 @@
+
+<script>
+
+    var bluetoothDeviceTemplate = '<button class="list-group-item btn btn-default btn-lg btn-block" id="%id">'
+            + '<h3>%device</h3>'
+            + '<p>%address</p>'
+            + '</button>';
+
+    var scadPropertiesTemplate = '<tr>'
+            + '<td><b>%key</b></td>'
+            + '<td>%value</td>'
+            + '</tr>';
+
+    var scadRecordingTemplate = '<tr>'
+            + '<td><b>%name</b></td>'
+            + '<td><button class="btn btn-default btn-sm">Transfer</button></td>'
+            + '<td><button class="btn btn-default btn-sm btn-danger">Delete</button></td>'
+            + '</tr>';
+
+    var AddPropertyToTable = function(name, value) {
+        $("#scadpropertytable").append(
+                scadPropertiesTemplate
+                .replace("%key", name)
+                .replace("%value", value)
+                );
+    };
+
+    var AddLineToRecordingTable = function(filename) {
+        $("#scadavailablerecordingstable").append(
+                scadRecordingTemplate
+                .replace("%name", filename)
+                );
+    };
+
+
+    var ShowSCADDivs = function(connected) {
+        if (connected) {
+            $("#bluetoothDisconnectedDiv").hide();
+            $("#bluetoothConnectedDiv").show();
+        } else {
+            $("#bluetoothDisconnectedDiv").show();
+            $("#bluetoothConnectedDiv").hide();
+        }
+    };
+
+    var GetConnectionInformation = function() {
+        var result = $.parseJSON(BluetoothHost.GetConnectionProperties());
+        if (typeof result.error === "undefined") {
+            $("#scadpropertytable").empty();
+            for (var key in result) {
+                AddPropertyToTable(key, result[key]);
+            }
+
+        } else {
+            alert("Could not get properties.");
+        }
+    };
+
+
+
+    var GetAvailableRecordings = function() {
+        console.log("Getting available recordings...");
+        var result = $.parseJSON(BluetoothHost.GetAvailableRecordings());
+        if (typeof result.recordings !== "undefined") {
+            $("#scadavailablerecordingstable").empty();
+            console.log("Result from getavailablerecordings: " + JSON.stringify(result.recordings));
+            for (var index = 0; index < result.recordings.length; index++){
+                console.log("Element in result.recordings: " + JSON.stringify(result.recordings[index]));
+                AddLineToRecordingTable(result.recordings[index].filename);
+            }
+        }else{
+            alert("No recordings!");
+        }
+    };
+
+    var AddBluetoothDevice = function(name, address) {
+        var id = "id-" + address.replace(/:/g, "d");
+
+        $("#bluetoothDeviceList").append(
+                bluetoothDeviceTemplate
+                .replace("%device", name)
+                .replace("%address", address)
+                .replace("%id", id)
+                );
+        $("#" + id).on('click', function() {
+            //alert("Clicked!");
+
+            console.log("Address to connect to: ...'" + address + "'...");
+            if (typeof BluetoothHost !== "undefined") {
+                BluetoothHost.ConnectTo(address);
+                if (BluetoothHost.isConnected()) {
+                    ShowSCADDivs(true);
+                    GetConnectionInformation();
+                    GetAvailableRecordings();
+                } else {
+                    alert("Could not connect to device selected.");
+                }
+            }
+
+        });
+    };
+
+
+    $(document).ready(function() {
+        console.log("Hello, bluetooth");
+
+
+
+
+        if (typeof BluetoothHost !== "undefined") {
+
+            if (BluetoothHost.isConnected()) {
+                ShowSCADDivs(true);
+                GetConnectionInformation();
+                GetAvailableRecordings();
+            } else {
+                ShowSCADDivs(false);
+            }
+
+            $("#bluetoothDeviceList").empty();
+            var devices = $.parseJSON(BluetoothHost.GetBluetoothDevices());
+            for (var i = 0; i < devices.devices.length; i++) {
+                AddBluetoothDevice(devices.devices[i].name, devices.devices[i].address);
+            }
+
+
+            $("#bluetoothDisconnectButton").on('click', function() {
+                BluetoothHost.Disconnect();
+                ShowSCADDivs(false);
+            });
+
+
+
+
+
+
+        } else {
+            $("#bluetoothDeviceList").empty();
+            AddBluetoothDevice("Name", "00:06:66:62:59:2F");
+            AddBluetoothDevice("Name", "55:55:55:55:55:55");
+        }
+
+
+
+
+    });
+</script>
+
+<h3>Warning: This page is in development, and is intended only for use within the Red9 Android App. Use on other devices at your own risk!</h3>
+
+<div id ="bluetoothDisconnectedDiv">
+    <h3>Connect to a device:</h3>
+
+    <ul class="list-group" id="bluetoothDeviceList">
+        <li class="list-group-item">(No devices available)</li>
+    </ul>
+</div>
+
+<div id="bluetoothConnectedDiv">
+    <a class="btn btn-default btn-lg btn-block" id="bluetoothDisconnectButton">Disconnect from SCAD</a>
+
+
+
+    <h3>Properties</h3>
+    <table cellpadding="3" cellspacing="3" class="table table-striped" id="scadpropertytable">
+    </table>
+
+
+
+    <h3>Available Recordings</h3>
+    <table cellpadding="3" cellspacing="3" class="table table-striped" id="scadavailablerecordingstable">
+    </table>
+
+
+
+    <h3>Controls</h3>
+    <a class="btn btn-success btn-lg btn-block" id="startRecordingButton">Begin Recording</a>
+    <a class="btn btn-danger btn-lg btn-block" id="endRecordingButton">Stop Recording</a>
+    <br />
+    <a class="btn btn-warning btn-lg btn-block" id="startRecordingButton">Turn Off</a>
+</div>
+
