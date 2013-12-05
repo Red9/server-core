@@ -9,6 +9,40 @@ var config = require('./../config');
 
 var page_uuid_list = {};
 
+
+/** This is a short term solution only! It's used to change the column names from rnb format to rnc format.
+ * 
+ * @param {array[string]} columns
+ * @returns {array[string]}
+ */
+function UpdateColumnNames(columns) {
+
+    var map = {
+        accl_x: "acceleration:x",
+        accl_y: "acceleration:y",
+        accl_z: "acceleration:z",
+        gyro_x: "rotationrate:x",
+        gyro_y: "rotationrate:y",
+        gyro_z: "rotationrate:z",
+        magn_x: "magneticfield:x",
+        magn_y: "magneticfield:y",
+        magn_z: "magneticfield:z",
+        lat: "gps:latitude",
+        long: "gps:longitude",
+        baro: "pressure:pressure",
+        temp: "pressure:temperature",
+        speed: "gps:speed"
+    };
+
+    for (var i = 0; i < columns.length; i++) {
+        if(typeof map[columns[i]] !== "undefined"){
+            columns[i] = map[columns[i]];
+        }
+    }
+    
+    return columns;
+}
+
 function GetMetadata(meta_filename, callback) {
     fs.readFile(meta_filename, function(err, metadata) {
         if (err) {
@@ -47,7 +81,11 @@ exports.NewSocket = function(new_socket, socket_page_uuid) {
         log.info("Yes!");
         page_uuid_list[socket_page_uuid] = new_socket;
         SendOnSocket(socket_page_uuid, "found handler!");
+        return true;
+    } else {
+        return false;
     }
+
 };
 
 
@@ -59,14 +97,14 @@ exports.post = function(req, res) {
     dataset["id"] = database.GenerateUUID();
     dataset["event_tree"] = database.GenerateUUID();
 
-    dataset["filename"] = req.files.rnbfile.name;
+    dataset["filename"] = req.files.file.name;
     dataset["processing_config"] = req.body.config;
 
     //These should come from rnb2rnt...
     dataset["scad_unit"] = "unknown";
 
 
-    var filename = req.files.rnbfile.name.split(".")[0];
+    var filename = req.files.file.name.split(".")[0];
 
     var meta_filename = config.tempDirectory + filename + '-meta.txt';
     var cfg_filename = config.tempDirectory + dataset["id"] + '-cfg.txt';
@@ -81,7 +119,7 @@ exports.post = function(req, res) {
     parameters.push('--nodeaddress');
     parameters.push('localhost');
     parameters.push('--input');
-    parameters.push(req.files.rnbfile.path);
+    parameters.push(req.files.file.path);
     parameters.push('--uuid');
     parameters.push(dataset["raw_data"]);
     parameters.push('-m');
@@ -100,7 +138,7 @@ exports.post = function(req, res) {
             log.info("Could not parse cross_section_frequency of '" + req.body.cross_section_frequency + "'");
         }
     }
-    
+
     console.log("mkdir -p " + config.tempDirectory + "; rm -f " + config.tempDirectory + filename + "*");
 
     exec("mkdir -p " + config.tempDirectory + "; rm -f " + config.tempDirectory + filename + "*", function(rm_err, rm_stdout, rm_stderr) {
@@ -120,7 +158,7 @@ exports.post = function(req, res) {
 
             //TODO(SRLM): Add crossSection parameter
 
-            
+
 
 
             var rnb2rnt = spawn('java', parameters);
@@ -146,12 +184,12 @@ exports.post = function(req, res) {
 
             rnb2rnt.on('exit', function(code, signal) {
                 var processing_statistics = rnb2rnt.stdout.read();
-                
+
                 // For some reason, processing_statistics was null. This happened when reading a large file. Relevant?
-                if(processing_statistics === null){
+                if (processing_statistics === null) {
                     processing_statistics = "";
                 }
-                
+
 
                 var lines = processing_statistics.split('\n');
                 for (var i = 0; i < lines.length; i++) {
@@ -169,7 +207,7 @@ exports.post = function(req, res) {
                     } else if (key === "scad_unit") {
                         dataset["scad_unit"] = value;
                     } else if (key === "column_titles") {
-                        dataset["column_titles"] = value.split(",");
+                        dataset["column_titles"] = UpdateColumnNames(value.split(","));
                     } else if (key === "") {
                         // do nothing if empty.
                     } else {
@@ -213,6 +251,6 @@ exports.post = function(req, res) {
     });
 
 
-    res.render("rnbprocess", {page_title: "Processing Upload...", uuid: dataset["id"], page_uuid: page_uuid});
+    res.render("processupload", {page_title: "Processing Upload...", uuid: dataset["id"], page_uuid: page_uuid});
 
 };

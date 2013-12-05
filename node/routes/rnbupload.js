@@ -5,6 +5,8 @@ exports.get = function(req, res) {
 
         var parameters = {
             page_title: "RNB Uploader",
+            file_extension: "RNB",
+            post_target: "/upload/rnb/process",
             textinputs: [
                 {id:"title", label:"Dataset Title", description:"Chose a short, descriptive name. If not specified it will default to the filename."},
                 {id:"cross_section_frequency", label:"Cross Section Frequency", description:"Select the output frequency for the cross section. Defaults to 100Hz. Please don't choose anything too high (storage availability is limited)"}
@@ -14,7 +16,7 @@ exports.get = function(req, res) {
                 {id:"config", label:"Configuration Commands",description:"Input the rnb2rnt.jar configuration here, or leave the default.",default_text:default_configuration}
             ]
         };
-        res.render('rnbupload', parameters);
+        res.render('upload', parameters);
 
     });
 

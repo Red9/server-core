@@ -93,7 +93,7 @@
     // Called at initialization and from within Dynamic Dygraphs.
     var UpdateMap = function(start, finish) {
         mapSpinner.showSpinner(true);
-        var map_request_url = "/api/dataset/" + dataset_id + "?columns=lat,long&buckets=1000&minmax=false&resulttype=json"
+        var map_request_url = "/api/dataset/" + dataset_id + "?columns=gps:latitude,gps:longitude&buckets=1000&minmax=false&resulttype=json"
                 + "&startTime=" + start + "&endTime=" + finish;
 
         AddToRequestQueue({request: map_request_url, callback: SetPathAndPointsOnMap, identifier: mapQueueIdentifier});

@@ -20,11 +20,16 @@ sudo umount /dev/xvdb
 #sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf
 
 # m1.xlarge
-sudo yes | sudo mdadm --create /dev/md0 --level=1 --raid-devices=4 /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde
-echo 'DEVICE /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde' | sudo tee -a /etc/mdadm.conf
+# All 4 disks raided together
+#sudo yes | sudo mdadm --create /dev/md0 --level=1 --raid-devices=4 /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde
+#echo 'DEVICE /dev/xvdb /dev/xvdc /dev/xvdd /dev/xvde' | sudo tee -a /etc/mdadm.conf
+#sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf
+
+# m1.xlarge
+# 3 disks raided together, the last ( /dev/xvde ) on it's own.
+sudo yes | sudo mdadm --create /dev/md0 --level=1 --raid-devices=3 /dev/xvdb /dev/xvdc /dev/xvdd
+echo 'DEVICE /dev/xvdb /dev/xvdc /dev/xvdd' | sudo tee -a /etc/mdadm.conf
 sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf
-
-
 
 
 # Make sure the system is up to date.
@@ -77,16 +82,28 @@ cat /proc/mdstat
 
 echo "Making RAID filesystem."
 
+# Raid'd disks
 sudo mkfs -t ext4 /dev/md0
 sudo mkdir /ephemeral0
 echo "/dev/md0 /ephemeral0 ext4 defaults 1 2" | sudo tee -a /etc/fstab
 sudo mount /ephemeral0
 sudo chown -R ${USER}:${USER} /ephemeral0
-
 sudo mkdir /ephemeral0/cassandra
 sudo chown -R cassandra:cassandra /ephemeral0/cassandra
 
-read -p "Press [Enter] key to continue after adding Git keys (see above)"
+# Extra (non-raid'd) disk
+sudo mkfs -t ext4 /dev/xvde
+sudo mkdir /ephemeral1
+echo "/dev/xvde /ephemeral1 ext4 defaults 1 2" | sudo tee -a /etc/fstab
+sudo mount /ephemeral1
+sudo chown -R ${USER}:${USER} /ephemeral1
+sudo mkdir /ephemeral1/cassandra
+sudo chown -R cassandra:cassandra /ephemeral1/cassandra
+
+echo "Don't forget to edit /etc/cassandra/cassandra.yaml for the correct (ephemeral0) directories!"
+read -p "Press [Enter] key to continue after adding Git keys (see above), and after editing cassandra.yaml"
+
+sudo service cassandra restart
 
 cd /home/${USER}/
 yes | git clone git@bitbucket.org:rednine/data-processing.git
@@ -107,8 +124,7 @@ cqlsh -f cassandra_dev_website_create_database.txt
 chmod +x /home/${USER}/dev-website/server_run.sh
 /home/${USER}/dev-website/server_run.sh
 
-echo "Don't forget to edit /etc/cassandra/cassandra.yaml for the correct (ephemeral0) directories!"
-
+echo "You still need to start the Node server, and remember to update the iptables on every boot!"
 
 
 

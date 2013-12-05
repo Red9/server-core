@@ -1,6 +1,8 @@
 <link rel="stylesheet" type="text/css" href="/stylesheets/jquery.dataTables.css">
 <script src="/js/jquery.dataTables.js"></script>
 
+<script src="/js/jquery.jeditable.js"></script>
+
 <script>
     var oTable;
     $(document).ready(function() {
@@ -8,9 +10,24 @@
             "aaSorting": [[2, "desc"]],
             "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
         });
+
+
+        $('.editable').editable(function(value, settings) {
+            console.log(this);
+            console.log(value);
+            console.log(settings);
+            return(value);
+        }, {
+            type: 'text',
+            width: ($('.name_cell').width() - 10) + "px",
+            height: ($('.name_cell').height() + 8) + "px"
+        });
+
     });
 
-    function deleteDataset(id) {
+
+
+    var deleteDataset = function(id) {
         $.ajax(
                 "/api/dataset/" + id,
                 {type: "delete"}
@@ -25,7 +42,7 @@
             alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
         });
 
-    }
+    };
 </script>
 
 <h1>{{page_title}}</h1>
@@ -43,7 +60,7 @@
 
         {{#each datasets}}   
         <tr id="dataset_list_row_{{{id}}}">
-            <td>{{{name}}}</td>
+            <td  class="editable name_cell">{{{name}}}</td>
             <td><a href="/user/{{{create_user.id}}}">{{{create_user.display_name}}}</a></td>
             <td>{{{create_time}}}</td>
             <td>{{{duration}}}</td>
@@ -56,3 +73,8 @@
 
     </tbody>
 </table>
+
+<br /><br /><br /><br />
+<hr>
+<h1>Tools</h1>
+<a href="/monitor">Monitoring</a>

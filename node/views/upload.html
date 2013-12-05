@@ -1,15 +1,15 @@
-    <form action="/upload/process" method="post" enctype="multipart/form-data" id="upload_rnb_form" class="form-horizontal">
+    <form action="{{{post_target}}}" method="post" enctype="multipart/form-data" id="upload_form" class="form-horizontal">
     <fieldset>
 
         <!-- Form Name -->
-        <legend>RNB Upload</legend>
+        <legend>{{{file_extension}}} Upload</legend>
 
         <!-- File Button -->
         <div class="form-group">
-            <label class="col-md-3 control-label" for="rnbfile">RNB File</label>
+            <label class="col-md-3 control-label" for="file">{{{file_extension}}} File</label>
             <div class="col-md-6">
-                <input id="rnbfile" name="rnbfile" type="file">
-                <p class="help-block">Select the RNB file to process.</p>
+                <input id="file" name="file" type="file">
+                <p class="help-block">Select the {{{file_extension}}} file to process.</p>
             </div>
         </div>
 
@@ -50,17 +50,17 @@
 
 <script>
     $(document).ready(function() {
-        var validator = $('#upload_rnb_form').validate({
+        var validator = $('#upload_form').validate({
            rules:{
-               rnbfile:{
+               file:{
                    required: true,
-                   extension: "rnb"
+                   extension: "{{{file_extension}}}"
                }
            },
            messages: {
-               rnbfile:{
-                   required: "You must provide an RNB file for upload.",
-                   extension: "Must be an RNB file (with that extension)."
+               file:{
+                   required: "You must provide an {{{file_extension}}} file for upload.",
+                   extension: "Must be an {{{file_extension}}} file (with that extension)."
                }
            }
         });

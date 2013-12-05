@@ -9,8 +9,8 @@ exports.defaultPort = 8080;
 
 exports.pageTemplateDefaults = {
     site: {
-        title: 'rnb2rnt.jar',
-        description: 'A processing and viewing interface for RedNine binary data'
+        title: 'Total State',
+        description: 'Motion analytics software'
     },
     author: {
         display_name: 'srlm',
@@ -23,4 +23,4 @@ exports.nodetimeProfile = {
     appName: 'Dev Website'
 };
 
-exports.defaultRealm = "http://localhost";
+exports.defaultRealm = "http://192.168.1.200:8080";

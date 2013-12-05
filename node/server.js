@@ -131,6 +131,7 @@ io.set('log level', 2); // reduce logging
  */
 var socket_routes = [];
 socket_routes.push(require('./routes/rnbprocess').NewSocket);
+socket_routes.push(require('./routes/rncprocess').NewSocket);
 
 io.sockets.on('connection', function(socket) {
     socket.on('page_uuid', function(data) {
@@ -142,7 +143,7 @@ io.sockets.on('connection', function(socket) {
         // If it does add the socket then it will return false, and the loop 
         // ends. From the time of it's addition it's up to the route to handle
         // the socket. It's out of this function's hands.
-        while (i < socket_routes.length && socket_routes[i](socket, page_uuid)) {
+        while (i < socket_routes.length && socket_routes[i](socket, page_uuid) === false) {
             i++;
         }
     });

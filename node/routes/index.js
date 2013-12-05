@@ -36,7 +36,11 @@ module.exports = function(app, passport) {
    
     
     app.get( '/upload/rnb', IsAuthenticated, require('./rnbupload').get);
-    app.post('/upload/process', IsAuthenticated, require('./rnbprocess').post);
+    app.post('/upload/rnb/process', IsAuthenticated, require('./rnbprocess').post);
+    
+    app.get('/upload/rnc', IsAuthenticated, require('./rncupload').get);
+    app.post('/upload/rnc/process', IsAuthenticated, require('./rncprocess').post);
+    
 
     app.get( '/snippet/:type', IsAuthenticated, require('./getsnippet').get);
     

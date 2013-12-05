@@ -12,7 +12,7 @@ var dataset_schema = ['id', 'raw_data', 'name', 'create_time', 'create_user',
     'scad_unit', 'column_titles', 'event_tree'];
 
 var event_schema = ['id', 'dataset', 'start_time', 'end_time', 'confidence',
-    'parent', 'children', 'type', 'parameters', 'source', 'create_time'];
+    'parent', 'children', 'type', 'summary_statistics', 'source', 'create_time'];
 
 var user_schema = ['id', 'display_name', 'google_id', 'email', 'first', 'last', 'create_time'];
 

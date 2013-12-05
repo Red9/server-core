@@ -16,7 +16,7 @@ CREATE TABLE raw_data_cache (
 	time timestamp,
 	data list<float>,
 	PRIMARY KEY((id,buckets,start_time,end_time),time)
-) with GC_Grace_Seconds=1;
+) with GC_Grace_Seconds=600;
 
 CREATE TABLE dataset (
 	id uuid,
@@ -43,12 +43,12 @@ CREATE TABLE event (
 	dataset uuid,
 	start_time timestamp,
 	end_time timestamp,
-	confidence int,
 	parent uuid,
 	children list<uuid>,
 	type varchar,
-	parameters map<varchar, varchar>,
+	summary_statistics varchar,
 	source varchar,
+	confidence int,
 	create_time timestamp,
 	PRIMARY KEY(id)
 );
@@ -70,6 +70,7 @@ CREATE TABLE user (
 	first varchar,
 	last varchar,
 	create_time timestamp,
+	system_of_units varchar,
 	PRIMARY KEY(id)
 );
 
@@ -79,6 +80,6 @@ CREATE INDEX comments_users ON comment(user);
 CREATE INDEX users_email ON user (email);
 CREATE INDEX users_google_id ON user (google_id);
 
-INSERT INTO user(id, display_name, email, first, last, google_id, create_time)
- VALUES (fadedcab-0528-e834-b47d-c80e3696846c,'srlm','srlm@srlmproductions.com','Cody','Lewis','https://www.google.com/accounts/o8/id?id=AItOawlM7qpXhEIaTbJZ7cL6LYASXf170NyWLqI', 946684799999);
+INSERT INTO user(id, display_name, email, first, last, google_id, create_time, system_of_units)
+ VALUES (fadedcab-0528-e834-b47d-c80e3696846c,'srlm','srlm@srlmproductions.com','Cody','Lewis','https://www.google.com/accounts/o8/id?id=AItOawlM7qpXhEIaTbJZ7cL6LYASXf170NyWLqI', 946684799999, 'metric');
  

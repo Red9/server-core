@@ -23,14 +23,26 @@ exports.get = function(req, res, next) {
             end_time: end_time,
             parent: parent,
             EventType: [
-                {name: "take-off"},
-                {name: "ride"},
-                {name: "carve"},
-                {name: "cutback"},
-                {name: "air"},
-                {name: "wipe out"},
-                {name: "wait"},
-                {name: "walk"}
+                {name:"Wave: Left"},
+                {name:"Wave: Right"},
+                {name:"Wave"},
+                {name:"Drop In"},
+                {name:"Bottom Turn"},
+                {name:"Snap"},
+                {name:"Snap: Closeout"},
+                {name:"Air Drop"},
+                {name:"Cutback"},
+                {name:"Floater"},
+                {name:"Carve"},
+                {name:"Tail Slide"},
+                {name:"Pump"},
+                {name:"360"},
+                {name:"Reverse"},
+                {name:"Air"},
+                {name:"Paddle for Wave"},
+                {name:"Paddle Out"},
+                {name:"Paddle"},
+                {name:"Duck Dive"}
             ]
         };
         res.render('snippets/createeventmodal', parameters);
