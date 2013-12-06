@@ -18,7 +18,8 @@
     "winston-papertrail": "latest",
     "bytes": "latest",
     "nodetime": "latest",
-    "stdio": "latest"
+    "stdio": "latest",
+    "moment":"latest"
 
   }
 }

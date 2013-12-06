@@ -9,6 +9,25 @@ var config = require('./../config');
 
 var page_uuid_list = {};
 
+// DUPLICATE! HACK! FIX ME!
+var BeginStatisticsCalculation = function(event_uuid) {
+    var parameters = [];
+    parameters.push('-jar');
+    parameters.push('bin/statistician.jar');
+    parameters.push('--event');
+    parameters.push(event_uuid);
+    parameters.push('--cassandrahost');
+    parameters.push('127.0.0.1');
+    parameters.push('--childrenpath');
+    parameters.push(config.statistician_children);
+    var statistician = spawn('java', parameters);
+    console.log("Starting statistics!");
+
+    statistician.on('exit', function(code, signal) {
+        console.log("Statistics done! Code: " + code);
+    });
+};
+
 
 /** This is a short term solution only! It's used to change the column names from rnb format to rnc format.
  * 
@@ -243,7 +262,9 @@ exports.post = function(req, res) {
                         event["create_time"] = dataset["create_time"];
                         database.InsertRow("event", event, function(err) {
                             SendOnSocketDone(page_uuid);
+                            
                         });
+                        BeginStatisticsCalculation(event['id']);
                     });
                 });
             });

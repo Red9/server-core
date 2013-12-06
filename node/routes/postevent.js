@@ -1,5 +1,24 @@
 var database = require('./../support/database');
 var spawn = require('child_process').spawn;
+var config = require('./../config');
+
+var BeginStatisticsCalculation = function(event_uuid) {
+    var parameters = [];
+    parameters.push('-jar');
+    parameters.push('bin/statistician.jar');
+    parameters.push('--event');
+    parameters.push(event_uuid);
+    parameters.push('--cassandrahost');
+    parameters.push('127.0.0.1');
+    parameters.push('--childrenpath');
+    parameters.push(config.statistician_children);
+    var statistician = spawn('java', parameters);
+    console.log("Starting statistics!");
+
+    statistician.on('exit', function(code, signal) {
+        console.log("Statistics done! Code: " + code);
+    });
+};
 
 exports.post = function(req, res, next) {
     console.log("Post result: " + JSON.stringify(req.body));
@@ -8,13 +27,13 @@ exports.post = function(req, res, next) {
 
 
     var parameters = req.body.parameters;
-    if(typeof parameters === "undefined"){
+    if (typeof parameters === "undefined") {
         parameters = {};
     }
 
     var event = {};
 
-    event["id"] = {hint:"uuid", value:database.GenerateUUID()};
+    event["id"] = {hint: "uuid", value: database.GenerateUUID()};
     // dataset
     event["start_time"] = new Date(parseFloat(req.body.start_time));
     event["end_time"] = new Date(parseFloat(req.body.end_time));
@@ -45,28 +64,14 @@ exports.post = function(req, res, next) {
                             res.send(500, 'Something broke: ' + err);
                         } else {
                             event = database.StripHintsFromJSON(event);
-                            
+
                             res.json(event);
                         }
 
                     });
                     // It was successfully entered, so let's calculate some statistics.
+                    BeginStatisticsCalculation(event['id'].value);
 
-                    var parameters = [];
-                    parameters.push('-jar');
-                    parameters.push('bin/statistician.jar');                    
-                    parameters.push('--event');
-                    parameters.push(event['id'].value);
-                    parameters.push('--cassandrahost');
-                    parameters.push('127.0.0.1');
-                    parameters.push('--childrenpath');
-                    parameters.push('/home/clewis/consulting/red9/data-processing/statistics/children');
-                    var statistician = spawn('java', parameters);
-                    console.log("Starting statistics!");
-                    
-                    statistician.on('exit', function(code, signal){
-                       console.log("Statistics done! Code: " + code);
-                    });
                 }
             });
         }

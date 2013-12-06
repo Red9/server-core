@@ -24,3 +24,7 @@ exports.nodetimeProfile = {
 };
 
 exports.defaultRealm = "http://192.168.1.200:8080";
+
+
+exports.statistician_children = '../../data-processing/statistics/children';
+//exports.statistician_children = '/home/clewis/consulting/red9/data-processing/statistics/children';

@@ -37,6 +37,19 @@ var http = require('http');
 var path = require('path');
 var hbs = require('hbs');
 
+hbs.registerHelper('decimal', function(number) {
+    if(Math.abs(number) > 9999 || Math.abs(number) < 0.01){
+        return number.toExponential(3);
+    }else{
+        return parseFloat(Math.round(number * 100) / 100).toFixed(2);
+    }
+});
+
+
+var moment = require('moment');
+hbs.registerHelper('time', function(milliseconds){
+    return moment.utc(milliseconds).format("H:mm:ss");
+});
 
 
 // Authentication details

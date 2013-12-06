@@ -6,6 +6,25 @@ var config = require('./../config');
 
 var page_uuid_list = {};
 
+// DUPLICATE! HACK! FIX ME!
+var BeginStatisticsCalculation = function(event_uuid) {
+    var parameters = [];
+    parameters.push('-jar');
+    parameters.push('bin/statistician.jar');
+    parameters.push('--event');
+    parameters.push(event_uuid);
+    parameters.push('--cassandrahost');
+    parameters.push('127.0.0.1');
+    parameters.push('--childrenpath');
+    parameters.push(config.statistician_children);
+    var statistician = spawn('java', parameters);
+    console.log("Starting statistics!");
+
+    statistician.on('exit', function(code, signal) {
+        console.log("Statistics done! Code: " + code);
+    });
+};
+
 function SocketAvailable(page_uuid) {
     return typeof page_uuid_list[page_uuid] !== "undefined" && page_uuid_list[page_uuid] !== null;
 }
@@ -39,6 +58,7 @@ exports.NewSocket = function(new_socket, socket_page_uuid) {
         return false;
     }
 };
+
 
 
 exports.post = function(req, res) {
@@ -137,6 +157,8 @@ exports.post = function(req, res) {
             database.InsertRow("event", event, function(err) {
                 SendOnSocketDone(page_uuid);
             });
+            BeginStatisticsCalculation(event['id']);
+            
         });
     });
 

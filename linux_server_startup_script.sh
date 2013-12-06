@@ -46,7 +46,7 @@ sudo sed -i "/^# deb.*multiverse/ s/^# //" /etc/apt/sources.list
 sudo add-apt-repository 'deb http://www.apache.org/dist/cassandra/debian 20x main'
 sudo yes | sudo add-apt-repository ppa:chris-lea/node.js
 sudo apt-get update
-sudo yes | sudo apt-get install python-software-properties python openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven opscenter htop
+sudo yes | sudo apt-get install python-software-properties python openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven opscenter htop binfmt-support
 
 cd /home/${USER}/
 
@@ -137,6 +137,7 @@ cd dev-website/node/bin
 ln -s /home/${USER}/data-processing/parsernb/target/rnb2rnt-server.jar
 ln -s /home/${USER}/data-processing/parsernc/target/parsernc.jar
 ln -s /home/${USER}/downsampler/target/downsampler.jar
+ls -s /home/${USER}/data-processing/statistics/statician/target/statician.jar
 cd ../
 
 mkdir logs

@@ -1,0 +1,37 @@
+{{#if event}}
+<div class="row">
+    {{#each event.summary_statistics.instantaneous}}
+
+    <div class="col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><strong>{{@key}}</strong></div>
+
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Axis</th>
+                        <th>Minimum</th>
+                        <th>Average</th>
+                        <th>Maximum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each this}}
+
+
+                    <tr>
+                        <td>{{@key}}</td>
+                        <td><abbr title="time: {{time this.minimum.time}}">
+                                {{decimal this.minimum.value}}</abbr></td>
+                        <td>{{decimal this.average.value}}</td>
+                        <td><abbr title="time: {{time this.maximum.time}}">
+                                {{decimal this.maximum.value}}</abbr></td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{/each}}
+</div>
+{{/if}}
