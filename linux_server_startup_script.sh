@@ -36,13 +36,17 @@ sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf
 sudo apt-get update						# Fetches the list of available updates
 sudo yes | sudo apt-get dist-upgrade	# Installs updates
 
+#Add Datastax ops center
+echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/datastax.community.list
+sudo curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
+
 # Add packages, including multiverse.
-sudo -e /etc/apt/sources.list
+#sudo -e /etc/apt/sources.list
+sudo sed -i "/^# deb.*multiverse/ s/^# //" /etc/apt/sources.list
 sudo add-apt-repository 'deb http://www.apache.org/dist/cassandra/debian 20x main'
 sudo yes | sudo add-apt-repository ppa:chris-lea/node.js
 sudo apt-get update
-sudo yes | sudo apt-get install python-software-properties python openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven
-
+sudo yes | sudo apt-get install python-software-properties python openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven opscenter htop
 
 cd /home/${USER}/
 
@@ -100,10 +104,23 @@ sudo chown -R ${USER}:${USER} /ephemeral1
 sudo mkdir /ephemeral1/cassandra
 sudo chown -R cassandra:cassandra /ephemeral1/cassandra
 
-echo "Don't forget to edit /etc/cassandra/cassandra.yaml for the correct (ephemeral0) directories!"
+#echo "Don't forget to edit /etc/cassandra/cassandra.yaml for the correct (ephemeral0) directories!"
+#Update the cassandra data store locations.
+sudo sed -i 's%^    - /var/lib/cassandra/data$%    - /ephemeral0/cassandra/data%' /etc/cassandra/cassandra.yaml
+sudo sed -i 's%^commitlog_directory: /var/lib/cassandra/commitlog$%commitlog_directory: /ephemeral1/cassandra/commitlog%' /etc/cassandra/cassandra.yaml 
+sudo sed -i 's%^saved_caches_directory: /var/lib/cassandra/saved_caches$%saved_caches_directory: /ephemeral0/cassandra/saved_caches%' /etc/cassandra/cassandra.yaml
+sudo service cassandra restart
+
+PUBLIC_HOSTNAME=$(curl http://169.254.169.254/latest/meta-data/public-hostname)
+sudo sed -i "s%^interface = 127.0.0.1$%interface = ${PUBLIC_HOSTNAME}%" /etc/opscenter/opscenterd.conf
+sudo python /usr/share/opscenter/bin/set_passwd.py srlm admin
+sudo service opscenterd start
+
+
+
 read -p "Press [Enter] key to continue after adding Git keys (see above), and after editing cassandra.yaml"
 
-sudo service cassandra restart
+
 
 cd /home/${USER}/
 yes | git clone git@bitbucket.org:rednine/data-processing.git
@@ -114,17 +131,23 @@ yes | git clone git@bitbucket.org:rednine/downsampler.git
 cd /home/${USER}/
 yes | git clone git@bitbucket.org:rednine/dev-website.git
 
-cd dev-website/node/
-ln -s /home/${USER}/data-processing/target/rnb2rnt-server.jar
-ln -s /home/${USER}/downsampler/target/downsampler.jar
-mkdir logs
 
+mkdir dev-website/node/bin
+cd dev-website/node/bin
+ln -s /home/${USER}/data-processing/parsernb/target/rnb2rnt-server.jar
+ln -s /home/${USER}/data-processing/parsernc/target/parsernc.jar
+ln -s /home/${USER}/downsampler/target/downsampler.jar
+cd ../
+
+mkdir logs
+npm install
 cd ../
 cqlsh -f cassandra_dev_website_create_database.txt
-chmod +x /home/${USER}/dev-website/server_run.sh
-/home/${USER}/dev-website/server_run.sh
+#chmod +x /home/${USER}/dev-website/server_run.sh
+#/home/${USER}/dev-website/server_run.sh
 
 echo "You still need to start the Node server, and remember to update the iptables on every boot!"
+echo "Also, don't forget to reboot to lock in the updates."
 
 
 

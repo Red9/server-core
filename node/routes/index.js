@@ -47,7 +47,9 @@ module.exports = function(app, passport) {
     app.get(   '/api/dataset/:uuid', IsAuthenticated, require('./getrawdata').get);
     app.delete('/api/dataset/:uuid', IsAuthenticated, require('./deletedataset').delete);
     
+    
     app.get(   '/api/event/tree/:uuid', IsAuthenticated, require('./geteventtree').get);    
+    app.get(   '/api/event/:uuid', IsAuthenticated, require('./getevent').get);
     app.post(  '/api/event/:uuid', IsAuthenticated, require('./postevent').post);
     app.delete('/api/event/:uuid', IsAuthenticated, require('./deleteevent').delete);    
 

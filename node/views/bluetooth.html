@@ -139,8 +139,8 @@
             console.log("Before setting time");
             BluetoothHost.SetDateTime(
                     now.getUTCFullYear(),
-                    now.getUTCMonth(),
-                    now.getUTCDay(),
+                    now.getUTCMonth() + 1, // UTC months start at 0.
+                    now.getUTCDate(), // Get the day of month
                     now.getUTCHours(),
                     now.getUTCMinutes(),
                     now.getUTCSeconds()

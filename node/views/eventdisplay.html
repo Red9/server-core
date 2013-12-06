@@ -72,7 +72,30 @@
                 alert("Can't delete an event with no parent! Please notify a sysadmin.");
             }
         });
+        RefreshSummaryStatistics(0);
     });
+
+    var RefreshSummaryStatistics = function(counter) {
+        if (counter < 100) {
+            console.log("Getting data, iteration " + counter);
+            $.ajax({
+                dataType: "json",
+                url: "/api/event/{{event.id}}",
+                success: function(data) {
+                    console.log("Data: '" + data + "'");
+                    if (data.summary_statistics === null) {
+                        setTimeout(function(){
+                            RefreshSummaryStatistics(counter + 1)
+                        }, 1000);
+                    } else {
+                        $("#summaryStatisticsCode").text(JSON.stringify(data.summary_statistics, null, 4));
+                    }
+                }
+            });
+        } else {
+            $("#summaryStatisticsCode").text("Sorry, summary statistics are not available at this time. Please refresh later");
+        }
+    };
 
 
     // --------------------------------------------------
@@ -408,9 +431,9 @@
 <br />
 
 <div class="container">
-    
-    
-    
+
+
+
     {{#each column_group}}
     <!-- Clip to [somewhere] Modal -->
     <div class="modal fade" id="graph_{{id}}_menu" tabindex="-1" role="dialog">
@@ -462,3 +485,9 @@
     {{/each}}
 
     <br />
+
+
+    <h2>Summary Statistics</h2>
+
+    <pre><code id="summaryStatisticsCode">Hi.
+    </code></pre>

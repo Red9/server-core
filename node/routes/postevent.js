@@ -1,4 +1,5 @@
 var database = require('./../support/database');
+var spawn = require('child_process').spawn;
 
 exports.post = function(req, res, next) {
     console.log("Post result: " + JSON.stringify(req.body));
@@ -48,8 +49,24 @@ exports.post = function(req, res, next) {
                             res.json(event);
                         }
 
-                    })
+                    });
+                    // It was successfully entered, so let's calculate some statistics.
 
+                    var parameters = [];
+                    parameters.push('-jar');
+                    parameters.push('bin/statistician.jar');                    
+                    parameters.push('--event');
+                    parameters.push(event['id'].value);
+                    parameters.push('--cassandrahost');
+                    parameters.push('127.0.0.1');
+                    parameters.push('--childrenpath');
+                    parameters.push('/home/clewis/consulting/red9/data-processing/statistics/children');
+                    var statistician = spawn('java', parameters);
+                    console.log("Starting statistics!");
+                    
+                    statistician.on('exit', function(code, signal){
+                       console.log("Statistics done! Code: " + code);
+                    });
                 }
             });
         }

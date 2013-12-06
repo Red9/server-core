@@ -245,7 +245,14 @@ function ParseDatasetCollection(rows, callback) {
 function ExtractRowToJSON(schema, row) {
     content = {};
     for (var i = 0; i < schema.length; i++) {
-        content[schema[i]] = row.get(schema[i]);
+        var value = row.get(schema[i]);
+        try{
+            value = JSON.parse(value);
+        }catch(e){
+            // Do nothing;
+        }
+        
+        content[schema[i]] = value;
     }
     return content;
 }
