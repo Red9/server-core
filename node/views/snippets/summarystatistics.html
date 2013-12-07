@@ -33,5 +33,67 @@
         </div>
     </div>
     {{/each}}
+    
+    
+    
+    {{#if event.summary_statistics.static.route}}
+    {{#with event.summary_statistics.static.route}}
+    <div class="col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><strong>GPS Path</strong></div>
+            <table class="table table-condensed">
+                <thead>
+                <th>Type</th>
+                <th>Length</th>
+                <th>Bearing</th>
+                </thead>
+                <tbody>
+                    {{#each this}}
+                    <tr>
+                        <td>{{@key}}</td>
+                        <td>{{decimal length}}</td>
+                        
+                        <td>{{#if bearing}}{{decimal bearing}}{{else}}---{{/if}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+    {{/with}}
+    {{/if}}
+    
+    {{#if event.summary_statistics.static.time}}
+    {{#with event.summary_statistics.static.time}}
+    <div class="col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><strong>Time</strong></div>
+            <table class="table table-condensed">
+                <tbody>
+                    <tr>
+                        <td>start</td>
+                        <td>{{date start_time}}</td>
+                        <td>{{time start_time}}</td>
+                    </tr>
+                    <tr>
+                        <td>end</td>
+                        <td>{{date end_time}}</td>
+                        <td>{{time end_time}}</td>
+                    </tr>
+                    <tr>
+                        <td>duration</td>
+                        <td></td>
+                        <td>{{duration start_time end_time}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{/with}}
+    {{/if}}
+
+
+
 </div>
 {{/if}}

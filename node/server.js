@@ -38,17 +38,68 @@ var path = require('path');
 var hbs = require('hbs');
 
 hbs.registerHelper('decimal', function(number) {
-    if(Math.abs(number) > 9999 || Math.abs(number) < 0.01){
+    if (Math.abs(number) > 9999 || Math.abs(number) < 0.01) {
         return number.toExponential(3);
-    }else{
+    } else {
         return parseFloat(Math.round(number * 100) / 100).toFixed(2);
     }
 });
 
 
 var moment = require('moment');
-hbs.registerHelper('time', function(milliseconds){
+hbs.registerHelper('time', function(milliseconds) {
     return moment.utc(milliseconds).format("H:mm:ss");
+});
+
+hbs.registerHelper('date', function(milliseconds) {
+    return moment.utc(milliseconds).format("YYYY-MM-DD");
+});
+
+
+var padNumber = function(n, width, z) {
+    z = z || '0';
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+};
+
+hbs.registerHelper('duration', function(startTime, endTime) {
+
+
+    var duration = endTime - startTime;
+    if (duration === 0 || isNaN(duration)) {
+        return "0.000";
+    }
+
+    Number.prototype.mod = function(n) {
+        return ((this % n) + n) % n;
+    };
+
+    console.log("Duration: " + duration);
+
+    var hours = Math.floor(duration / (3600000));
+    console.log("Hours: " + hours);
+
+    var minutes = Math.floor(duration/(60000)) - (hours * 60);
+    console.log("Minutes: " + minutes);
+
+    var seconds = Math.floor(duration/(1000)) - (hours * 60 * 60) - (minutes * 60);
+    console.log("Seconds: " + seconds);
+
+    var milliseconds = duration
+            - (seconds * 1000) - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000);
+    console.log("Milliseconds: " + milliseconds);
+
+
+    var result = "";
+    if (hours > 0) {
+        result = "" + hours + "h" + padNumber(minutes, 2) + "m" + padNumber(seconds, 2) + "s";
+    } else if (minutes > 0) {
+        result = "" + minutes + "m" + padNumber(seconds, 2) + "." + padNumber(milliseconds, 3) + "s";
+    } else {
+        result = "" + seconds + "." + padNumber(milliseconds, 3) + "s";
+    }
+
+    return result;
 });
 
 
@@ -60,7 +111,7 @@ var authenticate = require('./support/authenticate');
 passport.use(new GoogleStrategy({
     returnURL: realm + '/login/google/return',
     realm: realm
-}, authenticate.ProcessLoginRequest ));
+}, authenticate.ProcessLoginRequest));
 
 passport.serializeUser(function(user, done) {
     done(null, user);

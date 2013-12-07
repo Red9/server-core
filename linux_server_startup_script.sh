@@ -137,7 +137,7 @@ cd dev-website/node/bin
 ln -s /home/${USER}/data-processing/parsernb/target/rnb2rnt-server.jar
 ln -s /home/${USER}/data-processing/parsernc/target/parsernc.jar
 ln -s /home/${USER}/downsampler/target/downsampler.jar
-ls -s /home/${USER}/data-processing/statistics/statician/target/statician.jar
+ln -s /home/${USER}/data-processing/statistics/statistician/target/statistician.jar
 cd ../
 
 mkdir logs

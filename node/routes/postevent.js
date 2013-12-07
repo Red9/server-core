@@ -17,6 +17,7 @@ var BeginStatisticsCalculation = function(event_uuid) {
 
     statistician.on('exit', function(code, signal) {
         console.log("Statistics done! Code: " + code);
+        console.log("Error log: " + statistician.stderr.read());
     });
 };
 
@@ -44,6 +45,7 @@ exports.post = function(req, res, next) {
     event["parameters"] = {hint: "map", value: parameters};
     event["source"] = req.body.source;
     event["create_time"] = new Date(Date.now());
+    event["summary_statistics"] = "";
 
     console.log("req.body.start_time: '" + req.body.start_time + "'");
     console.log("req.body.parent: '" + req.body.parent + "'");
