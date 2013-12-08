@@ -33,14 +33,14 @@
         </div>
     </div>
     {{/each}}
-    
-    
-    
+
+
+
     {{#if event.summary_statistics.static.route}}
     {{#with event.summary_statistics.static.route}}
     <div class="col-sm-6">
         <div class="panel panel-default">
-            <div class="panel-heading"><strong>GPS Path</strong></div>
+            <div class="panel-heading"><strong>gps path</strong></div>
             <table class="table table-condensed">
                 <thead>
                 <th>Type</th>
@@ -52,7 +52,7 @@
                     <tr>
                         <td>{{@key}}</td>
                         <td>{{decimal length}}</td>
-                        
+
                         <td>{{#if bearing}}{{decimal bearing}}{{else}}---{{/if}}</td>
                     </tr>
                     {{/each}}
@@ -63,12 +63,12 @@
     </div>
     {{/with}}
     {{/if}}
-    
+
     {{#if event.summary_statistics.static.time}}
     {{#with event.summary_statistics.static.time}}
     <div class="col-sm-6">
         <div class="panel panel-default">
-            <div class="panel-heading"><strong>Time</strong></div>
+            <div class="panel-heading"><strong>time</strong></div>
             <table class="table table-condensed">
                 <tbody>
                     <tr>
@@ -94,6 +94,32 @@
     {{/if}}
 
 
+    <!--{"static":{"gps":{"total on time":0,"On percent":0,"total off time":0}},"instantaneous":{"gps":{}}}-->
+
+
+    {{#if event.summary_statistics.static.gps}}
+    {{#with event.summary_statistics.static.gps}}
+    <div class="col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><strong>gps static</strong></div>
+            <table class="table table-condensed">
+                <thead>
+                    <th>Off</th>
+                    <th>On</th>
+                    <th>%</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{time time_off}}</td>
+                        <td>{{time time_on}}</td>
+                        <td>{{decimal percent_on}}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>    
+    {{/with}}
+    {{/if}}
 
 </div>
 {{/if}}

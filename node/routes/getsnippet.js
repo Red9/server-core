@@ -25,6 +25,7 @@ exports.get = function(req, res, next) {
             end_time: end_time,
             parent: parent,
             EventType: [
+                {name: "Default"},
                 {name: "Wave: Left"},
                 {name: "Wave: Right"},
                 {name: "Wave"},
@@ -44,7 +45,10 @@ exports.get = function(req, res, next) {
                 {name: "Paddle for Wave"},
                 {name: "Paddle Out"},
                 {name: "Paddle"},
-                {name: "Duck Dive"}
+                {name: "Duck Dive"},
+                {name: "Wipe out"},
+                {name: "Pearling"},
+                {name: "Session"}
             ]
         };
         res.render('snippets/createeventmodal', parameters);

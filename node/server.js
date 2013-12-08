@@ -39,7 +39,7 @@ var hbs = require('hbs');
 
 hbs.registerHelper('decimal', function(number) {
     if (Math.abs(number) > 9999 || Math.abs(number) < 0.01) {
-        return number.toExponential(3);
+        return number.toExponential(2);
     } else {
         return parseFloat(Math.round(number * 100) / 100).toFixed(2);
     }
@@ -74,20 +74,20 @@ hbs.registerHelper('duration', function(startTime, endTime) {
         return ((this % n) + n) % n;
     };
 
-    console.log("Duration: " + duration);
+    //console.log("Duration: " + duration);
 
     var hours = Math.floor(duration / (3600000));
-    console.log("Hours: " + hours);
+    //console.log("Hours: " + hours);
 
     var minutes = Math.floor(duration/(60000)) - (hours * 60);
-    console.log("Minutes: " + minutes);
+    //console.log("Minutes: " + minutes);
 
     var seconds = Math.floor(duration/(1000)) - (hours * 60 * 60) - (minutes * 60);
-    console.log("Seconds: " + seconds);
+    //console.log("Seconds: " + seconds);
 
     var milliseconds = duration
             - (seconds * 1000) - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000);
-    console.log("Milliseconds: " + milliseconds);
+    //console.log("Milliseconds: " + milliseconds);
 
 
     var result = "";
