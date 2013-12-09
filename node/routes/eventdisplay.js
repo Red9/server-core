@@ -9,7 +9,7 @@ function GetDefaultColumnGroups(dataset) {
     column_groups.push({title: "Gyroscope", id: "gyro", columns: "rotationrate:x,rotationrate:y,rotationrate:z"});
     column_groups.push({title: "Magnetometer", id: "magn", columns: "magneticfield:x,magneticfield:y,magneticfield:z"});
     column_groups.push({title: "Barometer", id: "baro", columns: "pressure:pressure"});
-    column_groups.push({title: "Temperature", id: "temp", columns: "pressure:temperature"});
+    //column_groups.push({title: "Temperature", id: "temp", columns: "pressure:temperature"});
 
     return column_groups;
 }

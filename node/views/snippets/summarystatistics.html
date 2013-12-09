@@ -1,7 +1,7 @@
 {{#if event}}
 <div class="row">
     {{#each event.summary_statistics.instantaneous}}
-
+    
     <div class="col-sm-6">
         <div class="panel panel-default">
             <div class="panel-heading"><strong>{{@key}}</strong></div>
@@ -21,11 +21,14 @@
 
                     <tr>
                         <td>{{@key}}</td>
-                        <td><abbr title="time: {{time this.minimum.time}}">
-                                {{decimal this.minimum.value}}</abbr></td>
-                        <td>{{decimal this.average.value}}</td>
-                        <td><abbr title="time: {{time this.maximum.time}}">
-                                {{decimal this.maximum.value}}</abbr></td>
+                        <td><abbr title="units: {{this.minimum.units}},  time: {{epochtime this.minimum.time}}">
+                                {{unitize this.minimum.value this.minimum.units}}</abbr></td>
+                                
+                        <td><abbr title="units: {{this.average.units}}">
+                                {{unitize this.average.value this.average.units}}</abbr></td>
+                                
+                        <td><abbr title="units: {{this.maximum.units}},  time: {{epochtime this.maximum.time}}">
+                                {{unitize this.maximum.value this.maximum.units}}</abbr></td>
                     </tr>
                     {{/each}}
                 </tbody>
@@ -51,9 +54,12 @@
                     {{#each this}}
                     <tr>
                         <td>{{@key}}</td>
-                        <td>{{decimal length}}</td>
+                        <td><abbr title="units: {{distance.units}}">
+                                {{decimal distance.value}}</abbr></td>
 
-                        <td>{{#if bearing}}{{decimal bearing}}{{else}}---{{/if}}</td>
+                        <td>{{#if bearing}}<abbr title="units: {{bearing.units}}">
+                                {{decimal bearing.value}}</abbr>
+                            {{else}}---{{/if}}</td>
                     </tr>
                     {{/each}}
                 </tbody>
@@ -73,18 +79,18 @@
                 <tbody>
                     <tr>
                         <td>start</td>
-                        <td>{{date start_time}}</td>
-                        <td>{{time start_time}}</td>
+                        <td>{{epochdate start_time.value}}</td>
+                        <td>{{epochtime start_time.value}}</td>
                     </tr>
                     <tr>
                         <td>end</td>
-                        <td>{{date end_time}}</td>
-                        <td>{{time end_time}}</td>
+                        <td>{{epochdate end_time.value}}</td>
+                        <td>{{epochtime end_time.value}}</td>
                     </tr>
                     <tr>
                         <td>duration</td>
                         <td></td>
-                        <td>{{duration start_time end_time}}</td>
+                        <td>{{duration start_time.value end_time.value}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -110,9 +116,9 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{time time_off}}</td>
-                        <td>{{time time_on}}</td>
-                        <td>{{decimal percent_on}}%</td>
+                        <td>{{duration 0 timeoff.value}}</td>
+                        <td>{{duration 0 timeon.value}}</td>
+                        <td>{{percent timeon.value timeoff.value}}</td>
                     </tr>
                 </tbody>
             </table>

@@ -186,6 +186,8 @@ exports.GetAllRows = function(tableName, callback) {
         } else {
             if (tableName === "dataset") {
                 ParseDatasetCollection(result.rows, callback);
+            } else if (tableName === "event") {
+                callback(ParseEventCollection(result.rows));
             } else {
                 //TODO(SRLM): Add options for other tables besides datasets.
                 // For now, return empty list.
@@ -234,6 +236,18 @@ function ParseDatasetCollection(rows, callback) {
         }
         callback(datasets);
     });
+}
+
+/**
+ * 
+ * @param {node-cassandra-cql row} rows The result rows from a query. Should be event rows.
+ */
+function ParseEventCollection(rows) {
+    var events = [];
+    for(var i = 0; i < rows.length; i++){
+        events.push(ExtractRowToJSON(schemas["event"], rows[i]));
+    }
+    return events;
 }
 
 

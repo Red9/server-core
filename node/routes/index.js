@@ -54,4 +54,5 @@ module.exports = function(app, passport) {
     app.delete('/api/event/:uuid', IsAuthenticated, require('./deleteevent').delete);    
 
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
+    app.get('/admin/reprocessstatistics', IsAuthenticated, require('./eventreprocess').get);
 };

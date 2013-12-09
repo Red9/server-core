@@ -37,58 +37,25 @@ var http = require('http');
 var path = require('path');
 var hbs = require('hbs');
 
-hbs.registerHelper('decimal', function(number) {
-    if (Math.abs(number) > 9999 || Math.abs(number) < 0.01) {
-        return number.toExponential(2);
-    } else {
-        return parseFloat(Math.round(number * 100) / 100).toFixed(2);
-    }
-});
-
-
 var moment = require('moment');
-hbs.registerHelper('time', function(milliseconds) {
-    return moment.utc(milliseconds).format("H:mm:ss");
-});
-
-hbs.registerHelper('date', function(milliseconds) {
-    return moment.utc(milliseconds).format("YYYY-MM-DD");
-});
-
-
-var padNumber = function(n, width, z) {
-    z = z || '0';
-    n = n + '';
-    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-};
-
-hbs.registerHelper('duration', function(startTime, endTime) {
-
-
+var FormatDuration = function(startTime, endTime) {
     var duration = endTime - startTime;
     if (duration === 0 || isNaN(duration)) {
-        return "0.000";
+        return "0.000s";
     }
 
     Number.prototype.mod = function(n) {
         return ((this % n) + n) % n;
     };
 
-    //console.log("Duration: " + duration);
-
     var hours = Math.floor(duration / (3600000));
-    //console.log("Hours: " + hours);
 
-    var minutes = Math.floor(duration/(60000)) - (hours * 60);
-    //console.log("Minutes: " + minutes);
+    var minutes = Math.floor(duration / (60000)) - (hours * 60);
 
-    var seconds = Math.floor(duration/(1000)) - (hours * 60 * 60) - (minutes * 60);
-    //console.log("Seconds: " + seconds);
+    var seconds = Math.floor(duration / (1000)) - (hours * 60 * 60) - (minutes * 60);
 
     var milliseconds = duration
             - (seconds * 1000) - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000);
-    //console.log("Milliseconds: " + milliseconds);
-
 
     var result = "";
     if (hours > 0) {
@@ -100,7 +67,69 @@ hbs.registerHelper('duration', function(startTime, endTime) {
     }
 
     return result;
-});
+
+};
+
+var NumberToDecimal = function(number) {
+    if (Math.abs(number) > 9999 || Math.abs(number) < 0.01) {
+        return number.toExponential(2);
+    } else {
+        return parseFloat(Math.round(number * 100) / 100).toFixed(2);
+    }
+};
+
+var MillisecondsEpochToTime = function(milliseconds) {
+    return moment.utc(milliseconds).format("H:mm:ss");
+};
+
+var MillisecondsEpochToDate = function(milliseconds) {
+    return moment.utc(milliseconds).format("YYYY-MM-DD");
+};
+
+var FormatUnits = function(units) {
+    /*if(units === "m/s^2"){
+     return new hbs.SafeString("<sup>m</sup>&frasl;<sub>s</sub><small>2</small>");
+     }else if(units === "ft/s^2"){
+     return new hbs.SafeString("<sup>ft</sup>&frasl;<sub>s</sub><small>2</small>");
+     }*/
+
+    return units;
+};
+
+var Unitize = function(value, units) {
+    if (units === "date") {
+        return  MillisecondsEpochToDate(value) + MillisecondsEpochToTime(value);
+    } else if (units === "ms") {
+        return FormatDuration(0, value);
+    } else if (typeof units === "undefined") {
+        return NumberToDecimal(value);
+    } else {
+        return NumberToDecimal(value);
+    }
+};
+
+var PercentFormater = function(numerator, denominator){
+    if(isNaN(numerator) || isNaN(denominator)){
+        return "-";
+    }else{
+        return ((numerator/(numerator + denominator))*100) + "%";
+    }
+};
+
+hbs.registerHelper('decimal', NumberToDecimal);
+hbs.registerHelper('epochtime', MillisecondsEpochToTime);
+hbs.registerHelper('epochdate', MillisecondsEpochToDate);
+hbs.registerHelper('unitize', Unitize);
+hbs.registerHelper('formatunits', FormatUnits);
+hbs.registerHelper('percent', PercentFormater);
+
+var padNumber = function(n, width, z) {
+    z = z || '0';
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+};
+
+hbs.registerHelper('duration', FormatDuration);
 
 
 // Authentication details
@@ -196,11 +225,12 @@ io.set('log level', 2); // reduce logging
 var socket_routes = [];
 socket_routes.push(require('./routes/rnbprocess').NewSocket);
 socket_routes.push(require('./routes/rncprocess').NewSocket);
+socket_routes.push(require('./routes/eventreprocess').NewSocket);
 
 io.sockets.on('connection', function(socket) {
     socket.on('page_uuid', function(data) {
         var page_uuid = data.page_uuid;
-        log.info("Got new page uuid (" + page_uuid + "). Searching for handler.");
+        //log.info("Got new page uuid (" + page_uuid + "). Searching for handler.");
         var i = 0;
         // This is a little bit tricky, but notice that a function is being called.
         // That function will add or not the new socket, depending on the page_uuid.

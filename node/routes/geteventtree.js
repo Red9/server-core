@@ -3,11 +3,11 @@ var log = require('./../support/logger');
 
 
 function AddToTree(uuid, callback) {
-    console.log("Getting row with UUID: '" + uuid + "'");
+    //console.log("Getting row with UUID: '" + uuid + "'");
     database.GetRow("event", "id", uuid, function(row) {
 
         if (typeof row !== "undefined") {
-            console.log("Got row: '%j'", row);
+            //console.log("Got row: '%j'", row);
             var node = {
                 name: row.type,
                 id: row.id
@@ -17,7 +17,7 @@ function AddToTree(uuid, callback) {
                 node["children"] = []
 
                 for (var i = 0; i < row.children.length; i++) {
-                    console.log("Found child: '" + row.children[i] + "'");
+                    //console.log("Found child: '" + row.children[i] + "'");
 
                     AddToTree(row.children[i], function(child) {
                         node["children"].push(child);

@@ -35,7 +35,7 @@
     var parentEvent = "{{event.parent}}";
 
     var event_tree_url = "/snippet/eventtree?id=" + event_id;
-    var summary_statistics_snippet_url = "/snippet/summarystatistics?id=" + event_id;
+    var summary_statistics_snippet_url = "/snippet/summarystatistics?units=common&id=" + event_id;
 
 
     var LoadSummaryStatistics = function() {
@@ -434,7 +434,7 @@
 
 <div id="create_event_modal"> <!--Loaded by jQuery--> </div>
 
-<h2>Summary</h2>
+<h2>Event Summary</h2>
 <div id="summarystatistics"><!--Loaded by jQuery-->
     <div class="panel panel-default">
         <div class="panel-body">Sorry, statistics not available right now.</div>
