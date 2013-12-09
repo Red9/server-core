@@ -20,10 +20,6 @@ exports.get = function(req, res, next){
         if(typeof event === "undefined"){
             next();
         }else{
-            
-            //console.log("\n-----------------\n\n Summary Statistics: " + JSON.stringify(event["summary_statistics"], undefined, 2) + "\n\n-------------------\n");
-            
-            
             var content = [];
             content["page_title"] = event["type"];
             content["title"] = "Event";

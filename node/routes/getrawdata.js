@@ -10,7 +10,17 @@ function LogDownsampleCommand(parameters) {
         downsampleCommand += " " + parameters[i];
     }
     downsampleCommand += "'";
-    log.info(downsampleCommand);
+    log.info(downsampleCommand, "i");
+}
+
+function LogDownsample(event, startTime, endTime, buckets, columns, req) {
+
+    log.info("Downsample: " + columns
+            + ", (" + startTime
+            + "-" + endTime + ")"
+            + ", " + buckets + " buckets"
+            + ", " + event,
+            req);
 }
 
 
@@ -61,20 +71,28 @@ function ProcessRequest(req, res, user_id, callback) {
     } else {
         parameters.push('--minmax');
     }
-    
-    
+
+
     // Default to nocache.
     if (typeof req.param('cache') !== "undefined") {
         if (req.param('cache') === "false") {
             parameters.push('--nocache');
         }
-    }else{
+    } else {
         //parameters.push('--nocache');
     }
 
+    var startTime = req.param('startTime');
+    var endTime = req.param('endTime');
+    var buckets = req.param('buckets');
+    var eventUUID = req.params.uuid;
+    var columns = req.param('columns');
+
+
+
     if (typeof req.params.uuid === "undefined") {
         var error_message = "UUID should not be undefined!";
-        log.error(error_message);
+        log.error(error_message, req);
         res.send(error_message);
     }
 
@@ -105,7 +123,8 @@ function ProcessRequest(req, res, user_id, callback) {
         resulttype = req.param('resulttype');
     }
 
-    LogDownsampleCommand(parameters);
+    //LogDownsampleCommand(parameters);
+    LogDownsample(eventUUID, startTime, endTime, buckets, columns, req);
 
 
     var downsampler = spawn("java", parameters);
@@ -131,7 +150,7 @@ function ProcessRequest(req, res, user_id, callback) {
         }
 
         if (errors !== "") {
-            log.warn("Downsampling error for parameters '" + parameters + "': '" + errors + "'");
+            log.warn("Downsampling error for parameters '" + parameters + "': '" + errors + "'", req);
         }
     });
 }

@@ -1,10 +1,25 @@
 <script>
+    var event_id = "{{{dataset.event_tree}}}";
+    var aggregate_statistics_snippet_url = "/snippet/aggregatestatistics?units=common&id=" + event_id;
+
+
+    var LoadAggregateStatistics = function() {
+        $("#aggregatestatistics").load(aggregate_statistics_snippet_url,
+                function(response, status, xhr) {
+                    if (xhr.status === 204) {
+                        setTimeout(LoadAggregateStatistics, 1000);
+                    }
+                });
+    };
+
     $(document).ready(function() {
         var eventTree = "{{{dataset.event_tree}}}";
 
         // Dynamically load snippets.
         var event_tree_url = "/snippet/eventtree?id=" + eventTree;
         $("#insert_event_tree").load(event_tree_url);
+
+        LoadAggregateStatistics();
 
 
         $("#delete").click(function() {
@@ -30,7 +45,7 @@
     <div class="col-xs-6">
         <div id="delete"> <h3><a class="btn btn-xs btn-danger pull-right">Delete Dataset</a></h3></div>
         <h3><a class="btn btn-default btn-xs pull-right" href="/event/{{dataset.event_tree}}">View Maps and Graphs</a></h3>
-        
+
     </div>
 </div>
 
@@ -44,7 +59,7 @@
     <tr>
         <td><b>Created</b>
         </td>
-        <td>{{{dataset.create_time}}}</td>
+        <td>{{{epochdate dataset.create_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.create_time}}}</td>
     </tr>
     <tr>
         <td><b>Submit User</b>
@@ -55,17 +70,17 @@
     <tr>
         <td><b>Start Time</b>
         </td>
-        <td>{{{dataset.start_time}}}</td>
+        <td>{{{epochdate dataset.start_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.start_time}}}</td>
     </tr>
     <tr>
         <td><b>End Time</b>
         </td>
-        <td>{{{dataset.end_time}}}</td>
+        <td>{{{epochdate dataset.end_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.end_time}}}</td>
     </tr>
     <tr>
         <td><b>Duration</b>
         </td>
-        <td>{{{dataset.duration}}}</td>
+        <td>{{{duration dataset.start_time dataset.end_time}}}</td>
     </tr>
     <tr>
         <td><b>Submitted Filename</b>
@@ -84,12 +99,24 @@
     </tr>
 </table>
 
-<hr>
+<br />
+
+<h2>Event Tree</h2>
 <div id="insert_event_tree"> <!--Loaded by jQuery--> </div>
-<hr>
 
+<br />
 
-<h3> Download:
+<h2>Aggregate Summary</h2>
+<div id="aggregatestatistics"><!--Loaded by jQuery-->
+    <div class="panel panel-default">
+        <div class="panel-body">Sorry, aggregate not available right now.</div>
+    </div>
+</div>
+
+<br /><br/>
+
+<h2> Download:</h2>
+<h3>
     <a download="{{dataset.id}}-panel.csv" href="/api/dataset/{{dataset.id}}?minmax=false">Complete Panel</a>
     ~ <a href="/dataset/{{dataset.id}}/download">Custom Panel</a>
 </h3>
@@ -105,33 +132,27 @@
 
 <hr>
 
-<h2>Summary Statistics</h2>
-<pre><code>
 
-{{{dataset.summary_statistics}}}
-
-</code></pre>
 <h2>Processing Notes</h2>
 <pre><code>
-
 {{{dataset.processing_notes}}}
-
 </code></pre>
+
+
 <h2>Processing Statistics</h2>
 <pre><code>
-
 {{{dataset.processing_statistics}}}
-
 </code></pre>
+
+
 <h2>Processing Configuration</h2>
 <pre><code>
-
 {{{dataset.processing_config}}}
-
 </code>
 
 </pre>
 <br />
 <br /> <b>Dataset UUID: </b> {{dataset.id}}
 <br /> <b>Raw Data UUID: </b> {{dataset.raw_data}}
+<br /> <b>Root Event UUID: </b> {{dataset.event_tree}}
 <br />

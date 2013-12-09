@@ -244,7 +244,7 @@ function ParseDatasetCollection(rows, callback) {
  */
 function ParseEventCollection(rows) {
     var events = [];
-    for(var i = 0; i < rows.length; i++){
+    for (var i = 0; i < rows.length; i++) {
         events.push(ExtractRowToJSON(schemas["event"], rows[i]));
     }
     return events;
@@ -312,11 +312,10 @@ exports.GetDatasetFormatted = function(id, callback) {
 function FormatDatasetInformation(content, callback) {
     if (typeof content !== "undefined") {
         content['create_time'] = (new Date(content['create_time'])).toUTCString();
-        var start_time = (new Date(content['start_time']));
-        var end_time = (new Date(content['end_time']));
-        content['start_time'] = start_time.toUTCString();
-        content['end_time'] = end_time.toUTCString();
-        content['duration'] = readableDuration(end_time.getTime() - start_time.getTime());
+        //var start_time = (new Date(content['start_time']));
+        //var end_time = (new Date(content['end_time']));
+        //content['start_time'] = start_time.toUTCString();
+        //content['end_time'] = end_time.toUTCString();
 
         exports.GetDisplayName(content['create_user'], function(display_name) {
             content['create_user'] = {
@@ -329,46 +328,6 @@ function FormatDatasetInformation(content, callback) {
         callback(content);
     }
 }
-
-
-
-
-/**
- * Format a duration in milliseconds to a human readable format, e.g.
- * "4y 2d 3h 10m 10s 255ms". Negative durations are formatted like "- 8h 30s".
- * Granularity is always ms.
- * 
- * Source: https://gist.github.com/betamos/6306412
- * 
- *
- * @param t Duration in milliseconds
- * @return A formatted string containing the duration or "" if t=0
- */
-var readableDuration = (function() {
-    // Each unit is an object with a suffix s and divisor d
-    var units = [
-        {s: 'ms', d: 1},
-        {s: 's', d: 1000},
-        {s: 'm', d: 60},
-        {s: 'h', d: 60},
-        {s: 'd', d: 24},
-        {s: 'y', d: 365} // final unit
-    ];
-
-    // Closure function
-    return function(t) {
-        t = parseInt(t); // In order to use modulus
-        var trunc, n = Math.abs(t), i, out = []; // out: list of strings to concat
-        for (i = 0; i < units.length; i++) {
-            n = Math.floor(n / units[i].d); // Total number of this unit
-            // Truncate e.g. 26h to 2h using modulus with next unit divisor
-            trunc = (i + 1 < units.length) ? n % units[i + 1].d : n; // …if not final unit
-            trunc ? out.unshift('' + trunc + units[i].s) : null; // Output if non-zero
-        }
-        (t < 0) ? out.unshift('-') : null; // Handle negative durations
-        return out.join(' ');
-    };
-})();
 
 /**
  * 
@@ -391,10 +350,10 @@ exports.DeleteDataset = function(dataset_uuid, callback) {
                         callback(true);
                     }
 
-                    //TODO (SRLM): Delete the event tree as well.
+                    exports.DeleteEvent(content["event_tree"], false, function(){});
                 });
             });
-
+            
         }
     });
 };
@@ -462,4 +421,42 @@ exports.DeleteEvent = function(event_id, deleteChildInParent, callback) {
         }
     });
 
+};
+
+
+exports.GetChildrenEvents = function(event_id, callback) {
+    log.info("Getting event " + event_id);
+    exports.GetRow("event", "id", event_id, function(event) {
+        if (typeof event !== "undefined") {
+            var results = [];
+            if (event["children"] === null) {
+                log.info("Event " + event_id + " has no children.");
+                event["children"] = [];
+                results.push(event);
+                callback(results);
+            } else {
+                results.push(event);
+                async.eachLimit(event["children"], 2, function(child_uuid, asyncFinishedCallback) {
+                    log.info("Getting child " + child_uuid);
+                    exports.GetChildrenEvents(child_uuid, function(event_children) {
+                        //console.log("Got event " + event_id + "'s children");
+                        for (var i = 0; i < event_children.length; i++) {
+                            log.info("adding child " + event_children[i]["id"]);
+                            results.push(event_children[i]);
+                        }
+                        asyncFinishedCallback();
+                    });
+                }, function(err) {
+                    if (err) {
+                        log.warn("Error getting children: " + err);
+                    }
+                    log.info("Sending event " + event_id + " results back (length " + results.length + ")");
+                    callback(results);
+                });
+            }
+        } else {
+            log.info("Child event doesn't exist. " + event_id);
+            callback([]);
+        }
+    });
 };

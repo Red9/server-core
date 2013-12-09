@@ -3,27 +3,10 @@ var spawn = require('child_process').spawn;
 var database = require('./../support/database');
 var log = require('./../support/logger').log;
 var config = require('./../config');
+var externals = require('./../support/externals');
 
 var page_uuid_list = {};
 
-// DUPLICATE! HACK! FIX ME!
-var BeginStatisticsCalculation = function(event_uuid) {
-    var parameters = [];
-    parameters.push('-jar');
-    parameters.push('bin/statistician.jar');
-    parameters.push('--event');
-    parameters.push(event_uuid);
-    parameters.push('--cassandrahost');
-    parameters.push('127.0.0.1');
-    parameters.push('--childrenpath');
-    parameters.push(config.statistician_children);
-    var statistician = spawn('java', parameters);
-    console.log("Starting statistics!");
-
-    statistician.on('exit', function(code, signal) {
-        console.log("Statistics done! Code: " + code);
-    });
-};
 
 function SocketAvailable(page_uuid) {
     return typeof page_uuid_list[page_uuid] !== "undefined" && page_uuid_list[page_uuid] !== null;
@@ -47,14 +30,11 @@ function SendOnSocketDone(page_uuid) {
 }
 
 exports.NewSocket = function(new_socket, socket_page_uuid) {
-    log.info("Does rncprocess have a page_uuid handler?");
     if (typeof page_uuid_list[socket_page_uuid] !== "undefined") {
-        log.info("Yes!");
         page_uuid_list[socket_page_uuid] = new_socket;
         SendOnSocket(socket_page_uuid, "found handler!");
         return true;
     }else{
-        log.info("No.");
         return false;
     }
 };
@@ -95,7 +75,7 @@ exports.post = function(req, res) {
     for (var i = 0; i < parameters.length; i++) {
         downsample_command += " " + parameters[i];
     }
-    log.info("Command: '" + downsample_command + "'");
+    log.info("Command: '" + downsample_command + "'", req);
 
     var rnb2rnt = spawn('java', parameters);
     rnb2rnt.stdout.setEncoding('utf8');
@@ -157,7 +137,7 @@ exports.post = function(req, res) {
             database.InsertRow("event", event, function(err) {
                 SendOnSocketDone(page_uuid);
             });
-            BeginStatisticsCalculation(event['id']);
+            externals.BeginStatisticsCalculation(event['id']);
             
         });
     });

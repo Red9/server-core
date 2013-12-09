@@ -24,8 +24,8 @@ if (typeof ops.realm !== "undefined") {
 // Logging setup
 var log = require('./support/logger').log; // console.log replacement
 var request_logger = require('./support/logger').logger; // Connect middleware
-log.info("Node.js server started.");
-log.info("Using realm: " + realm);
+log.info("Node.js server started.", "i");
+log.info("Using realm: " + realm, "i");
 
 
 
@@ -79,7 +79,7 @@ var NumberToDecimal = function(number) {
 };
 
 var MillisecondsEpochToTime = function(milliseconds) {
-    return moment.utc(milliseconds).format("H:mm:ss");
+    return moment.utc(milliseconds).format("h:mm:ssa");
 };
 
 var MillisecondsEpochToDate = function(milliseconds) {

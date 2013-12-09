@@ -2,7 +2,7 @@ var database = require('./../support/database');
 
 exports.delete = function(req, res, next){
     if (typeof req.params.uuid === "undefined") {
-        log.error("UUID should not be undefined!");
+        log.error("UUID should not be undefined!", req);
         next();
     }
 

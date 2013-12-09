@@ -1,30 +1,15 @@
 var database = require('./../support/database');
+var externals = require('./../support/externals');
 var spawn = require('child_process').spawn;
 var config = require('./../config');
+var log = require('./../support/logger').log;
 
-var BeginStatisticsCalculation = function(event_uuid) {
-    var parameters = [];
-    parameters.push('-jar');
-    parameters.push('bin/statistician.jar');
-    parameters.push('--event');
-    parameters.push(event_uuid);
-    parameters.push('--cassandrahost');
-    parameters.push('127.0.0.1');
-    parameters.push('--childrenpath');
-    parameters.push(config.statistician_children);
-    var statistician = spawn('java', parameters);
-    console.log("Starting statistics!");
 
-    statistician.on('exit', function(code, signal) {
-        console.log("Statistics done! Code: " + code);
-        console.log("Error log: " + statistician.stderr.read());
-    });
-};
 
 exports.post = function(req, res, next) {
-    console.log("Post result: " + JSON.stringify(req.body));
-    console.log("Post result, straight: '" + req.body + "'");
-    console.log("Post result: '%j'", req.body);
+    //console.log("Post result: " + JSON.stringify(req.body));
+    //console.log("Post result, straight: '" + req.body + "'");
+    //console.log("Post result: '%j'", req.body);
 
 
     var parameters = req.body.parameters;
@@ -47,8 +32,8 @@ exports.post = function(req, res, next) {
     event["create_time"] = new Date(Date.now());
     event["summary_statistics"] = "";
 
-    console.log("req.body.start_time: '" + req.body.start_time + "'");
-    console.log("req.body.parent: '" + req.body.parent + "'");
+    //console.log("req.body.start_time: '" + req.body.start_time + "'");
+    //console.log("req.body.parent: '" + req.body.parent + "'");
 
     database.GetRow("event", "id", event["parent"], function(parent) {
         if (typeof parent === "undefined") {
@@ -72,7 +57,7 @@ exports.post = function(req, res, next) {
 
                     });
                     // It was successfully entered, so let's calculate some statistics.
-                    BeginStatisticsCalculation(event['id'].value);
+                    externals.BeginStatisticsCalculation(event['id'].value);
 
                 }
             });

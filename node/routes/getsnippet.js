@@ -8,21 +8,18 @@ var ChangeUnits = function(summary, system) {
     }
 
     for (var key in summary) {
-        if(key === "0"){
+        if (key === "0") {
             return;
         }
-        //console.log("key: " + key);
         if (typeof summary[key]["value"] !== "undefined"
                 && typeof summary[key]["units"] !== "undefined"
                 && typeof config.unitsMap[summary[key]["units"]] !== "undefined") {
-            //console.log("Remapping to " + config.unitsMap[summary[key]["units"]][system]["label"]);
-            //console.log("value: " + summary[key]["value"] + " * " + config.unitsMap[summary[key]["units"]][system]["multiplier"] + "");
             summary[key]["value"] = summary[key]["value"] * config.unitsMap[summary[key]["units"]][system]["multiplier"];
-            if(typeof config.unitsMap[summary[key]["units"]][system]["offset"] !== "undefined"){
+            if (typeof config.unitsMap[summary[key]["units"]][system]["offset"] !== "undefined") {
                 summary[key]["value"] += config.unitsMap[summary[key]["units"]][system]["offset"];
             }
             summary[key]["units"] = config.unitsMap[summary[key]["units"]][system]["label"];
-        }else{
+        } else {
             ChangeUnits(summary[key], system);
         }
     }
@@ -111,27 +108,31 @@ exports.get = function(req, res, next) {
                         var parameters = {layout: false,
                             event: event,
                             measurements: config.measurements
-                        }
+                        };
                         res.render('snippets/summarystatistics', parameters);
                     }
                 }
             });
         }
-
+    } else if (snippet_type === "aggregatestatistics") {
+        if (typeof req.param("id") !== "undefined") {
+            database.GetChildrenEvents(req.param("id"), function(result) {
+                if (typeof units !== "undefined") {
+                    console.log("units defined.");
+                    ChangeUnits(result, units);
+                }else{
+                    console.log("units not defined...");
+                }
+                var parameters = {layout: false,
+                    aggregate: result
+                };
+                res.render('snippets/aggregatestatistics', parameters);
+            });
+        }
     } else {
-
-
-
         next();
     }
 
 
 
 };
-
-
-//res.render('report', {
-//       title : 'My report'
-//    , layout : false
-//});
-

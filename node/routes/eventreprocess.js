@@ -4,9 +4,12 @@ var database = require('./../support/database');
 var log = require('./../support/logger').log;
 var config = require('./../config');
 
+var externals = require('./../support/externals');
+
 var page_uuid_list = {};
 var async = require('async');
 
+/*
 // DUPLICATE! HACK! FIX ME!
 var BeginStatisticsCalculation = function(page_uuid, event_uuid, callback) {
     var parameters = [];
@@ -39,11 +42,15 @@ var BeginStatisticsCalculation = function(page_uuid, event_uuid, callback) {
 
     statistician.on('exit', function(code, signal) {
         if(code !== 0){
-            log.error("Statistician code !== 0. Error: '" + errors + "'");
+            log.error("Statistician code !== 0. Error: '" + errors + "'", "i");
         }
         callback();
     });
-};
+};*/
+
+
+
+
 
 function SocketAvailable(page_uuid) {
     return typeof page_uuid_list[page_uuid] !== "undefined" && page_uuid_list[page_uuid] !== null;
@@ -59,31 +66,33 @@ function SendOnSocketDone(page_uuid) {
     if (SocketAvailable(page_uuid) === true) {
         page_uuid_list[page_uuid].emit('done_processing', {});
     } else {
-        //console.log("Could not find a socket to emit redirection...");
     }
 
     delete page_uuid_list[page_uuid];
 }
 
 var BeginEventProcessing = function(page_uuid){
-    console.log("Let's start some processing!");
-    
     database.GetAllRows("event", function(data){
-        //console.log("Rows: %j", data);
         
         var counter = 1; // It's a human thing, so start at 1.
         
-        log.warn("Beginning event statistics recalculation. ++++++++++");
-        async.eachSeries(data, function(row, callback){
+        log.warn("Beginning event statistics recalculation. ++++++++++", "i");
+        async.eachSeries(data, function(row, asyncCallback){
             SendOnSocket(page_uuid, "-----------------------------------------------------");
             SendOnSocket(page_uuid, "Starting calculations for: " + row["id"] + "( event " + counter + " of " + data.length + ")");
             counter = counter + 1;
-            BeginStatisticsCalculation(page_uuid, row["id"], callback);
+            
+            externals.BeginStatisticsCalculation(row["id"], function(code, stdout, stderr){
+               SendOnSocket(page_uuid, stderr); 
+               asyncCallback();
+            });
+            
+            
         }, function(err){
            if(err){
-               log.error("Error reprocessing events: " + err);
+               log.error("Error reprocessing events: " + err, "i");
            } 
-           log.info("Done reprocessing events ----------");
+           log.info("Done reprocessing events ----------", "i");
            SendOnSocketDone(page_uuid);
         });
     });
@@ -94,9 +103,7 @@ var BeginEventProcessing = function(page_uuid){
 };
 
 exports.NewSocket = function(new_socket, socket_page_uuid) {
-    log.info("Does rncprocess have a page_uuid handler?");
     if (typeof page_uuid_list[socket_page_uuid] !== "undefined") {
-        log.info("Yes!");
         page_uuid_list[socket_page_uuid] = new_socket;
         SendOnSocket(socket_page_uuid, "found handler!");
         new_socket.on('begin_event_reprocessing', function(data){
@@ -104,7 +111,6 @@ exports.NewSocket = function(new_socket, socket_page_uuid) {
         });
         return true;
     }else{
-        log.info("No.");
         return false;
     }
 };

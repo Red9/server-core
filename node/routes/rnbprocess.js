@@ -6,27 +6,11 @@ var fs = require('fs');
 var database = require('./../support/database');
 var log = require('./../support/logger').log;
 var config = require('./../config');
+var externals = require('./../support/externals');
 
 var page_uuid_list = {};
 
-// DUPLICATE! HACK! FIX ME!
-var BeginStatisticsCalculation = function(event_uuid) {
-    var parameters = [];
-    parameters.push('-jar');
-    parameters.push('bin/statistician.jar');
-    parameters.push('--event');
-    parameters.push(event_uuid);
-    parameters.push('--cassandrahost');
-    parameters.push('127.0.0.1');
-    parameters.push('--childrenpath');
-    parameters.push(config.statistician_children);
-    var statistician = spawn('java', parameters);
-    console.log("Starting statistics!");
 
-    statistician.on('exit', function(code, signal) {
-        console.log("Statistics done! Code: " + code);
-    });
-};
 
 
 /** This is a short term solution only! It's used to change the column names from rnb format to rnc format.
@@ -65,7 +49,7 @@ function UpdateColumnNames(columns) {
 function GetMetadata(meta_filename, callback) {
     fs.readFile(meta_filename, function(err, metadata) {
         if (err) {
-            log.error("Error: ", err);
+            log.error("Error: " + err, "i");
         } else {
             callback(metadata);
         }
@@ -95,9 +79,7 @@ function SendOnSocketDone(page_uuid) {
 }
 
 exports.NewSocket = function(new_socket, socket_page_uuid) {
-    log.info("Does rnbprocess have a page_uuid handler?");
     if (typeof page_uuid_list[socket_page_uuid] !== "undefined") {
-        log.info("Yes!");
         page_uuid_list[socket_page_uuid] = new_socket;
         SendOnSocket(socket_page_uuid, "found handler!");
         return true;
@@ -148,22 +130,22 @@ exports.post = function(req, res) {
         var temp = parseInt(req.body.cross_section_frequency);
         if (temp !== "undefined") {
             if (temp > 1000 || temp < 1) {
-                log.info("Cross section frequency of " + temp + " is out of range!");
+                log.info("Cross section frequency of " + temp + " is out of range!", req);
             } else {
                 parameters.push("--csfrequency");
                 parameters.push(temp);
             }
         } else {
-            log.info("Could not parse cross_section_frequency of '" + req.body.cross_section_frequency + "'");
+            log.info("Could not parse cross_section_frequency of '" + req.body.cross_section_frequency + "'", req);
         }
     }
 
-    console.log("mkdir -p " + config.tempDirectory + "; rm -f " + config.tempDirectory + filename + "*");
+    //console.log("mkdir -p " + config.tempDirectory + "; rm -f " + config.tempDirectory + filename + "*");
 
     exec("mkdir -p " + config.tempDirectory + "; rm -f " + config.tempDirectory + filename + "*", function(rm_err, rm_stdout, rm_stderr) {
         fs.writeFile(cfg_filename, dataset["processing_config"], function(err) {
             if (err) {
-                log.warn("Could not write configuration file!" + err);
+                log.warn("Could not write configuration file!" + err, req);
             } else {
                 parameters.push('--configuration');
                 parameters.push(cfg_filename);
@@ -173,7 +155,7 @@ exports.post = function(req, res) {
             for (var i = 0; i < parameters.length; i++) {
                 downsample_command += " " + parameters[i];
             }
-            log.info("Command: '" + downsample_command + "'");
+            log.info("Command: '" + downsample_command + "'", req);
 
             //TODO(SRLM): Add crossSection parameter
 
@@ -230,7 +212,7 @@ exports.post = function(req, res) {
                     } else if (key === "") {
                         // do nothing if empty.
                     } else {
-                        log.warn("Warning: rnb2rnt-server.jar: Could not parse key '" + key + "', value '" + value + "'");
+                        log.warn("Warning: rnb2rnt-server.jar: Could not parse key '" + key + "', value '" + value + "'", req);
                     }
                 }
 
@@ -264,7 +246,7 @@ exports.post = function(req, res) {
                             SendOnSocketDone(page_uuid);
                             
                         });
-                        BeginStatisticsCalculation(event['id']);
+                        externals.BeginStatisticsCalculation(event['id']);
                     });
                 });
             });

@@ -16,6 +16,8 @@ var winston = require('winston');
 //var Loggly = require('winston-loggly').Loggly;
 var Papertrail = require('winston-papertrail').Papertrail;
 
+var moment = require('moment');
+
 /*
  winston.loggers.add('global', {
  
@@ -42,20 +44,20 @@ var file_t = new (winston.transports.File)({
     maxsize: 1024 * 1024/*,
      handleExceptions: true*/});
 /*var loggly_t = new (winston.transports.Loggly)({
-    subdomain:'rednine',
-    inputToken:'32232891-eb88-4b91-a206-fb7cd33ed747'
-});*/
+ subdomain:'rednine',
+ inputToken:'32232891-eb88-4b91-a206-fb7cd33ed747'
+ });*/
 
 var papertrail_t = new Papertrail({
-    host:'logs.papertrailapp.com',
+    host: 'logs.papertrailapp.com',
     port: 19395,
-    colorize:true
+    colorize: true
 });
 
 winston.loggers.add('color', {
     transports: [
         console_t//,
-        //papertrail_t
+                //papertrail_t
     ]
 });
 
@@ -69,7 +71,7 @@ winston.loggers.add('all', {
     transports: [
         console_t,
         file_t//,
-        //papertrail_t
+                //papertrail_t
     ]
 });
 
@@ -77,8 +79,22 @@ var log_color = winston.loggers.get('color');
 var log_standard = winston.loggers.get('standard');
 var log_all = winston.loggers.get('all');
 
-exports.log = log_all;
-exports.color = log_color;
+//exports.log = log_all;
+//exports.color = log_color;
+exports.log = {
+    info: function(string, req) {
+        log_color.info(constructString(req, string, true));
+        log_standard.info(constructString(req, string, false));
+    },
+    warn: function(string, req) {
+        log_color.warn(constructString(req, string, true));
+        log_standard.warn(constructString(req, string, false));
+    },
+    error: function(string, req) {
+        log_color.error(constructString(req, string, true));
+        log_standard.error(constructString(req, string, false));
+    }
+};
 
 /** Connect middleware logger
  * Logger:
@@ -139,10 +155,91 @@ exports.color = log_color;
  *
  *       connect.logger.format('name', 'string or function')
  *
- * @param {String|Function|Object} format or options
- * @return {Function}
- * @api public
+ * @ param {String|Function|Object} format or options
+ * @ return {Function}
+ * @ api public
  */
+
+// + '\x1b[m'
+
+var colorFormatting = {
+    'bold': ['\x1B[1m', '\x1B[22m'],
+    'italic': ['\x1B[3m', '\x1B[23m'],
+    'underline': ['\x1B[4m', '\x1B[24m'],
+    'inverse': ['\x1B[7m', '\x1B[27m'],
+    'strikethrough': ['\x1B[9m', '\x1B[29m'],
+//grayscale
+    'white': ['\x1B[37m', '\x1B[39m'],
+    'grey': ['\x1B[90m', '\x1B[39m'],
+    'black': ['\x1B[30m', '\x1B[39m'],
+//colors
+    'blue': ['\x1B[34m', '\x1B[39m'],
+    'cyan': ['\x1B[36m', '\x1B[39m'],
+    'green': ['\x1B[32m', '\x1B[39m'],
+    'magenta': ['\x1B[35m', '\x1B[39m'],
+    'red': ['\x1B[31m', '\x1B[39m'],
+    'yellow': ['\x1B[33m', '\x1B[39m']
+}
+
+var constructString = function(req, content, colorize) {
+    var date = moment().format("YYYY-MM-DD");
+    var time = moment().format("HH:mm:ss.SSS");
+    var user = "<?>";
+    if (typeof req !== "undefined") {
+        if (typeof req === "string") {
+            user = "<" + req + ">";
+        } else if (typeof req.isAuthenticated === 'function'
+                && req.isAuthenticated()) {
+            user = "<" + req.user.display_name + ">";
+        }
+    }
+    if (colorize === true) {
+        return    colorFormatting['grey'][0] + date + " "
+                + colorFormatting['white'][0] + time + " "
+                + colorFormatting['blue'][0] + user
+                + colorFormatting['grey'][0] + ":" + content
+                + colorFormatting['white'][0];
+    } else {
+        return date + " " + time + " " + user + ":" + content;
+    }
+};
+
+var logRequestPart = function(req, res, fmt, log, console) {
+    var line = fmt(exports, req, res);
+    if (line === null) {
+        return;
+    }
+
+    //var datetime = moment().format("YYYY-MM-DD HH:mm:ss");
+    /*
+     if (req.isAuthenticated()) {
+     var display_name = req.user.display_name;
+     var id = req.user.id;
+     
+     line = datetime + " user:+++" + display_name + "+++(" + id + ") " + line;
+     
+     } else {
+     line = datetime + " " + line;
+     }*/
+
+    line = constructString(req, line, console);
+
+    if (console === true) {
+        line = '\x1b[90m' + line;
+    }
+
+    var status = res.statusCode;
+    if (status === 304) {
+        // Do nothing
+    } else if (status >= 500) {
+        log.error(line);
+    } else if (status >= 400) {
+        log.warn(line);
+    } else {
+        log.info(line);
+    }
+
+};
 
 exports.logger = function(options) {
     if ('object' == typeof options) {
@@ -153,112 +250,32 @@ exports.logger = function(options) {
         options = {};
     }
 
-    // output on request instead of response
-    var immediate = false;
-
     // format name
     var dev_fmt = exports['dev'];
     // compile format
-    if ('function' != typeof dev_fmt) {
+    if ('function' !== typeof dev_fmt) {
         dev_fmt = compile(dev_fmt);
     }
 
     var full_fmt = exports['default'];
-    if ('function' != typeof full_fmt) {
+    if ('function' !== typeof full_fmt) {
         full_fmt = compile(full_fmt);
     }
-
-
-
-    // options
-    // SRLM: Comment out this since we won't be using buffering or STDOUT (we'll use Winston instead).
-    /*var stream = options.stream || process.stdout
-     , buffer = options.buffer;
-     
-     // buffering support
-     if (buffer) {
-     var realStream = stream
-     , interval = 'number' == typeof buffer
-     ? buffer
-     : defaultBufferDuration;
-     
-     // flush interval
-     setInterval(function(){
-     if (buf.length) {
-     realStream.write(buf.join(''));
-     buf.length = 0;
-     }
-     }, interval); 
-     
-     // swap the stream
-     stream = {
-     write: function(str){
-     buf.push(str);
-     }
-     };
-     }*/
 
     return function logger(req, res, next) {
         req._startTime = new Date;
 
-
-
-
-        function logRequestPart(fmt, log, console) {
-            var line = fmt(exports, req, res);
-            if (null === line)
-                return;
-
-            var datetime = (new Date()).toLocaleString();
-
-            if (req.isAuthenticated()) {
-                var display_name = req.user.display_name;
-                var id = req.user.id;
-
-                line = datetime + " user:+++" + display_name + "+++(" + id + ") " + line;
-
-            } else {
-                line = datetime + " " + line;
-            }
-
-            if (console === true) {
-                line = '\x1b[90m' + line;
-            }
-
-            var status = res.statusCode;
-            if (status >= 500) {
-                log.error(line);
-            }
-
-            else if (status >= 400) {
-                log.warn(line);
-            }
-            else {
-                log.info(line);
-            }
-
-        }
-        ;
-
-
-
         function logRequest() {
             res.removeListener('finish', logRequest);
             res.removeListener('close', logRequest);
-            logRequestPart(dev_fmt, log_color, true);
-            logRequestPart(full_fmt, log_standard, false);
+            logRequestPart(req, res, dev_fmt, log_color, true);
+            logRequestPart(req, res, full_fmt, log_standard, false);
         }
         ;
 
-        // immediate
-        if (immediate) {
-            logRequest();
-            // proxy end to output logging
-        } else {
-            res.on('finish', logRequest);
-            res.on('close', logRequest);
-        }
 
+        res.on('finish', logRequest);
+        res.on('close', logRequest);
 
         next();
     };
@@ -347,8 +364,19 @@ exports.format('dev', function(tokens, req, res) {
     len = isNaN(len)
             ? ''
             : len = ' - ' + bytes(len);
+        
+    var method = "";
+    if(req.method === "POST" || req.method === "PUT"){
+        method = colorFormatting['yellow'][0] + req.method;
+    }else if(req.method === "GET"){
+        method = colorFormatting['green'][0] + req.method;
+    }else if(req.method === "DELETE"){
+        method = colorFormatting['magenta'][0] + req.method;
+    }else{
+        method = colorFormatting['red'][0] + req.method;
+    }
 
-    return '\x1b[90m' + req.method
+    return method + colorFormatting['grey'][0]
             + ' ' + req.originalUrl + ' '
             + '\x1b[' + color + 'm' + res.statusCode
             + ' \x1b[90m'

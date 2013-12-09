@@ -45,34 +45,39 @@
     };
 </script>
 
-<h1>{{page_title}}</h1>
-<table class="table table-striped table-bordered" id="dataset_list">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>User</th>
-            <th>Created</th>
-            <th>Duration</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
 
-        {{#each datasets}}   
-        <tr id="dataset_list_row_{{{id}}}">
-            <td  class="editable name_cell">{{{name}}}</td>
-            <td><a href="/user/{{{create_user.id}}}">{{{create_user.display_name}}}</a></td>
-            <td>{{{create_time}}}</td>
-            <td>{{{duration}}}</td>
 
-            <td><a class="btn btn-xs btn-primary" href="/dataset/{{{id}}}">View</a>
-                <a class="btn btn-xs btn-danger" onclick='deleteDataset("{{{id}}}")'>Delete</a>
-            </td>
-        </tr>
-        {{/each}}
+<div class="panel panel-default">
+    <div class="panel-heading"><strong>{{page_title}}</strong></div>
+    <div class="panel-body"></div>
+    <table class="table table-striped table-bordered" id="dataset_list">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>User</th>
+                <th>Created</th>
+                <th>Duration</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
 
-    </tbody>
-</table>
+            {{#each datasets}}   
+            <tr id="dataset_list_row_{{{id}}}">
+                <td  class="editable name_cell">{{{name}}}</td>
+                <td><a href="/user/{{{create_user.id}}}">{{{create_user.display_name}}}</a></td>
+                <td>{{{epochdate create_time}}}&nbsp;&nbsp;{{{epochtime create_time}}}</td>
+                <td>{{{duration start_time end_time}}}</td>
+
+                <td><a class="btn btn-xs btn-primary" href="/dataset/{{{id}}}">View Dataset</a>
+                    <a class="btn btn-xs btn-danger pull-right" onclick='deleteDataset("{{{id}}}")'>Delete</a>
+                </td>
+            </tr>
+            {{/each}}
+
+        </tbody>
+    </table>
+</div>
 
 <br /><br /><br /><br />
 <hr>
