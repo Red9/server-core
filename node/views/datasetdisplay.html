@@ -39,65 +39,70 @@
 
 <div class="row">
     <div class="col-xs-6">
-        <h3>Summary</h3>
+        <h2>Summary</h2>
     </div>
 
     <div class="col-xs-6">
-        <div id="delete"> <h3><a class="btn btn-xs btn-danger pull-right">Delete Dataset</a></h3></div>
-        <h3><a class="btn btn-default btn-xs pull-right" href="/event/{{dataset.event_tree}}">View Maps and Graphs</a></h3>
+        <div id="delete"> <h2><a class="btn btn-xs btn-danger pull-right">Delete Dataset</a></h2></div>
+        <h2><a class="btn btn-default btn-xs pull-right" href="/event/{{dataset.event_tree}}">View Maps and Graphs</a></h2>
 
     </div>
 </div>
 
+<div class="panel panel-default">
+    <div class="panel-heading"><strong>&nbsp;</strong></div>
 
-<table cellpadding="3" cellspacing="3" class="table table-striped">
-    <tr>
-        <td><b>Dataset Title</b>
-        </td>
-        <td>{{{dataset.name}}}</td>
-    </tr>
-    <tr>
-        <td><b>Created</b>
-        </td>
-        <td>{{{epochdate dataset.create_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.create_time}}}</td>
-    </tr>
-    <tr>
-        <td><b>Submit User</b>
-        </td>
-        <td><a href="/user/{{dataset.create_user.id}}">{{{dataset.create_user.display_name}}}</a>
-        </td>
-    </tr>
-    <tr>
-        <td><b>Start Time</b>
-        </td>
-        <td>{{{epochdate dataset.start_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.start_time}}}</td>
-    </tr>
-    <tr>
-        <td><b>End Time</b>
-        </td>
-        <td>{{{epochdate dataset.end_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.end_time}}}</td>
-    </tr>
-    <tr>
-        <td><b>Duration</b>
-        </td>
-        <td>{{{duration dataset.start_time dataset.end_time}}}</td>
-    </tr>
-    <tr>
-        <td><b>Submitted Filename</b>
-        </td>
-        <td>{{{dataset.filename}}}</td>
-    </tr>
-    <tr>
-        <td><b>Number of Rows</b>
-        </td>
-        <td>{{{dataset.number_rows}}}</td>
-    </tr>
-    <tr>
-        <td><b>SCAD Unit</b>
-        </td>
-        <td>{{{dataset.scad_unit}}}</td>
-    </tr>
-</table>
+    <table cellpadding="3" cellspacing="3" class="table table-striped">
+        <tr>
+            <td><b>Dataset Title</b>
+            </td>
+            <td>{{{dataset.name}}}</td>
+        </tr>
+        <tr>
+            <td><b>Created</b>
+            </td>
+            <td>{{{epochdate dataset.create_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.create_time}}}</td>
+        </tr>
+        <tr>
+            <td><b>Submit User</b>
+            </td>
+            <td><a href="/user/{{dataset.create_user.id}}">{{{dataset.create_user.display_name}}}</a>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Start Time</b>
+            </td>
+            <td>{{{epochdate dataset.start_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.start_time}}}</td>
+        </tr>
+        <tr>
+            <td><b>End Time</b>
+            </td>
+            <td>{{{epochdate dataset.end_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.end_time}}}</td>
+        </tr>
+        <tr>
+            <td><b>Duration</b>
+            </td>
+            <td>{{{duration dataset.start_time dataset.end_time}}}</td>
+        </tr>
+        <tr>
+            <td><b>Submitted Filename</b>
+            </td>
+            <td>{{{dataset.filename}}}</td>
+        </tr>
+        <tr>
+            <td><b>Number of Rows</b>
+            </td>
+            <td>{{{dataset.number_rows}}}</td>
+        </tr>
+        <tr>
+            <td><b>SCAD Unit</b>
+            </td>
+            <td>{{{dataset.scad_unit}}}</td>
+        </tr>
+    </table>
+</div>
+
+
 
 <br />
 
@@ -141,7 +146,7 @@
 <div class="panel panel-default">
     <div class="panel-heading"><strong>Comments from the conversion</strong></div>
     <div class="panel-body">
-<pre><code>
+        <pre><code>
 {{{dataset.processing_notes}}}
 </code></pre>
     </div>
@@ -153,7 +158,7 @@
 <div class="panel panel-default">
     <div class="panel-heading"><strong>Outputs from the conversion</strong></div>
     <div class="panel-body">
-<pre><code>
+        <pre><code>
 {{{dataset.processing_statistics}}}
 </code></pre>
     </div>
@@ -165,13 +170,13 @@
 <div class="panel panel-default">
     <div class="panel-heading"><strong>Parameters to the conversion</strong></div>
     <div class="panel-body">
-<pre><code>
+        <pre><code>
 {{{dataset.processing_config}}}
 </code></pre>
     </div>
 </div>
-    
-        
+
+
 <br />
 
 <br /> <b>Dataset UUID: </b> {{dataset.id}}

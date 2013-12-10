@@ -99,7 +99,7 @@
                         console.log("Data: '" + JSON.stringify(data) + "'");
                         
                         
-                        if($('#redirect_checkbox').prop('checked', true)){
+                        if($('#redirect_checkbox').prop('checked')){
                             window.location.replace("/event/" + data.id);
                         }else{
                             $('#new_event_modal').modal('hide');

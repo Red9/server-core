@@ -59,9 +59,9 @@ var FormatDuration = function(startTime, endTime) {
 
     var result = "";
     if (hours > 0) {
-        result = "" + hours + "h" + padNumber(minutes, 2) + "m" + padNumber(seconds, 2) + "s";
+        result = "" + hours + "h " + padNumber(minutes, 2) + "m " + padNumber(seconds, 2) + "s";
     } else if (minutes > 0) {
-        result = "" + minutes + "m" + padNumber(seconds, 2) + "." + padNumber(milliseconds, 3) + "s";
+        result = "" + minutes + "m " + padNumber(seconds, 2) + "." + padNumber(milliseconds, 3) + "s";
     } else {
         result = "" + seconds + "." + padNumber(milliseconds, 3) + "s";
     }
@@ -79,7 +79,7 @@ var NumberToDecimal = function(number) {
 };
 
 var MillisecondsEpochToTime = function(milliseconds) {
-    return moment.utc(milliseconds).format("h:mm:ssa");
+    return moment.utc(milliseconds).format("h:mm:ss.SSS a");
 };
 
 var MillisecondsEpochToDate = function(milliseconds) {

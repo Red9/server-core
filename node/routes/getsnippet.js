@@ -4,23 +4,31 @@ var config = require('./../config');
 
 var ChangeUnits = function(summary, system) {
     if (typeof system === "undefined" || system === "SI") {
-        return;
+        return; // No units, or already in SI
     }
 
-    for (var key in summary) {
-        if (key === "0") {
-            return;
+    if (system !== "common" && system !== "imperial") {
+        return; // Can't convert them.
+    }
+
+    if (Object.prototype.toString.call(summary) === '[object Array]') {
+        for (var i = 0; i < summary.length; i++) {
+            ChangeUnits(summary[i], system);
         }
-        if (typeof summary[key]["value"] !== "undefined"
-                && typeof summary[key]["units"] !== "undefined"
-                && typeof config.unitsMap[summary[key]["units"]] !== "undefined") {
-            summary[key]["value"] = summary[key]["value"] * config.unitsMap[summary[key]["units"]][system]["multiplier"];
-            if (typeof config.unitsMap[summary[key]["units"]][system]["offset"] !== "undefined") {
-                summary[key]["value"] += config.unitsMap[summary[key]["units"]][system]["offset"];
+    } else if (Object.prototype.toString.call(summary) === '[object Object]') {
+        for (var key in summary) {
+            if (summary[key] !== null
+                    && typeof summary[key]["value"] !== "undefined"
+                    && typeof summary[key]["units"] !== "undefined"
+                    && typeof config.unitsMap[summary[key]["units"]] !== "undefined") {
+                summary[key]["value"] = summary[key]["value"] * config.unitsMap[summary[key]["units"]][system]["multiplier"];
+                if (typeof config.unitsMap[summary[key]["units"]][system]["offset"] !== "undefined") {
+                    summary[key]["value"] += config.unitsMap[summary[key]["units"]][system]["offset"];
+                }
+                summary[key]["units"] = config.unitsMap[summary[key]["units"]][system]["label"];
+            } else {
+                ChangeUnits(summary[key], system);
             }
-            summary[key]["units"] = config.unitsMap[summary[key]["units"]][system]["label"];
-        } else {
-            ChangeUnits(summary[key], system);
         }
     }
 };
@@ -118,12 +126,13 @@ exports.get = function(req, res, next) {
         if (typeof req.param("id") !== "undefined") {
             database.GetChildrenEvents(req.param("id"), function(result) {
                 if (typeof units !== "undefined") {
-                    console.log("units defined.");
-                    ChangeUnits(result, units);
-                }else{
-                    console.log("units not defined...");
+                    for (var r = 0; r < result.length; r++) {
+                        ChangeUnits(result[r], units);
+                    }
+                } else {
                 }
-                var parameters = {layout: false,
+                var parameters = {
+                    layout: false,
                     aggregate: result
                 };
                 res.render('snippets/aggregatestatistics', parameters);

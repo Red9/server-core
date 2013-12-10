@@ -222,12 +222,29 @@
             };
 
             var DygraphTimeFormatter = function(date) {
-                return DateTimeFormatter.Format(date) + '<br>';
+                //return DateTimeFormatter.Format(date) + '<br>';
+                return moment(date).format("H:mm:ss.SSS");
+            };
+            
+            var FormatLabels = function(labels){
+               
+                var result = [];
+                result.push(labels[0]); //Time
+                for(var i = 1; i < labels.length; i++){// 1 for time
+                    if(labels[i].split(":").length === 2){
+                        result.push(labels[i].split(":")[1]);
+                    }else{
+                        result.push(labels[i]);
+                    }
+                }
+                
+                
+                return result;
             };
 
             var graphCfg = {
                 xlabel: "time",
-                labels: labels,
+                labels: FormatLabels(labels),
                 highlightCircleSize: 2,
                 strokeWidth: 1,
                 strokeBorderWidth: 0,

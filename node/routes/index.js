@@ -33,7 +33,7 @@ module.exports = function(app, passport) {
     
     app.get('/event/:uuid', IsAuthenticated, require('./eventdisplay').get);
     
-    app.get('/user/:param', require('./user').get);
+    app.get('/user/:uuid', IsAuthenticated, require('./user').get);
     
     app.get('/bluetooth', IsAuthenticated, require('./bluetooth').get);
    
