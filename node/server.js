@@ -71,6 +71,9 @@ var FormatDuration = function(startTime, endTime) {
 };
 
 var NumberToDecimal = function(number) {
+    if(typeof number === "undefined"){
+        return "";
+    }
     if (Math.abs(number) > 9999 || Math.abs(number) < 0.01) {
         return number.toExponential(2);
     } else {
