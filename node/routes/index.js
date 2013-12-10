@@ -3,12 +3,15 @@ function IsAuthenticated(req, res, next) {
         next();
     } else {
         //next();
-        res.redirect('/login');
+        res.redirect('/about');
     }
 }
 
 
 module.exports = function(app, passport) {
+    
+    app.get('/about', require('./about').get);
+    
     app.get('/login', require('./login').get);
     app.get('/logout', require('./logout').get);
 
