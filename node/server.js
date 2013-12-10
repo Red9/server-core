@@ -176,7 +176,7 @@ app.engine('html', hbs.__express); // Handlebars templating
 app.use(express.favicon());
 
 app.use(request_logger()); // Middleware to log all requests.
-
+app.use(express.compress());
 app.use(express.methodOverride());
 
 app.use(express.static(path.join(__dirname, 'public')));
