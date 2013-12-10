@@ -115,43 +115,65 @@
 
 <br /><br/>
 
-<h2> Download:</h2>
-<h3>
-    <a download="{{dataset.id}}-panel.csv" href="/api/dataset/{{dataset.id}}?minmax=false">Complete Panel</a>
-    ~ <a href="/dataset/{{dataset.id}}/download">Custom Panel</a>
-</h3>
+<h2> Download</h2>
+<div class="panel panel-default">
+    <div class="panel-heading"><strong>Options</strong></div>
+    <div class="panel-body">
+        <h3>
+            <a download="{{dataset.id}}-panel.csv" href="/api/dataset/{{dataset.id}}?minmax=false">Complete Panel</a>
+            ~ <a href="/dataset/{{dataset.id}}/download">Custom Panel</a>
+        </h3>
 
-<h5>Download Sensors: <a download="{{dataset.id}}-accl.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=acceleration:x,acceleration:y,acceleration:z&minmax=false">Accelerometer</a>
-    ~ <a download="{{dataset.id}}-gyro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=rotationrate:x,rotationrate:y,rotationrate:z&minmax=false">Gyroscope</a>
-    ~ <a download="{{dataset.id}}-magn.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=magneticfield:x,magneticfield:y,magneticfield:z&minmax=false">Magnetometer</a>
-    ~ <a download="{{dataset.id}}-baro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=pressure:pressure&minmax=false">Barometer</a>
-    ~ <a download="{{dataset.id}}-temp.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=pressure:temperature&minmax=false">Temperature</a>
-    ~ <a download="{{dataset.id}}-gps.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=gps:latitude,gps:longitude&minmax=false">GPS</a>
 
-</h5>
+        <h5>Download Sensors: <a download="{{dataset.id}}-accl.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=acceleration:x,acceleration:y,acceleration:z&minmax=false">Accelerometer</a>
+            ~ <a download="{{dataset.id}}-gyro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=rotationrate:x,rotationrate:y,rotationrate:z&minmax=false">Gyroscope</a>
+            ~ <a download="{{dataset.id}}-magn.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=magneticfield:x,magneticfield:y,magneticfield:z&minmax=false">Magnetometer</a>
+            ~ <a download="{{dataset.id}}-baro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=pressure:pressure&minmax=false">Barometer</a>
+            ~ <a download="{{dataset.id}}-temp.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=pressure:temperature&minmax=false">Temperature</a>
+            ~ <a download="{{dataset.id}}-gps.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=gps:latitude,gps:longitude&minmax=false">GPS</a>
 
-<hr>
-
+        </h5>
+    </div>
+</div>
+<br/>
 
 <h2>Processing Notes</h2>
+<div class="panel panel-default">
+    <div class="panel-heading"><strong>Comments from the conversion</strong></div>
+    <div class="panel-body">
 <pre><code>
 {{{dataset.processing_notes}}}
 </code></pre>
+    </div>
+</div>
 
+<br />
 
 <h2>Processing Statistics</h2>
+<div class="panel panel-default">
+    <div class="panel-heading"><strong>Outputs from the conversion</strong></div>
+    <div class="panel-body">
 <pre><code>
 {{{dataset.processing_statistics}}}
 </code></pre>
+    </div>
+</div>
 
+<br />
 
 <h2>Processing Configuration</h2>
+<div class="panel panel-default">
+    <div class="panel-heading"><strong>Parameters to the conversion</strong></div>
+    <div class="panel-body">
 <pre><code>
 {{{dataset.processing_config}}}
-</code>
-
-</pre>
+</code></pre>
+    </div>
+</div>
+    
+        
 <br />
+
 <br /> <b>Dataset UUID: </b> {{dataset.id}}
 <br /> <b>Raw Data UUID: </b> {{dataset.raw_data}}
 <br /> <b>Root Event UUID: </b> {{dataset.event_tree}}

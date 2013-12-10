@@ -110,9 +110,9 @@ var Unitize = function(value, units) {
 
 var PercentFormater = function(numerator, denominator){
     if(isNaN(numerator) || isNaN(denominator)){
-        return "-";
+        return "---";
     }else{
-        return ((numerator/(numerator + denominator))*100) + "%";
+        return (NumberToDecimal(numerator/(numerator + denominator))*100) + "%";
     }
 };
 

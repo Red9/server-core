@@ -69,8 +69,8 @@
                 <td>{{{epochdate create_time}}}&nbsp;&nbsp;{{{epochtime create_time}}}</td>
                 <td>{{{duration start_time end_time}}}</td>
 
-                <td><a class="btn btn-xs btn-primary" href="/dataset/{{{id}}}">View Dataset</a>
-                    <a class="btn btn-xs btn-danger pull-right" onclick='deleteDataset("{{{id}}}")'>Delete</a>
+                <td><a class="btn btn-xs btn-primary" href="/dataset/{{{id}}}">View Dataset</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a class="btn btn-xs btn-danger" onclick='deleteDataset("{{{id}}}")'>Delete</a>
                 </td>
             </tr>
             {{/each}}

@@ -61,10 +61,10 @@
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.display_name}}<b class="caret"></b></a>
                             <ul class="dropdown-menu">
                                 <li><a href="/user/{{user.id}}">Profile</a></li>
-                                <li><a href="/logout">Logout</a></li>
+                                <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
                             </ul>
                         </li>
-                        {{else}}<li><a href="/login">Login</a></li>{{/if}}
+                        {{else}}<li><a href="/login/google">Sign In&nbsp;<span class="glyphicon glyphicon-log-in"></span></a></li>{{/if}}
                     </ul>
                 </div>
 

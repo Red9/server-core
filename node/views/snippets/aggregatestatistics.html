@@ -5,7 +5,7 @@
     var oTable;
     $(document).ready(function() {
         oTable = $('#event_list').dataTable({
-            "aaSorting": [[2, "desc"]],
+            "aaSorting": [[0, "desc"]],
             "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
         });
     });
@@ -22,6 +22,7 @@
                 <th>Time</th>
                 <th>Duration</th>
                 <th>Path Length</th>
+                <th>Average Speed</th>
             </tr>
         </thead>
         <tbody>
@@ -33,6 +34,9 @@
                 <td>{{duration start_time end_time}}</td>
                 <td><abbr title="units: {{summary_statistics.static.route.path.distance.units}}">
                         {{decimal summary_statistics.static.route.path.distance.value}}</abbr></td>
+                <td><abbr title="units: {{summary_statistics.instantaneous.gps.speed.average.units}}">
+                        {{decimal summary_statistics.instantaneous.gps.speed.average.value}}</abbr></td>
+
             </tr>
             {{/each}}
         </tbody>
