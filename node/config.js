@@ -18,8 +18,25 @@ exports.nodetimeProfile = {
     appName: 'Dev Website'
 };
 exports.defaultRealm = "http://192.168.1.200:8080";
+exports.realm = exports.defaultRealm;
 exports.statistician_children = '../../data-processing/statistics/children';
 //exports.statistician_children = '/home/clewis/consulting/red9/data-processing/statistics/children';
+
+
+exports.releaseserver = false;
+
+exports.logfilelocation = 'logs/server.log';
+
+exports.logglyparameters = {
+            subdomain: 'redninesensor',
+            inputToken: '517e6f6c-a1fa-454a-a3bc-e8b6659ee8c4'
+        };
+        
+exports.papertrailparameters = {
+    host: 'logs.papertrailapp.com',
+    port: 19395,
+    colorize: true
+};
 
 
 exports.unitsMap = {

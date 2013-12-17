@@ -19,7 +19,7 @@ exports.BeginStatisticsCalculation = function(event_uuid, callback) {
     parameters.push('--childrenpath');
     parameters.push(config.statistician_children);
     var statistician = spawn('java', parameters);
-    log.info("Starting statistics for event" + event_uuid, "i");
+    log.info("Starting statistics for event" + event_uuid);
 
     statistician.on('exit', function(code, signal) {
         statistician.stdout.setEncoding("utf8");
@@ -27,10 +27,10 @@ exports.BeginStatisticsCalculation = function(event_uuid, callback) {
         var stdout = statistician.stdout.read();
         var stderr = statistician.stderr.read();
         if(code !== 0){
-            log.error("Statistics done (" + (new Date() - startTime) + "ms) Code: " + code, "i");
-            log.error("Error log: " + stderr, "i");
+            log.error("Statistics done (" + (new Date() - startTime) + "ms) Code: " + code);
+            log.error("Error log: " + stderr);
         }else{
-            log.info("Statistics for " + event_uuid + " done (" + (new Date() - startTime) + "ms)", "i");
+            log.info("Statistics for " + event_uuid + " done (" + (new Date() - startTime) + "ms)");
         }
         
         if(typeof callback === 'function'){

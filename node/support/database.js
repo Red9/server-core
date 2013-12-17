@@ -44,7 +44,7 @@ exports.GenerateUUID = function() {
  * @returns {undefined}
  */
 function LogCommand(query, parameters) {
-    log.info("Database command: '" + query + "' with parameters '" + parameters + "'");
+    //log.info("Database command: '" + query + "' with parameters '" + parameters + "'");
 }
 
 function LogError(functionName, error) {
@@ -425,23 +425,18 @@ exports.DeleteEvent = function(event_id, deleteChildInParent, callback) {
 
 
 exports.GetChildrenEvents = function(event_id, callback) {
-    log.info("Getting event " + event_id);
     exports.GetRow("event", "id", event_id, function(event) {
         if (typeof event !== "undefined") {
             var results = [];
             if (event["children"] === null) {
-                log.info("Event " + event_id + " has no children.");
                 event["children"] = [];
                 results.push(event);
                 callback(results);
             } else {
                 results.push(event);
                 async.eachLimit(event["children"], 2, function(child_uuid, asyncFinishedCallback) {
-                    log.info("Getting child " + child_uuid);
                     exports.GetChildrenEvents(child_uuid, function(event_children) {
-                        //console.log("Got event " + event_id + "'s children");
                         for (var i = 0; i < event_children.length; i++) {
-                            log.info("adding child " + event_children[i]["id"]);
                             results.push(event_children[i]);
                         }
                         asyncFinishedCallback();
@@ -450,12 +445,10 @@ exports.GetChildrenEvents = function(event_id, callback) {
                     if (err) {
                         log.warn("Error getting children: " + err);
                     }
-                    log.info("Sending event " + event_id + " results back (length " + results.length + ")");
                     callback(results);
                 });
             }
         } else {
-            log.info("Child event doesn't exist. " + event_id);
             callback([]);
         }
     });

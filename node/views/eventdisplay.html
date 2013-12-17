@@ -3,7 +3,6 @@
 <script src="/js/easyspinner.js"></script>
 <script src="/js/dygraph-dynamic.js"></script>
 <script src="/js/dygraph-extra.js"></script>
-<script src="/js/datetimeformatter.js"></script>
 <script src="/js/moment.min.js"></script>
 <script type="text/javascript"
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzYsEDTVazN_ic9SsHVvhcSCLwlLEHd7Q&sensor=true&amp;libraries=geometry">
@@ -348,7 +347,7 @@
 
     var MarkIdentifierOldInQueue = function(identifier) {
         for (var i = 0; i < requestQueue.length; i++) {
-            console.log(requestQueue[i].identifier + " === " + identifier);
+            //console.log(requestQueue[i].identifier + " === " + identifier);
             if (requestQueue[i].identifier === identifier) {
                 requestQueue[i]["old"] = true;
             }
@@ -360,7 +359,7 @@
         var request = requestQueue[0].request;
         var old = requestQueue[0].old;
         if (typeof old === "undefined") {
-            console.log("Processing request");
+            //console.log("Processing request");
             $.ajax({
                 type: 'GET',
                 url: request,

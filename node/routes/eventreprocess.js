@@ -76,7 +76,7 @@ var BeginEventProcessing = function(page_uuid){
         
         var counter = 1; // It's a human thing, so start at 1.
         
-        log.warn("Beginning event statistics recalculation. ++++++++++", "i");
+        log.warn("Beginning event statistics recalculation. ++++++++++");
         async.eachSeries(data, function(row, asyncCallback){
             SendOnSocket(page_uuid, "-----------------------------------------------------");
             SendOnSocket(page_uuid, "Starting calculations for: " + row["id"] + "( event " + counter + " of " + data.length + ")");
@@ -90,9 +90,9 @@ var BeginEventProcessing = function(page_uuid){
             
         }, function(err){
            if(err){
-               log.error("Error reprocessing events: " + err, "i");
+               log.error("Error reprocessing events: " + err);
            } 
-           log.info("Done reprocessing events ----------", "i");
+           log.info("Done reprocessing events ----------");
            SendOnSocketDone(page_uuid);
         });
     });

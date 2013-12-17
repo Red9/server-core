@@ -32,7 +32,7 @@ function AddToTree(uuid, callback) {
                 }
             }
         } else {
-            log.error("Error! Row undefined. id: '" + uuid + "'", "i");
+            log.error("Error! Row undefined. id: '" + uuid + "'");
         }
 
     });

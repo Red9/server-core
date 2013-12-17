@@ -75,7 +75,7 @@ exports.post = function(req, res) {
     for (var i = 0; i < parameters.length; i++) {
         downsample_command += " " + parameters[i];
     }
-    log.info("Command: '" + downsample_command + "'", req);
+    log.info("Command: '" + downsample_command + "'");
 
     var rnb2rnt = spawn('java', parameters);
     rnb2rnt.stdout.setEncoding('utf8');

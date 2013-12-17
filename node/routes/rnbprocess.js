@@ -49,7 +49,7 @@ function UpdateColumnNames(columns) {
 function GetMetadata(meta_filename, callback) {
     fs.readFile(meta_filename, function(err, metadata) {
         if (err) {
-            log.error("Error: " + err, "i");
+            log.error("Error: " + err);
         } else {
             callback(metadata);
         }
@@ -130,13 +130,13 @@ exports.post = function(req, res) {
         var temp = parseInt(req.body.cross_section_frequency);
         if (temp !== "undefined") {
             if (temp > 1000 || temp < 1) {
-                log.info("Cross section frequency of " + temp + " is out of range!", req);
+                log.info("Cross section frequency of " + temp + " is out of range!");
             } else {
                 parameters.push("--csfrequency");
                 parameters.push(temp);
             }
         } else {
-            log.info("Could not parse cross_section_frequency of '" + req.body.cross_section_frequency + "'", req);
+            log.info("Could not parse cross_section_frequency of '" + req.body.cross_section_frequency + "'");
         }
     }
 
@@ -145,7 +145,7 @@ exports.post = function(req, res) {
     exec("mkdir -p " + config.tempDirectory + "; rm -f " + config.tempDirectory + filename + "*", function(rm_err, rm_stdout, rm_stderr) {
         fs.writeFile(cfg_filename, dataset["processing_config"], function(err) {
             if (err) {
-                log.warn("Could not write configuration file!" + err, req);
+                log.warn("Could not write configuration file!" + err);
             } else {
                 parameters.push('--configuration');
                 parameters.push(cfg_filename);
@@ -155,7 +155,7 @@ exports.post = function(req, res) {
             for (var i = 0; i < parameters.length; i++) {
                 downsample_command += " " + parameters[i];
             }
-            log.info("Command: '" + downsample_command + "'", req);
+            log.info("Command: '" + downsample_command + "'");
 
             //TODO(SRLM): Add crossSection parameter
 
@@ -212,7 +212,7 @@ exports.post = function(req, res) {
                     } else if (key === "") {
                         // do nothing if empty.
                     } else {
-                        log.warn("Warning: rnb2rnt-server.jar: Could not parse key '" + key + "', value '" + value + "'", req);
+                        log.warn("Warning: rnb2rnt-server.jar: Could not parse key '" + key + "', value '" + value + "'");
                     }
                 }
 

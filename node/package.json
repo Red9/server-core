@@ -16,10 +16,11 @@
     "passport-google": "latest",
     "winston": "latest",
     "winston-papertrail": "latest",
+    "winston-loggly": "latest",
     "bytes": "latest",
     "nodetime": "latest",
     "stdio": "latest",
-    "moment":"latest"
-
+    "moment":"latest",
+    "cluster":"latest"
   }
 }

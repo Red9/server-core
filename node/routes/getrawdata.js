@@ -10,7 +10,7 @@ function LogDownsampleCommand(parameters) {
         downsampleCommand += " " + parameters[i];
     }
     downsampleCommand += "'";
-    log.info(downsampleCommand, "i");
+    log.info(downsampleCommand);
 }
 
 function LogDownsample(event, startTime, endTime, buckets, columns, req) {
@@ -19,8 +19,7 @@ function LogDownsample(event, startTime, endTime, buckets, columns, req) {
             + ", (" + startTime
             + "-" + endTime + ")"
             + ", " + buckets + " buckets"
-            + ", " + event,
-            req);
+            + ", " + event);
 }
 
 
@@ -92,7 +91,7 @@ function ProcessRequest(req, res, user_id, callback) {
 
     if (typeof req.params.uuid === "undefined") {
         var error_message = "UUID should not be undefined!";
-        log.error(error_message, req);
+        log.error(error_message);
         res.send(error_message);
     }
 
@@ -150,7 +149,7 @@ function ProcessRequest(req, res, user_id, callback) {
         }
 
         if (errors !== "") {
-            log.warn("Downsampling error for parameters '" + parameters + "': '" + errors + "'", req);
+            log.warn("Downsampling error for parameters '" + parameters + "': '" + errors + "'");
         }
     });
 }

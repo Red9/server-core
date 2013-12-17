@@ -56,11 +56,11 @@ exports.ProcessLoginRequest = function(identifier, profile, done) {
     exports.CheckUserForLogin(identifier, profile, function(user_info) {
         if (typeof user_info !== "undefined") {
             // If it's not undefined, then they're in the database. So they have access.
-            log.info("Login attempt (successful)", {profile: profile, id: identifier.toString(), user_info: user_info});
+            log.info("Login attempt (successful)");
             done(null, user_info);
         } else {
             // If it is undefined, then they're not in the database.
-            log.info("Login attempt (failed)", {profile: profile, id: identifier.toString(), user_info: user_info});
+            log.info("Login attempt (failed)");
 
             // Let's try to get the domain of their email.
             var email_domain = "";
@@ -68,7 +68,7 @@ exports.ProcessLoginRequest = function(identifier, profile, done) {
                 email_domain = profile.emails[0].value.replace(/.*@/, "");
             } catch (ex) {
                 //Do nothing...
-                log.info("Could not parse login email: %s", ex.toString());
+                log.info("Could not parse login email: " + ex.toString());
             }
             
             // All redninesensor.com emails are valid, so add them to the database and give them access.

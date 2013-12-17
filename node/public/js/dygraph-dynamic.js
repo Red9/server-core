@@ -277,7 +277,7 @@
         //Update existing graph instance
         else {
             var graphCfg = {
-                file: data,
+                file: data
             };
             this.graph.updateOptions(graphCfg);
         }

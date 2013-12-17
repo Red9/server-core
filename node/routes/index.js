@@ -58,4 +58,5 @@ module.exports = function(app, passport) {
 
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
     app.get('/admin/reprocessstatistics', IsAuthenticated, require('./eventreprocess').get);
+    
 };
