@@ -82,14 +82,26 @@ exports.get = function(req, res, next) {
                 {name: "Air"},
                 {name: "Paddle for Wave"},
                 {name: "Paddle Out"},
+                {name: "Paddle In"},
+                {name: "Paddle Left"},
+                {name: "Paddle Right"},
                 {name: "Paddle"},
                 {name: "Duck Dive"},
                 {name: "Wipe out"},
                 {name: "Pearling"},
-                {name: "Session"}
+                {name: "Session"},
+                {name: "Walk"},
+                {name: "Run"}
             ]
         };
         res.render('snippets/createeventmodal', parameters);
+    } else if (snippet_type === "usrmodal") {
+        var parameters = {
+            layout: false
+        };
+        res.render('snippets/usrmodal', parameters);
+
+
     } else if (snippet_type === "eventtree") {
         if (typeof req.param("id") !== "undefined") {
             var parameters = {

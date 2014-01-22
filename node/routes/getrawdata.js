@@ -72,7 +72,7 @@ function ProcessRequest(req, res, user_id, callback) {
     }
 
 
-    // Default to nocache.
+    // Default to cache.
     if (typeof req.param('cache') !== "undefined") {
         if (req.param('cache') === "false") {
             parameters.push('--nocache');
@@ -122,7 +122,7 @@ function ProcessRequest(req, res, user_id, callback) {
         resulttype = req.param('resulttype');
     }
 
-    //LogDownsampleCommand(parameters);
+    LogDownsampleCommand(parameters);
     LogDownsample(eventUUID, startTime, endTime, buckets, columns, req);
 
 

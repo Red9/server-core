@@ -44,7 +44,7 @@
     function toggle(d) {
         // d.children is display.
         // d._children is a storage place for the non-displayed children.
-        if (d.children) {
+        if (d.children && d.children !== null) {
             d._children = d.children;
             d.children = null;
         } else {
@@ -118,7 +118,7 @@
         nodeEnter.append("svg:circle")
                 .attr("r", 1e-6)
                 .style("fill", function(d) {
-            return d._children ? "lightsteelblue" : "#fff";
+            return (d._children && d._children !== null) ? "lightsteelblue" : "#fff";
         })
 
                 // If the node is primary (the "root") then set it to be visually distinct.
@@ -133,14 +133,14 @@
 
         nodeEnter.append("svg:text")
                 .attr("x", function(d) {
-            return d.children || d._children ? -10 : 10;
+            return (d.children && d.children !== null) || (d._children && d._children !== null) ? -10 : 10;
         })
                 .attr("dy", ".35em")
                 .attr("text-anchor", function(d) {
-            return d.children || d._children ? "end" : "start";
+            return (d.children && d.children !== null) || (d._children && d._children !== null) ? "end" : "start";
         })
                 .text(function(d) {
-            return d.name;
+            return d.type;
         })
                 .style("fill-opacity", 1e-6);
 
@@ -154,7 +154,7 @@
         nodeUpdate.select("circle")
                 .attr("r", 4.5)
                 .style("fill", function(d) {
-            return d._children ? "lightsteelblue" : "#fff";
+            return (d._children && d._children !== null) ? "lightsteelblue" : "#fff";
         });
 
         nodeUpdate.select("text")

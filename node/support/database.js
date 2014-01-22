@@ -3,6 +3,8 @@ var async = require('async');
 var Client = require('node-cassandra-cql').Client;
 var log = require('./../support/logger').log;
 
+var moment = require('moment');
+
 var hosts = ['localhost:9042'];
 var database = new Client({hosts: hosts, keyspace: 'dev'});
 
@@ -287,6 +289,10 @@ exports.GetDisplayName = function(id, callback) {
 };
 
 
+function ConvertTimeToMilliseconds(timestring) {
+    return moment(timestring).valueOf();
+}
+
 /** same as GetDataset, but formats the username and dates in a human readable way.
  * 
  * @param {string uuid} id
@@ -329,6 +335,13 @@ function FormatDatasetInformation(content, callback) {
     }
 }
 
+function FormatEventInformation(event, callback) {
+    event["start_time"] = ConvertTimeToMilliseconds(event["start_time"]);
+    event["end_time"] = ConvertTimeToMilliseconds(event["end_time"]);
+    event["create_time"] = ConvertTimeToMilliseconds(event["create_time"]);
+    callback(event);
+}
+
 /**
  * 
  * @param {string} dataset_uuid
@@ -350,10 +363,11 @@ exports.DeleteDataset = function(dataset_uuid, callback) {
                         callback(true);
                     }
 
-                    exports.DeleteEvent(content["event_tree"], false, function(){});
+                    exports.DeleteEvent(content["event_tree"], false, function() {
+                    });
                 });
             });
-            
+
         }
     });
 };
@@ -424,6 +438,12 @@ exports.DeleteEvent = function(event_id, deleteChildInParent, callback) {
 };
 
 
+/** Creates a *flat* list of children. Tree structure is not maintained.
+ * 
+ * @param {type} event_id
+ * @param {type} callback
+ * @returns {undefined}
+ */
 exports.GetChildrenEvents = function(event_id, callback) {
     exports.GetRow("event", "id", event_id, function(event) {
         if (typeof event !== "undefined") {
@@ -450,6 +470,52 @@ exports.GetChildrenEvents = function(event_id, callback) {
             }
         } else {
             callback([]);
+        }
+    });
+};
+
+
+
+
+/**
+ * Calculates the event tree. Includes all event information. Includes the given event (it's at the root of the result).
+ * 
+ * 
+ * 
+ 
+ * @param {type} event_id
+ * @param {type} callback
+ * @returns {undefined} */
+exports.GetEventTree = function(event_id, callback) {
+    exports.GetRow("event", "id", event_id, function(unformatted_event) {
+        if (typeof unformatted_event !== "undefined") {
+            FormatEventInformation(unformatted_event, function(event) {
+
+
+                //console.log("start_time: " + event["start_time"] + ", type: " + typeof event["start_time"]
+                 //       + ", moment: " + moment(event["start_time"]).valueOf());
+                if (event["children"] === null) {
+                    event["children"] = [];
+                    callback(event);
+                } else {
+                    var children = event["children"];
+                    event["children"] = [];
+                    async.eachLimit(children, 2, function(child_uuid, asyncFinishedCallback) {
+                        exports.GetEventTree(child_uuid, function(event_child) {
+                            event["children"].push(event_child);
+                            asyncFinishedCallback();
+                        });
+                    }, function(err) {
+                        if (err) {
+                            log.warn("Error getting children as event tree: " + err);
+                        }
+                        callback(event);
+                    });
+
+                }
+            });
+        } else {
+            callback({});
         }
     });
 };

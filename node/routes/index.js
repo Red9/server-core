@@ -2,8 +2,8 @@ function IsAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        //next();
-        res.redirect('/about');
+        next();
+        //res.redirect('/about');
     }
 }
 
@@ -50,6 +50,9 @@ module.exports = function(app, passport) {
     app.get(   '/api/dataset/:uuid', IsAuthenticated, require('./getrawdata').get);
     app.delete('/api/dataset/:uuid', IsAuthenticated, require('./deletedataset').delete);
     
+    app.get('/api/usr', IsAuthenticated, require('./api/usr').getlist);
+    app.get('/api/usr/:uuid/form', IsAuthenticated, require('./api/usr').getusrform);   
+    app.post('/api/usr/:uuid/operate', IsAuthenticated, require('./api/usr').operateusr);
     
     app.get(   '/api/event/tree/:uuid', IsAuthenticated, require('./geteventtree').get);    
     app.get(   '/api/event/:uuid', IsAuthenticated, require('./getevent').get);
