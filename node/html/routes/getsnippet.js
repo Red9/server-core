@@ -91,17 +91,11 @@ exports.get = function(req, res, next) {
                 {name: "Pearling"},
                 {name: "Session"},
                 {name: "Walk"},
-                {name: "Run"}
+                {name: "Run"},
+                {name: "Stationary"}
             ]
         };
         res.render('snippets/createeventmodal', parameters);
-    } else if (snippet_type === "usrmodal") {
-        var parameters = {
-            layout: false
-        };
-        res.render('snippets/usrmodal', parameters);
-
-
     } else if (snippet_type === "eventtree") {
         if (typeof req.param("id") !== "undefined") {
             var parameters = {

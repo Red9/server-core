@@ -33,33 +33,8 @@
                 alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
             });
         });
-        
-        $("#usr_modal_button").click(function(){
-            
-            var request_url = "/snippet/usrmodal";
-           // Is this repeat safe? Every time this button is clicked then
-            // the modal is reloaded. Is this ok?
-            $("#usr_modal_holder").load(request_url, function() {
-                $("#usr_modal").modal('show');
-            });
-            
-        });
     });
-    
-    
-    
-    var GetUSROperands = function(){
-        var result = {
-            dataset:[
-                "{{dataset.id}}"
-            ]
-        };
-        return result;
-    };
-
 </script>
-
-<div id="usr_modal_holder"> <!--Loaded by jQuery--> </div>
 
 <div class="row">
     <div class="col-xs-6">

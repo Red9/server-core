@@ -46,7 +46,7 @@ sudo sed -i "/^# deb.*multiverse/ s/^# //" /etc/apt/sources.list
 sudo add-apt-repository 'deb http://www.apache.org/dist/cassandra/debian 20x main'
 sudo yes | sudo add-apt-repository ppa:chris-lea/node.js
 sudo apt-get update
-sudo yes | sudo apt-get install python-software-properties python openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven opscenter htop binfmt-support
+sudo yes | sudo apt-get install python-software-properties python openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven opscenter htop binfmt-support ruby1.9.1 ruby1.9.1-dev
 
 cd /home/${USER}/
 

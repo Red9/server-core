@@ -1,26 +1,26 @@
 {
-  "name": "rnb2rnt_Web",
-  "version": "0.0.1",
-  "private": true,
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "latest",
-    "node-cassandra-cql": "git://github.com/jorgebay/node-cassandra-cql.git",
-    "hbs" : "latest",
-    "lazy" : "latest",
-    "async": "latest",
-    "socket.io": "latest",
-    "passport": "latest",
-    "passport-google": "latest",
-    "winston": "latest",
-    "winston-papertrail": "latest",
-    "winston-loggly": "latest",
-    "bytes": "latest",
-    "nodetime": "latest",
-    "stdio": "latest",
-    "moment":"latest",
-    "cluster":"latest"
-  }
+    "name": "total_state",
+    "version": "0.0.2",
+    "private": true,
+    "scripts": {
+        "start": "node server.js --realm 192.168.1.200:8080"
+    },
+    "dependencies": {
+        "express": "latest",
+        "node-cassandra-cql": "git://github.com/jorgebay/node-cassandra-cql.git",
+        "hbs": "latest",
+        "lazy": "latest",
+        "async": "latest",
+        "socket.io": "latest",
+        "passport": "latest",
+        "passport-google": "latest",
+        "winston": "latest",
+        "winston-papertrail": "latest",
+        "winston-loggly": "latest",
+        "bytes": "latest",
+        "nodetime": "latest",
+        "stdio": "latest",
+        "moment": "latest",
+        "cluster": "latest"
+    }
 }
