@@ -1,8 +1,17 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    padding-top: 80px; /* 60px to make the container go all the way to the bottom of the topbar */
 }
-
-a {
-  color: #00B7FF;
+.filter .button {
+    float: right;
+    padding-right: 15px;
+}
+.results
+{
+    margin-top: 20px;
+}
+@media screen and (min-width: 768px) {
+    /*Ipad and greater*/
+    .filter .panel, .filter .panel {
+        height: 205px;
+    }
 }

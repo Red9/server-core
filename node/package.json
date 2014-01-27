@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "express": "latest",
-    "node-cassandra-cql": "git://github.com/jorgebay/node-cassandra-cql.git",
+    "node-cassandra-cql": "0.4.x",
     "hbs" : "latest",
     "lazy" : "latest",
     "async": "latest",

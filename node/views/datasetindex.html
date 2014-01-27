@@ -1,85 +1,138 @@
-<link rel="stylesheet" type="text/css" href="/stylesheets/jquery.dataTables.css">
-<script src="/js/jquery.dataTables.js"></script>
-
-<script src="/js/jquery.jeditable.js"></script>
-
-<script>
-    var oTable;
-    $(document).ready(function() {
-        oTable = $('#dataset_list').dataTable({
-            "aaSorting": [[2, "desc"]],
-            "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
-        });
-
-
-        $('.editable').editable(function(value, settings) {
-            console.log(this);
-            console.log(value);
-            console.log(settings);
-            return(value);
-        }, {
-            type: 'text',
-            width: ($('.name_cell').width() - 10) + "px",
-            height: ($('.name_cell').height() + 8) + "px"
-        });
-
-    });
+<h1>Explore events and datasets</h1>
+<form id="filterForm" class="filter clearfix" onsubmit="site.search();return false;">
+    <div class="row">
+        <div class="col-sm-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">Type</div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="radio"><label for="typeDataset"><input type="radio" name="type" value="dataset" id="typeDataset" checked> Dataset</label></div>
+                        <div class="radio"><label for="typeEvent"><input type="radio" name="type" value="dataset" id="typeEvent"> Event</label></div>
+                    </div>
+                    <div class="form-group">
 
 
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">User</div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="radio"><label for="userAll"><input type="radio" name="user" value="all" id="userAll"> All</label></div>
+                        <div class="radio"><label for="userMe"><input type="radio" name="user" value="me" id="userMe"> Me</label></div>
+                        <div class="radio"><label for="userSelected"><input type="radio" name="user" value="selected" id="userSelected"> Selected</label></div>
+                    </div>
+                    <div class="form-group">
 
-    var deleteDataset = function(id) {
-        $.ajax(
-                "/api/dataset/" + id,
-                {type: "delete"}
-        ).done(function() {
-            var row = $("#dataset_list_row_" + id);
-            row.addClass('danger');
-            row.hide("slow", function() {
-                oTable.fnDeleteRow(row[0]);
-            });
-        }
-        ).fail(function() {
-            alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
-        });
 
-    };
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">Duration</div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="durationMore">More than</label>
+                        <select id="durationMore" name="duration.more" class="form-control">
+                            <option></option>
+                            <option value="1000">1 sec</option>
+                            <option value="5000">5 secs</option>
+                            <option value="30000">30 secs</option>
+                            <option value="60000">1 min</option>
+                            <option value="300000">5 mins</option>
+                            <option value="600000">10 mins</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="durationLess">Less than</label>
+                        <select id="durationLess" name="duration.less" class="form-control">
+                            <option></option>
+                            <option value="1000">1 sec</option>
+                            <option value="5000">5 secs</option>
+                            <option value="30000">30 secs</option>
+                            <option value="60000">1 min</option>
+                            <option value="300000">5 mins</option>
+                            <option value="600000">10 mins</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">Location</div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="distance">Within</label>
+                        <div class="input-group">
+                            <input type="number" id="distance" class="form-control" />
+                            <span class="input-group-addon">mi</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Of</label>
+                        <a href="#" onclick="return false;">Rincon, Santa Barbara</a>
+                        <input type="hidden" id="location" value="34.425744,-119.759903" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">Date</div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="timespan">Within</label>
+                        <div class="input-group">
+                            <input type="number" id="timespan" class="form-control" />
+                            <span class="input-group-addon">hr</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="datetime">Of</label>
+                        <input type="datetime" id="datetime" class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row button"><button class="btn btn-primary">Search</button> </div>
+</form>
+<div id="containerResults"></div>
+<script type="text/x-handlebars-template" id="tmplResults">
+    <div class="panel panel-default results">
+        <div class="panel-body table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>User</th>
+                        <th>Created</th>
+                        <th>Duration</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    \{{#each this}}
+                    <tr>
+                        <td>\{{name}}</td>
+                        <td><a href="/user/\{{create_user}}">User A</a></td>
+                        <td>\{{toDateString create_time}}</td>
+                        <td><a class="btn btn-xs btn-primary" href="/dataset/\{{id}}">View Dataset</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                            <a class="btn btn-xs btn-danger" onclick="site.deleteDataset('\{{id}}')">Delete</a>
+                        </td>
+                    </tr>
+                    \{{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </script>
-
-
-
-<div class="panel panel-default">
-    <div class="panel-heading"><strong>{{page_title}}</strong></div>
-    <div class="panel-body"></div>
-    <table class="table table-striped table-bordered" id="dataset_list">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>User</th>
-                <th>Created</th>
-                <th>Duration</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-
-            {{#each datasets}}   
-            <tr id="dataset_list_row_{{{id}}}">
-                <td  class="editable name_cell">{{{name}}}</td>
-                <td><a href="/user/{{{create_user.id}}}">{{{create_user.display_name}}}</a></td>
-                <td>{{{epochdate create_time}}}&nbsp;&nbsp;{{{epochtime create_time}}}</td>
-                <td>{{{duration start_time end_time}}}</td>
-
-                <td><a class="btn btn-xs btn-primary" href="/dataset/{{{id}}}">View Dataset</a>&nbsp;&nbsp;&nbsp;&nbsp;
-                    <a class="btn btn-xs btn-danger" onclick='deleteDataset("{{{id}}}")'>Delete</a>
-                </td>
-            </tr>
-            {{/each}}
-
-        </tbody>
-    </table>
-</div>
-
-<br /><br /><br /><br />
 
 <h2>Tools</h2>
 <div class="panel panel-default">

@@ -58,5 +58,11 @@ module.exports = function(app, passport) {
 
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
     app.get('/admin/reprocessstatistics', IsAuthenticated, require('./eventreprocess').get);
-    
+    //for testing purposes
+    app.post('/noop/', function (req, res) {
+      res.send({prop1: 'value 1'});
+    });
+    app.get('/noop/', function (req, res) {
+      res.send({prop1: 'value 1'});
+    });
 };
