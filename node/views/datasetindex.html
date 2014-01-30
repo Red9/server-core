@@ -1,43 +1,48 @@
 <h1>Explore events and datasets</h1>
-<form id="filterForm" class="filter clearfix" onsubmit="site.search();return false;">
-    <div class="row">
-        <div class="col-sm-2">
-            <div class="panel panel-default">
-                <div class="panel-heading">Type</div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <div class="radio"><label for="typeDataset"><input type="radio" name="type" value="dataset" id="typeDataset" checked> Dataset</label></div>
-                        <div class="radio"><label for="typeEvent"><input type="radio" name="type" value="dataset" id="typeEvent"> Event</label></div>
-                    </div>
-                    <div class="form-group">
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-2">
-            <div class="panel panel-default">
-                <div class="panel-heading">User</div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <div class="radio"><label for="userAll"><input type="radio" name="user" value="all" id="userAll"> All</label></div>
-                        <div class="radio"><label for="userMe"><input type="radio" name="user" value="me" id="userMe"> Me</label></div>
-                        <div class="radio"><label for="userSelected"><input type="radio" name="user" value="selected" id="userSelected"> Selected</label></div>
-                    </div>
-                    <div class="form-group">
-
-
+<form id="filterForm" class="filters clearfix" onsubmit="site.search();return false;">
+    <ul class="nav nav-tabs simple">
+        <li class="active"><a href="#">Dataset<input type="radio" name="type" id="type-dataset" checked></a></li>
+        <li><a href="#">Event<input type="radio" name="type" id="type-event"></a></li>
+    </ul>
+    <div class="container panel panel-default">
+        <div class="row">
+            <div class="col-md-6 filter-item inactive" id="event-type-filter">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Type</h3></div>
+                    <div class="col-sm-9">
+                        <ul class="nav nav-pills multiple">
+                          <li class="active"><a href="#">Wave<input type="checkbox" name="event.type" value="wave" checked></a></li>
+                          <li class="active"><a href="#">Jump<input type="checkbox" name="event.type" value="jump" checked></a></li>
+                          <li class="active"><a href="#">Drop<input type="checkbox" name="event.type" value="drop" checked></a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-sm-3">
-            <div class="panel panel-default">
-                <div class="panel-heading">Duration</div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <label for="durationMore">More than</label>
+        <div class="row">
+            <div class="col-md-6 filter-item">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Location</h3></div>
+                    <div class="col-sm-2"><label for="distance">Within</label></div>
+                    <div class="col-sm-3">
+                        <div class="input-group">
+                            <input type="number" id="distance" class="form-control" />
+                            <span class="input-group-addon">mi</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-1"><label for="location">Of</label></div>
+                    <div class="col-sm-3">
+                        <a id="location-label" href="#" onclick="return false;">Rincon, Santa Barbara</a>
+                        <input type="hidden" id="location-name" value="Rincon, Santa Barbara">
+                        <input type="hidden" id="location" value="34.425744,-119.759903" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 filter-item">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Duration</h3></div>
+                    <div class="col-sm-2"><label for="durationMore">More than</label></div>
+                    <div class="col-sm-2">
                         <select id="durationMore" name="duration.more" class="form-control">
                             <option></option>
                             <option value="1000">1 sec</option>
@@ -48,8 +53,10 @@
                             <option value="600000">10 mins</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="col-sm-2">
                         <label for="durationLess">Less than</label>
+                    </div>
+                    <div class="col-sm-2">
                         <select id="durationLess" name="duration.less" class="form-control">
                             <option></option>
                             <option value="1000">1 sec</option>
@@ -62,47 +69,63 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="panel panel-default">
-                <div class="panel-heading">Location</div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <label for="distance">Within</label>
-                        <div class="input-group">
-                            <input type="number" id="distance" class="form-control" />
-                            <span class="input-group-addon">mi</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="location">Of</label>
-                        <a href="#" onclick="return false;">Rincon, Santa Barbara</a>
-                        <input type="hidden" id="location" value="34.425744,-119.759903" />
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-2">
-            <div class="panel panel-default">
-                <div class="panel-heading">Date</div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <label for="timespan">Within</label>
+            <div class="col-md-6 filter-item">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Date</h3></div>
+                    <div class="col-sm-2"><label for="timespan">Within</label></div>
+                    <div class="col-sm-3">
                         <div class="input-group">
                             <input type="number" id="timespan" class="form-control" />
                             <span class="input-group-addon">hr</span>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="datetime">Of</label>
+                    <div class="col-sm-1"><label for="datetime">Of</label></div>
+                    <div class="col-sm-3">
                         <input type="datetime" id="datetime" class="form-control">
                     </div>
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="map">
+                <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAN0ey-XWMdU4bo2qHLIFs0fWaACISjojk&sensor=false"></script>
+                <div id="map-canvas"></div>
+            </div>
+        </div>
+        <div class="row col-md-12 button"><button class="btn btn-success">Search</button> </div>
     </div>
-    <div class="row button"><button class="btn btn-primary">Search</button> </div>
 </form>
+<script>
+    $('.filters .nav.simple a').click(function () {
+        $(this).closest('.nav').children('li').removeClass('active');
+        $(this).closest('li').addClass('active');
+        $('input',this).prop('checked', true);
+        return false;
+    });
+    $('.filters .nav.multiple a').click(function () {
+        $(this).closest('li').toggleClass('active');
+        $('input',this).prop('checked',  !$('input',this).prop('checked'));
+    });
+    $('#type-event').closest('.nav').find('a').click(function () {
+        $('#event-type-filter').toggleClass('inactive', !$('#type-event').prop('checked'));
+    });
+    $('#location-label').click(function (){
+        var mapContainer = $('.filters .map');
+        if (mapContainer.is(':visible')) {
+            mapContainer.hide();
+            return false;
+        }
+        mapContainer.show();
+        if (!mapContainer.data('mapLoaded')) {
+            var position = $('#location').val().split(',');
+            site.setMap(parseFloat(position[0]), parseFloat(position[1]), $('#location-label').text(), $('#location'), $('#location-label, #location-name'));
+            mapContainer.data('mapLoaded', true);
+        }
+        return false;
+    });
+</script>
+
+
 <div id="containerResults"></div>
 <script type="text/x-handlebars-template" id="tmplResults">
     <div class="panel panel-default results">

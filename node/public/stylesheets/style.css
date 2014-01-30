@@ -1,17 +1,81 @@
 body {
     padding-top: 80px; /* 60px to make the container go all the way to the bottom of the topbar */
 }
-.filter .button {
-    float: right;
-    padding-right: 15px;
-}
 .results
 {
     margin-top: 20px;
 }
+.filters > .panel {
+    background-color: #F5F5F5;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 0.9em;
+    line-height: 1;
+}
+.filters .nav-tabs {
+    border-bottom: none;
+    margin-left: 10px;
+}
+.filters .nav input
+{
+    display: none;
+}
+.filters .nav-tabs > li.active > a, .filters .nav-tabs > li.active > a:hover, .filters .nav-tabs > li.active > a:focus
+{
+    background-color: #F5F5F5;
+    color: #333333;
+}
+.filters .row .nav.nav-pills
+{
+    font-size: 1.2em;
+    padding-top: 4px;
+}
+.filters .row div a
+{
+    display: inline-block;
+    padding-top: 10px;
+}
+.filters .nav > li > a
+{
+    padding: 6px 10px;
+    font-weight: bold;
+}
+.filters h3
+{
+    margin: 8px 0 0 0;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+.filters label
+{
+    font-weight: normal;
+    padding-top: 10px;
+}
+.filter-item
+{
+    padding-top: 5px;
+    min-height: 42px;
+}
+.filter-item.inactive
+{
+    display: none;
+}
+.row.button
+{
+ padding-top: 5px;
+}
+.filters .map
+{
+    margin: 5px 20px;
+    height: 300px;
+    border: 1px solid #DDDDDD;
+    display: none;
+}
+#map-canvas { height: 100% }
+
 @media screen and (min-width: 768px) {
     /*Ipad and greater*/
-    .filter .panel, .filter .panel {
-        height: 205px;
+    .filters .panel {
+
     }
 }
