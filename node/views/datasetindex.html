@@ -22,19 +22,17 @@
         <div class="row">
             <div class="col-md-6 filter-item">
                 <div class="row">
-                    <div class="col-sm-3"><h3>Location</h3></div>
-                    <div class="col-sm-2"><label for="distance">Within</label></div>
+                    <div class="col-sm-3"><h3>Date</h3></div>
+                    <div class="col-sm-2"><label for="timespan">Within</label></div>
                     <div class="col-sm-3">
                         <div class="input-group">
-                            <input type="number" id="distance" class="form-control" />
-                            <span class="input-group-addon">mi</span>
+                            <input type="number" id="timespan" class="form-control" />
+                            <span class="input-group-addon">hr</span>
                         </div>
                     </div>
-                    <div class="col-sm-1"><label for="location">Of</label></div>
+                    <div class="col-sm-1"><label for="datetime">Of</label></div>
                     <div class="col-sm-3">
-                        <a id="location-label" href="#" onclick="return false;">Rincon, Santa Barbara</a>
-                        <input type="hidden" id="location-name" value="Rincon, Santa Barbara">
-                        <input type="hidden" id="location" value="34.425744,-119.759903" />
+                        <input type="datetime" id="datetime" class="form-control">
                     </div>
                 </div>
             </div>
@@ -71,17 +69,19 @@
             </div>
             <div class="col-md-6 filter-item">
                 <div class="row">
-                    <div class="col-sm-3"><h3>Date</h3></div>
-                    <div class="col-sm-2"><label for="timespan">Within</label></div>
+                    <div class="col-sm-3"><h3>Location</h3></div>
+                    <div class="col-sm-2"><label for="distance">Within</label></div>
                     <div class="col-sm-3">
                         <div class="input-group">
-                            <input type="number" id="timespan" class="form-control" />
-                            <span class="input-group-addon">hr</span>
+                            <input type="number" id="distance" class="form-control" />
+                            <span class="input-group-addon">mi</span>
                         </div>
                     </div>
-                    <div class="col-sm-1"><label for="datetime">Of</label></div>
+                    <div class="col-sm-1"><label for="location">Of</label></div>
                     <div class="col-sm-3">
-                        <input type="datetime" id="datetime" class="form-control">
+                        <a id="location-label" href="#" onclick="return false;">Rincon, Santa Barbara</a>
+                        <input type="hidden" id="location-name" name="location.name" value="Rincon, Santa Barbara">
+                        <input type="hidden" id="location" value="34.425744,-119.759903" />
                     </div>
                 </div>
             </div>
@@ -129,7 +129,7 @@
 <div id="containerResults"></div>
 <script type="text/x-handlebars-template" id="tmplResults">
     <div class="panel panel-default results">
-        <div class="panel-body table-responsive">
+        <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
                     <tr>
