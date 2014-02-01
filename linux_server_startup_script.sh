@@ -48,6 +48,8 @@ sudo yes | sudo add-apt-repository ppa:chris-lea/node.js
 sudo apt-get update
 sudo yes | sudo apt-get install python-software-properties python openjdk-7-jre gcc g++ jsvc cassandra iotop git make ec2-api-tools nodejs maven opscenter htop binfmt-support ruby1.9.1 ruby1.9.1-dev
 
+sudo gem install tmuxinator
+
 cd /home/${USER}/
 
 cd /home/${USER}/.ssh

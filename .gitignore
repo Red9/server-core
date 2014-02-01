@@ -1,1 +1,5 @@
 /node/nbproject/private/
+/node/node_modules/
+/node/html/bin/
+/node/logs/
+/node/nbproject/

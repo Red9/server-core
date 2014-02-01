@@ -1,8 +1,8 @@
-var database = require('./../support/database');
+var database = require('./../../support/database');
 
 exports.get = function(req, res, next) {
     
-    database.GetRow("user", "id", {value:req.params.uuid, hint:"uuid"}, function(userinfo) {
+    database.getUser(req.params.uuid, function(userinfo) {
         if (typeof userinfo === "undefined") {
             next();
         } else {

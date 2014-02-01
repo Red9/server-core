@@ -21,6 +21,8 @@
         "nodetime": "latest",
         "stdio": "latest",
         "moment": "latest",
-        "cluster": "latest"
+        "cluster": "latest",
+        "underscore": "latest",
+        "validator":"latest"
     }
 }

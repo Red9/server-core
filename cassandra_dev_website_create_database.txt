@@ -34,7 +34,6 @@ CREATE TABLE dataset (
 	filename varchar,
 	scad_unit varchar,
 	column_titles list<varchar>,
-	event_tree uuid,
 	PRIMARY KEY (id)
 );
 
@@ -43,12 +42,8 @@ CREATE TABLE event (
 	dataset uuid,
 	start_time timestamp,
 	end_time timestamp,
-	parent uuid,
-	children list<uuid>,
 	type varchar,
 	summary_statistics varchar,
-	source varchar,
-	confidence int,
 	create_time timestamp,
 	PRIMARY KEY(id)
 );
@@ -75,6 +70,8 @@ CREATE TABLE user (
 );
 
 CREATE INDEX comments_users ON comment(user);
+
+CREATE INDEX event_dataset ON event(dataset);
 
 // Note that google_id changes with the domain. So, for now, we won't use that to authenticate.
 CREATE INDEX users_email ON user (email);

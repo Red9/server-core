@@ -10,6 +10,8 @@
         this.axes = configuration.axes;
         this.uuid = configuration.uuid;
         this.buckets = configuration.buckets;
+        
+        this.apiDomain = configuration.apiDomain;
 
         this.initial_start_time = configuration.start_time;
         this.initial_end_time = configuration.end_time;
@@ -87,12 +89,12 @@
             this.drawDygraph(this.initialData, this.initialLabels);
             this.spinner.showSpinner(false);
         } else { // else we need to load some data.
-            var request = "/api/dataset/"
+            var request = this.apiDomain + "/dataset/"
                     + this.uuid
-                    + "?columns=" + this.axes
+                    + "/panel?axes=" + this.axes
                     + "&buckets=" + this.buckets
-                    + "&resulttype=json";
-
+                    + "&format=json&minmax";
+            console.log("Request: " + request);
             if (minX !== null) {
                 request += "&startTime=" + minX;
             }
@@ -106,17 +108,18 @@
                 var data = response.values;
 
                 // Convert the parts of the response to Date and Float values.
-                for (var i = 0; i < data.length; i++) {
-                    for (var j = 0; j < data[i].length; j++) {
+                for (var i = 0; i < data.length; i++) { // Iterate over all points
+                    for (var j = 0; j < data[i].length; j++) { // Iterate over axes
+                        //console.log('typeof data[' + i + '][' + j + ']: ' + typeof data[i][j]);
                         if (j === 0) { // parse as time axis
-                            data[i][j] = new Date(parseFloat(data[i][j]));
-                        } else if (data[i][j] instanceof Array) { // parse as min;avg;max
-                            for (var k = 0; k < data[i][j].length; k++) {
+                            data[i][j] = new Date(data[i][j]);
+                        } /*else if (data[i][j] instanceof Array) { // parse as min;avg;max
+                            for (var k = 0; k < data[i][j].length; k++) { // Iterate over min/avg/max
                                 data[i][j][k] = parseFloat(data[i][j][k]);
                             }
                         } else { // parse as single value
                             data[i][j] = parseFloat(data[i][j]);
-                        }
+                        }*/
                     }
                 }
 
@@ -191,7 +194,7 @@
         this.loadData(minX, maxX);
 
         if (document.getElementById(this.syncCheckboxId).checked) {
-            this.LoadDataMap(minX, maxX);
+            this.LoadDataMap(minX, maxX); // Load this graph first...
             for (var j = 0; j < graphs.length; j++) {
                 if (graphs[j] === this) {
                     continue;
@@ -227,7 +230,7 @@
             };
             
             var FormatLabels = function(labels){
-               
+               // If a label has a colon :, include only the postfix.
                 var result = [];
                 result.push(labels[0]); //Time
                 for(var i = 1; i < labels.length; i++){// 1 for time
@@ -241,6 +244,8 @@
                 
                 return result;
             };
+            
+            //console.log("labels: " + JSON.stringify(labels));
 
             var graphCfg = {
                 xlabel: "time",

@@ -4,7 +4,7 @@ exports.search = function(req, res, next){
     res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
 };
 
-exports.get = function(req, res, next){
+exports.index = function(req, res, next){
     res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
 };
 

@@ -1,6 +1,6 @@
 <script>
-    var event_id = "{{{dataset.event_tree}}}";
-    var aggregate_statistics_snippet_url = "/snippet/aggregatestatistics?units=common&id=" + event_id;
+    var dataset_id = "{{{dataset.id}}}";
+    var aggregate_statistics_snippet_url = "/snippet/aggregatestatistics?units=common&dataset=" + dataset_id;
 
 
     var LoadAggregateStatistics = function() {
@@ -13,15 +13,10 @@
     };
 
     $(document).ready(function() {
-        var eventTree = "{{{dataset.event_tree}}}";
-
-        // Dynamically load snippets.
-        var event_tree_url = "/snippet/eventtree?id=" + eventTree;
-        $("#insert_event_tree").load(event_tree_url);
 
         LoadAggregateStatistics();
 
-
+        /*
         $("#delete").click(function() {
             $.ajax(
                     "/api/dataset/{{dataset.id}}",
@@ -32,7 +27,7 @@
             ).fail(function() {
                 alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
             });
-        });
+        });*/
     });
 </script>
 
@@ -43,7 +38,7 @@
 
     <div class="col-xs-6">
         <div id="delete"> <h2><a class="btn btn-xs btn-danger pull-right">Delete Dataset</a></h2></div>
-        <h2><a class="btn btn-default btn-xs pull-right" href="/event/{{dataset.event_tree}}">View Maps and Graphs</a></h2>
+        <h2><a class="btn btn-default btn-xs pull-right" href="/scope/{{dataset.id}}">View Maps and Graphs</a></h2>
         <h2><a class="btn btn-default btn-xs pull-right" id="usr_modal_button">Run User Subroutine</a></h2>
 
     </div>
@@ -101,13 +96,6 @@
         </tr>
     </table>
 </div>
-
-
-
-<br />
-
-<h2>Event Tree</h2>
-<div id="insert_event_tree"> <!--Loaded by jQuery--> </div>
 
 <br />
 
@@ -181,5 +169,4 @@
 
 <br /> <b>Dataset UUID: </b> {{dataset.id}}
 <br /> <b>Raw Data UUID: </b> {{dataset.raw_data}}
-<br /> <b>Root Event UUID: </b> {{dataset.event_tree}}
 <br />

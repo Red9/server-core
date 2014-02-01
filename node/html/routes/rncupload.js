@@ -1,7 +1,7 @@
 exports.get = function(req, res) {
     var fs = require('fs');
 
-    fs.readFile('./private/default.cfg', function(cfg_err, default_configuration) {
+    //fs.readFile('./private/default.cfg', function(cfg_err, default_configuration) {
 
         var parameters = {
             page_title: "RNC Uploader",
@@ -17,7 +17,7 @@ exports.get = function(req, res) {
         };
         res.render('upload', parameters);
 
-    });
+    //});
 
 
 };

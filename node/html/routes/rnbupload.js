@@ -1,7 +1,7 @@
 exports.get = function(req, res) {
     var fs = require('fs');
 
-    fs.readFile('./private/default.cfg', function(cfg_err, default_configuration) {
+    //fs.readFile('./private/default.cfg', function(cfg_err, default_configuration) {
 
         var parameters = {
             page_title: "RNB Uploader",
@@ -13,12 +13,12 @@ exports.get = function(req, res) {
             ],
             
             textareas: [
-                {id:"config", label:"Configuration Commands",description:"Input the rnb2rnt.jar configuration here, or leave the default.",default_text:default_configuration}
+                //{id:"config", label:"Configuration Commands",description:"Input the rnb2rnt.jar configuration here, or leave the default.",default_text:default_configuration}
             ]
         };
         res.render('upload', parameters);
 
-    });
+    //});
 
 
 };

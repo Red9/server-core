@@ -15,7 +15,7 @@ unique, but it's not a primary key. Something should be done to consider that.
  * @param {type} callback function(user uuid) or "" if not found.
  */
 exports.CheckUserForLogin = function(id, user, callback) {
-    database.GetRow("user", "email", user.emails[0].value, function(result) {
+    database.getUserByEmail(user.emails[0].value, function(result) {
         callback(result);
     });
 };

@@ -1,6 +1,6 @@
 
-var log = require('./../support/logger').log;
-var database = require('./../support/database');
+var log = require('./../../support/logger').log;
+var database = require('./../../support/database');
 
 exports.get = function(req, res, next){
     if (typeof req.params.uuid === "undefined") {

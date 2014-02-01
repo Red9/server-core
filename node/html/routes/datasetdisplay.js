@@ -1,8 +1,8 @@
 
-var database = require('./../support/database');
+var database = require('./../../support/database');
 
 exports.get = function(req, res, next) {
-    database.GetDatasetFormatted(req.params.uuid, function(dataset) {
+    database.getDataset(req.params.uuid, function(dataset){
         if (typeof dataset === "undefined") {
             next();
         } else {

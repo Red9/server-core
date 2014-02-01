@@ -2,8 +2,8 @@ function IsAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        next();
-        //res.redirect('/about');
+        //next();
+        res.redirect('/about');
     }
 }
 
@@ -31,12 +31,12 @@ module.exports = function(app, passport) {
     app.get('/dataset/:uuid', IsAuthenticated, require('./datasetdisplay').get);
     app.get('/dataset/:uuid/download', IsAuthenticated, require('./customdownload').get);
     
-    app.get('/event/:uuid', IsAuthenticated, require('./eventdisplay').get);
+    app.get('/scope/:uuid', IsAuthenticated, require('./scopedisplay').get);
+    //app.get('/event/:uuid', IsAuthenticated, require('./eventdisplay').get);
     
     app.get('/user/:uuid', IsAuthenticated, require('./user').get);
     
     app.get('/bluetooth', IsAuthenticated, require('./bluetooth').get);
-   
     
     app.get( '/upload/rnb', IsAuthenticated, require('./rnbupload').get);
     app.post('/upload/rnb/process', IsAuthenticated, require('./rnbprocess').post);
@@ -47,15 +47,13 @@ module.exports = function(app, passport) {
 
     app.get( '/snippet/:type', IsAuthenticated, require('./getsnippet').get);
     
-    app.get(   '/api/dataset/:uuid', IsAuthenticated, require('./getrawdata').get);
-    app.delete('/api/dataset/:uuid', IsAuthenticated, require('./deletedataset').delete);
-    
-    app.get(   '/api/event/tree/:uuid', IsAuthenticated, require('./geteventtree').get);    
-    app.get(   '/api/event/:uuid', IsAuthenticated, require('./getevent').get);
-    app.post(  '/api/event/:uuid', IsAuthenticated, require('./postevent').post);
-    app.delete('/api/event/:uuid', IsAuthenticated, require('./deleteevent').delete);    
-
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
     app.get('/admin/reprocessstatistics', IsAuthenticated, require('./eventreprocess').get);
+    
+    app.get('/lens/:type', IsAuthenticated, require('./getlens').get);
+    
+    app.get('/corstest', IsAuthenticated, function(req, res, next){
+       res.render('corstest'); 
+    });
     
 };

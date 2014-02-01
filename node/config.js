@@ -1,8 +1,11 @@
+exports.apiPort = 8081;
+exports.htmlPort = 8082;
+
 exports.tempDirectory = "/tmp/red9_dev_website/";
 exports.rnb2rntPath = "bin/rnb2rnt.jar";
 exports.downsamplerPath = "bin/downsampler.jar";
 exports.sessionSecret = 'powells at pdx';
-exports.defaultPort = 8080;
+
 exports.pageTemplateDefaults = {
     site: {
         title: 'Total State',
@@ -17,15 +20,24 @@ exports.nodetimeProfile = {
     accountKey: 'b0bde370aeb47c1330dbded1c830a5d93be1e5e2',
     appName: 'Dev Website'
 };
-exports.defaultRealm = "http://192.168.1.200:8080";
-exports.realm = exports.defaultRealm;
+
+
+exports.releaseRealm = 'http://dev.redninesensor.com';
+exports.releaseApiDomain = 'http://api.redninesensor.com';
+exports.developmentRealm = 'http://localhost';
+exports.developmentApiDomain = 'http://api.localhost';
+
+exports.realm = exports.developmentRealm;
+exports.apiDomain = exports.developmentApiDomain;
+
+exports.release = false;
+
 exports.statistician_children = '../../data-processing/statistics/children';
 //exports.statistician_children = '/home/clewis/consulting/red9/data-processing/statistics/children';
 
+exports.logfilepath = 'logs/';
 
-exports.releaseserver = false;
 
-exports.logfilelocation = 'logs/server.log';
 
 exports.logglyparameters = {
             subdomain: 'redninesensor',

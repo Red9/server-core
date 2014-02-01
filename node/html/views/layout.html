@@ -11,6 +11,7 @@
         <script src="/js/jquery-ui-1.10.3.js"></script>
         <script src="/js/jquery.validate.js"></script>
         <script src="/js/jquery.validate.additional-methods.js"></script>
+        <script src="/js/underscore.js"></script>
 
 
         <link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
@@ -18,6 +19,8 @@
             body {
                 padding-top: 80px; /* 60px to make the container go all the way to the bottom of the topbar */
             }
+
+
         </style>
 
         <link href="/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
@@ -55,7 +58,7 @@
                         <li><a href="/bluetooth">Bluetooth</a>
                         </li>{{/if}}
                     </ul>
-                    
+
                     <ul class="nav navbar-nav navbar-right">{{#if user.display_name}}
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.display_name}}<b class="caret"></b></a>
@@ -70,9 +73,9 @@
 
             </div>
         </div>
-        
+
         <div class="container">{{{body}}}</div>
-        
+
         <br />
         <br />
         <div class="navbar">

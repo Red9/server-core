@@ -3,10 +3,10 @@ var exec = require('child_process').exec;
 
 var fs = require('fs');
 
-var database = require('./../support/database');
-var log = require('./../support/logger').log;
-var config = require('./../config');
-var externals = require('./../support/externals');
+var database = require('./../../support/database');
+var log = require('./../../support/logger').log;
+var config = require('./../../config');
+var externals = require('./../../support/externals');
 
 var page_uuid_list = {};
 

@@ -1,28 +1,289 @@
 
-var async = require('async');
-var Client = require('node-cassandra-cql').Client;
+var spawn = require('child_process').spawn;
+var underscore = require('underscore')._;
+var validator = require('validator');
 var log = require('./../support/logger').log;
 
+var async = require('async');
 var moment = require('moment');
 
+var cassandraClient = require('node-cassandra-cql').Client;
 var hosts = ['localhost:9042'];
-var database = new Client({hosts: hosts, keyspace: 'dev'});
+var cassandra = new cassandraClient({hosts: hosts, keyspace: 'dev'});
 
-var dataset_schema = ['id', 'raw_data', 'name', 'create_time', 'create_user',
-    'start_time', 'end_time', 'processing_config', 'processing_notes',
-    'processing_statistics', 'summary_statistics', 'number_rows', 'filename',
-    'scad_unit', 'column_titles', 'event_tree'];
+var config = require('./../config');
 
-var event_schema = ['id', 'dataset', 'start_time', 'end_time', 'confidence',
-    'parent', 'children', 'type', 'summary_statistics', 'source', 'create_time'];
+var dataset_schema = [
+    {
+        key: 'id',
+        hint: 'uuid'
+    },
+    {
+        key: 'raw_data',
+        hint: 'uuid'
+    },
+    {
+        key: 'name',
+        hint: 'varchar'
+    },
+    {
+        key: 'create_time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'create_user',
+        hint: 'uuid'
+    },
+    {
+        key: 'start_time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'end_time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'processing_config',
+        hint: 'varchar'
+    },
+    {
+        key: 'processing_notes',
+        hint: 'varchar'
+    },
+    {
+        key: 'processing_statistics',
+        hint: 'varchar'
+    },
+    {
+        key: 'summary_statistics',
+        hint: 'varchar'
+    },
+    {
+        key: 'number_rows',
+        hint: 'int'
+    },
+    {
+        key: 'filename',
+        hint: 'varchar'
+    },
+    {
+        key: 'scad_unit',
+        hint: 'varchar'
+    },
+    {
+        key: 'column_titles',
+        hint: 'list<varchar>'
+    }
+];
 
-var user_schema = ['id', 'display_name', 'google_id', 'email', 'first', 'last', 'create_time'];
+var event_schema = [
+    {
+        key: 'id',
+        hint: 'uuid'
+    },
+    {
+        key: 'dataset',
+        hint: 'uuid'
+    },
+    {
+        key: 'start_time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'end_time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'type',
+        hint: 'varchar'
+    },
+    {
+        key: 'summary_statistics',
+        hint: 'varchar'
+    },
+    {
+        key: 'create_time',
+        hint: 'timestamp'
+    }
+];
+
+var user_schema = [
+    {
+        key: 'id',
+        hint: 'uuid'
+    },
+    {
+        key: 'display_name',
+        hint: 'varchar'
+    },
+    {
+        key: 'google_id',
+        hint: 'varchar'
+    },
+    {
+        key: 'email',
+        hint: 'varchar'
+    },
+    {
+        key: 'first',
+        hint: 'varchar'
+    },
+    {
+        key: 'last',
+        hint: 'varchar'
+    },
+    {
+        key: 'create_time',
+        hint: 'timestamp'
+    }
+];
+
+var raw_data_schema = [
+    {
+        key: 'id',
+        hint: 'uuid'
+    },
+    {
+        key: 'time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'data',
+        hint: 'list<float>'
+    }
+];
+
 
 var schemas = {
     dataset: dataset_schema,
     event: event_schema,
-    user: user_schema
+    user: user_schema,
+    raw_data: raw_data_schema
 };
+
+
+/** Returns the matching schema for the requested table.
+ * 
+ * @param {string} table name
+ * @returns {object} Schema
+ */
+function getSchema(table) {
+    if (table in schemas) {
+        return schemas[table];
+    } else {
+        return [];
+    }
+}
+
+var extractSchemaVariablesFromRequest = function(request, table) {
+    var schema = getSchema(table);
+    var result = {};
+    for (var i = 0, max = schema.length; i < max; i++) {
+        if (typeof request.param(schema[i]['key']) !== 'undefined') {
+            var values = request.param(schema[i]['key']).split(',');
+            result[schema[i]['key']] = {
+                hint: schema[i]['hint'],
+                json: schema[i]['json'],
+                value: values
+            };
+        }
+    }
+
+    return result;
+};
+
+
+/**
+ * 
+ * @param {Object} source
+ * @param {Array} path
+ * @returns {primative or undefined}
+ */
+function GetValueFromPathAndRecurse(source, path) {
+    var key = path.shift();
+    if (path.length === 0) {
+        return source[key];
+    } else if (typeof source[key] === 'undefined') {
+        return;
+    } else {
+        return GetValueFromPathAndRecurse(source[key], path);
+    }
+}
+
+function GetValueFromPath(source, path) {
+    // Check the paramater types
+    if (underscore.isArray(path) === true
+            || path.length > 0
+            || underscore.isObject(source) === true) {
+
+        var result = GetValueFromPathAndRecurse(source, path);
+        if (underscore.isObject(result) === true
+                || underscore.isArray(result) === true) {
+            return;
+        } else {
+            return result;
+        }
+    } else { // Parameter types invalid
+        return;
+    }
+}
+
+
+/**
+ * // Compares number to number, if available.
+ * // Case insensitive for string comparisons
+ * @param {type} object
+ * @param {type} constraints
+ * @returns {boolean} true if it fits constraints, false otherwise
+ */
+function CheckConstraints(object, constraints) {
+
+    for (var key in constraints) {
+        var path = key.split('.');
+        if (path[path.length - 1] === 'less') {
+            path.pop();
+            var value = GetValueFromPath(object, path);
+            if (typeof value !== 'number') {
+                return false;
+            }
+            for (var i = 0; i < constraints[key].length; i++) {
+                if (value < constraints[key][i]) {
+                    return true;
+                }
+            }
+            return false;
+        } else if (path[path.length - 1] === 'more') {
+            path.pop();
+            var value = GetValueFromPath(object, path);
+            if (typeof value !== 'number') {
+                return false;
+            }
+            for (var i = 0; i < constraints[key].length; i++) {
+                if (value > constraints[key][i]) {
+                    return true;
+                }
+            }
+            return false;
+
+        } else { // Test for equality
+            var value = GetValueFromPath(object, path);
+            for (var i = 0; i < constraints[key].length; i++) {
+                if (value === constraints[key][i]) {
+                    return true;
+                } else if (underscore.isString(value) === true
+                        && underscore.isString(constraints[key][i]) === true
+                        && value.toUpperCase() === constraints[key][i].toUpperCase()) {
+                    return true;
+                }
+                return false;
+            }
+        }
+    }
+    return true; // For the case where there are no keys.
+}
+
+
+
 
 /**
  * Generates a GUID string, according to RFC4122 standards.
@@ -31,227 +292,13 @@ var schemas = {
  * @author Slavik Meltser (slavik@meltser.info).
  * @link http://slavik.meltser.info/?p=142
  */
-exports.GenerateUUID = function() {
+function generateUUID() {
     function _p8(s) {
         var p = (Math.random().toString(16) + "000000000").substr(2, 8);
         return s ? "-" + p.substr(0, 4) + "-" + p.substr(4, 4) : p;
     }
     return (_p8() + _p8(true) + _p8(true) + _p8());
-};
-
-/** Convenience function.
- * 
- * @param {type} query
- * @param {type} parameters
- * @returns {undefined}
- */
-function LogCommand(query, parameters) {
-    //log.info("Database command: '" + query + "' with parameters '" + parameters + "'");
 }
-
-function LogError(functionName, error) {
-    log.error("Database Error in function " + functionName + ": '" + error + "'");
-}
-
-/**
- * 
- * @param {string} tableName
- * @param {map} parameters The values to insert. Should be a map with the keys taken from the table schema.
- * @param {function} callback Returns undefined for success, err for error.
- */
-exports.InsertRow = function(tableName, parameters, callback) {
-    var schema = schemas[tableName];
-
-    var query = "INSERT INTO " + tableName + " (";
-    var queryPlaceholders = ") VALUES (";
-    var firstParameter = true;
-
-    var databaseParameters = [];
-
-    for (var i = 0; i < schema.length; i++) {
-        var parameter = parameters[schema[i]];
-        if (typeof parameter !== "undefined") {
-            if (firstParameter === false) {
-                query += ",";
-                queryPlaceholders += ",";
-            } else {
-                firstParameter = false;
-            }
-            query += schema[i];
-            queryPlaceholders += "?";
-            databaseParameters.push(parameter);
-        }
-    }
-
-    query += queryPlaceholders + ")";
-
-    LogCommand(query, databaseParameters);
-
-    database.execute(query, databaseParameters, function(err) {
-        if (err) {
-            LogError("InsertRow", err);
-            callback(err);
-        } else {
-            callback();
-        }
-    });
-};
-
-/**
- * 
- * @param {string} tableName The table to update a row in.
- * @param {string} key The column key to match value to.
- * @param {string} value The column key value to select the row to update.
- * @param {string} listColumnName The column in the matched row with a list to update.
- * @param {type} data The data to modify the list with.
- * @param {string} operation The operation ("add", "remove")
- * @param {function} callback Returns undefined for success, err for error.
- */
-exports.UpdateRowModifyList = function(tableName, key, value, listColumnName, data, operation, callback) {
-    var operator;
-    if (operation === "add") {
-        operator = "+";
-    } else if (operation === "remove") {
-        operator = "-";
-    } else {
-        // Error,
-        var err = "Invalid list operation: " + operation;
-        LogError("UpdateRowModifyList", err);
-        callback(err);
-    }
-
-    var query = "UPDATE " + tableName
-            + " SET " + listColumnName + " = " + listColumnName
-            + " " + operator + " [?] WHERE " + key + " = ?";
-    var database_parameters = [data, value];
-
-    database.execute(query, database_parameters, function(err) {
-        if (err) {
-            LogError("UpdateRowModifyList", err);
-            callback(err);
-        } else {
-            callback();
-        }
-    });
-};
-
-/** Get a single row identified by id from the table specified.
- * 
- * @param {string} tableName The CQL name of the table.
- * @param {string} key The cassandra row key
- * @param {string or node-cassandra-cql datatype} value the value for that key.
- * @param {function} callback(content) If not found content is undefined. Otherwise it's a JSON with table schema.
- */
-exports.GetRow = function(tableName, key, value, callback) {
-    var databaseCommand = "SELECT ";
-    var schema = schemas[tableName];
-
-    databaseCommand += schema[0];
-    for (var i = 1; i < schema.length; i++) {
-        databaseCommand += "," + schema[i];
-    }
-
-    databaseCommand += " FROM " + tableName + " WHERE " + key + " = ?";
-
-    database.execute(databaseCommand, [value], function(err, result) {
-        var content;
-        if (err) {
-            LogError("GetRow", err);
-        } else {
-            if (result.rows.length !== 1) {
-                LogError("GetRow", "Database errror: UUID not unique! Incorrect number of results ("
-                        + result.rows.length + ") for query '" + databaseCommand + "' with parameter '" + value + "'");
-            } else {
-                content = ExtractRowToJSON(schema, result.rows[0]);
-            }
-        }
-        callback(content);
-    });
-};
-
-
-/**
- * 
- * @warning For now, only works with the dataset table.
- * 
- * @param {type} tableName
- * @param {type} callback
- * @returns {undefined}
- */
-exports.GetAllRows = function(tableName, callback) {
-    var database_command = "SELECT * FROM " + tableName;
-    database.execute(database_command, function(err, result) {
-
-        if (err) {
-            LogError("GetAllRows", err);
-            callback([]);
-        } else {
-            if (tableName === "dataset") {
-                ParseDatasetCollection(result.rows, callback);
-            } else if (tableName === "event") {
-                callback(ParseEventCollection(result.rows));
-            } else {
-                //TODO(SRLM): Add options for other tables besides datasets.
-                // For now, return empty list.
-                var datasets = [];
-                callback(datasets);
-            }
-        }
-    });
-};
-
-
-/**
- * 
- * @param {string} tableName The database table to delete from
- * @param {string} key The column of the key
- * @param {string} value The key value
- * @param {function} callback Called when done. Parameter err if error, undefined otherwise.
- */
-exports.DeleteRow = function(tableName, key, value, callback) {
-    var databaseCommand = "DELETE FROM " + tableName + " WHERE " + key + " = ?";
-    database.execute(databaseCommand, [value], function(err) {
-        if (err) {
-            LogError("DeleteRow", err);
-            callback(err);
-        } else {
-            callback();
-        }
-    });
-};
-
-/**
- * 
- * @param {node-cassandra-cql row} rows The result rows from a query. Should be dataset rows.
- * @param {function} callback parameter of a non-empty list of dataset maps if successful, an empty list otherwise.
- */
-function ParseDatasetCollection(rows, callback) {
-    var datasets = [];
-    async.eachLimit(rows, 10, function(row, callback) {
-        FormatDatasetInformation(ExtractRowToJSON(schemas["dataset"], row), function(content) {
-            datasets.push(content);
-            callback();
-        });
-    }, function(err) {
-        if (err) {
-            LogError("ParseDatasetCollection", err);
-        }
-        callback(datasets);
-    });
-}
-
-/**
- * 
- * @param {node-cassandra-cql row} rows The result rows from a query. Should be event rows.
- */
-function ParseEventCollection(rows) {
-    var events = [];
-    for (var i = 0; i < rows.length; i++) {
-        events.push(ExtractRowToJSON(schemas["event"], rows[i]));
-    }
-    return events;
-}
-
 
 /**
  * @param {map} schema The schema to extract from the row
@@ -261,261 +308,360 @@ function ParseEventCollection(rows) {
 function ExtractRowToJSON(schema, row) {
     content = {};
     for (var i = 0; i < schema.length; i++) {
-        var value = row.get(schema[i]);
-        try {
-            value = JSON.parse(value);
-        } catch (e) {
-            // Do nothing;
+        var value = row.get(schema[i]['key']);
+
+        if (schema[i]['hint'] === 'timestamp') {
+            value = moment(value).valueOf(); // Get Milliseconds
+        } else {
+            try { // Make it a JSON object if it's stringified.
+                value = JSON.parse(value);
+            } catch (e) {
+                // Do nothing;
+            }
         }
 
-        content[schema[i]] = value;
+        content[schema[i]['key']] = value;
     }
     return content;
 }
 
-/** Get the display name associated with a user ID.
+
+
+exports.extractSchemaVariablesFromRequest = extractSchemaVariablesFromRequest;
+
+
+/** Get a single row identified by id from the table specified.
  * 
- * @param {string UUID} id The user id
- * @param {function} callback (string) with user ID if successful, empty string if not.
+ * @param {string} tableName The CQL name of the table.
+ * @param {string} key The cassandra row key
+ * @param {string or node-cassandra-cql datatype} value the value for that key.
+ * @param {function} callback (content) If not found content is undefined. Otherwise it's a JSON with table schema.
  */
-exports.GetDisplayName = function(id, callback) {
-    exports.GetRow("user", "id", id, function(data) {
-        if (typeof data === "undefined") {
-            callback("");
-        } else {
-            callback(data["display_name"]);
-        }
-    });
-};
+function GetRow(tableName, key, value, callback) {
+    var databaseCommand = "SELECT ";
+    var schema = schemas[tableName];
 
-
-function ConvertTimeToMilliseconds(timestring) {
-    return moment(timestring).valueOf();
-}
-
-/** same as GetDataset, but formats the username and dates in a human readable way.
- * 
- * @param {string uuid} id
- * @param {function} callback (dataset_json)
- * 
- */
-exports.GetDatasetFormatted = function(id, callback) {
-    exports.GetRow("dataset", "id", id, function(content) {
-        FormatDatasetInformation(content, callback);
-    });
-};
-
-/**
- *  will:
- *  1. Format the dates and times as UTC string
- *  2. Replace submit_user with submit_user:{id:"",display_name:""}
- *  3. Add field "duration" (difference in time between start and end, formatted in HH:MM:SS.SSSS
- *  
- * 
- * @param {map} content The dataset to get the user from.
- * @param {function} callback function(dataset_content)
- */
-function FormatDatasetInformation(content, callback) {
-    if (typeof content !== "undefined") {
-        content['create_time'] = (new Date(content['create_time'])).toUTCString();
-        //var start_time = (new Date(content['start_time']));
-        //var end_time = (new Date(content['end_time']));
-        //content['start_time'] = start_time.toUTCString();
-        //content['end_time'] = end_time.toUTCString();
-
-        exports.GetDisplayName(content['create_user'], function(display_name) {
-            content['create_user'] = {
-                id: content['create_user'],
-                display_name: display_name
-            };
-            callback(content);
-        });
-    } else {
-        callback(content);
+    databaseCommand += schema[0]['key'];
+    for (var i = 1; i < schema.length; i++) {
+        databaseCommand += "," + schema[i]['key'];
     }
-}
 
-function FormatEventInformation(event, callback) {
-    event["start_time"] = ConvertTimeToMilliseconds(event["start_time"]);
-    event["end_time"] = ConvertTimeToMilliseconds(event["end_time"]);
-    event["create_time"] = ConvertTimeToMilliseconds(event["create_time"]);
-    callback(event);
-}
+    databaseCommand += " FROM " + tableName + " WHERE " + key + " = ?";
 
-/**
- * 
- * @param {string} dataset_uuid
- * @param {function} callback parameter of true if sucessfully deleted, false otherwise.
- */
-exports.DeleteDataset = function(dataset_uuid, callback) {
-    exports.GetRow("dataset", "id", dataset_uuid, function(content) {
-        if (typeof content === "undefined") {
-            callback(false);
+    cassandra.execute(databaseCommand, [value], function(err, result) {
+        var content;
+        if (err) {
+            LogError("GetRow", err);
         } else {
-            var raw_data_uuid = content["raw_data"];
-
-            database.execute("DELETE FROM dataset WHERE id=?", [dataset_uuid], function(err1) {
-                database.execute("DELETE FROM raw_data WHERE id=?", [raw_data_uuid], function(err2) {
-                    if (err1 || err2) {
-                        LogError("DeleteDataset", err1 + ', ' + err2);
-                        callback(false);
-                    } else {
-                        callback(true);
-                    }
-
-                    exports.DeleteEvent(content["event_tree"], false, function() {
-                    });
-                });
-            });
-
-        }
-    });
-};
-
-
-
-exports.StripHintsFromJSON = function(set) {
-    var result = {};
-    for (var key in set) {
-        var value = set[key];
-        if (typeof set[key].value !== "undefined") {
-            value = set[key].value;
-        }
-        result[key] = value;
-    }
-    return result;
-};
-
-/** Deletes this event, and recurses to delete all child events (and all their
- * children). Aka, prunes tree.
- * 
- * @param {string uuid} event_id
- * @param {bool} deleteChildInParent If true, will remove the child from parent's list of children. Should almost always be true.
- * @param {function} callback false if error occured, undefined otherwise.
- */
-exports.DeleteEvent = function(event_id, deleteChildInParent, callback) {
-    exports.GetRow("event", "id", event_id, function(event) {
-        if (typeof event !== "undefined") {
-
-            // Remove from parent's list of children
-            if (event.parent !== "undefined" && deleteChildInParent === true) {
-                exports.UpdateRowModifyList("event", "id", event["parent"], "children", event["id"], "remove",
-                        function(err) {
-                            if (err) {
-                                LogError("DeleteEvent", err);
-                            }
-                        });
-            }
-
-            var cleanup = function(err1) {
-                exports.DeleteRow("event", "id", event_id, function(err2) {
-                    if (err1 || err2) {
-                        LogError("DeleteEvent", err1 + ", " + err2);
-                        callback(false);
-                    } else {
-                        callback();
-                    }
-                });
-            };
-
-            //log.info("Children of this event: " + event["children"]);
-            //log.info("Event: " + event);
-
-            if (event["children"] !== null) {
-                // Recursively remove each child in series
-                async.eachSeries(event["children"], function(child, childCallback) {
-                    exports.DeleteEvent(child, false, childCallback);
-                }, cleanup);
+            if (result.rows.length !== 1) {
+                LogError("GetRow", "Database errror: UUID not unique! Incorrect number of results ("
+                        + result.rows.length + ") for query '" + databaseCommand + "' with parameter '" + value + "'");
             } else {
-                // No children to delete.
-                cleanup();
+                //console.log("Row: " + JSON.stringify(result.rows[0]));
+                content = ExtractRowToJSON(schema, result.rows[0]);
             }
-        } else {
-            callback(false);
         }
+        callback(content);
     });
+}
 
+
+function validateConstraints(constraints) {
+    for (var key in constraints) {
+
+        constraints[key] = constraints[key].split(',');
+        for (var i = 0; i < constraints[key].length; i++) {
+            if (isNaN(constraints[key][i]) === false) {
+                constraints[key][i] = +constraints[key][i];
+            }
+        }
+    }
+
+    return constraints;
+}
+
+
+function flushDatasetBody(dataset, callback) {
+    GetRow('user', 'id', dataset['create_user'], function(user) {
+        var minimal_user = {
+            id: dataset['create_user'],
+            display_name: user['display_name'],
+            first: user['first'],
+            last: user['last'],
+            email: user['email']
+        };
+        dataset['create_user'] = minimal_user;
+        callback(dataset);
+    });
+}
+
+/**
+ *  Constraints are a list of things that fit:
+ *  {
+ *      path.to.key:value,
+ *      path.to.key2:value2
+ *  }
+ *  
+ *  Note that the path can include .less or .more postfixes. The value can
+ *  include comma seperated values.
+ *  
+ *  If you want all datasets don't give any constraints.
+ * 
+ * @param {object} constraints
+ * @param {function} callback list of datasets objects
+ * @returns {undefined}
+ */
+exports.getConstrainedDatasets = function(constraints, callback) {
+    constraints = validateConstraints(constraints);
+
+    var database_command = 'SELECT * FROM ' + 'dataset';
+    var result = [];
+    cassandra.eachRow(database_command,
+            function(n, row) {
+                var dataset = ExtractRowToJSON(schemas['dataset'], row);
+                if (CheckConstraints(dataset, constraints) === true) {
+                    result.push(dataset);
+                } else {
+                    // Dataset failed constraints
+                }
+            },
+            function(err, rowLength) {
+                if (err) {
+                    LogError("GetConstrainedDataset", err);
+                    callback([]);
+                } else {
+                    var final_result = [];
+                    async.each(result,
+                            function(item, callback) {
+                                flushDatasetBody(item, function(flushed_dataset) {
+                                    final_result.push(flushed_dataset);
+                                    callback();
+                                });
+                            },
+                            function(err) {
+                                callback(final_result);
+                            });
+                }
+            }
+    );
 };
 
 
-/** Creates a *flat* list of children. Tree structure is not maintained.
+/** See getConstrainedDatasets for more info
  * 
- * @param {type} event_id
+ * @param {type} constraints
  * @param {type} callback
  * @returns {undefined}
  */
-exports.GetChildrenEvents = function(event_id, callback) {
-    exports.GetRow("event", "id", event_id, function(event) {
-        if (typeof event !== "undefined") {
-            var results = [];
-            if (event["children"] === null) {
-                event["children"] = [];
-                results.push(event);
-                callback(results);
-            } else {
-                results.push(event);
-                async.eachLimit(event["children"], 2, function(child_uuid, asyncFinishedCallback) {
-                    exports.GetChildrenEvents(child_uuid, function(event_children) {
-                        for (var i = 0; i < event_children.length; i++) {
-                            results.push(event_children[i]);
-                        }
-                        asyncFinishedCallback();
-                    });
-                }, function(err) {
-                    if (err) {
-                        log.warn("Error getting children: " + err);
-                    }
-                    callback(results);
-                });
+exports.getConstrainedEvents = function(constraints, callback) {
+    constraints = validateConstraints(constraints);
+    var database_command = 'SELECT * FROM ' + 'event';
+    var result = [];
+    cassandra.eachRow(database_command,
+            function(n, row) {
+                var event = ExtractRowToJSON(schemas['event'], row);
+                if (CheckConstraints(event, constraints) === true) {
+                    result.push(event);
+                } else {
+                    // Event failed constraints
+                }
+            },
+            function(err, rowLength) {
+                if (err) {
+                    LogError('GetConstrainedEvent', err);
+                    callback([]);
+                } else {
+                    callback(result);
+                }
             }
-        } else {
-            callback([]);
-        }
+    );
+};
+
+exports.getDataset = function(id, callback) {
+    GetRow('dataset', 'id', id, function(dataset_raw) {
+        flushDatasetBody(dataset_raw, callback);
     });
 };
 
+exports.getEvent = function(id, callback) {
+    GetRow('event', 'id', id, callback);
+};
 
+exports.getUser = function(id, callback) {
+    GetRow('user', 'id', id, callback);
+};
 
+exports.getUserByEmail = function(email, callback) {
+    GetRow('user', 'email', email, callback);
+};
 
-/**
- * Calculates the event tree. Includes all event information. Includes the given event (it's at the root of the result).
- * 
- * 
- * 
- 
- * @param {type} event_id
- * @param {type} callback
- * @returns {undefined} */
-exports.GetEventTree = function(event_id, callback) {
-    exports.GetRow("event", "id", event_id, function(unformatted_event) {
-        if (typeof unformatted_event !== "undefined") {
-            FormatEventInformation(unformatted_event, function(event) {
+function computeColumns(panelParameters, dataset, commandOptions) {
+    var columns = dataset['column_titles'];
+    if (typeof panelParameters['axes'] !== 'undefined') {
+        //Get the intersection with the Dataset axes
+        // so that we only request columns that we actually have.
 
+        columns = underscore.intersection(
+                panelParameters['axes'].split(','), dataset['column_titles']);
 
-                //console.log("start_time: " + event["start_time"] + ", type: " + typeof event["start_time"]
-                 //       + ", moment: " + moment(event["start_time"]).valueOf());
-                if (event["children"] === null) {
-                    event["children"] = [];
-                    callback(event);
-                } else {
-                    var children = event["children"];
-                    event["children"] = [];
-                    async.eachLimit(children, 2, function(child_uuid, asyncFinishedCallback) {
-                        exports.GetEventTree(child_uuid, function(event_child) {
-                            event["children"].push(event_child);
-                            asyncFinishedCallback();
-                        });
-                    }, function(err) {
-                        if (err) {
-                            log.warn("Error getting children as event tree: " + err);
-                        }
-                        callback(event);
-                    });
+        if (columns.length === 0) {
+            // Default to all axes if the intersection returns an empty set.
+            columns = dataset['column_titles'];
+        }
+    }
 
-                }
-            });
+    //result['columns'] = columns;
+
+    var columnString = "";
+
+    underscore.each(columns, function(value, index, list) {
+        if (index === 0) {
+            columnString = value;
         } else {
-            callback({});
+            columnString += ',' + value;
+        }
+    });
+
+    if (columnString !== "") {
+        commandOptions.push('--columns');
+        commandOptions.push(columnString);
+    }
+
+    return columns;
+}
+
+
+
+function extractParameters(panelParameters, dataset) {
+    var result = {};
+
+    var commandOptions = [];
+
+    commandOptions.push('-jar');
+    commandOptions.push(config.downsamplerPath);
+
+    commandOptions.push('--uuid');
+    commandOptions.push(dataset['id']);
+
+
+    if (typeof panelParameters['minmax'] !== 'undefined') {
+        commandOptions.push('--minmax');
+    }
+
+    if (typeof panelParameters['nocache'] !== 'undefined') {
+        commandOptions.push('--nocache');
+    }
+
+    if (typeof panelParameters['start_time'] !== 'undefined') {
+        if (validator.isNumeric(panelParameters['start_time']) === true) {
+            commandOptions.push('--start_time');
+            commandOptions.push(panelParameters['start_time']);
+        }
+    }
+
+    if (typeof panelParameters['end_time'] !== 'undefined') {
+        if (validator.isNumeric(panelParameters['end_time']) === true) {
+            commandOptions.push('--end_time');
+            commandOptions.push(panelParameters['end_time']);
+        }
+    }
+
+    if (typeof panelParameters['buckets'] !== 'undefined') {
+        if (validator.isInt(panelParameters['buckets']) === true) {
+            commandOptions.push('--buckets');
+            commandOptions.push(panelParameters['buckets']);
+        }
+    }
+
+    result['columns'] = computeColumns(panelParameters, dataset, commandOptions);
+
+    result['format'] = 'csv'; // Default to CSV
+    if (typeof panelParameters['format'] !== 'undefined') {
+        if (panelParameters['format'] === 'csv') {
+            result['format'] = 'csv';
+        } else { // Default to JSON
+            result['format'] = 'json';
+        }
+    }
+
+    result['commandOptions'] = commandOptions;
+
+
+    return result;
+}
+
+
+function SpawnDownsampler(commandOptions, format, callbackData, callbackDone) {
+    var downsampler = spawn('java', commandOptions);
+
+    var readline = require('readline');
+    var stdin = readline.createInterface({
+        input: downsampler.stdout,
+        output: downsampler.stdin
+    });
+
+    var stderr = readline.createInterface({
+        input: downsampler.stderr,
+        output: downsampler.stdin
+    });
+
+
+    stdin.on('line', function(line) {
+        if (format === 'csv') {
+            callbackData(line);
+        } else if (format === 'json') {
+            // Convert from strings to numerical values.
+            line = line.split(",");
+            line[0] = parseInt(line[0]);
+            for (var i = 1; i < line.length; i++) {
+                // Check to see if the values have min/avg/max.
+                if (line[i].split(';').length > 1) {
+                    line[i] = line[i].split(';');
+                    for (var j = 0; j < line[i].length; j++) {
+                        line[i][j] = parseFloat(line[i][j]);
+                    }
+                } else {
+                    line[i] = parseFloat(line[i]);
+                }
+            }
+            callbackData(line);
+        }
+    });
+
+    var stderrOutput = "";
+    stderr.on('line', function(line) { // Most of the time not used.
+        stderrOutput += line + "\n";
+    });
+
+    downsampler.on('close', function(code) {
+        stdin.close();
+        stderr.close();
+        if(stderrOutput !== ""){
+            log.warn("Standard error not empty: " + stderrOutput);
+        }
+        
+        if (code !== 0) {
+            log.warn('Downsampler non zero exit: ' + code);
+            callbackDone('Downsampler non zero exit: ' + code);
+        } else {
+            callbackDone();
+        }
+    });
+}
+
+exports.getPanel = function(datasetId, panelParameters,
+        callbackDataset, callbackData, callbackDone) {
+    GetRow('dataset', 'id', datasetId, function(dataset) {
+        if (typeof dataset === 'undefined') {
+            callbackDone('No dataset matches ID');
+        } else {
+            var parameters = extractParameters(panelParameters, dataset);
+
+            callbackDataset(dataset, parameters['columns']);
+
+            SpawnDownsampler(parameters['commandOptions'], parameters['format'],
+                    callbackData, callbackDone);
+
         }
     });
 };

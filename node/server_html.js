@@ -1,60 +1,80 @@
 
 
 var cluster = require('cluster');
-
 var config = require('./config');
 
-// Constants
-var port = process.env.PORT || config.defaultPort;
+
+
 
 // Process command line arguments
 var stdio = require('stdio');
+/*var ops = stdio.getopt({
+ 'realm': {key: 'r', args: 1, description: "The realm for google authentication. Include the full domain (with http and all)."}
+ });*/
+
 var ops = stdio.getopt({
-    'realm': {key: 'r', args: 1, description: "The realm for google authentication. Include the full domain (with http and all)."}
+    release: {key: 'r', args: 0, description: 'Set for release mode.'}
 });
-if (typeof ops.realm !== "undefined") {
-    config.realm = ops.realm;
-    // Only use nodetime and logging services on the deployed server
-    config.releaseserver = true;
+
+config.release = (typeof ops.release !== 'undefined');
+
+if (config.release === true) {
+    config.realm = config.releaseRealm;
+    config.apiDomain = config.releaseApiDomain;
+} else {
+    config.realm = config.developmentRealm;
+    config.apiDomain = config.developmentApiDomain;
 }
 
-// Logging setup
-var logger = require('./support/logger');
-logger.init();
-var log = logger.log; // console.log replacement
+
 
 if (cluster.isMaster) {
+    // Logging setup
+    var logger = require('./support/logger');
+    logger.init('html', 'master');
+    var log = logger.log; // console.log replacement
+
     // Process command line arguments
-    if (typeof ops.realm !== "undefined") {
-        config.realm = ops.realm;
+    if (config.release === true) {
         // Only use nodetime and logging services on the deployed server
         require('nodetime').profile(config.nodetimeProfile);
-        config.releaseserver = true;
     }
 
     log.info("Master process started. Starting worker process.");
     cluster.fork();
-    cluster.on('exit', function(worker) {
+    cluster.on('exit', function(worker) { // Always restart killed workers...
         log.error("Worker " + worker.id + " died!");
         cluster.fork();
     });
 
 
 } else {//Worker process
-    var request_logger = logger.logger; // Connect middleware
-    log.info("Node.js worker started.");
+    // Logging setup
+    var logger = require('./support/logger');
+    logger.init('html', '' + cluster.worker.id);
+    var log = logger.log; // console.log replacement
+
+
+    log.info("HTML Node.js worker started.");
     log.info("Using realm: " + config.realm);
-    log.info("Release Server: " + config.releaseserver);
+    log.info("Are we running release server? " + config.release);
 
 
 // Standard modules that we need:
     var express = require('express');
-    var routes = require('./routes');
+    var routes = require('./html/routes');
     var http = require('http');
     var path = require('path');
     var hbs = require('hbs');
 
     var moment = require('moment');
+
+    var padNumber = function(n, width, z) {
+        z = z || '0';
+        n = n + '';
+        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+    };
+
     var FormatDuration = function(startTime, endTime) {
         var duration = endTime - startTime;
         if (duration === 0 || isNaN(duration)) {
@@ -142,13 +162,6 @@ if (cluster.isMaster) {
     hbs.registerHelper('unitize', Unitize);
     hbs.registerHelper('formatunits', FormatUnits);
     hbs.registerHelper('percent', PercentFormater);
-
-    var padNumber = function(n, width, z) {
-        z = z || '0';
-        n = n + '';
-        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-    };
-
     hbs.registerHelper('duration', FormatDuration);
 
 
@@ -189,17 +202,17 @@ if (cluster.isMaster) {
 
 // Express and Connect stuff
     var app = express();
-    app.set('port', port);
-    app.set('views', __dirname + '/views');
+    app.set('port', config.htmlPort);
+    app.set('views', __dirname + '/html/views');
     app.set('view engine', 'html');
     app.engine('html', hbs.__express); // Handlebars templating
     app.use(express.favicon());
 
-    app.use(request_logger()); // Middleware to log all requests.
+    app.use(logger.logger()); // Middleware to log all requests.
     app.use(express.compress());
     app.use(express.methodOverride());
 
-    app.use(express.static(path.join(__dirname, 'public')));
+    app.use(express.static(path.join(__dirname, 'html/public')));
 
     app.use(express.cookieParser());
     app.use(express.bodyParser());
@@ -214,12 +227,20 @@ if (cluster.isMaster) {
     app.use(LoadUserInfo);
     app.use(app.router);
 
+    // Enable CORS: http://enable-cors.org/server_expressjs.html
+    /*app.all('*', function(req, res, next) {
+     res.header("Access-Control-Allow-Origin", "*");
+     res.header("Access-Control-Allow-Headers", "X-Requested-With");
+     next();
+     });*/
+
+
 // development only
     if ('development' === app.get('env')) {
         app.use(express.errorHandler());
     }
 
-    require('./routes')(app, passport); // These are the main site routes
+    require('./html/routes')(app, passport); // These are the main site routes
 
     app.use(function(req, res, next) {
         res.status(404).render('404_error', {title: "Sorry, page not found"});
@@ -243,9 +264,9 @@ if (cluster.isMaster) {
      * 
      */
     var socket_routes = [];
-    socket_routes.push(require('./routes/rnbprocess').NewSocket);
-    socket_routes.push(require('./routes/rncprocess').NewSocket);
-    socket_routes.push(require('./routes/eventreprocess').NewSocket);
+    socket_routes.push(require('./html/routes/rnbprocess').NewSocket);
+    socket_routes.push(require('./html/routes/rncprocess').NewSocket);
+    socket_routes.push(require('./html/routes/eventreprocess').NewSocket);
 
     io.sockets.on('connection', function(socket) {
         socket.on('page_uuid', function(data) {

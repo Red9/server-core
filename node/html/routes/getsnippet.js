@@ -1,5 +1,5 @@
-var database = require('./../support/database');
-var config = require('./../config');
+var database = require('./../../support/database');
+var config = require('./../../config');
 
 
 var ChangeUnits = function(summary, system) {
@@ -96,20 +96,20 @@ exports.get = function(req, res, next) {
             ]
         };
         res.render('snippets/createeventmodal', parameters);
-    } else if (snippet_type === "eventtree") {
-        if (typeof req.param("id") !== "undefined") {
+    } else if (snippet_type === 'eventtree') {
+        if (typeof req.param('id') !== 'undefined') {
             var parameters = {
                 layout: false,
                 event: {
-                    id: req.param("id")
+                    id: req.param('id')
                 }
             };
             res.render('snippets/eventtree', parameters);
         }
-    } else if (snippet_type === "summarystatistics") {
-        if (typeof req.param("id") !== "undefined") {
-            database.GetRow("event", "id", req.param("id"), function(event) {
-                if (typeof event === "undefined") {
+    } else if (snippet_type === 'summarystatistics') {
+        if (typeof req.param('dataset') !== 'undefined') {
+            database.getConstrainedDataset({id:req.param('dataset')}, function(event) {
+                if (typeof event === 'undefined') {
                     next();
                 } else {
                     if (event.summary_statistics === '') {
@@ -128,10 +128,10 @@ exports.get = function(req, res, next) {
                 }
             });
         }
-    } else if (snippet_type === "aggregatestatistics") {
-        if (typeof req.param("id") !== "undefined") {
-            database.GetChildrenEvents(req.param("id"), function(result) {
-                if (typeof units !== "undefined") {
+    } else if (snippet_type === 'aggregatestatistics') {
+        if (typeof req.param('dataset') !== 'undefined') {
+            database.getConstrainedEvents({dataset:req.param('dataset')}, function(result) {
+                if (typeof units !== 'undefined') {
                     for (var r = 0; r < result.length; r++) {
                         ChangeUnits(result[r], units);
                     }
@@ -143,6 +143,8 @@ exports.get = function(req, res, next) {
                 };
                 res.render('snippets/aggregatestatistics', parameters);
             });
+        }else{
+            next();
         }
     } else {
         next();

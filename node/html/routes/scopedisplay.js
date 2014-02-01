@@ -1,5 +1,5 @@
-var database = require('./../support/database');
-
+var database = require('./../../support/database');
+var config = require('./../../config');
 
 // TODO(SRLM): Make this get/calculate the column groups based on the dataset column schema.
 function GetDefaultColumnGroups(dataset) {
@@ -15,22 +15,13 @@ function GetDefaultColumnGroups(dataset) {
 }
 
 
-exports.get = function(req, res, next){
-    database.GetRow("event", "id", req.params.uuid, function(event){
-        if(typeof event === "undefined"){
-            next();
-        }else{
-            var content = [];
-            content["page_title"] = event["type"];
-            content["title"] = "Event";
-            content["event"] = event;
-            content["column_group"] = GetDefaultColumnGroups();
-            
-            res.render("eventdisplay", content);
-            
-        }
-    });
-    
+exports.get = function(req, res, next) {
+    var content = [];
+    content['page_title'] = 'Scopes Display';
+    content['title'] = 'Scope';
+    content['id'] = req.param('uuid');
+    content['apiUrl'] = config.apiDomain;
+    res.render('scopeharness', content);
 };
 
 
