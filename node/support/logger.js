@@ -17,6 +17,8 @@ var winston = require('winston');
 var Loggly = require('winston-loggly').Loggly;
 var Papertrail = require('winston-papertrail').Papertrail;
 
+var underscore = require('underscore')._;
+
 
 var moment = require('moment');
 
@@ -25,21 +27,32 @@ var log_color = {};
 var log_standard = {};
 var log_json = {};
 
-exports.init = function(){
-    
-    var console_t = new (winston.transports.Console)({
-        colorize: 'true'});
+var instanceType = '';
+var instanceId = '';
+
+exports.init = function(newInstanceType, newInstanceId) {
+
+    if (underscore.isString(newInstanceType) === false
+            || underscore.isString(newInstanceId) === false) {
+        throw "Must define an instance type and id for each server. Union should be unique."
+    }
+
+    instanceType = newInstanceType;
+    instanceId = newInstanceId;
+
+    var console_t = new (winston.transports.Console)({colorize: 'true'});
     winston.loggers.add('color', {
         transports: [
             console_t
         ]
     });
 
-    if(config.releaseserver === true){  
+    // Only include full logging if we're release.
+    if (config.release === true) {
         var file_t = new (winston.transports.File)({
-            filename: config.logfilelocation,
-            maxsize: 1024 * 1024/*,
-             handleExceptions: true*/});
+            filename: config.logfilepath + instanceType + "-" + instanceId,
+            maxsize: 1024 * 1024
+        });
 
         var loggly_t = new (winston.transports.Loggly)(config.logglyparameters);
         var papertrail_t = new Papertrail(config.papertrailparameters);
@@ -57,7 +70,7 @@ exports.init = function(){
             ]
         });
     }
-    
+
     log_color = winston.loggers.get('color');
     log_standard = winston.loggers.get('standard');
     log_json = winston.loggers.get('json');
@@ -82,22 +95,28 @@ exports.log = {
         var attributes = ExtractConsoleAttributes(message, parameters);
 
         log_color.info(CreateConsoleColorString(attributes));
-        log_standard.info(CreateConsolePlainString(attributes));
-        log_json.info(JSON.stringify(attributes));
+        if (config.release === true) {
+            log_standard.info(CreateConsolePlainString(attributes));
+            log_json.info(JSON.stringify(attributes));
+        }
     },
     warn: function(message, parameters) {
         var attributes = ExtractConsoleAttributes(message, parameters);
 
         log_color.warn(CreateConsoleColorString(attributes));
-        log_standard.warn(CreateConsolePlainString(attributes));
-        log_json.warn(JSON.stringify(attributes));
+        if (config.release === true) {
+            log_standard.warn(CreateConsolePlainString(attributes));
+            log_json.warn(JSON.stringify(attributes));
+        }
     },
     error: function(message, parameters) {
         var attributes = ExtractConsoleAttributes(message, parameters);
 
         log_color.error(CreateConsoleColorString(attributes));
-        log_standard.error(CreateConsolePlainString(attributes));
-        log_json.error(JSON.stringify(attributes));
+        if (config.release === true) {
+            log_standard.error(CreateConsolePlainString(attributes));
+            log_json.error(JSON.stringify(attributes));
+        }
     }
 };
 
@@ -133,8 +152,10 @@ exports.logger = function() {
 
             if (attributes["statuscode"] !== 304) {
                 log_color.info(CreateHttpColorString(attributes));
-                log_standard.info(CreateHttpPlainString(attributes));
-                log_json.info(JSON.stringify(attributes));
+                if (config.release === true) {
+                    log_standard.info(CreateHttpPlainString(attributes));
+                    log_json.info(JSON.stringify(attributes));
+                }
             }
         };
 
@@ -197,10 +218,12 @@ var CreateHttpPlainString = function(parameters) {
 
 
 var CreateConsoleColorString = function(parameters) {
-    var date = moment().format("YYYY-MM-DD");
+    var date = moment().format("MM-DD");
     var time = moment().format("HH:mm:ss.SSS");
 
-    return colorFormatting['grey'][0] + date + " "
+    return colorFormatting['grey'][0] + parameters['instancetype'] + " "
+            + colorFormatting['white'][0] + parameters['instanceid'] + " "
+            + colorFormatting['grey'][0] + date + " "
             + colorFormatting['white'][0] + time + " "
             + colorFormatting['grey'][0] + ":" + parameters['message']
             + colorFormatting['white'][0];
@@ -219,7 +242,7 @@ var CreateConsolePlainString = function(parameters) {
 var ExtractHttpAttributes = function(req, res) {
     var len = parseInt(res.getHeader('Content-Length'), 10);
 
-    len = isNaN(len) ? '' : len = ' - ' + bytes(len);
+    len = isNaN(len) ? '' : len = '- ' + bytes(len);
 
     var result = {};
     if (typeof req.isAuthenticated === 'function' && req.isAuthenticated()) {
@@ -234,13 +257,16 @@ var ExtractHttpAttributes = function(req, res) {
     result['originalurl'] = req.originalUrl;
     result['statuscode'] = res.headerSent ? res.statusCode : null;
     result['responsetime'] = (new Date - req._startTime);
-    result['length'] = len;
+    result['responselength'] = len;
     result['referrer'] = req.headers['referer'] || req.headers['referrer'];
     result['ip'] = req.ip;
     result['xhr'] = req.xhr;
     result['remoteaddress'] = GetRemoteAddress(req);
     result['httpversion'] = req.httpVersionMajor + '.' + req.httpVersionMinor;
     result['useragent'] = req.headers['user-agent'];
+
+    result['instancetype'] = instanceType;
+    result['instanceid'] = instanceId;
 
     return result;
 };
@@ -254,6 +280,9 @@ var ExtractConsoleAttributes = function(message, parameters) {
     result["timestamp"] = moment().toISOString();
     result["type"] = "console";
     result["message"] = message;
+
+    result['instancetype'] = instanceType;
+    result['instanceid'] = instanceId;
 
     return result;
 };
