@@ -1,5 +1,5 @@
 <h1>Explore events and datasets</h1>
-<form id="filterForm" class="filters clearfix" onsubmit="site.search();return false;">
+<form id="filter-form" class="filters clearfix" onsubmit="site.search();return false;">
     <div class="container panel panel-default">
         <div class="row">
             <div class="col-md-6 filter-item">
@@ -108,22 +108,46 @@
                 <div id="map-canvas"></div>
             </div>
         </div>
+        <div id="additional-filters-container"></div>
         <div class="row col-md-12 buttons">
             <button class="btn btn-success">Search</button>
-            <div class="btn-group">
+            <div class="btn-group" id="additional-filters-button">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                 More filters <span class="caret"></span>
               </button>
-              <ul class="dropdown-menu" role="menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
+              <ul class="dropdown-menu pull-right" role="menu">
+                <li><a href="#" data-name="static.route.path" data-template="range-input" data-title="Distance" data-units="mi" data-conv="mileToMeter">Path distance</a></li>
                 <li class="divider"></li>
-                <li><a href="#">Separated link</a></li>
+                <li><a href="#" data-name="instantaneous.acceleration.magnitude.average" data-template="range-input" data-title="Instantaneous acceleration" data-units="<sup>m</sup><sub>/s2</sub>">Instantaneous acceleration</a></li>
+                <li><a href="#" data-name="instantaneous.rotationrate.magnitude.average" data-template="range-input" data-title="Instantaneous rotation" data-units="<sup>rad</sup><sub>/s</sub>">Instantaneous average rotation rate</a></li>
               </ul>
             </div>
         </div>
     </div>
+
+    <script type="text/x-handlebars-template" id="tmpl-filter-range-input">
+        <div class="row" id="filter-\{{id}}">
+            <div class="col-md-6 filter-item">
+                <div class="row">
+                    <div class="col-sm-3"><h3>\{{title}}</h3></div>
+                    <div class="col-sm-2"><label>More than</label></div>
+                    <div class="col-sm-2">
+                        <div class="input-group">
+                            <input type="number" name="\{{name}}.more" class="form-control" />
+                            <span class="input-group-addon">\{{{units}}}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-2"><label>Less than</label></div>
+                    <div class="col-sm-2">
+                        <div class="input-group">
+                            <input type="number" name="\{{name}}.less" class="form-control" />
+                            <span class="input-group-addon">\{{{units}}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
 </form>
 <script>
     $('.filters .nav.simple a').click(function () {
@@ -153,11 +177,26 @@
         }
         return false;
     });
+    $('#additional-filters-button li a').click(function () {
+        var state = $(this).data();
+        if (!state.name) return true;
+        state.id = state.name.replace(/\./g, "-");
+        if (!$('#filter-' + state.id).length) {
+            var templateId = 'tmpl-filter-' + state.template;
+            if (!site.templates[templateId]) {
+                site.templates[templateId] = Handlebars.compile($('#' + templateId).html());
+            }
+            $('#additional-filters-container').append(site.templates[templateId](state));
+        }
+        //now its added to the dom
+        $('#filter-' + state.id).show().css({backgroundColor: '#BCE8F1'}).animate({backgroundColor: 'transparent'}, 1000);
+        return true;
+    });
 </script>
 
 
-<div id="containerResults"></div>
-<script type="text/x-handlebars-template" id="tmplResults">
+<div id="container-results"></div>
+<script type="text/x-handlebars-template" id="tmpl-results">
     <div class="panel panel-default results">
         <div class="table-responsive">
             <table class="table table-striped">

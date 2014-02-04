@@ -41,8 +41,9 @@ body {
 }
 .filters .row div > a
 {
-    display: inline-block;
+    display: block;
     padding-top: 10px;
+    position: relative;
 }
 .filters .row a:hover, .filters a:focus
 {
@@ -55,17 +56,29 @@ body {
 }
 .filters .glyphicon-map-marker
 {
-    float: left;
-    padding: 0 5px 0 0;
+    position: absolute;
+    left: -15px;
+    padding: 10px 5px 0 0;
     font-size: 15px;
     height: 24px;
     margin-top: -2px;
 }
+.filters .form-control
+{
+    padding: 6px;
+}
+.filters .input-group-addon
+{
+    padding: 6px 4px;
+}
 .filters h3
 {
-    margin: 8px 0 0 0;
+    display: table-cell;
     font-size: 1.2em;
     font-weight: bold;
+    height: 33px;
+    margin: 0;
+    vertical-align: middle;
 }
 .filters label
 {

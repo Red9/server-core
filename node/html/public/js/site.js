@@ -48,7 +48,7 @@ var site = {
     });
   },
   getSearchParams: function () {
-    var context = $('#filterForm .filter-item:not(.inactive)');
+    var context = $('#filter-form .filter-item:not(.inactive)');
     var params = {};
     $(' input, select', context).not(':radio, :checkbox').each(function () {
       var element = $(this);
@@ -84,11 +84,11 @@ var site = {
       url = this.urls.apiPath + this.urls.searchEvent;
     }
     var self = this;
-    $.get(url, /*this.getSearchParams(),*/ function (response) {
+    $.get(url, this.getSearchParams(), function (response) {
       if (!self.templates.results) {
-        self.templates.results = Handlebars.compile($('#tmplResults').html());
+        self.templates.results = Handlebars.compile($('#tmpl-results').html());
       }
-      $('#containerResults').html(self.templates.results(response));
+      $('#container-results').html(self.templates.results(response));
     });
   },
   setMap: function(lat, lng, title, targetLatLng, targetName) {
