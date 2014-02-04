@@ -1,19 +1,35 @@
 <h1>Explore events and datasets</h1>
 <form id="filterForm" class="filters clearfix" onsubmit="site.search();return false;">
-    <ul class="nav nav-tabs simple">
-        <li class="active"><a href="#">Dataset<input type="radio" name="type" id="type-dataset" checked></a></li>
-        <li><a href="#">Event<input type="radio" name="type" id="type-event"></a></li>
-    </ul>
     <div class="container panel panel-default">
         <div class="row">
-            <div class="col-md-6 filter-item inactive" id="event-type-filter">
+            <div class="col-md-6 filter-item">
                 <div class="row">
                     <div class="col-sm-3"><h3>Type</h3></div>
                     <div class="col-sm-9">
-                        <ul class="nav nav-pills multiple">
-                          <li class="active"><a href="#">Wave<input type="checkbox" name="event.type" value="wave" checked></a></li>
-                          <li class="active"><a href="#">Jump<input type="checkbox" name="event.type" value="jump" checked></a></li>
-                          <li class="active"><a href="#">Drop<input type="checkbox" name="event.type" value="drop" checked></a></li>
+                        <ul class="nav nav-pills simple">
+                            <li class="active"><a href="#">Dataset<input type="radio" name="type" id="type-dataset" checked></a></li>
+                            <li><a href="#">Event<input type="radio" name="type" id="type-event"></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 filter-item inactive" id="event-type-filter">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Event type</h3></div>
+                    <div class="col-sm-5">
+                        <select name="event.type" id="event-type" class="form-control" multiple>
+                            <option value="wave">Wave</option>
+                            <option value="jump">Jump</option>
+                            <option value="drop">Drop</option>
+                            <option value="another type">Another type</option>
+                            <option value="super">Super</option>
+                        </select>
+                        <ul class="nav nav-pills multiple" style="display: none;">
+                          <li class="active"><a href="#"><input type="checkbox" name="event.type" value="wave" checked></a></li>
+                          <li class="active"><a href="#"><input type="checkbox" name="event.type" value="jump" checked></a></li>
+                          <li class="active"><a href="#"><input type="checkbox" name="event.type" value="drop" checked></a></li>
                         </ul>
                     </div>
                 </div>
@@ -79,8 +95,8 @@
                     </div>
                     <div class="col-sm-1"><label for="location">Of</label></div>
                     <div class="col-sm-3">
-                        <a id="location-label" href="#" onclick="return false;">Rincon, Santa Barbara</a>
-                        <input type="hidden" id="location-name" name="location.name" value="Rincon, Santa Barbara">
+                        <a href="#"><span class="glyphicon glyphicon-map-marker"></span><span id="location-label">Santa Barbara, CA, US</span></a>
+                        <input type="hidden" id="location-name" name="location.name" value="Santa Barbara, CA, US">
                         <input type="hidden" id="location" value="34.425744,-119.759903" />
                     </div>
                 </div>
@@ -92,7 +108,21 @@
                 <div id="map-canvas"></div>
             </div>
         </div>
-        <div class="row col-md-12 button"><button class="btn btn-success">Search</button> </div>
+        <div class="row col-md-12 buttons">
+            <button class="btn btn-success">Search</button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                More filters <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </div>
+        </div>
     </div>
 </form>
 <script>
@@ -109,13 +139,13 @@
     $('#type-event').closest('.nav').find('a').click(function () {
         $('#event-type-filter').toggleClass('inactive', !$('#type-event').prop('checked'));
     });
-    $('#location-label').click(function (){
+    $('#location-label').closest('a').click(function (){
         var mapContainer = $('.filters .map');
         if (mapContainer.is(':visible')) {
             mapContainer.hide();
             return false;
         }
-        mapContainer.show();
+        mapContainer.slideDown();
         if (!mapContainer.data('mapLoaded')) {
             var position = $('#location').val().split(',');
             site.setMap(parseFloat(position[0]), parseFloat(position[1]), $('#location-label').text(), $('#location'), $('#location-label, #location-name'));
