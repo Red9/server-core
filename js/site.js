@@ -1,10 +1,37 @@
 var site = {
   //props
+  adapter: {
+    //adapts a google address into an app address
+    address: function (components) {
+      if (!components || !components.length) {
+        return 'Somewhere';
+      }
+      //relevant parts
+      var parts = {
+        'locality': null,
+        'administrative_area_level_2': null,
+        'administrative_area_level_1': null,
+        'country': null
+      };
+      components.forEach(function (item) {
+        var type = item.types[0];
+        if (type && parts[type] === null) {
+          parts[type] = item.short_name;
+        }
+      });
+      return $.grep([
+        (parts.locality || parts.administrative_area_level_2),
+        parts.administrative_area_level_1,
+        parts.country
+      ], Boolean).join(', ');
+    }
+  },
+  templates: {},
   urls: {
+    apiPath: 'http://api.localhost:8081',
     searchDataset: '/dataset/',
     searchEvent: '/event/'
   },
-  templates: {},
   //methods
   deleteDataset: function(id) {
     $.ajax(
@@ -52,26 +79,12 @@ var site = {
     return params;
   },
   search: function () {
-    var url = this.urls.searchDataset;
+    var url = this.urls.apiPath + this.urls.searchDataset;
     if ($('#type-event').is(':checked')) {
-      url = this.urls.searchEvent;
+      url = this.urls.apiPath + this.urls.searchEvent;
     }
     var self = this;
-    //TODO: remove this line (hardcoded for now)
-    url = '/noop/';
-    $.post(url, this.getSearchParams(), function (response) {
-      //TODO: remove this to use the values from the post response (hardcoded for now)
-      response = [{
-        "id": "b819fe57-b825-4267-8b27-95ff4595d3e0",
-        "url": "/api/v1/dataset/b819fe57-b825-4267-8b27-95ff4595d3e0",
-        "name": "My Cool Dataset",
-        "create_time": 52350723,
-        "create_user": "b819fe57-b825-4267-8b27-95ff4595d3e0",
-        "start_time": 5273072,
-        "end_time": 5357235,
-        "type":"dataset"
-      }];
-      response.push(response[0]);
+    $.get(url, /*this.getSearchParams(),*/ function (response) {
       if (!self.templates.results) {
         self.templates.results = Handlebars.compile($('#tmplResults').html());
       }
@@ -88,20 +101,22 @@ var site = {
     var map = new google.maps.Map(document.getElementById("map-canvas"),mapOptions);
     var marker = new google.maps.Marker({
       position: position,
-      title: title,
       draggable: true
     });
     marker.setMap(map);
+    var self = this;
     google.maps.event.addListener(marker, 'dragend', function() {
       var position = marker.getPosition();
       map.setCenter(position);
       $(targetLatLng).val(position.lat() + ',' + position.lng());
       geocoder.geocode({'latLng': position}, function(results, status) {
+        var locationName = self.adapter.address();
         if (status == google.maps.GeocoderStatus.OK && results[1]) {
-          $(targetName)
-            .val(results[1].formatted_address)
-            .text(results[1].formatted_address);
+          locationName = self.adapter.address(results[1].address_components);
         }
+        $(targetName)
+          .val(locationName)
+          .text(locationName);
       });
     });
   },
