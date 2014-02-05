@@ -64,7 +64,7 @@ RequestQueue.prototype.trimPanel = function(panel, axes){
     _.each(panel.values, function(row){
         var newRow = [];
         
-        var time = moment(row[0]);
+        var time = moment(row[0]).toDate();
         newRow.push(time); 
         _.each(indicies, function(index){
             newRow.push(row[index]);
@@ -74,7 +74,7 @@ RequestQueue.prototype.trimPanel = function(panel, axes){
     
     
     
-    console.log('panel labels: ' + JSON.stringify(updatedAxes));
+    //console.log('panel labels: ' + JSON.stringify(updatedAxes));
     var updatedPanel = {
         labels:updatedAxes,
         values:values,

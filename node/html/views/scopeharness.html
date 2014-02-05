@@ -2,8 +2,14 @@
 
 <script src="/js/lenses/eventlist.js"></script>
 <script src="/js/lenses/googlemap.js"></script>
+<script src="/js/lenses/graph.js"></script>
 
 <script src="/js/panelrequestqueue.js"></script>
+
+<script src="/js/easyspinner.js"></script>
+
+<script src="/js/dygraph-combined.js"></script>
+<script src="/js/dygraph-extra.js"></script>
 
 <!-- The Google Maps script tag should really be with the googlemaps.html
 lens, but it turns out that it's subject to same origin policy. So, it's
@@ -42,9 +48,11 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
     var lensesList = [];
     function updateRange(minimumTime, maximumTime) {
         console.log("You've updated the time: " + minimumTime + " - " + maximumTime);
-        _.each(lensesList, function(lens){
-           lens.setRange(minimumTime, maximumTime); 
-        });
+        if ($('#sync_lenses_button').hasClass('active')) {
+            _.each(lensesList, function(lens) {
+                //lens.setRange(minimumTime, maximumTime);
+            });
+        }
     }
 
     function updateHover(time) {
@@ -58,44 +66,77 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
     function updatePlaytime(time) {
 
     }
-    
-    
 
-    function ConstructPage(dataset) {
-        pageDataset = dataset;
-        
-        var requestqueue = new RequestQueue({
-            apiUrl: apiUrl
-        }, dataset);
-
-
-
-        var eventlistId = generateUUID();
-        $('#lenses_div').append('<div class="row" id="' + eventlistId + '_container"></div>');
-        var eventlist_parameters = {
-            id: eventlistId,
-            requestPanelFunction: requestqueue.requestPanel,
-            updateRangeFunction: updateRange,
-            updateHoverFunction: updateHover,
-            updateMarkersFunction: updateMarkers,
-            updatePlaytimeFunction: updatePlaytime
-        };
-        var eventlist = new EventList(eventlist_parameters, dataset, {});
-        lensesList.push(eventlist);
-
-        var googlemapId = generateUUID();
-        $('#lenses_div').append('<br/><br/><br/><div class="row" id="' + googlemapId + '_container"></div>');
-        var googlemap_parameters = {
-            id: googlemapId,
+    function CreateLens(requestqueue, dataset, type, configuration) {
+        var id = generateUUID();
+        $('#lenses_div').append('<div class="row" id="' + id + '_container"></div>');
+        var lens_parameters = {
+            id: id,
+            apiDomain: apiUrl,
             requestPanelFunction: $.proxy(requestqueue.requestPanel, requestqueue),
             updateRangeFunction: updateRange,
             updateHoverFunction: updateHover,
             updateMarkersFunction: updateMarkers,
             updatePlaytimeFunction: updatePlaytime
         };
-        var googlemap = new GoogleMap(googlemap_parameters, dataset, {});
-        lensesList.push(googlemap);
-        
+        var lens;
+        if (type === 'EventList') {
+            lens = new EventList(lens_parameters, dataset, configuration);
+        } else if (type === 'Graph') {
+            lens = new Graph(lens_parameters, dataset, configuration);
+        } else if (type === 'GoogleMap') {
+            lens = new GoogleMap(lens_parameters, dataset, configuration);
+        } else { // Not found...
+            return;
+        }
+
+        lensesList.push(lens);
+    }
+
+
+    function ConstructPage(dataset) {
+        pageDataset = dataset;
+
+        var requestqueue = new RequestQueue({
+            apiUrl: apiUrl
+        }, dataset);
+
+
+        CreateLens(requestqueue, dataset, 'EventList', {});
+
+        CreateLens(requestqueue, dataset, 'GoogleMap', {});
+
+        CreateLens(requestqueue, dataset, 'Graph', {
+            axes: [
+                'acceleration:x',
+                'acceleration:y',
+                'acceleration:z'
+            ]
+        });
+        CreateLens(requestqueue, dataset, 'Graph', {
+            axes: [
+                'rotationrate:x',
+                'rotationrate:y',
+                'rotationrate:z'
+            ]
+        });
+        CreateLens(requestqueue, dataset, 'Graph', {
+            axes: [
+                'magneticfield:x',
+                'magneticfield:y',
+                'magneticfield:z'
+            ]
+        });
+        CreateLens(requestqueue, dataset, 'Graph', {
+            axes: [
+                'pressure:pressure'
+            ]
+        });
+
+
+
+
+
 
     }
 
@@ -106,8 +147,8 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
             dataType: 'json',
             success: ConstructPage
         });
-        
-        $('#reset_range_button').click(function(){
+
+        $('#reset_range_button').click(function() {
             updateRange(pageDataset.start_time, pageDataset.end_time);
         });
 
@@ -116,9 +157,15 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 
 
 </script>
-<button id="reset_range_button">Global Zoom Out</button>
 
-    <div id='lenses_div'>
 
-    </div>
+<div id="create_event_modal"> <!--Loaded by jQuery--> </div>
+
+<button id="reset_range_button" class="btn btn-default">Global Zoom Out</button>
+<button class="btn btn-default active" data-toggle="button" id="sync_lenses_button">Sync Lenses</button>
+<br /><br /><br />
+
+<div id='lenses_div'>
+
+</div>
 

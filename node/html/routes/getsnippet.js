@@ -37,14 +37,14 @@ var ChangeUnits = function(summary, system) {
 exports.get = function(req, res, next) {
     var snippet_type = req.params.type;
 
-    var start_time, end_time, parent, units;
+    var start_time, end_time, parent, units, dataset;
 
-    if (typeof req.param("startTime") !== "undefined") {
-        start_time = req.param("startTime");
+    if (typeof req.param("start_time") !== "undefined") {
+        start_time = req.param("start_time");
     }
 
-    if (typeof req.param("endTime") !== "undefined") {
-        end_time = req.param("endTime");
+    if (typeof req.param("end_time") !== "undefined") {
+        end_time = req.param("end_time");
     }
 
     if (typeof req.param("parent") !== "undefined") {
@@ -54,6 +54,10 @@ exports.get = function(req, res, next) {
     if (typeof req.param("units") !== "undefined") {
         units = req.param("units");
     }
+    
+    if(typeof req.param('dataset') !== 'undefined'){
+        dataset = req.param('dataset');
+    }
 
 
     if (snippet_type === "createeventmodal") {
@@ -61,7 +65,7 @@ exports.get = function(req, res, next) {
             layout: false,
             start_time: start_time,
             end_time: end_time,
-            parent: parent,
+            datasetId: dataset,
             EventType: [
                 {name: "Default"},
                 {name: "Wave: Left"},

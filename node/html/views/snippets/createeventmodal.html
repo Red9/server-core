@@ -27,14 +27,6 @@
                         {{/each}}
                     </select>
                 </div>
-                
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="redirect_checkbox" checked>&nbsp;Redirect?
-                    </label>
-                    <p class="help-block">Redirect page to new event?</p>
-                </div>
-                
             </fieldset>
         </form>
     </div>
@@ -46,6 +38,9 @@
 
 
 <script>
+    var datasetId = '{{datasetId}}';
+    
+    
     $(document).ready(function() {
         var validator = $('#create_event_form').validate({
             rules: {
@@ -77,33 +72,26 @@
                 var data = {
                     start_time: $('#event_form_start_time').val(),
                     end_time: $('#event_form_end_time').val(),
-                    confidence: 100,
-                    parent: "{{{parent}}}",
-                    parameters: {},
                     type: $('#event_form_type').val(),
-                    source: "user"
+                    dataset:datasetId
                 };
 
-                
+
                 $.ajax({
                     type: 'POST',
-                    url: '/api/event/create',
+                    url: 'http://api.localhost/event/',
                     dataType: 'json',
                     async: false,
                     data: data,
                     success: function(data) {
                         console.log("Done posting");
                         console.log("Returned data: '" + data + "'");
-                        
+
                         console.log("Data: '" + data + "'");
                         console.log("Data: '" + JSON.stringify(data) + "'");
-                        
-                        
-                        if($('#redirect_checkbox').prop('checked')){
-                            window.location.replace("/event/" + data.id);
-                        }else{
-                            $('#new_event_modal').modal('hide');
-                        }
+
+                        $('#new_event_modal').modal('hide');
+
                     },
                     error: function() {
                         alert("Something went wrong!");

@@ -16,7 +16,14 @@ exports.get = function(req, res, next) {
             layout: false,
             id: id
         });
-    } else {
+    } else if (type === 'graph') {
+        res.render('lenses/graph', {
+            layout: false,
+            id: id
+        });
+    }
+
+    else {
         next();
     }
 

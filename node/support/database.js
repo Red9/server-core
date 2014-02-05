@@ -192,6 +192,20 @@ var extractSchemaVariablesFromRequest = function(request, table) {
     return result;
 };
 
+/** Convenience function.
+ * 
+ * @param {type} query
+ * @param {type} parameters
+ * @returns {undefined}
+ */
+function LogCommand(query, parameters) {
+    //log.info("Database command: '" + query + "' with parameters '" + parameters + "'");
+}
+
+function LogError(functionName, error) {
+    log.error("Database Error in function " + functionName + ": '" + error + "'");
+}
+
 
 /**
  * 
@@ -477,14 +491,154 @@ exports.getConstrainedEvents = function(constraints, callback) {
     );
 };
 
+// TODO(SRLM): Validate ID
 exports.getDataset = function(id, callback) {
     GetRow('dataset', 'id', id, function(dataset_raw) {
         flushDatasetBody(dataset_raw, callback);
     });
 };
 
+// TODO(SRLM): Validate ID
 exports.getEvent = function(id, callback) {
     GetRow('event', 'id', id, callback);
+};
+
+
+/** Lazy checking. If we can check the type, we do. If we don't know that type
+ * then we assume it's correct.
+ * 
+ * @param {string} hint The type to check against.
+ * @param {any} value Get's it's type checked.
+ * @returns {Boolean} true if checks pass, false otherwise.
+ */
+function checkType(hint, value) {
+    // TODO(SRLM): Fill in the rest.
+    if (
+            (hint === 'uuid' && validator.isUUID(value) === false)
+            || (hint === 'timestamp' && underscore.isDate(value) === false)) {
+        console.log("Value: " + value);
+        return false;
+    } else {
+        return true;
+    }
+}
+
+/**
+ * 
+ * @param {string} table The table to insert into.
+ * @param {object} row The complete row to insert (with keys matching the schema keys)
+ * @param {function} callback (err)
+ */
+function insertIntoTable(table, row, callback) {
+    var schema = getSchema(table);
+
+
+    var databaseRow = [];
+
+    // Make sure that the table was a real table...
+    var correctSchema = schema.length > 0 ? true : false;
+    // Check that row has all the elements of the schema, and they're the correct type
+    underscore.each(schema, function(column) {
+        if (typeof row[column.key] === 'undefined') {
+            console.log("row[" + column.key + "] === undefined");
+            correctSchema = false;
+        } else if (checkType(column.hint, row[column.key]) === false) {
+            console.log("row[" + column.key + "] is not " + column.hint);
+            correctSchema = false;
+        } else {
+            databaseRow.push({
+                value: row[column.key],
+                hint: column.hint
+            });
+        }
+    });
+
+    if (correctSchema === false) {
+        console.log("Failed correctSchema");
+        callback("Incorrect schema.");
+    } else {
+
+        // Construct string with CSV column titles, and string with CSV ? holders
+        var queryColumns = "";
+        var queryPlaceholders = "";
+        underscore.each(schema, function(column, index) {
+            if (index > 0) {
+                queryColumns += ",";
+                queryPlaceholders += ",";
+            }
+            queryColumns += column.key;
+            queryPlaceholders += "?";
+        });
+        
+        var query = 'INSERT INTO ' + table + ' (' + queryColumns + ') VALUES (' + queryPlaceholders + ')';
+        
+        cassandra.execute(query, databaseRow, function(err) {
+            if (err) {
+                // Shouldn't ever happen.
+                // TODO(SRLM): Log this.
+                callback(err);
+            } else {
+                callback();
+            }
+        });
+
+    }
+}
+
+/**
+ * 
+ * @param {type} parameters The new event. Requires start_time, end_time, type, and valid dataset.
+ * @param {function} callback (event) Calls with a more complete event (guarenteed to have id key). If failure, calls back with undefined.
+ * @returns {undefined}
+ */
+exports.createEvent = function(parameters, callback) {
+
+    // Let's prove that id is an actual dataset...
+    exports.getDataset(parameters.dataset, function(dataset) {
+        // And make sure everything checks out.
+        // TODO(SRLM): Validate parameters.type
+        if (typeof dataset !== 'undefined'
+                && validator.isInt(parameters.start_time) === true
+                && parameters.start_time >= dataset.start_time
+                && validator.isInt(parameters.end_time) === true
+                && parameters.end_time <= dataset.end_time
+                ) {
+            // Ok, we have something worth creating. Let's do that.
+            parameters.create_time = new Date();
+            parameters.start_time = new Date(parameters.start_time);
+            parameters.end_time = new Date(parameters.end_time);
+            parameters.id = generateUUID();
+            parameters.summary_statistics = JSON.stringify({});
+
+            insertIntoTable('event', parameters, function(err) {
+                if (err) {
+                    console.log("Error on createEvent: " + err);
+                    callback();
+                } else {
+                    console.log("Created event...");
+                    callback(parameters);
+                }
+            });
+
+
+        } else {
+            console.log("Event Failed Validation...");
+            callback();
+        }
+    });
+
+};
+
+
+exports.deleteEvent = function(id, callback){
+    if(validator.isUUID(id) === true){
+        var query = 'DELETE FROM event WHERE id = ?';
+        cassandra.execute(query, [id], function(err){
+            callback(err);
+        });
+    }else{
+        callback('Invalid event id "' + id + '"');
+    }
 };
 
 exports.getUser = function(id, callback) {
@@ -636,10 +790,10 @@ function SpawnDownsampler(commandOptions, format, callbackData, callbackDone) {
     downsampler.on('close', function(code) {
         stdin.close();
         stderr.close();
-        if(stderrOutput !== ""){
+        if (stderrOutput !== "") {
             log.warn("Standard error not empty: " + stderrOutput);
         }
-        
+
         if (code !== 0) {
             log.warn('Downsampler non zero exit: ' + code);
             callbackDone('Downsampler non zero exit: ' + code);
