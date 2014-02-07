@@ -77,6 +77,7 @@ EventList.prototype.SetEvents = function(events) {
         } else if (allColumnIndex === classInstance.index.view) {
             clickEvent.stopImmediatePropagation();
             classInstance.parameters.updateRangeFunction(
+                    classInstance.id,
                     rowData[classInstance.index.start_time],
                     rowData[classInstance.index.end_time]
                     );
@@ -177,7 +178,8 @@ EventList.prototype.createDatatable = function(events) {
 
     var result = {
         aaData: eventTable,
-        aoColumns: columns
+        aoColumns: columns,
+        bFilter: false
     };
 
     //console.log("eventTable: " + JSON.stringify(eventTable));
