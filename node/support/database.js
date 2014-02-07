@@ -396,17 +396,21 @@ function validateConstraints(constraints) {
 
 
 function flushDatasetBody(dataset, callback) {
-    GetRow('user', 'id', dataset['create_user'], function(user) {
-        var minimal_user = {
-            id: dataset['create_user'],
-            display_name: user['display_name'],
-            first: user['first'],
-            last: user['last'],
-            email: user['email']
-        };
-        dataset['create_user'] = minimal_user;
+    if (typeof dataset !== 'undefined') {
+        GetRow('user', 'id', dataset['create_user'], function(user) {
+            var minimal_user = {
+                id: dataset['create_user'],
+                display_name: user['display_name'],
+                first: user['first'],
+                last: user['last'],
+                email: user['email']
+            };
+            dataset['create_user'] = minimal_user;
+            callback(dataset);
+        });
+    } else {
         callback(dataset);
-    });
+    }
 }
 
 /**
@@ -569,9 +573,9 @@ function insertIntoTable(table, row, callback) {
             queryColumns += column.key;
             queryPlaceholders += "?";
         });
-        
+
         var query = 'INSERT INTO ' + table + ' (' + queryColumns + ') VALUES (' + queryPlaceholders + ')';
-        
+
         cassandra.execute(query, databaseRow, function(err) {
             if (err) {
                 // Shouldn't ever happen.
@@ -630,13 +634,13 @@ exports.createEvent = function(parameters, callback) {
 };
 
 
-exports.deleteEvent = function(id, callback){
-    if(validator.isUUID(id) === true){
+exports.deleteEvent = function(id, callback) {
+    if (validator.isUUID(id) === true) {
         var query = 'DELETE FROM event WHERE id = ?';
-        cassandra.execute(query, [id], function(err){
+        cassandra.execute(query, [id], function(err) {
             callback(err);
         });
-    }else{
+    } else {
         callback('Invalid event id "' + id + '"');
     }
 };

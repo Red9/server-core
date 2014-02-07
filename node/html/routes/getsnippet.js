@@ -97,7 +97,8 @@ exports.get = function(req, res, next) {
                 {name: "Walk"},
                 {name: "Run"},
                 {name: "Stationary"}
-            ]
+            ],
+            apiUrl: config.apiDomain
         };
         res.render('snippets/createeventmodal', parameters);
     } else if (snippet_type === 'summarystatistics') {

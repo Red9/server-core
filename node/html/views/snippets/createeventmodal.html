@@ -38,10 +38,13 @@
 
 
 <script>
-    var datasetId = '{{datasetId}}';
-    
-    
+
+
+
     $(document).ready(function() {
+        var datasetId = '{{datasetId}}';
+        var apiUrl = '{{apiUrl}}';
+
         var validator = $('#create_event_form').validate({
             rules: {
                 event_form_start_time: {
@@ -73,13 +76,13 @@
                     start_time: $('#event_form_start_time').val(),
                     end_time: $('#event_form_end_time').val(),
                     type: $('#event_form_type').val(),
-                    dataset:datasetId
+                    dataset: datasetId
                 };
 
 
                 $.ajax({
                     type: 'POST',
-                    url: 'http://api.localhost/event/',
+                    url: apiUrl + '/event/',
                     dataType: 'json',
                     async: false,
                     data: data,
