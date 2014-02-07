@@ -5,11 +5,6 @@ function Graph(parameters, dataset, configuration) {
     this.configuration = configuration;
     this.prepareConfiguration();
 
-
-
-
-
-
     this.window_start_time = this.dataset.start_time;
     this.window_end_time = this.dataset.end_time;
 
@@ -233,6 +228,7 @@ Graph.prototype.onZoom = function(minimumTime, maximumTime) {
     this.window_end_time = maximumTime;
 
     this.setRange(minimumTime, maximumTime);
+    this.parameters.updateRangeFunction(this.id, minimumTime, maximumTime);
 };
 
 
@@ -251,15 +247,6 @@ Graph.prototype.setRange = function(minimumTime, maximumTime) {
     this.parameters.requestPanelFunction(
             minimumTime, maximumTime,
             this.configuration.axes,
-            $.proxy(
-            function(panel) {
-                // Only update if it's different.
-                if (panel.start_time !== this.window_start_time
-                        && panel.end_time !== this.window_end_time) {
-                    this.updateWithNewPanel(panel);
-                    this.parameters.updateRangeFunction(minimumTime, maximumTime);
-                }
-            }, this)
-
-            );
+            $.proxy(this.updateWithNewPanel, this),
+            true);
 };

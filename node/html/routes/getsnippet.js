@@ -54,8 +54,8 @@ exports.get = function(req, res, next) {
     if (typeof req.param("units") !== "undefined") {
         units = req.param("units");
     }
-    
-    if(typeof req.param('dataset') !== 'undefined'){
+
+    if (typeof req.param('dataset') !== 'undefined') {
         dataset = req.param('dataset');
     }
 
@@ -100,19 +100,9 @@ exports.get = function(req, res, next) {
             ]
         };
         res.render('snippets/createeventmodal', parameters);
-    } else if (snippet_type === 'eventtree') {
-        if (typeof req.param('id') !== 'undefined') {
-            var parameters = {
-                layout: false,
-                event: {
-                    id: req.param('id')
-                }
-            };
-            res.render('snippets/eventtree', parameters);
-        }
     } else if (snippet_type === 'summarystatistics') {
         if (typeof req.param('dataset') !== 'undefined') {
-            database.getConstrainedDataset({id:req.param('dataset')}, function(event) {
+            database.getConstrainedDataset({id: req.param('dataset')}, function(event) {
                 if (typeof event === 'undefined') {
                     next();
                 } else {
@@ -132,24 +122,12 @@ exports.get = function(req, res, next) {
                 }
             });
         }
-    } else if (snippet_type === 'aggregatestatistics') {
-        if (typeof req.param('dataset') !== 'undefined') {
-            database.getConstrainedEvents({dataset:req.param('dataset')}, function(result) {
-                if (typeof units !== 'undefined') {
-                    for (var r = 0; r < result.length; r++) {
-                        ChangeUnits(result[r], units);
-                    }
-                } else {
-                }
-                var parameters = {
-                    layout: false,
-                    aggregate: result
-                };
-                res.render('snippets/aggregatestatistics', parameters);
-            });
-        }else{
-            next();
-        }
+    } else if (snippet_type === "usrmodal") {
+        var parameters = {
+            layout: false
+        };
+
+        res.render('snippets/usrmodal', parameters);
     } else {
         next();
     }

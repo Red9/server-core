@@ -22,7 +22,7 @@ exports.nodetimeProfile = {
 };
 
 
-exports.releaseRealm = 'http://dev.redninesensor.com';
+exports.releaseRealm = 'http://redninesensor.com';
 exports.releaseApiDomain = 'http://api.redninesensor.com';
 exports.developmentRealm = 'http://localhost';
 exports.developmentApiDomain = 'http://api.localhost';

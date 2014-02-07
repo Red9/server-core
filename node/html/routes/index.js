@@ -25,15 +25,14 @@ module.exports = function(app, passport) {
     // --------------------------------------------
     // Authentication Barrier
     // --------------------------------------------
+
+    // -------- [HTML Results] --------------------
     app.get('/', IsAuthenticated, require('./datasetindex').get);
     
     app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
     app.get('/dataset/:uuid', IsAuthenticated, require('./datasetdisplay').get);
     app.get('/dataset/:uuid/download', IsAuthenticated, require('./customdownload').get);
-    
-    app.get('/scope/:uuid', IsAuthenticated, require('./scopedisplay').get);
-    //app.get('/event/:uuid', IsAuthenticated, require('./eventdisplay').get);
-    
+        
     app.get('/user/:uuid', IsAuthenticated, require('./user').get);
     
     app.get('/bluetooth', IsAuthenticated, require('./bluetooth').get);
@@ -52,8 +51,8 @@ module.exports = function(app, passport) {
     
     app.get('/lens/:type', IsAuthenticated, require('./getlens').get);
     
-    app.get('/corstest', IsAuthenticated, function(req, res, next){
-       res.render('corstest'); 
-    });
-    
+    // -------- [JSON Results] --------------------
+    app.get('/usr/', IsAuthenticated, require('./usr').getlist);
+    app.get('/usr/:uuid/form', IsAuthenticated, require('./usr').getusrform);   
+    app.post('/usr/:uuid/operate', IsAuthenticated, require('./usr').operateusr);
 };
