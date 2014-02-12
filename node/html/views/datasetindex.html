@@ -1,5 +1,5 @@
 <h1>Explore events and datasets</h1>
-<form id="filter-form" class="filters clearfix" onsubmit="site.search();return false;">
+<form id="filter-form" class="filters clearfix">
     <div class="container panel panel-default">
         <div class="row">
             <div class="col-md-6 filter-item">
@@ -83,7 +83,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 filter-item">
+            <div class="col-md-6 filter-item" id="location-filter">
                 <div class="row">
                     <div class="col-sm-3"><h3>Location</h3></div>
                     <div class="col-sm-2"><label for="distance">Within</label></div>
@@ -116,9 +116,9 @@
                 More filters <span class="caret"></span>
               </button>
               <ul class="dropdown-menu pull-right" role="menu">
-                <li><a href="#" data-name="static.route.path" data-template="range-input" data-title="Distance" data-units="mi" data-conv="mileToMeter">Path distance</a></li>
+                <li><a href="#" data-name="static.route.path.distance.value" data-template="slider" data-title="Distance" data-units="mi" data-tovalue="mileToMeter">Path distance</a></li>
                 <li class="divider"></li>
-                <li><a href="#" data-name="instantaneous.acceleration.magnitude.average" data-template="range-input" data-title="Instantaneous acceleration" data-units="<sup>m</sup><sub>/s2</sub>">Instantaneous acceleration</a></li>
+                <li><a href="#" data-name="instantaneous.acceleration.magnitude.average" data-template="slider" data-title="Instantaneous acceleration" data-max="150" data-units="m<sub>/s<sup>2</sup></sub>">Instantaneous acceleration</a></li>
                 <li><a href="#" data-name="instantaneous.rotationrate.magnitude.average" data-template="range-input" data-title="Instantaneous rotation" data-units="<sup>rad</sup><sub>/s</sub>">Instantaneous average rotation rate</a></li>
               </ul>
             </div>
@@ -148,8 +148,25 @@
             </div>
         </div>
     </script>
+    <script type="text/x-handlebars-template" id="tmpl-filter-slider">
+        <div class="row" id="filter-\{{id}}">
+            <div class="col-md-6 filter-item">
+                <div class="row">
+                    <div class="col-sm-3"><h3>\{{title}}</h3></div>
+                    <div class="col-sm-9">
+                        <div class="slider" data-name="\{{name}}" data-tovalue="\{{tovalue}}"></div>
+                        <div class="slider-label"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
 </form>
 <script>
+    $('#filter-form').submit(function (e) {
+        e.preventDefault();
+        site.search();
+    });
     $('.filters .nav.simple a').click(function () {
         $(this).closest('.nav').children('li').removeClass('active');
         $(this).closest('li').addClass('active');
@@ -186,14 +203,26 @@
             if (!site.templates[templateId]) {
                 site.templates[templateId] = Handlebars.compile($('#' + templateId).html());
             }
-            $('#additional-filters-container').append(site.templates[templateId](state));
+            var filter = $(site.templates[templateId](state));
+            $('#additional-filters-container').append(filter);
+            if ($(".slider", filter).length) {
+                $(".slider", filter).slider({
+                    range: true,
+                    step: state.step || 1,
+                    min: state.min || 0,
+                    max: state.max,
+                    values: [0, 0],
+                    slide: function( event, ui ) {
+                        $('.slider-label', filter).html(ui.values[0] + ' to ' + ui.values[1] + ' ' + state.units);
+                    }
+                });
+            }
         }
         //now its added to the dom
         $('#filter-' + state.id).show().css({backgroundColor: '#BCE8F1'}).animate({backgroundColor: 'transparent'}, 1000);
         return true;
     });
 </script>
-
 
 <div id="container-results"></div>
 <script type="text/x-handlebars-template" id="tmpl-results">

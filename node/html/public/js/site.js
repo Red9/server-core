@@ -50,14 +50,16 @@ var site = {
   getSearchParams: function () {
     var context = $('#filter-form .filter-item:not(.inactive)');
     var params = {};
+    var self = this;
     $(' input, select', context).not(':radio, :checkbox').each(function () {
       var element = $(this);
       var key = element.attr('id');
       if (element.attr('name')) {
         key = element.attr('name');
       }
-      if (element.val())
-      params[key] = element.val();
+      if (element.val()) {
+        params[key] = element.val();
+      }
     });
     $(':radio, :checkbox', context).filter(':checked').each(function () {
       var element = $(this);
@@ -74,6 +76,19 @@ var site = {
           value.push(element.val());
         }
         params[element.attr('name')] = value;
+      }
+    });
+    $('.slider', context).each(function () {
+      var element = $(this);
+      var values = element.slider('values');
+      if (values.length === 2 && values[1]) {
+        //unit conversion (ie: mile to meter)
+        var convert = function (value) {return value};
+        if (element.data('tovalue')) {
+          convert = self[element.data('tovalue')];
+        }
+        params[element.data('name') + '.more'] = convert(values[0]);
+        params[element.data('name') + '.less'] = convert(values[1]);
       }
     });
     return params;
@@ -123,6 +138,9 @@ var site = {
   toDateString: function (value) {
     //TODO: replace with real formatting
     return new Date(value).toString();
+  },
+  mileToMeter: function (value) {
+    return parseFloat(value) / 0.00062137;
   }
 };
 if (Handlebars) {
