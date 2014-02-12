@@ -13,7 +13,8 @@ function GoogleMap(parameters, dataset, configuration) {
     var classInstance = this;
 
 
-    $('#' + classInstance.id + '_container').load('/lens/googlemap?id=' + classInstance.id,
+    $('#' + classInstance.id + '_container').load(
+            '/lens/googlemap?id=' + classInstance.id,
             function() {
 
                 //console.log("Done loading...");
@@ -49,16 +50,17 @@ function GoogleMap(parameters, dataset, configuration) {
 // Private
 //-----------------------------------------------------------------------------
 GoogleMap.prototype.updateWithNewPanel = function(panel) {
-    
-    if(typeof this.discretePoints !== 'undefined'){
-        _.each(this.discretePoints, function(point){
+
+    // Check and delete any existing points/lines.
+    if (typeof this.discretePoints !== 'undefined') {
+        _.each(this.discretePoints, function(point) {
             point.setMap(null);
         });
     }
-    if(typeof this.path !== 'undefined'){
+    if (typeof this.path !== 'undefined') {
         this.path.setMap(null);
     }
-    
+
 
     var latitudeIndex = $.inArray('gps:latitude', panel.labels);
     var longitudeIndex = $.inArray('gps:longitude', panel.labels);
@@ -106,7 +108,7 @@ GoogleMap.prototype.updateWithNewPanel = function(panel) {
         linePoints.push(point);
 
         var marker = new google.maps.Marker({
-            title: row[timeIndex].format("h:mm:ss.SSSa")
+            title: moment(row[timeIndex]).format("h:mm:ss.SSSa")
                     + "\n(" + point.lat().toFixed(4)
                     + ", " + point.lng().toFixed(4) + ")",
             map: classInstance.map,
@@ -155,8 +157,8 @@ GoogleMap.prototype.updateWithNewPanel = function(panel) {
 
 
 GoogleMap.prototype.setRange = function(minimumTime, maximumTime) {
-    this.parameters.requestPanelFunction(minimumTime,
-            maximumTime,
+    this.parameters.requestPanelFunction(
+            minimumTime, maximumTime,
             [
                 'gps:latitude',
                 'gps:longitude'
