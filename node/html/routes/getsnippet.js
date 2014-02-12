@@ -37,14 +37,14 @@ var ChangeUnits = function(summary, system) {
 exports.get = function(req, res, next) {
     var snippet_type = req.params.type;
 
-    var start_time, end_time, parent, units;
+    var start_time, end_time, parent, units, dataset;
 
-    if (typeof req.param("startTime") !== "undefined") {
-        start_time = req.param("startTime");
+    if (typeof req.param("start_time") !== "undefined") {
+        start_time = req.param("start_time");
     }
 
-    if (typeof req.param("endTime") !== "undefined") {
-        end_time = req.param("endTime");
+    if (typeof req.param("end_time") !== "undefined") {
+        end_time = req.param("end_time");
     }
 
     if (typeof req.param("parent") !== "undefined") {
@@ -55,13 +55,17 @@ exports.get = function(req, res, next) {
         units = req.param("units");
     }
 
+    if (typeof req.param('dataset') !== 'undefined') {
+        dataset = req.param('dataset');
+    }
+
 
     if (snippet_type === "createeventmodal") {
         var parameters = {
             layout: false,
             start_time: start_time,
             end_time: end_time,
-            parent: parent,
+            datasetId: dataset,
             EventType: [
                 {name: "Default"},
                 {name: "Wave: Left"},
@@ -93,22 +97,13 @@ exports.get = function(req, res, next) {
                 {name: "Walk"},
                 {name: "Run"},
                 {name: "Stationary"}
-            ]
+            ],
+            apiUrl: config.apiDomain
         };
         res.render('snippets/createeventmodal', parameters);
-    } else if (snippet_type === 'eventtree') {
-        if (typeof req.param('id') !== 'undefined') {
-            var parameters = {
-                layout: false,
-                event: {
-                    id: req.param('id')
-                }
-            };
-            res.render('snippets/eventtree', parameters);
-        }
     } else if (snippet_type === 'summarystatistics') {
         if (typeof req.param('dataset') !== 'undefined') {
-            database.getConstrainedDataset({id:req.param('dataset')}, function(event) {
+            database.getConstrainedDataset({id: req.param('dataset')}, function(event) {
                 if (typeof event === 'undefined') {
                     next();
                 } else {
@@ -128,24 +123,12 @@ exports.get = function(req, res, next) {
                 }
             });
         }
-    } else if (snippet_type === 'aggregatestatistics') {
-        if (typeof req.param('dataset') !== 'undefined') {
-            database.getConstrainedEvents({dataset:req.param('dataset')}, function(result) {
-                if (typeof units !== 'undefined') {
-                    for (var r = 0; r < result.length; r++) {
-                        ChangeUnits(result[r], units);
-                    }
-                } else {
-                }
-                var parameters = {
-                    layout: false,
-                    aggregate: result
-                };
-                res.render('snippets/aggregatestatistics', parameters);
-            });
-        }else{
-            next();
-        }
+    } else if (snippet_type === "usrmodal") {
+        var parameters = {
+            layout: false
+        };
+
+        res.render('snippets/usrmodal', parameters);
     } else {
         next();
     }

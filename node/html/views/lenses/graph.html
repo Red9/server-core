@@ -1,0 +1,47 @@
+<!-- Clip to [somewhere] Modal -->
+<div class="modal fade" id="{{id}}graph_export" tabindex="-1" role="dialog">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">Graph Actions</h4>
+    </div>
+    <div class="modal-body">
+        <h3>Clip to</h3>
+        <a download="{{id}}-image.png" id="{{id}}clip_to_img_button" class="btn btn-default btn-block">PNG</a>
+        <a download="{{id}}-data.txt" id="{{id}}clip_to_download_button" class="btn btn-default btn-block">Download</a>
+        <a id="{{id}}clip_to_custom_download_button" class="btn btn-default btn-block">Custom Download</a>
+        <a id="{{id}}clip_to_event_button" class="btn btn-default btn-block">New Event</a>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+    </div>
+</div>
+
+<div class="row">
+    <h2><div id='{{id}}title'></div>
+        <div class="pull-right">
+            <a data-toggle="modal" href="#{{id}}graph_export" class="btn btn-link btn-lg">
+                <span class="glyphicon glyphicon-export"></span></a>
+            <a id="{{id}}graph_toggle" class="btn btn-link btn-lg">
+                <span id="{{id}}graph_toggle_display_icon" class="glyphicon glyphicon-remove"></span></a>
+        </div>
+    </h2>
+    <br /><br />
+    <div id="{{id}}section"  >
+        <div id="{{id}}graph" style="height: 300px;"></div>
+    </div>
+    <script>
+        /*graph_configurations.push({
+         axes: "{{columns}}",
+         buckets: "1000",
+         $graphCont: $("#graph_{{id}}"),
+         $img_button: $("#clip_to_img_{{id}}_button"),
+         $download_button: $("#download_{{id}}_button"),
+         $custom_button: $("#download_custom_{{id}}_button"),
+         $toggle_display_button: $("#graph_{{id}}_toggle"),
+         $toggle_display_icon: $("#graph_{{id}}_toggle_display_icon"),
+         $section_div: $("#{{id}}_section"),
+         $event_button: $("#create_event_{{id}}_button"),
+         $clip_modal: $("#graph_{{id}}_menu")
+         });*/
+    </script>
+</div>

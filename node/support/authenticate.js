@@ -28,7 +28,7 @@ exports.CheckUserForLogin = function(id, user, callback) {
  */
 exports.AddUser = function(identifier, profile, callback) {
 
-    var uuid = database.GenerateUUID();
+    var uuid = database.generateUUID();
 
     var user_params = {
         id: uuid,
