@@ -39,7 +39,7 @@ body {
 {
     vertical-align: middle;
 }
-.filters .row div > a
+#location-filter a
 {
     display: block;
     padding-top: 10px;
@@ -69,7 +69,8 @@ body {
 }
 .filters .input-group-addon
 {
-    padding: 6px 4px;
+    padding: 6px 2px;
+    font-size: 0.93em;
 }
 .filters h3
 {
@@ -117,6 +118,17 @@ body {
 .filters select[multiple]
 {
     height: 55px;
+}
+.slider
+{
+    margin-top: 12px;
+}
+.slider-label
+{
+    padding-top: 4px;
+    height: 20px;
+    text-align: center;
+    font-style: italic;
 }
 #map-canvas { height: 100% }
 
