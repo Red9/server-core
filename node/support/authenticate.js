@@ -1,11 +1,11 @@
 
-var database = require('./../support/database');
+var userResource = require('./resources/resource/user_resource');
 var log = require('./../support/logger').log;
 
 /**
-There's a bit of a problem with the schema here. It assumes that the email is
-unique, but it's not a primary key. Something should be done to consider that.
-*/
+ There's a bit of a problem with the schema here. It assumes that the email is
+ unique, but it's not a primary key. Something should be done to consider that.
+ */
 
 
 /**
@@ -15,33 +15,8 @@ unique, but it's not a primary key. Something should be done to consider that.
  * @param {type} callback function(user uuid) or "" if not found.
  */
 exports.CheckUserForLogin = function(id, user, callback) {
-    database.getUserByEmail(user.emails[0].value, function(result) {
-        callback(result);
-    });
-};
-
-/**
- * 
- * @param {string} identifier the google id
- * @param {map} profile
- * @param {function} callback Called back with the created user information.
- */
-exports.AddUser = function(identifier, profile, callback) {
-
-    var uuid = database.generateUUID();
-
-    var user_params = {
-        id: uuid,
-        display_name: profile.displayName,
-        google_id: identifier,
-        email: profile.emails[0].value,
-        first: profile.name.givenName,
-        last: profile.name.familyName,
-        create_time: Date.now()
-    };
-
-    database.InsertRow("user", user_params, function(err) {
-        callback(user_params);
+    userResource.getUsers({email: user.emails[0].value}, function(result) {
+        callback(result[0]);
     });
 };
 
@@ -49,15 +24,15 @@ exports.AddUser = function(identifier, profile, callback) {
  *  
  * @param {type} identifier
  * @param {map} profile
- * @param {function} done
+ * @param {function} callback
  * @returns {undefined}
  */
-exports.ProcessLoginRequest = function(identifier, profile, done) {
+exports.ProcessLoginRequest = function(identifier, profile, callback) {
     exports.CheckUserForLogin(identifier, profile, function(user_info) {
         if (typeof user_info !== "undefined") {
             // If it's not undefined, then they're in the database. So they have access.
             log.info("Login attempt (successful)");
-            done(null, user_info);
+            callback(null, user_info);
         } else {
             // If it is undefined, then they're not in the database.
             log.info("Login attempt (failed)");
@@ -70,16 +45,28 @@ exports.ProcessLoginRequest = function(identifier, profile, done) {
                 //Do nothing...
                 log.info("Could not parse login email: " + ex.toString());
             }
-            
+
             // All redninesensor.com emails are valid, so add them to the database and give them access.
             log.info("attempt domain: " + email_domain);
             if (email_domain === "redninesensor.com") {
-                exports.AddUser(identifier, profile, function(new_user_info) {
-                    done(null, new_user_info);
+
+                var newUser = {
+                    displayName: profile.displayName,
+                    email: profile.emails[0].value,
+                    givenName: profile.name.givenName,
+                    familyName: profile.name.familyName
+                };
+
+                userResource.createUser(newUser, function(err, createdUser) {
+                    if (err) {
+                        callback(err);
+                    } else {
+                        callback(undefined, createdUser);
+                    }
                 });
             } else {
                 // Not in the database, and no redninesensor.com email. Don't authenticate.
-                done(null, false);
+                callback(null, false);
             }
         }
     });

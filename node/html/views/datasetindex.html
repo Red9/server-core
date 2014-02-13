@@ -7,7 +7,7 @@
     var oTable;
     $(document).ready(function() {
         oTable = $('#dataset_list').dataTable({
-            "aaSorting": [[2, "desc"]],
+            "aaSorting": [[0, "asc"]],
             "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
         });
 
@@ -25,21 +25,24 @@
 
     });
 
-
+    var apiDomain = 'http://api.localhost';//'{{apiDomain}}';
 
     var deleteDataset = function(id) {
-        $.ajax(
-                "/api/dataset/" + id,
-                {type: "delete"}
-        ).done(function() {
-            var row = $("#dataset_list_row_" + id);
-            row.addClass('danger');
-            row.hide("slow", function() {
-                oTable.fnDeleteRow(row[0]);
-            });
-        }
-        ).fail(function() {
-            alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
+        $.ajax({
+            type: 'DELETE',
+            url: apiDomain + "/dataset/" + id,
+            datatype:'json',
+            success: function() {
+                var row = $("#dataset_list_row_" + id);
+                row.addClass('danger');
+                row.hide("slow", function() {
+                    oTable.fnDeleteRow(row[0]);
+                });
+
+            },
+            error: function() {
+                alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
+            }
         });
 
     };
@@ -54,7 +57,7 @@
         <thead>
             <tr>
                 <th>Title</th>
-                <th>User</th>
+                <th>Owner</th>
                 <th>Created</th>
                 <th>Duration</th>
                 <th></th>
@@ -64,10 +67,10 @@
 
             {{#each datasets}}   
             <tr id="dataset_list_row_{{{id}}}">
-                <td  class="editable name_cell">{{{name}}}</td>
-                <td><a href="/user/{{{create_user.id}}}">{{{create_user.display_name}}}</a></td>
-                <td>{{{epochdate create_time}}}&nbsp;&nbsp;{{{epochtime create_time}}}</td>
-                <td>{{{duration start_time end_time}}}</td>
+                <td  class="editable name_cell">{{{title}}}</td>
+                <td><a href="/user/{{{create_user.id}}}">{{{owner.displayName}}}</a></td>
+                <td>[not available]</td>
+                <td>{{{duration startTime endTime}}}</td>
 
                 <td><a class="btn btn-xs btn-primary" href="/dataset/{{{id}}}">View Dataset</a>&nbsp;&nbsp;&nbsp;&nbsp;
                     <a class="btn btn-xs btn-danger" onclick='deleteDataset("{{{id}}}")'>Delete</a>

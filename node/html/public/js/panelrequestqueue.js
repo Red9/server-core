@@ -10,7 +10,7 @@ function RequestQueue(parameters, dataset) {
 
     // Get the dataset panel for later requests (or splicing)
     var classInstance = this;
-    this.getPanel(this.dataset.start_time, this.dataset.end_time, function(panel) {
+    this.getPanel(this.dataset.startTime, this.dataset.endTime, function(panel) {
         classInstance.dataset.panel = panel;
     });
 }
@@ -24,8 +24,8 @@ RequestQueue.prototype.getPanel = function(minimumTime, maximumTime, callback) {
     var requestUrl = this.apiUrl + '/dataset/' + this.dataset.id + '/panel/'
             + '?minmax'
             + '&format=json'
-            + '&start_time=' + minimumTime
-            + '&end_time=' + maximumTime
+            + '&startTime=' + minimumTime
+            + '&endTime=' + maximumTime
             + '&buckets=1000';
 
     $.ajax({
@@ -35,7 +35,7 @@ RequestQueue.prototype.getPanel = function(minimumTime, maximumTime, callback) {
         success: $.proxy(function(panel) {
             panel.minimumTime = minimumTime;
             panel.maximumTime = maximumTime;
-
+            console.log("Got panel. Values.length: " + panel.values.length);
             callback(panel);
 
         }, this)
@@ -51,7 +51,7 @@ RequestQueue.prototype.trimPanel = function(panel, axes) {
 
     var classInstance = this;
     _.each(axes, function(column_title) {
-        var index = $.inArray(column_title, classInstance.dataset.column_titles);
+        var index = $.inArray(column_title, classInstance.dataset.axes);
         if (index !== -1) {
             indicies.push(index + 1); //+1 for time in 0 position of panel
             updatedAxes.push(column_title);
@@ -90,8 +90,6 @@ RequestQueue.prototype.trimPanel = function(panel, axes) {
 };
 
 RequestQueue.prototype.splicePanel = function(panel) {
-    
-    
     return panel;
 };
 
@@ -100,11 +98,12 @@ RequestQueue.prototype.splicePanel = function(panel) {
 // Public
 //-----------------------------------------------------------------------------
 
-RequestQueue.prototype.requestPanel = function(minimumTime, maximumTime, axes, callback, spliced) {
-    if (this.dataset.start_time === minimumTime && this.dataset.end_time === maximumTime
+RequestQueue.prototype.requestPanel
+        = function(minimumTime, maximumTime, axes, callback, spliced) {
+    if (this.dataset.startTime === minimumTime && this.dataset.endTime === maximumTime
             && typeof this.dataset.panel !== "undefined") {
-        console.log("Use this panel!");
-        var trimmedPanel = this.trimPanel(panel, axes);
+        console.log("Use original panel!");
+        var trimmedPanel = this.trimPanel(this.dataset.panel, axes);
         callback(trimmedPanel);
     } else {
 

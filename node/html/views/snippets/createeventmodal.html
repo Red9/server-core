@@ -10,13 +10,13 @@
 
                 <div class="form-group">
                     <label for="event_form_start_time">Start Time</label>
-                    <input class="form-control" id="event_form_start_time" name="event_form_start_time" value="{{{start_time}}}" type="text">
+                    <input class="form-control" id="event_form_start_time" name="event_form_start_time" value="{{{startTime}}}" type="text">
                     <p class="help-block">Start time to clip a new event from</p>
                 </div>
 
                 <div class="form-group">
                     <label for="event_form_end_time">End Time</label>
-                    <input class="form-control"  value="{{{end_time}}}" id="event_form_end_time" name="event_form_end_time" placeholder="eg 9999999" type="text">
+                    <input class="form-control"  value="{{{endTime}}}" id="event_form_end_time" name="event_form_end_time" placeholder="eg 9999999" type="text">
                     <p class="help-block">End time to clip a new event from</p>
                 </div>
 
@@ -73,10 +73,10 @@
         $('#new_event_modal_submit').click(function() {
             if (validator.form() === true) {
                 var data = {
-                    start_time: $('#event_form_start_time').val(),
-                    end_time: $('#event_form_end_time').val(),
+                    startTime: $('#event_form_start_time').val(),
+                    endTime: $('#event_form_end_time').val(),
                     type: $('#event_form_type').val(),
-                    dataset: datasetId
+                    datasetId: datasetId
                 };
 
 

@@ -91,6 +91,13 @@ exports.init = function(newInstanceType, newInstanceId) {
  * @type type
  */
 exports.log = {
+    debug: function(message, parameters) {
+        if (config.release === false) {
+            message = 'DEBUG: ' + message
+            var attributes = ExtractConsoleAttributes(message, parameters);
+            log_color.info(CreateConsoleColorString(attributes));
+        }
+    },
     info: function(message, parameters) {
         var attributes = ExtractConsoleAttributes(message, parameters);
 
@@ -118,6 +125,7 @@ exports.log = {
             log_json.error(JSON.stringify(attributes));
         }
     }
+
 };
 
 var colorFormatting = {

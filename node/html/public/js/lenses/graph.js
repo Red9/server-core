@@ -5,8 +5,8 @@ function Graph(parameters, dataset, configuration) {
     this.configuration = configuration;
     this.prepareConfiguration();
 
-    this.window_start_time = this.dataset.start_time;
-    this.window_end_time = this.dataset.end_time;
+    this.window_start_time = this.dataset.startTime;
+    this.window_end_time = this.dataset.endTime;
 
 
     var classInstance = this;
@@ -17,12 +17,11 @@ function Graph(parameters, dataset, configuration) {
                 classInstance.prepareListeners();
 
                 classInstance.parameters.requestPanelFunction(
-                        classInstance.dataset.start_time,
-                        classInstance.dataset.end_time,
+                        classInstance.dataset.startTime,
+                        classInstance.dataset.endTime,
                         classInstance.configuration.axes,
                         $.proxy(classInstance.updateWithNewPanel, classInstance));
             });
-
 }
 
 
@@ -57,23 +56,23 @@ Graph.prototype.prepareListeners = function() {
         var request_url = classInstance.parameters.apiDomain
                 + '/dataset/' + classInstance.dataset.id
                 + '/panel?axes=' + classInstance.getCSVColumns()
-                + '&start_time=' + classInstance.window_start_time
-                + '&end_time=' + classInstance.window_end_time;
+                + '&startTime=' + classInstance.window_start_time
+                + '&endTime=' + classInstance.window_end_time;
         $('#' + classInstance.id + 'clip_to_download_button').attr("href", request_url);
     });
 
     $('#' + this.id + 'clip_to_custom_download_button').click(function() {
         var request_url = '/dataset/' + classInstance.dataset.id
                 + '/download?axes=' + classInstance.getCSVColumns()
-                + '&start_time=' + classInstance.window_start_time
-                + '&end_time=' + classInstance.window_end_time;
+                + '&startTime=' + classInstance.window_start_time
+                + '&endTime=' + classInstance.window_end_time;
         $('#' + classInstance.id + 'clip_to_custom_download_button').attr("href", request_url);
     });
 
     $('#' + this.id + 'clip_to_event_button').click(function() {
         var request_url = '/snippet/createeventmodal'
-                + '?start_time=' + classInstance.window_start_time
-                + '&end_time=' + classInstance.window_end_time
+                + '?startTime=' + classInstance.window_start_time
+                + '&endTime=' + classInstance.window_end_time
                 + '&dataset=' + classInstance.dataset.id;
 
         // Is this repeat safe? Every time this button is clicked then
@@ -173,6 +172,8 @@ Graph.prototype.drawDygraph = function(data, labels) {
     }
     //Update existing graph instance
     else {
+        console.log("Update existing graph..(" + data.length + ")");
+        
         var graphCfg = {
             file: data
         };
@@ -221,8 +222,8 @@ Graph.prototype.onZoom = function(minimumTime, maximumTime) {
 
     // Just to make sure no little +- 0.0000001 bits get in there...
     /*if (this.graph.isZoomed('x') === false) {
-     minimumTime = this.dataset.start_time;
-     maximumTime = this.dataset.end_time;
+     minimumTime = this.dataset.startTime;
+     maximumTime = this.dataset.endTime;
      }*/
     this.window_start_time = minimumTime;
     this.window_end_time = maximumTime;
@@ -233,6 +234,7 @@ Graph.prototype.onZoom = function(minimumTime, maximumTime) {
 
 
 Graph.prototype.updateWithNewPanel = function(panel) {
+    console.log("Update with new panel: " + panel.labels);
     var labels = panel.labels;
     var values = panel.values;
     this.drawDygraph(values, labels);

@@ -49,20 +49,20 @@
                     <a class="navbar-brand" href="/">{{site.title}}</a>
                 </div>
                 <div class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav">{{#if user.display_name}}
+                    <ul class="nav navbar-nav">{{#if user.displayName}}
                         <li><a href="/upload/rnc">RNC</a>
                         </li>
                         <li><a href="/upload/rnb">RNB</a>
                         </li>{{/if}}
                     </ul>
-                    <ul class="nav navbar-nav">{{#if user.display_name}}
+                    <ul class="nav navbar-nav">{{#if user.displayName}}
                         <li><a href="/bluetooth">Bluetooth</a>
                         </li>{{/if}}
                     </ul>
 
-                    <ul class="nav navbar-nav navbar-right">{{#if user.display_name}}
+                    <ul class="nav navbar-nav navbar-right">{{#if user.displayName}}
                         <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.display_name}}<b class="caret"></b></a>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.displayName}}<b class="caret"></b></a>
                             <ul class="dropdown-menu">
                                 <li><a href="/user/{{user.id}}">Profile</a></li>
                                 <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
@@ -83,7 +83,7 @@
             <div class="navbar-inner">
                 <div class="width-constraint clearfix">
                     <p class="pull-left muted credit">&nbsp;&nbsp;&nbsp;{{site.title}}: {{site.description}}</p>
-                    <p class="pull-right muted credit">©2013 <a href="/about">RedNine</a>. Designed by <a target="_blank" href="mailto:{{author.email}}">{{author.display_name}}</a> &nbsp;&nbsp;&nbsp;
+                    <p class="pull-right muted credit">©2013 <a href="/about">RedNine</a>. Designed by <a target="_blank" href="mailto:{{author.email}}">{{author.displayName}}</a> &nbsp;&nbsp;&nbsp;
                     </p>
                 </div>
             </div>

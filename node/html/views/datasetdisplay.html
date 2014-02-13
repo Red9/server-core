@@ -96,7 +96,8 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
     }
 
 
-    function ConstructPage(dataset) {
+    function ConstructPage(datasetList) {
+        var dataset = datasetList[0];
         pageDataset = dataset;
 
         var requestqueue = new RequestQueue({
@@ -151,7 +152,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
         });
 
         $('#reset_range_button').click(function() {
-            updateRange(null, pageDataset.start_time, pageDataset.end_time);
+            updateRange(null, pageDataset.startTime, pageDataset.endTime);
         });
         
         $('#run_usr_on_dataset_button').click(function(){
@@ -215,48 +216,33 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
         <tr>
             <td><b>Dataset Title</b>
             </td>
-            <td>{{{dataset.name}}}</td>
+            <td>{{{dataset.title}}}</td>
         </tr>
         <tr>
-            <td><b>Created</b>
+            <td><b>Owner</b>
             </td>
-            <td>{{{epochdate dataset.create_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.create_time}}}</td>
-        </tr>
-        <tr>
-            <td><b>Submit User</b>
-            </td>
-            <td><a href="/user/{{dataset.create_user.id}}">{{{dataset.create_user.display_name}}}</a>
+            <td><a href="/user/{{dataset.owner.id}}">{{{dataset.owner.displayName}}}</a>
             </td>
         </tr>
         <tr>
             <td><b>Start Time</b>
             </td>
-            <td>{{{epochdate dataset.start_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.start_time}}}</td>
+            <td>{{{epochdate dataset.startTime}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.startTime}}}</td>
         </tr>
         <tr>
             <td><b>End Time</b>
             </td>
-            <td>{{{epochdate dataset.end_time}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.end_time}}}</td>
+            <td>{{{epochdate dataset.endTime}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.endTime}}}</td>
         </tr>
         <tr>
             <td><b>Duration</b>
             </td>
-            <td>{{{duration dataset.start_time dataset.end_time}}}</td>
-        </tr>
-        <tr>
-            <td><b>Submitted Filename</b>
-            </td>
-            <td>{{{dataset.filename}}}</td>
+            <td>{{{duration dataset.startTime dataset.endTime}}}</td>
         </tr>
         <tr>
             <td><b>Number of Rows</b>
             </td>
-            <td>{{{dataset.number_rows}}}</td>
-        </tr>
-        <tr>
-            <td><b>SCAD Unit</b>
-            </td>
-            <td>{{{dataset.scad_unit}}}</td>
+            <td>{{{dataset.rowCount}}}</td>
         </tr>
     </table>
 </div>
@@ -327,7 +313,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 
 
 <br /> <b>Dataset UUID: </b> {{dataset.id}}
-<br /> <b>Raw Data UUID: </b> {{dataset.raw_data}}
+<br /> <b>Raw Data UUID: </b> {{dataset.panelId}}
 <br />
 
 
