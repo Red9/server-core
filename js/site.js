@@ -48,7 +48,7 @@ var site = {
     });
   },
   getSearchParams: function () {
-    var context = $('#filter-form .filter-item:not(.inactive)');
+    var context = $('#filter-form .filter-item:not(.inactive):not(.ignore)');
     var params = {};
     var self = this;
     $(' input, select', context).not(':radio, :checkbox').each(function () {
@@ -150,6 +150,9 @@ var site = {
     this.mapContext.marker.setMap(null);
   },
   toDateString: function (value) {
+    if (!value) {
+      return null;
+    }
     //TODO: replace with real formatting
     return new Date(value).toString();
   },
