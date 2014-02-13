@@ -54,8 +54,8 @@ EventList.prototype.SetEvents = function(events) {
             
             $('#' + deleteButtonId).click(function() {
                 $.ajax({
-                    type: 'POST',
-                    url: classInstance.parameters.apiDomain + '/event/' + classInstance.events[rowIndex].id + '/delete',
+                    type: 'DELETE',
+                    url: classInstance.parameters.apiDomain + '/event/' + classInstance.events[rowIndex].id,
                     datatype: 'json',
                     success: function(data) {
                         console.log("Event Deleted");
@@ -78,8 +78,8 @@ EventList.prototype.SetEvents = function(events) {
             clickEvent.stopImmediatePropagation();
             classInstance.parameters.updateRangeFunction(
                     classInstance.id,
-                    rowData[classInstance.index.start_time],
-                    rowData[classInstance.index.end_time]
+                    rowData[classInstance.index.startTime],
+                    rowData[classInstance.index.endTime]
                     );
 
         } else {
@@ -129,9 +129,9 @@ EventList.prototype.createDatatable = function(events) {
         } catch (e) {
         }
 
-        var start = moment(event['start_time']);
-        var end = moment(event['end_time']);
-        var duration = moment.duration(event['end_time'] - event['start_time']);
+        var start = moment(event['startTime']);
+        var end = moment(event['endTime']);
+        var duration = moment.duration(event['endTime'] - event['startTime']);
 
         cells.push(event['type']);
         cells.push(start.format("h:mm:ss.SSS"));
@@ -168,8 +168,8 @@ EventList.prototype.createDatatable = function(events) {
 
     classInstance.index = {};
 
-    classInstance.index.start_time = 2;
-    classInstance.index.end_time = 3;
+    classInstance.index.startTime = 2;
+    classInstance.index.endTime = 3;
     classInstance.index.view = 7;
     classInstance.index.delete = 8;
     classInstance.index.id = 9;
