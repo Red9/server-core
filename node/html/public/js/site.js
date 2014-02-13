@@ -169,7 +169,7 @@ function getApiPath(location) {
     hostPort = 'api.redninesensor.com';
   }
   else {
-    hostPort = 'api.' + location.hostname + ':8081';
+    hostPort = 'api.' + location.hostname + (location.port ? ':8081' : '');
   }
   return location.protocol + '//' + hostPort;
 }
