@@ -28,7 +28,7 @@ var site = {
   },
   templates: {},
   urls: {
-    apiPath: 'http://api.localhost:8081',
+    apiPath: getApiPath(location),
     searchDataset: '/dataset/',
     searchEvent: '/event/'
   },
@@ -145,4 +145,14 @@ var site = {
 };
 if (Handlebars) {
   Handlebars.registerHelper('toDateString', site.toDateString);
+}
+function getApiPath(location) {
+  var hostPort;
+  if (location.hostname.match(/redninesensor\.com/i)) {
+    hostPort = 'api.redninesensor.com';
+  }
+  else {
+    hostPort = 'api.' + location.hostname + ':8081';
+  }
+  return location.protocol + '//' + hostPort;
 }
