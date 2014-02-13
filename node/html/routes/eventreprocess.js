@@ -1,6 +1,6 @@
 var spawn = require('child_process').spawn;
 
-var database = require('./../../support/database');
+var eventResource = require('./../../support/resources/resource/event_resource');
 var log = require('./../../support/logger').log;
 var config = require('./../../config');
 
@@ -72,7 +72,7 @@ function SendOnSocketDone(page_uuid) {
 }
 
 var BeginEventProcessing = function(page_uuid){
-    database.GetAllRows("event", function(data){
+    eventResource.getEvents({}, function(data){
         
         var counter = 1; // It's a human thing, so start at 1.
         
@@ -118,7 +118,8 @@ exports.NewSocket = function(new_socket, socket_page_uuid) {
 
 
 exports.get = function(req, res) {
-    var page_uuid = database.GenerateUUID();
+    // TODO(SRLM): This isn't elegant...
+    var page_uuid = require('./../../support/resources/common').generateUUID();
     page_uuid_list[page_uuid] = null;
     
     res.render("processstatistics", {page_title: "Reprocess Statistics", page_uuid: page_uuid});

@@ -1,16 +1,25 @@
-var database = require('./../../support/database');
+var userResource = require('./../../support/resources/resource/user_resource');
 
 exports.get = function(req, res, next) {
     
-    database.getUser(req.params.uuid, function(userinfo) {
-        if (typeof userinfo === "undefined") {
+    userResource.getUsers({id:req.params.uuid}, function(userList) {
+        if (userList.length === 0) {
             next();
         } else {
+            var user = userList[0];
             var properties = {
-                title: "User " + userinfo["display_name"],
-                user: userinfo
+                title: "User " + user.displayName,
+                user: user
             };
             res.render("user", properties);
         }
     });
+};
+
+exports.search = function(req, res, next){
+    res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
+};
+
+exports.update = function(req, res, next){
+    res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
 };

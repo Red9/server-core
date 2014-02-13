@@ -3,7 +3,7 @@ var exec = require('child_process').exec;
 
 var fs = require('fs');
 
-var database = require('./../../support/database');
+//var database = require('./../../support/database');
 var log = require('./../../support/logger').log;
 var config = require('./../../config');
 var externals = require('./../../support/externals');

@@ -1,4 +1,4 @@
-var database = require('./../../support/database');
+var panelResource = require('./../../support/resources/resource/panel_resource');
 var underscore = require('underscore')._;
 
 exports.search = function(req, res, next) {
@@ -27,8 +27,9 @@ exports.get = function(req, res, next) {
     }
 
     var firstRow = true;
-    database.getPanel(req.param('id'), req.query,
+    panelResource.getPanel({dataset:req.param('id')}, req.query,
             function(dataset, columns) {
+                console.log("Columns: " + columns);
 
                 if (format === 'csv') {
                     res.write('time');

@@ -191,7 +191,8 @@ if (cluster.isMaster) {
      */
     function LoadUserInfo(req, res, next) {
         if (req.isAuthenticated()) {
-            res.locals['user'] = {display_name: req.user.display_name,
+            res.locals['user'] = {
+                displayName: req.user.displayName,
                 id: req.user.id};
         }
         next();

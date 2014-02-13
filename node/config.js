@@ -12,7 +12,7 @@ exports.pageTemplateDefaults = {
         description: 'Motion analytics software'
     },
     author: {
-        display_name: 'srlm',
+        displayName: 'srlm',
         email: 'srlm@srlmproductions.com'
     }
 };
@@ -37,7 +37,9 @@ exports.statistician_children = '../../data-processing/statistics/children';
 
 exports.logfilepath = 'logs/';
 
+exports.defaultTimezone = '';
 
+exports.panelRowCountLimit = 1000000;
 
 exports.logglyparameters = {
             subdomain: 'redninesensor',

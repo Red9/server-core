@@ -1,6 +1,16 @@
 
-var database = require('./../../support/database');
+var datasetResource = require('./../../support/resources/resource/dataset_resource');
 var underscore = require('underscore')._;
+
+function simplifyOutput(datasetArray) {
+    underscore.each(datasetArray, function(element, index, list) {
+        delete element['summaryStatistics'];
+        delete element['source'];
+    });
+
+    return datasetArray;
+}
+
 exports.search = function(req, res, next) {
 
     var simpleOutput = false;
@@ -9,63 +19,67 @@ exports.search = function(req, res, next) {
         simpleOutput = true;
     }
 
-    database.getConstrainedDatasets(req.query, function(results) {
-        if (simpleOutput) {
+    var flushOutput = false;
+    if (typeof req.query['flushoutput'] !== 'undefined') {
+        delete req.query['flushoutput'];
+        flushOutput = true;
+    }
+    // At this point, req.query has constraints.
 
-            underscore.each(results, function(element, index, list) {
-             delete element['processing_notes'];
-             delete element['processing_config'];
-             delete element['processing_statistics'];
-             delete element['summary_statistics'];
-             });
+    datasetResource.getDatasets(req.query, function(datasets) {
+        if (simpleOutput) {
+            datasets = simplifyOutput(datasets);
         }
-        res.json(results);
+        if (flushOutput === true) {
+            datasetResource.flushDatasets(datasets, function(flushedDatasets) {
+                res.json(flushedDatasets);
+            });
+        } else {
+            res.json(datasets);
+        }
     });
 };
 
 exports.get = function(req, res, next) {
-    database.getDataset(req.param('id'), function(dataset) {
-        res.json(dataset);
+    var simpleOutput = false;
+    if (typeof req.query['simpleoutput'] !== 'undefined') {
+        delete req.query['simpleoutput'];
+        simpleOutput = true;
+    }
+
+    var flushOutput = false;
+    if (typeof req.query['flushoutput'] !== 'undefined') {
+        delete req.query['flushoutput'];
+        flushOutput = true;
+    }
+
+    datasetResource.getDatasets({id: req.param('id')}, function(datasets) {
+        if (simpleOutput) {
+            datasets = simplifyOutput(datasets);
+        }
+        if (flushOutput === true) {
+            datasetResource.flushDatasets(datasets, function(flushedDatasets) {
+                res.json(flushedDatasets);
+            });
+        } else {
+            res.json(datasets);
+        }
     });
 };
 
 exports.update = function(req, res, next) {
 
-    /* // Below is a single pass write, without testing (or running or completion...
-     var variables = extractSchemaVariablesFromRequest(req, 'dataset');
-     
-     if (variables.keys().length === 0) {
-     // Nothing to update.
-     res.send();
-     } else {
-     database.updateDataset(req.param('id'), variables, function(err) {
-     if (err) {
-     var response = {
-     message: err
-     };
-     res.status(404).json(response);
-     } else {
-     // Successfully updated, nothing to send.
-     res.send();
-     }
-     });
-     }*/
-
     res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
 };
 
 exports.delete = function(req, res, next) {
-    /*database.deleteDataset(req.param('id'), function(err) {
-     if (err) {
-     var response = {
-     message: err
-     };
-     res.status(404).json(response);
-     } else {
-     // Successfully deleted, nothing to send.
-     res.send();
-     }
-     });*/
+    var id = req.param('id');
 
-    res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
+    datasetResource.deleteDataset(id, function(err) {
+        if (err) {
+            res.status(500).json({message: err});
+        } else {
+            res.json({});
+        }
+    });
 };

@@ -1,6 +1,7 @@
 
 var log = require('./../../support/logger').log;
-var database = require('./../../support/database');
+
+var datasetResource = require('./../../support/resources/resource/dataset_resource');
 
 exports.get = function(req, res, next){
     if (typeof req.params.uuid === "undefined") {
@@ -8,12 +9,14 @@ exports.get = function(req, res, next){
         next();
     }
     
-    database.GetRow("dataset", "id", req.params.uuid, function(content){
-        if(typeof content === "undefined"){
+    datasetResource.getDatasets({id:req.params.uuid}, function(content){
+        if(content.length !== 1){
             next();
         }else{
-            content["page_title"] = "Custom Download";
-            res.render("customdownload", content);
+            // TODO(SRLM): This isn't very clean...
+            var dataset = content[0];
+            dataset["page_title"] = "Custom Download";
+            res.render("customdownload", dataset);
         }
     });
 };

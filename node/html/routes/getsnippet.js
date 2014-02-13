@@ -1,4 +1,4 @@
-var database = require('./../../support/database');
+var datasetResource = require('./../../support/resources/resource/dataset_resource');
 var config = require('./../../config');
 
 
@@ -37,14 +37,14 @@ var ChangeUnits = function(summary, system) {
 exports.get = function(req, res, next) {
     var snippet_type = req.params.type;
 
-    var start_time, end_time, parent, units, dataset;
+    var startTime, endTime, parent, units, dataset;
 
-    if (typeof req.param("start_time") !== "undefined") {
-        start_time = req.param("start_time");
+    if (typeof req.param("startTime") !== "undefined") {
+        startTime = req.param("startTime");
     }
 
-    if (typeof req.param("end_time") !== "undefined") {
-        end_time = req.param("end_time");
+    if (typeof req.param("endTime") !== "undefined") {
+        endTime = req.param("endTime");
     }
 
     if (typeof req.param("parent") !== "undefined") {
@@ -63,8 +63,8 @@ exports.get = function(req, res, next) {
     if (snippet_type === "createeventmodal") {
         var parameters = {
             layout: false,
-            start_time: start_time,
-            end_time: end_time,
+            startTime: startTime,
+            endTime: endTime,
             datasetId: dataset,
             EventType: [
                 {name: "Default"},
@@ -103,7 +103,7 @@ exports.get = function(req, res, next) {
         res.render('snippets/createeventmodal', parameters);
     } else if (snippet_type === 'summarystatistics') {
         if (typeof req.param('dataset') !== 'undefined') {
-            database.getConstrainedDataset({id: req.param('dataset')}, function(event) {
+            datasetResource.getDatasets({id: req.param('dataset')}, function(event) {
                 if (typeof event === 'undefined') {
                     next();
                 } else {

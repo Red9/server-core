@@ -1,4 +1,4 @@
-var database = require('./../../support/database');
+var datasetResource = require('./../../support/resources/resource/dataset_resource');
 var config = require('./../../config');
 
 // TODO(SRLM): Make this get/calculate the column groups based on the dataset column schema.
@@ -16,10 +16,11 @@ function GetDefaultColumnGroups(dataset) {
 
 
 exports.get = function(req, res, next) {
-    database.getDataset(req.param('uuid'), function(dataset) {
-        if (typeof dataset === 'undefined') {
+    datasetResource.getDatasets({id:req.param('uuid')}, function(dataset) {
+        if (dataset.length !== 1) {
             next();
         } else {
+            dataset = dataset[0];
             var content = [];
             content['page_title'] = 'Scopes Display';
             content['title'] = 'Scope';

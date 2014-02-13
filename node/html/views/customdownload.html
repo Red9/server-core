@@ -72,7 +72,7 @@
 
 
             <div id="column_checkboxes_container" class="input-group">
-                {{#each column_titles}}
+                {{#each axes}}
                 <div class="checkbox col-lg-8">
                     <label for="column_checkboxes-{{ this }}">
                         <input type="checkbox" name="column_checkboxes[]" id="column_checkboxes-{{ this }}" value="{{ this }}">
@@ -142,12 +142,12 @@
     });
 
 
-    function ParseTime(start_time, end_time, user_request) {
+    function ParseTime(startTime, endTime, user_request) {
         var milliseconds = parseFloat(user_request);
         if (isNaN(milliseconds) === true) {
             milliseconds = Date.parse(user_request);
         }
-        if (isNaN(milliseconds) === true || milliseconds < start_time || milliseconds > end_time) {
+        if (isNaN(milliseconds) === true || milliseconds < startTime || milliseconds > endTime) {
             return null;
         } else {
             return milliseconds;
@@ -165,10 +165,10 @@
         }
     }
 
-    var start_time = Date.parse("{{start_time}}");
-    var end_time = Date.parse("{{end_time}}");
-    $('#minimum_start_time').text(start_time);
-    $('#maximum_end_time').text(end_time);
+    var startTime = Date.parse("{{startTime}}");
+    var endTime = Date.parse("{{endTime}}");
+    $('#minimum_start_time').text(startTime);
+    $('#maximum_end_time').text(endTime);
 
     $("#download_button").click(function() {
 
@@ -179,10 +179,10 @@
 
         console.log("Button clicked");
         var raw_data_id = "{{id}}";
-        var user_start_time = start_time;
-        var user_end_time = end_time;
+        var user_start_time = startTime;
+        var user_end_time = endTime;
         if ($("#start_time_checkbox").is(':checked')) {
-            var temp = ParseTime(start_time, end_time, $("#start_time_input").val());
+            var temp = ParseTime(startTime, endTime, $("#start_time_input").val());
             if (temp !== null) {
                 user_start_time = temp;
             } else {
@@ -191,7 +191,7 @@
         }
 
         if ($("#end_time_checkbox").is(':checked')) {
-            var temp = ParseTime(start_time, end_time, $("#end_time_input").val());
+            var temp = ParseTime(startTime, endTime, $("#end_time_input").val());
             if (temp !== null) {
                 user_end_time = temp;
             } else {
@@ -220,8 +220,8 @@
                 request_url += "," + columns[i];
             }
 
-            request_url += "&start_time=" + user_start_time;
-            request_url += "&end_time=" + user_end_time;
+            request_url += "&startTime=" + user_start_time;
+            request_url += "&endTime=" + user_end_time;
             if (buckets > 0) {
                 request_url += "&buckets=" + buckets;
             }
