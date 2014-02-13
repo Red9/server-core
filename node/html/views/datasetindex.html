@@ -2,7 +2,7 @@
 <form id="filter-form" class="filters clearfix">
     <div class="container panel panel-default">
         <div class="row">
-            <div class="col-md-6 filter-item">
+            <div class="col-md-6 filter-item ignore">
                 <div class="row">
                     <div class="col-sm-3"><h3>Type</h3></div>
                     <div class="col-sm-9">
@@ -26,11 +26,6 @@
                             <option value="another type">Another type</option>
                             <option value="super">Super</option>
                         </select>
-                        <ul class="nav nav-pills multiple" style="display: none;">
-                          <li class="active"><a href="#"><input type="checkbox" name="event.type" value="wave" checked></a></li>
-                          <li class="active"><a href="#"><input type="checkbox" name="event.type" value="jump" checked></a></li>
-                          <li class="active"><a href="#"><input type="checkbox" name="event.type" value="drop" checked></a></li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -199,6 +194,9 @@
                     $('#location-label, #location-name').val(name).text(name);
                 }
                 $('#location-remove').show();
+                if (!$('#distance').val()) {
+                    $('#distance').val(10);
+                }
             });
         }
         return false;
@@ -208,6 +206,7 @@
         $('#location-label').text($('#location-label').data('default-text'));
         $('.filters .map, #location-remove').hide();
         site.clearMap();
+        $('#distance').val(null);
     });
     $('#additional-filters-button li a').click(function () {
         var state = $(this).data();
@@ -256,9 +255,9 @@
                 <tbody>
                     \{{#each this}}
                     <tr>
-                        <td>\{{name}}</td>
+                        <td>\{{title}} \{{type}}</td>
                         <td><a href="/user/\{{create_user}}">User A</a></td>
-                        <td>\{{toDateString create_time}}</td>
+                        <td>\{{toDateString startTime}}</td>
                         <td><a class="btn btn-xs btn-primary" href="/dataset/\{{id}}">View Dataset</a>&nbsp;&nbsp;&nbsp;&nbsp;
                             <a class="btn btn-xs btn-danger" onclick="site.deleteDataset('\{{id}}')">Delete</a>
                         </td>
