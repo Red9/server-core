@@ -106,34 +106,48 @@ var site = {
       $('#container-results').html(self.templates.results(response));
     });
   },
-  setMap: function(lat, lng, title, targetLatLng, targetName) {
+  setMap: function(lat, lng, zoom, selectCallback) {
+    var self = this;
     var position = new google.maps.LatLng(lat, lng);
     var geocoder = new google.maps.Geocoder();
     var mapOptions = {
       center: position,
-      zoom: 8
+      zoom: zoom
     };
-    var map = new google.maps.Map(document.getElementById("map-canvas"),mapOptions);
+    var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
     var marker = new google.maps.Marker({
       position: position,
       draggable: true
     });
-    marker.setMap(map);
-    var self = this;
-    google.maps.event.addListener(marker, 'dragend', function() {
+    this.mapContext = {map: map, marker: marker};
+
+    google.maps.event.addListener(map, 'click', function(event) {
+      if (!marker.getMap()) {
+        marker.setPosition(event.latLng);
+        marker.setMap(map);
+        markerPositionChanged();
+      }
+    });
+    google.maps.event.addListener(marker, 'dragend', markerPositionChanged);
+
+    function markerPositionChanged() {
       var position = marker.getPosition();
       map.setCenter(position);
-      $(targetLatLng).val(position.lat() + ',' + position.lng());
+      selectCallback(position.lat(), position.lng());
       geocoder.geocode({'latLng': position}, function(results, status) {
         var locationName = self.adapter.address();
         if (status == google.maps.GeocoderStatus.OK && results[1]) {
           locationName = self.adapter.address(results[1].address_components);
         }
-        $(targetName)
-          .val(locationName)
-          .text(locationName);
+        selectCallback(position.lat(), position.lng(), locationName);
       });
-    });
+    }
+  },
+  /**
+   * Removes the marker from the map
+   */
+  clearMap: function () {
+    this.mapContext.marker.setMap(null);
   },
   toDateString: function (value) {
     //TODO: replace with real formatting

@@ -95,16 +95,17 @@
                     </div>
                     <div class="col-sm-1"><label for="location">Of</label></div>
                     <div class="col-sm-3">
-                        <a href="#"><span class="glyphicon glyphicon-map-marker"></span><span id="location-label">Santa Barbara, CA, US</span></a>
-                        <input type="hidden" id="location-name" name="location.name" value="Santa Barbara, CA, US">
-                        <input type="hidden" id="location" value="34.425744,-119.759903" />
+                        <span id="location-remove" class="glyphicon glyphicon-remove"></span>
+                        <a href="#"><span class="glyphicon glyphicon-map-marker"></span><span id="location-label">Select</span></a>
+                        <input type="hidden" id="location-name" name="location.name" value="">
+                        <input type="hidden" id="location" value="" />
                     </div>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="map">
-                <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAN0ey-XWMdU4bo2qHLIFs0fWaACISjojk&sensor=false"></script>
+                <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAN0ey-XWMdU4bo2qHLIFs0fWaACISjojk&sensor=true"></script>
                 <div id="map-canvas"></div>
             </div>
         </div>
@@ -188,11 +189,25 @@
         }
         mapContainer.slideDown();
         if (!mapContainer.data('mapLoaded')) {
-            var position = $('#location').val().split(',');
-            site.setMap(parseFloat(position[0]), parseFloat(position[1]), $('#location-label').text(), $('#location'), $('#location-label, #location-name'));
             mapContainer.data('mapLoaded', true);
+            site.setMap(39.4114,-96.90834, 4, function (lat, lng, name) {
+                $('#location').val(lat + ',' + lng);
+                if (name) {
+                    if (!$('#location-label').data('default-text')) {
+                        $('#location-label').data('default-text', $('#location-label').text());
+                    }
+                    $('#location-label, #location-name').val(name).text(name);
+                }
+                $('#location-remove').show();
+            });
         }
         return false;
+    });
+    $('#location-remove').click(function () {
+        $('#location, #location-name').val(null).text(null);
+        $('#location-label').text($('#location-label').data('default-text'));
+        $('.filters .map, #location-remove').hide();
+        site.clearMap();
     });
     $('#additional-filters-button li a').click(function () {
         var state = $(this).data();
