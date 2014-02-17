@@ -85,7 +85,7 @@
         </div>
         <div class="row">
             <div class="map">
-                <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAN0ey-XWMdU4bo2qHLIFs0fWaACISjojk&sensor=true"></script>
+                <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzYsEDTVazN_ic9SsHVvhcSCLwlLEHd7Q&sensor=true"></script>
                 <div id="map-canvas"></div>
             </div>
         </div>
@@ -181,7 +181,7 @@
             mapContainer.hide();
             return false;
         }
-        mapContainer.slideDown();
+        mapContainer.show();
         if (!mapContainer.data('mapLoaded')) {
             mapContainer.data('mapLoaded', true);
             site.setMap(39.4114,-96.90834, 4, function (lat, lng, name) {
@@ -251,7 +251,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    \{{#each this}}
+                    \{{#each items}}
                     <tr>
                         <td>\{{title}} \{{type}}</td>
                         <td><a href="/user/\{{create_user}}">User A</a></td>
