@@ -103,13 +103,18 @@ body {
 {
     display: none;
 }
-.row.buttons
+.buttons
 {
   padding-top: 5px;
 }
-.row.buttons .btn-group
+.buttons .btn-group
 {
     float: right;
+}
+.buttons .btn-clear
+{
+    float: right;
+    margin-left: 10px;
 }
 .filters .map
 {

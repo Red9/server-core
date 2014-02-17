@@ -96,6 +96,20 @@ var site = {
     });
     return params;
   },
+  clearSearchFilter: function () {
+    location.hash = '#';
+    var context = $('#filter-form .filter-item:not(.inactive)');
+    $(' input, select', context).not(':radio, :checkbox').val(null);
+    $('#additional-filters-container').empty();
+    $('#location-remove').click();
+    $('.slider', context).each(function () {
+      var element = $(this);
+      if (!element.data('initialized')) {
+        return;
+      }
+      element.slider('values', [0, 0]);
+    });
+  },
   search: function () {
     var url = this.urls.apiPath + this.urls.searchDataset;
     if ($('#type-event').is(':checked')) {
