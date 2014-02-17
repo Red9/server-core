@@ -49,32 +49,17 @@
             </div>
             <div class="col-lg-6 filter-item">
                 <div class="row">
-                    <div class="col-sm-3"><h3>Duration</h3></div>
-                    <div class="col-sm-2"><label for="durationMore">More than</label></div>
-                    <div class="col-sm-2">
-                        <select id="durationMore" name="duration.more" class="form-control">
-                            <option></option>
-                            <option value="1000">1 sec</option>
-                            <option value="5000">5 secs</option>
-                            <option value="30000">30 secs</option>
-                            <option value="60000">1 min</option>
-                            <option value="300000">5 mins</option>
-                            <option value="600000">10 mins</option>
-                        </select>
-                    </div>
-                    <div class="col-sm-2">
-                        <label for="durationLess">Less than</label>
-                    </div>
-                    <div class="col-sm-2">
-                        <select id="durationLess" name="duration.less" class="form-control">
-                            <option></option>
-                            <option value="1000">1 sec</option>
-                            <option value="5000">5 secs</option>
-                            <option value="30000">30 secs</option>
-                            <option value="60000">1 min</option>
-                            <option value="300000">5 mins</option>
-                            <option value="600000">10 mins</option>
-                        </select>
+                    <div class="col-lg-12 filter-item" id="duration-filter">
+                        <div class="row">
+                            <div class="col-sm-3"><h3>Duration</h3></div>
+                            <div class="col-sm-9">
+                                <div class="slider"
+                                    id="duration"
+                                    data-name="duration"
+                                    data-max="180" data-units="min"></div>
+                                <div class="slider-label"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -163,6 +148,9 @@
         e.preventDefault();
         site.search();
     });
+    $(function () {
+        $('#filter-form').submit();
+    });
     $('.filters .nav.simple a').click(function () {
         $(this).closest('.nav').children('li').removeClass('active');
         $(this).closest('li').addClass('active');
@@ -174,7 +162,15 @@
         $('input',this).prop('checked',  !$('input',this).prop('checked'));
     });
     $('#type-event').closest('.nav').find('a').click(function () {
-        $('#event-type-filter').toggleClass('inactive', !$('#type-event').prop('checked'));
+        var isDataset = !$('#type-event').prop('checked');
+        $('#event-type-filter').toggleClass('inactive', isDataset);
+        var sliderElement = $("#duration-filter .slider");
+        var maxDuration = 15;
+        if (isDataset) {
+            maxDuration = 180;
+        }
+        sliderElement.slider('option', 'max', maxDuration);
+        sliderElement.slider('values', [0, 0]);
     });
     $('#location-label').closest('a').click(function (){
         var mapContainer = $('.filters .map');
@@ -220,21 +216,15 @@
             var filter = $(site.templates[templateId](state));
             $('#additional-filters-container').append(filter);
             if ($(".slider", filter).length) {
-                $(".slider", filter).slider({
-                    range: true,
-                    step: state.step || 1,
-                    min: state.min || 0,
-                    max: state.max,
-                    values: [0, 0],
-                    slide: function( event, ui ) {
-                        $('.slider-label', filter).html(ui.values[0] + ' to ' + ui.values[1] + ' ' + state.units);
-                    }
-                });
+                site.setSlider(filter, state);
             }
         }
         //now its added to the dom
         $('#filter-' + state.id).show().css({backgroundColor: '#BCE8F1'}).animate({backgroundColor: 'transparent'}, 1000);
         return true;
+    });
+    $(function () {
+        site.setSlider($("#duration-filter"), $('.slider', $("#duration-filter")).data());
     });
 </script>
 
@@ -258,8 +248,14 @@
                         <td>\{{title}} \{{type}}</td>
                         <td><a href="/user/\{{create_user}}">User A</a></td>
                         <td>\{{toDateString startTime}}</td>
-                        <td><a class="btn btn-xs btn-primary" href="/dataset/\{{id}}">View Dataset</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                        <td>
+                            \{{#if datasetId}}
+                            <a class="btn btn-xs btn-primary" href="/dataset/\{{datasetId}}">View Dataset</a>
+                            <a class="btn btn-xs btn-danger" onclick="site.deleteDataset('\{{datasetId}}')">Delete</a>
+                            \{{else}}
+                            <a class="btn btn-xs btn-primary" href="/dataset/\{{id}}">View Dataset</a>
                             <a class="btn btn-xs btn-danger" onclick="site.deleteDataset('\{{id}}')">Delete</a>
+                            \{{/if}}
                         </td>
                     </tr>
                     \{{/each}}
