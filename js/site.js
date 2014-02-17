@@ -149,19 +149,38 @@ var site = {
   clearMap: function () {
     this.mapContext.marker.setMap(null);
   },
+  /**
+   * Returns a date in YYYY-MM-DD format or the string Today and Yesterday
+   * @param value Milliseconds
+   */
   toDateString: function (value) {
     if (!value) {
       return null;
     }
-    //TODO: replace with real formatting
-    return new Date(value).toString();
+
+    var date = new Date(value);
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var yesterday = new Date();
+    yesterday.setHours(0, 0, 0, 0);
+    yesterday.setDate(today.getDate() - 1);
+    if (date > today) {
+      return "Today";
+    }
+    else if (date > yesterday) {
+      return "Yesterday";
+    }
+    return date.getFullYear() + '-' + this.padZeros(date.getMonth()+1, 2) + '-' + this.padZeros(date.getDay(), 2);
+  },
+  padZeros: function (value, length) {
+    return ('000000' + value).substr(-length);
   },
   mileToMeter: function (value) {
     return parseFloat(value) / 0.00062137;
   }
 };
 if (Handlebars) {
-  Handlebars.registerHelper('toDateString', site.toDateString);
+  Handlebars.registerHelper('toDateString', site.toDateString.bind(site));
 }
 function getApiPath(location) {
   var hostPort;
