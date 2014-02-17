@@ -49,7 +49,7 @@ var site = {
   },
   getSearchParams: function () {
     var context = $('#filter-form .filter-item:not(.inactive):not(.ignore)');
-    var params = {};
+    var params = {simpleoutput: 1};
     var self = this;
     $(' input, select', context).not(':radio, :checkbox').each(function () {
       var element = $(this);
@@ -80,6 +80,9 @@ var site = {
     });
     $('.slider', context).each(function () {
       var element = $(this);
+      if (!element.data('initialized')) {
+        return;
+      }
       var values = element.slider('values');
       if (values.length === 2 && values[1]) {
         //unit conversion (ie: mile to meter)
@@ -148,6 +151,21 @@ var site = {
    */
   clearMap: function () {
     this.mapContext.marker.setMap(null);
+  },
+  setSlider: function (context, options) {
+      var sliderElement = $(".slider", context);
+      function slideChange(event, ui) {
+        $('.slider-label', context).html(ui.values[0] + ' to ' + ui.values[1] + ' ' + options.units);
+      }
+      sliderElement.slider({
+          range: true,
+          step: options.step || 1,
+          min: options.min || 0,
+          max: options.max,
+          values: [0, 0],
+          slide: slideChange,
+          change: slideChange
+      }).data('initialized', true).on('custom', function (){alert('custom')});
   },
   /**
    * Returns a date in YYYY-MM-DD format or the string Today and Yesterday
