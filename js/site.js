@@ -109,6 +109,7 @@ var site = {
       }
       element.slider('values', [0, 0]);
     });
+    this.search();
   },
   search: function () {
     var url = this.urls.apiPath + this.urls.searchDataset;
@@ -117,10 +118,11 @@ var site = {
     }
     var self = this;
     $.get(url, this.getSearchParams(), function (response) {
+      var results = {items: response.sort(site.sortBy('startTime', 'desc'))};
       if (!self.templates.results) {
         self.templates.results = Handlebars.compile($('#tmpl-results').html());
       }
-      $('#container-results').html(self.templates.results(response));
+      $('#container-results').html(self.templates.results(results));
     });
   },
   setMap: function(lat, lng, zoom, selectCallback) {
@@ -209,6 +211,19 @@ var site = {
   },
   mileToMeter: function (value) {
     return parseFloat(value) / 0.00062137;
+  },
+  sortBy: function (name, order) {
+    if (order !== 'desc') {
+      return function (a, b) {
+        return a[name] - b[name];
+      }
+    }
+    else
+    {
+      return function (a, b) {
+        return b[name] - a[name];
+      }
+    }
   }
 };
 if (Handlebars) {
