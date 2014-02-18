@@ -89,7 +89,41 @@ RequestQueue.prototype.trimPanel = function(panel, axes) {
 
 };
 
+/** 
+ * @todo(srlm): There's some corner cases here that aren't accounted for...
+ * @param {type} panel
+ * @returns {RequestQueue.prototype.splicePanel.panel}
+ */
 RequestQueue.prototype.splicePanel = function(panel) {
+    var classPanelValues = this.dataset.panel.values;
+    var localPanelValues = panel.values;
+    var resultPanelValues = [];
+
+    var i;
+
+    // Add the dataset first "half"
+    for (i = 0; classPanelValues[i][0] < localPanelValues[0][0]
+            && i < classPanelValues.length; i = i + 1) {
+        resultPanelValues.push(classPanelValues[i]);
+    }
+
+    // Add in the splice
+    _.each(localPanelValues, function(value, index) {
+        resultPanelValues.push(value);
+    });
+
+    // Find the end of the splice
+    for (; classPanelValues[i][0] <= localPanelValues[localPanelValues.length - 1][0]
+            && i < classPanelValues.length; i = i + 1) {
+    }
+
+    // Finish the dataset second "half"
+    for (; i < classPanelValues.length; i = i + 1) {
+        resultPanelValues.push(classPanelValues[i]);
+    }
+
+    panel.values = resultPanelValues;
+
     return panel;
 };
 
@@ -102,11 +136,9 @@ RequestQueue.prototype.requestPanel
         = function(minimumTime, maximumTime, axes, callback, spliced) {
     if (this.dataset.startTime === minimumTime && this.dataset.endTime === maximumTime
             && typeof this.dataset.panel !== "undefined") {
-        console.log("Use original panel!");
         var trimmedPanel = this.trimPanel(this.dataset.panel, axes);
         callback(trimmedPanel);
     } else {
-
         var classInstance = this;
         this.getPanel(minimumTime, maximumTime, function(panel) {
             if (spliced === true) {

@@ -178,7 +178,7 @@
 
 
         console.log("Button clicked");
-        var raw_data_id = "{{id}}";
+        var datasetId = "{{id}}";
         var user_start_time = startTime;
         var user_end_time = endTime;
         if ($("#start_time_checkbox").is(':checked')) {
@@ -214,7 +214,7 @@
             alert("Error: must select at least one column.");
         } else {
 
-            var request_url = '/api/dataset/' + raw_data_id + "?columns=";
+            var request_url = '{{apiUrl}}/dataset/' + datasetId + "/panel?axes=";
             request_url += columns[0];
             for (var i = 1; i < columns.length; i++) {
                 request_url += "," + columns[i];

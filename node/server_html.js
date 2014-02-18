@@ -189,12 +189,15 @@ if (cluster.isMaster) {
      * @param {type} res
      * @param {type} next
      */
-    function LoadUserInfo(req, res, next) {
+    function LoadGlobalTemplateParameters(req, res, next) {
         if (req.isAuthenticated()) {
             res.locals['user'] = {
                 displayName: req.user.displayName,
                 id: req.user.id};
         }
+        
+        res.locals['apiUrl'] = config.apiDomain;
+        
         next();
     }
 
@@ -225,7 +228,7 @@ if (cluster.isMaster) {
 // source: http://stackoverflow.com/questions/16452123/how-to-create-global-variables-accessible-in-all-views-using-express-node-js
     app.locals(config.pageTemplateDefaults);
 
-    app.use(LoadUserInfo);
+    app.use(LoadGlobalTemplateParameters);
     app.use(app.router);
 
     // Enable CORS: http://enable-cors.org/server_expressjs.html

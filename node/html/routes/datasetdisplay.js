@@ -24,7 +24,6 @@ exports.get = function(req, res, next) {
             var content = [];
             content['page_title'] = 'Scopes Display';
             content['title'] = 'Scope';
-            content['apiUrl'] = config.apiDomain;
             content['dataset'] = dataset;
             res.render('datasetdisplay', content);
         }

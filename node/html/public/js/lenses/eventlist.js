@@ -11,7 +11,7 @@ function EventList(parameters, dataset, configuration) {
             function() {
                 $.ajax({
                     type: 'GET',
-                    url: classInstance.parameters.apiDomain + '/event/?dataset=' + dataset['id'],
+                    url: classInstance.parameters.apiDomain + '/event/?datasetId=' + dataset['id'],
                     dataType: 'json',
                     success: $.proxy(classInstance.SetEvents, classInstance)
                 });
@@ -125,7 +125,7 @@ EventList.prototype.createDatatable = function(events) {
 
         var pathLength = -1;
         try {
-            pathLength = event.summary_statistics.static.route.path.distance.value;
+            pathLength = event.summaryStatistics.static.route.path.distance.value;
         } catch (e) {
         }
 

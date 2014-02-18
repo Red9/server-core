@@ -77,7 +77,9 @@ function extractParameters(panelParameters, dataset) {
 
 
     if (typeof panelParameters['minmax'] !== 'undefined') {
-        commandOptions.push('--minmax');
+        if (panelParameters['minmax'] !== 'false') {
+            commandOptions.push('--minmax');
+        }
     }
 
     if (typeof panelParameters['nocache'] !== 'undefined') {
