@@ -6,25 +6,7 @@ var config = require('./config');
 
 
 
-// Process command line arguments
-var stdio = require('stdio');
-/*var ops = stdio.getopt({
- 'realm': {key: 'r', args: 1, description: "The realm for google authentication. Include the full domain (with http and all)."}
- });*/
-
-var ops = stdio.getopt({
-    release: {key: 'r', args: 0, description: 'Set for release mode.'}
-});
-
-config.release = (typeof ops.release !== 'undefined');
-
-if (config.release === true) {
-    config.realm = config.releaseRealm;
-    config.apiDomain = config.releaseApiDomain;
-} else {
-    config.realm = config.developmentRealm;
-    config.apiDomain = config.developmentApiDomain;
-}
+config.ProcessCommandLine();
 
 
 

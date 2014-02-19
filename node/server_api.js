@@ -5,6 +5,8 @@ var cluster = require('cluster');
 var config = require('./config');
 
 
+config.ProcessCommandLine();
+
 if (cluster.isMaster) {
     // Logging setup
     var logger = require('./support/logger');

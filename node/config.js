@@ -58,6 +58,23 @@ exports.papertrailparameters = {
 };
 
 
+exports.ProcessCommandLine = function(){
+    // Process command line arguments
+    var stdio = require('stdio');
+    var ops = stdio.getopt({
+        release: {key: 'r', args: 0, description: 'Set for release mode.'}
+    });
+    exports.release = (typeof ops.release !== 'undefined');
+
+    if (exports.release === true) {
+        exports.realm = exports.releaseRealm;
+        exports.apiDomain = exports.releaseApiDomain;
+    } else {
+        exports.realm = exports.developmentRealm;
+        exports.apiDomain = exports.developmentApiDomain;
+    }
+};
+
 exports.unitsMap = {
     "m": {
         si: {
