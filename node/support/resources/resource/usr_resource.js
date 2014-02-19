@@ -27,7 +27,7 @@ var processUsr = function(usrDirectory) {
             var package = require('../../../' + usrDirectory + '/package.json');
             package.directory = usrDirectory;
             package.id = common.generateUUID();
-            console.log('Got USR');
+            console.log('Got USR: ' + package.id);
             usrList.push(package);
         }
     });
@@ -40,12 +40,19 @@ function GetUsrFromList(id) {
     });
 }
 
+function GetCommonUSRParameters(){
+    var parameters = [];
+    parameters.push('--apiDomain');
+    parameters.push(config.apiDomain);
+    return parameters;
+}
+
 exports.getForm = function(id, marked, callback) {
     var usr = GetUsrFromList(id);
 
     if (usr) {
         var formExecutable = './' + usr.directory + '/' + usr.executables.form;
-        var parameters = [];
+        var parameters = GetCommonUSRParameters();
 
         var runningUsr = spawn(formExecutable, parameters);
         runningUsr.stdout.setEncoding('utf8');
@@ -61,6 +68,8 @@ exports.getForm = function(id, marked, callback) {
         runningUsr.on('exit', function(code, signal) {
             //TODO(SRLM): Add a catch in case the USR doesn't return a JSON structure
             var form = JSON.parse(runningUsr.stdout.read());
+            
+            console.log('USR errors: "' + runningUsr.stderr.read() + '"');
             callback(undefined, form);
         });
 
@@ -104,7 +113,7 @@ exports.operateUsr = function(id, usrForm, callback) {
     var usr = GetUsrFromList(id);
     if (usr) {
         var usrExecutable = './' + usr.directory + '/' + usr.executables.execute;
-        var parameters = [];
+        var parameters = GetCommonUSRParameters();
 
         var runningUsr = spawn(usrExecutable, parameters);
         runningUsr.stdout.setEncoding('utf8');
@@ -123,6 +132,8 @@ exports.operateUsr = function(id, usrForm, callback) {
         runningUsr.on('exit', function(code, signal) {
             //TODO(SRLM): Add a catch in case the USR doesn't return a JSON structure
             var result = JSON.parse(runningUsr.stdout.read());
+            
+            console.log('USR errors: "' + runningUsr.stderr.read() + '"');
             callback(undefined, result);
         });
 
