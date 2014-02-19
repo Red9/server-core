@@ -26,7 +26,6 @@ module.exports = function(app, passport) {
     // Authentication Barrier
     // --------------------------------------------
 
-    // -------- [HTML Results] --------------------
     app.get('/', IsAuthenticated, require('./datasetindex').get);
     
     app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
@@ -51,8 +50,4 @@ module.exports = function(app, passport) {
     
     app.get('/lens/:type', IsAuthenticated, require('./getlens').get);
     
-    // -------- [JSON Results] --------------------
-    app.get('/usr/', IsAuthenticated, require('./usr').getlist);
-    app.get('/usr/:uuid/form', IsAuthenticated, require('./usr').getusrform);   
-    app.post('/usr/:uuid/operate', IsAuthenticated, require('./usr').operateusr);
 };

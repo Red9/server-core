@@ -32,6 +32,11 @@ exports.apiDomain = exports.developmentApiDomain;
 
 exports.release = false;
 
+
+exports.dataProcessingDirectory = '../../data-processing';
+
+exports.usrDirectory = exports.dataProcessingDirectory + '/usr';
+
 exports.statistician_children = '../../data-processing/statistics/children';
 //exports.statistician_children = '/home/clewis/consulting/red9/data-processing/statistics/children';
 
