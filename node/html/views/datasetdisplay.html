@@ -111,6 +111,12 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 
         CreateLens(requestqueue, dataset, 'Graph', {
             axes: [
+                'gps:speed'
+            ]
+        });
+
+        CreateLens(requestqueue, dataset, 'Graph', {
+            axes: [
                 'acceleration:x',
                 'acceleration:y',
                 'acceleration:z'

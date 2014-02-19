@@ -58,7 +58,7 @@ if (cluster.isMaster) {
     };
 
     var FormatDuration = function(startTime, endTime) {
-        var duration = endTime - startTime;
+        /*var duration = endTime - startTime;
         if (duration === 0 || isNaN(duration)) {
             return "0.000s";
         }
@@ -72,18 +72,29 @@ if (cluster.isMaster) {
         var minutes = Math.floor(duration / (60000)) - (hours * 60);
 
         var seconds = Math.floor(duration / (1000)) - (hours * 60 * 60) - (minutes * 60);
-
+        
         var milliseconds = duration
                 - (seconds * 1000) - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000);
-
-        var result = "";
-        if (hours > 0) {
-            result = "" + hours + "h " + padNumber(minutes, 2) + "m " + padNumber(seconds, 2) + "s";
-        } else if (minutes > 0) {
-            result = "" + minutes + "m " + padNumber(seconds, 2) + "." + padNumber(milliseconds, 3) + "s";
-        } else {
-            result = "" + seconds + "." + padNumber(milliseconds, 3) + "s";
+        var days = Math.floor(hours / 24);
+        hours = hours - 24*days;*/
+        
+        var result = '';
+        
+        var duration = moment.duration(endTime-startTime);
+        
+        if(duration.years() !== 0){
+            result = duration.years() + 'Y ' + duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
+        }else if(duration.months() !== 0){
+            result = duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
+        }else if(duration.days() !== 0){
+            result = duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
+        }else if(duration.hours() !== 0){
+            result = duration.hours() + 'h ' + duration.minutes() + 'm ';
+        }else if(duration.minutes() !== 0){
+            result = duration.minutes() + 'm ';
         }
+        
+        result += duration.seconds() + '.' + duration.milliseconds() + 's';
 
         return result;
 

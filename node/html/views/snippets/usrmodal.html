@@ -20,11 +20,25 @@
                 marked: marked
             };
             var post_url = "{{apiUrl}}/usr/" + id + "/operate";
+            $("#usr_modal_body_form").hide();
+            $("#usr_modal_body_processing").show();
 
-            $.post(post_url, post, function(data) {
-                $("#usr_modal_body_form").hide();
-                $("#usr_modal_body_processing").show();
-            }, "json");
+            $.ajax({
+                type: 'POST',
+                url: post_url,
+                data: post,
+                dataType: 'json',
+                success: function(data) {
+                    $("#usr_modal_body_processing").hide();
+                    $("#usr_modal_body_done").show();
+                },
+                error: function(data, status, errorThrown) {
+                    console.log("Error POSTing form");
+                    $("#usr_modal_body_processing").hide();
+                    $('#usr_modal_body_error').show();
+                    $('#usr_modal_body_error').find('#description').text('Some error occurred: ' + status + ', ' + errorThrown);
+                }
+            });
             return false;
         }
 
@@ -107,6 +121,8 @@
         $("#usr_modal_body_list").show();
         $("#usr_modal_body_form").hide();
         $("#usr_modal_body_processing").hide();
+        $('#usr_modal_body_done').hide();
+        $('#usr_modal_body_error').hide();
 
         $.ajax({
             dataType: "json",
@@ -162,8 +178,15 @@
             <form id="usr_modal_form"></form>
         </div>
         <div id="usr_modal_body_processing">
-            <p>The USR is now processing. Please refresh this page to see the results.</p>
+            <p>The USR is processing. This dialog will update when processing is done. Please do not rerun-USR until done.</p>
         </div>
+        <div id="usr_modal_body_done">
+            <p>The USR is done processing. Please refresh this page to see the results.</p>
+        </div>
+        <div id="usr_modal_body_error">
+            <p id="description">Something's wrong. That's all we know.</p>
+        </div>
+
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
