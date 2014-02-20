@@ -11,7 +11,8 @@ var config = require('./../../../config');
 
 var datasetResource = require('./../resource/dataset_resource');
 
-var cassandraClient = require('node-cassandra-cql').Client;
+var cassandraRoot = require('node-cassandra-cql');
+var cassandraClient = cassandraRoot.Client;
 var hosts = ['localhost:9042'];
 var cassandraDatabase = new cassandraClient({hosts: hosts, keyspace: 'dev'});
 /**
@@ -76,7 +77,9 @@ function extractParameters(panelParameters, dataset) {
 
 
     if (typeof panelParameters['minmax'] !== 'undefined') {
-        commandOptions.push('--minmax');
+        if (panelParameters['minmax'] !== 'false') {
+            commandOptions.push('--minmax');
+        }
     }
 
     if (typeof panelParameters['nocache'] !== 'undefined') {
@@ -218,6 +221,7 @@ exports.getPanelFromDataset = function(datasetId, panelParameters,
 
 
 exports.calculatePanelProperties = function(rawDataId, callback) {
+    // Warning: these keys are sensitive to matching the keys in dataset resource!
     var properties = [
         {
             key: 'startTime',
@@ -257,7 +261,7 @@ exports.calculatePanelProperties = function(rawDataId, callback) {
                         var value = row.rows[0].get(item.queryKey);
                         if (item.type === 'timestamp') {
                             value = moment(value).valueOf();
-                        }else if(item.type === 'int'){
+                        } else if (item.type === 'int') {
                             value = parseInt(value);
                         }
 
@@ -272,7 +276,44 @@ exports.calculatePanelProperties = function(rawDataId, callback) {
 };
 
 
-exports.deletePanel = function(panelId, callback){
+exports.deletePanel = function(panelId, callback) {
     var query = 'DELETE FROM raw_data WHERE id=?';
     cassandraDatabase.execute(query, [panelId], callback);
+};
+
+
+function constructAddRowQuery(panelId, time, axes) {
+    var query = 'INSERT INTO raw_data(id, time, data) VALUES (?,?,?)';
+
+    //console.log('Inserting values ' + panelId + ', ' + time);
+
+    var parameters = [
+        {
+            value: panelId,
+            hint: 'uuid'
+        },
+        {
+            value: time,
+            hint: 'timestamp'
+        },
+        {
+            value: axes,
+            hint: 'list<float>'
+        }
+    ];
+    return {
+        query: query,
+        params: parameters
+    };
+}
+;
+
+
+exports.addRows = function(panelId, rows, callback) {
+    var queries = [];
+    underscore.each(rows, function(row) {
+        queries.push(constructAddRowQuery(panelId, new Date(row.time), row.axes));
+    });
+
+    cassandraDatabase.executeBatch(queries, cassandraRoot.types.consistencies.quaum, null, callback);
 };

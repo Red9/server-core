@@ -72,6 +72,16 @@ var datasetResource = {
         type: 'int',
         includeToCreate: false,
         editable: false
+    },
+    alternatePanels: {
+        type: 'resource:alternatePanel',
+        includeToCreate: false,
+        editable: true
+    },
+    createTime: {
+        type: 'timestamp',
+        includeToCreate: false,
+        editable: false
     }
 };
 
@@ -87,6 +97,8 @@ function mapToCassandra(resource) {
     cassandra.source = JSON.stringify(resource.source);
     cassandra.owner = resource.owner;
     cassandra.summary_statistics = JSON.stringify(resource.summaryStatistics);
+    cassandra.create_time = moment(resource.createTime).toDate();
+    cassandra.raw_data_alternates = JSON.stringify(resource.alternatePanels);
 
     if (typeof resource.startTime !== 'undefined') {
         cassandra.start_time = moment(resource.startTime).toDate();
@@ -94,6 +106,8 @@ function mapToCassandra(resource) {
     if (typeof resource.endTime !== 'undefined') {
         cassandra.end_time = moment(resource.endTime).toDate();
     }
+
+
 
 
 
@@ -108,6 +122,11 @@ function mapToCassandra(resource) {
     return cassandra;
 }
 
+
+var defaultAlternatePanels = {
+    temporaryPanels: []
+};
+
 function mapToResource(cassandra) {
     var resource = {};
 
@@ -120,6 +139,7 @@ function mapToResource(cassandra) {
     resource.panelId = cassandra.raw_data;
     resource.timezone = cassandra.timezone;
     resource.owner = cassandra.owner;
+    resource.createTime = moment(cassandra.create_time).valueOf();
 
     try {
         resource.source = JSON.parse(cassandra.source);
@@ -130,6 +150,12 @@ function mapToResource(cassandra) {
         resource.summaryStatistics = JSON.parse(cassandra.summary_statistics);
     } catch (e) {
         resource.summaryStatistics = {};
+    }
+    try {
+        resource.alternatePanels = JSON.parse(cassandra.raw_data_alternates);
+    } catch (e) {
+        resource.alternatePanels = defaultAlternatePanels;
+
     }
 
     return resource;
@@ -153,15 +179,17 @@ exports.createDataset = function(newDataset, callback) {
     newDataset.startTime = 0;
     newDataset.endTime = 0;
     newDataset.rowCount = 0;
+    newDataset.alternatePanels = defaultAlternatePanels;
+    newDataset.createTime = moment().valueOf();
 
     var cassandraDataset = mapToCassandra(newDataset);
 
     cassandraDatabase.addSingle('dataset', cassandraDataset, function(err) {
         if (err) {
-            console.log('DatasetResource: Error on creating new dataset.');
+            log.warn('DatasetResource: Error on creating new dataset: ' + err);
             callback('error');
         } else {
-            console.log('Successfully created new dataset.');
+            log.debug('Successfully created new dataset ' + newDataset.id);
             callback(undefined, [newDataset]);
         }
     });
@@ -194,6 +222,15 @@ exports.deleteDataset = function(id, callback) {
 
 };
 
+
+/**
+ * 
+ * @param {type} id
+ * @param {type} modifiedDataset
+ * @param {type} callback (err, modifiedDataset) err is defined if failure. modifiedDataset includes the information written.
+ * @param {type} forceEditable
+ * @returns {unresolved}
+ */
 exports.updateDataset = function(id, modifiedDataset, callback, forceEditable) {
     //------------------------------------------------------------------
     //TODO(SRLM): Make sure that the dataset exists!
@@ -308,3 +345,59 @@ function flushDatasetBody(dataset, callback) {
         callback(dataset);
     }
 }
+
+
+/**
+ * 
+ * @param {type} datasetId
+ * @param {type} temporaryId
+ * @param {type} callback (err)
+ * @returns {undefined}
+ */
+exports.updateToNewPanel = function(datasetId, temporaryId, callback) {
+    // Verify that the dataset actually exists.
+    exports.getDatasets({id: datasetId}, function(datasetList) {
+        if (datasetList.length !== 1) {
+            callback('Incorrect number of datasets for id ' + datasetId + ': ' + datasetList.length);
+        } else {
+            var dataset = datasetList[0];
+
+            // Try picking the panel out of the list of temporary panels.
+            var panel;
+            dataset.alternatePanels.temporaryPanels
+                    = underscore.reject(
+                    dataset.alternatePanels.temporaryPanels, function(item) {
+                if (item.id === temporaryId) {
+                    panel = item;
+                    return true; // Don't keep matching panel
+                } else {
+                    return false; // Keep other panels
+                }
+            });
+
+            if (typeof panel !== 'undefined') {
+                var oldPanelId = dataset.panelId;
+
+                panelResource.calculatePanelProperties(temporaryId, function(modifiedDataset) {
+                    modifiedDataset.alternatePanels = dataset.alternatePanels;
+                    modifiedDataset.panelId = temporaryId;
+
+                    exports.updateDataset(datasetId, modifiedDataset,
+                            function(err, modifiedDataset) {
+                                if (err) {
+                                    callback('Could not complete request: ' + err);
+                                } else {
+                                    panelResource.deletePanel(oldPanelId, function(err) {
+                                        callback();
+                                    });
+                                }
+
+                            }, true);
+                });
+            } else {
+                callback('Panel id ' + temporaryId + ' does not exist.');
+            }
+
+        }
+    });
+};

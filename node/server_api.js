@@ -5,12 +5,14 @@ var cluster = require('cluster');
 var config = require('./config');
 
 
+config.ProcessCommandLine();
+
 if (cluster.isMaster) {
     // Logging setup
     var logger = require('./support/logger');
     logger.init('api', 'master');
     var log = logger.log; // console.log replacement
-    
+
     log.info("Master API process started. Starting worker API process.");
     cluster.fork();
     cluster.on('exit', function(worker) {
@@ -22,7 +24,7 @@ if (cluster.isMaster) {
     var logger = require('./support/logger');
     logger.init('api', '' + cluster.worker.id);
     var log = logger.log; // console.log replacement
-    
+
     log.info("API Node.js worker started.");
     log.info("Release Server: " + config.releaseserver);
 
@@ -70,7 +72,9 @@ if (cluster.isMaster) {
     var server = http.createServer(app);
 
     server.listen(app.get('port'), function() {
-        //log.info('Express API server listening on port ' + app.get('port'));
+        log.info('Express API server listening on port ' + app.get('port'));
     });
-
+    
+    
+    require('./support/resources/resource/usr_resource').loadUsrs();
 }

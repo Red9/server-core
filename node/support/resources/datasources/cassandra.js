@@ -295,6 +295,14 @@ var dataset_schema = [
     {
         key: 'column_titles',
         hint: 'list<varchar>'
+    },
+    {
+        key:'raw_data_alternates',
+        hint:'varchar'
+    },
+    {
+        key: 'create_time',
+        hint:'timestamp'
     }
 ];
 

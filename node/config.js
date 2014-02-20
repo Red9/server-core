@@ -32,6 +32,11 @@ exports.apiDomain = exports.developmentApiDomain;
 
 exports.release = false;
 
+
+exports.dataProcessingDirectory = '../../data-processing';
+
+exports.usrDirectory = exports.dataProcessingDirectory + '/usr';
+
 exports.statistician_children = '../../data-processing/statistics/children';
 //exports.statistician_children = '/home/clewis/consulting/red9/data-processing/statistics/children';
 
@@ -52,6 +57,23 @@ exports.papertrailparameters = {
     colorize: true
 };
 
+
+exports.ProcessCommandLine = function(){
+    // Process command line arguments
+    var stdio = require('stdio');
+    var ops = stdio.getopt({
+        release: {key: 'r', args: 0, description: 'Set for release mode.'}
+    });
+    exports.release = (typeof ops.release !== 'undefined');
+
+    if (exports.release === true) {
+        exports.realm = exports.releaseRealm;
+        exports.apiDomain = exports.releaseApiDomain;
+    } else {
+        exports.realm = exports.developmentRealm;
+        exports.apiDomain = exports.developmentApiDomain;
+    }
+};
 
 exports.unitsMap = {
     "m": {

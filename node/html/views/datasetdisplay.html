@@ -111,6 +111,12 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 
         CreateLens(requestqueue, dataset, 'Graph', {
             axes: [
+                'gps:speed'
+            ]
+        });
+
+        CreateLens(requestqueue, dataset, 'Graph', {
+            axes: [
                 'acceleration:x',
                 'acceleration:y',
                 'acceleration:z'
@@ -167,7 +173,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
     var GetUSROperands = function(){
         var result = {
             
-          dataset:[
+          datasets:[
               datasetId
           ]  
         };
@@ -254,17 +260,17 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
     <div class="panel-heading"><strong>Options</strong></div>
     <div class="panel-body">
         <h3>
-            <a download="{{dataset.id}}-panel.csv" href="/api/dataset/{{dataset.id}}?minmax=false">Complete Panel</a>
+            <a download="{{dataset.id}}-panel.csv" href="{{apiUrl}}/dataset/{{dataset.id}}/panel?minmax=false">Complete Panel</a>
             ~ <a href="/dataset/{{dataset.id}}/download">Custom Panel</a>
         </h3>
 
 
-        <h5>Download Sensors: <a download="{{dataset.id}}-accl.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=acceleration:x,acceleration:y,acceleration:z&minmax=false">Accelerometer</a>
-            ~ <a download="{{dataset.id}}-gyro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=rotationrate:x,rotationrate:y,rotationrate:z&minmax=false">Gyroscope</a>
-            ~ <a download="{{dataset.id}}-magn.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=magneticfield:x,magneticfield:y,magneticfield:z&minmax=false">Magnetometer</a>
-            ~ <a download="{{dataset.id}}-baro.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=pressure:pressure&minmax=false">Barometer</a>
-            ~ <a download="{{dataset.id}}-temp.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=pressure:temperature&minmax=false">Temperature</a>
-            ~ <a download="{{dataset.id}}-gps.csv" target="_blank" href="/api/dataset/{{dataset.id}}?columns=gps:latitude,gps:longitude&minmax=false">GPS</a>
+        <h5>Download Sensors: <a download="{{dataset.id}}-accl.csv" target="_blank" href="{{apiUrl}}/dataset/{{dataset.id}}/panel?axes=acceleration:x,acceleration:y,acceleration:z&minmax=false">Accelerometer</a>
+            ~ <a download="{{dataset.id}}-gyro.csv" target="_blank" href="{{apiUrl}}/dataset/{{dataset.id}}/panel?axes=rotationrate:x,rotationrate:y,rotationrate:z&minmax=false">Gyroscope</a>
+            ~ <a download="{{dataset.id}}-magn.csv" target="_blank" href="{{apiUrl}}/dataset/{{dataset.id}}/panel?axes=magneticfield:x,magneticfield:y,magneticfield:z&minmax=false">Magnetometer</a>
+            ~ <a download="{{dataset.id}}-baro.csv" target="_blank" href="{{apiUrl}}/dataset/{{dataset.id}}/panel?axes=pressure:pressure&minmax=false">Barometer</a>
+            ~ <a download="{{dataset.id}}-temp.csv" target="_blank" href="{{apiUrl}}/dataset/{{dataset.id}}/panel?axes=pressure:temperature&minmax=false">Temperature</a>
+            ~ <a download="{{dataset.id}}-gps.csv" target="_blank" href="{{apiUrl}}/dataset/{{dataset.id}}/panel?axes=gps:latitude,gps:longitude&minmax=false">GPS</a>
 
         </h5>
     </div>

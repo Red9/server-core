@@ -23,6 +23,7 @@
         "moment": "latest",
         "cluster": "latest",
         "underscore": "latest",
-        "validator":"latest"
+        "validator":"latest",
+        "connect-timeout":"latest"
     }
 }

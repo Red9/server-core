@@ -6,7 +6,7 @@ var async = require('async');
 var common = require('./../common');
 var cassandraDatabase = require('./../datasources/cassandra');
 
-
+var summaryStatisticsResource = require('./summarystatistics_resource');
 
 var eventResource = {
     startTime: {
@@ -98,7 +98,6 @@ function mapToResource(cassandra) {
  * @returns {unresolved}
  */
 exports.createEvent = function(newEvent, callback) {
-
     var valid = common.checkNewResourceAgainstSchema(eventResource, newEvent);
     if (typeof valid !== 'undefined') {
         callback('Schema failed: ' + valid);
@@ -117,6 +116,13 @@ exports.createEvent = function(newEvent, callback) {
         } else {
             console.log("successfully created event");
             callback(undefined, [newEvent]);
+            summaryStatisticsResource.calculate(newEvent.datasetId, newEvent.startTime, newEvent.endTime, function(statistics) {
+                exports.updateEvent(newEvent.id, {summaryStatistics: statistics}, function(err) {
+                    if (err) {
+                        console.log('Error updating event with summaryStatistics' + err);
+                    }
+                });
+            });
         }
     });
 };
@@ -143,11 +149,40 @@ exports.deleteEventByDataset = function(datasetId, callback) {
     });
 };
 
-exports.updateEvent = function(parameters, callback) {
-    //Check parameters
+exports.updateEvent = function(id, modifiedEvent, callback, forceEditable) {
+    //------------------------------------------------------------------
+    //TODO(SRLM): Make sure that the event exists!
+    //------------------------------------------------------------------
 
-    // Update event
+    if (typeof id === 'undefined' || validator.isUUID(id) === false) {
+        callback('Must include valid ID');
+        return;
+    }
 
+    underscore.each(modifiedEvent, function(value, key) {
+        if (key in eventResource === false
+                || (eventResource[key].editable === false
+                && forceEditable !== true)
+                || key === 'id') {
+            delete modifiedEvent[key];
+        }
+    });
+
+    if (modifiedEvent.length === 0) {
+        callback('Must include at least one editable item');
+        return;
+    }
+
+    var cassandraEvent = mapToCassandra(modifiedEvent);
+
+    cassandraDatabase.updateSingle('event', id, cassandraEvent, function(err) {
+        if (err) {
+            console.log('error updating event: ' + err);
+            callback('error');
+        } else {
+            callback(undefined, modifiedEvent);
+        }
+    });
 
 };
 

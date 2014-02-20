@@ -254,7 +254,7 @@ var ExtractHttpAttributes = function(req, res) {
 
     var result = {};
     if (typeof req.isAuthenticated === 'function' && req.isAuthenticated()) {
-        result['userdisplayname'] = req.user.display_name;
+        result['userdisplayname'] = req.user.displayName;
         result['userid'] = req.user.id;
     }
 
