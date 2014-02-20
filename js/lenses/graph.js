@@ -172,8 +172,8 @@ Graph.prototype.drawDygraph = function(data, labels) {
     }
     //Update existing graph instance
     else {
-        console.log("Update existing graph..(" + data.length + ")");
-        
+        console.log("Update existing graph..(" + data.length + " items )");
+
         var graphCfg = {
             file: data
         };
@@ -221,10 +221,11 @@ Graph.prototype.onZoom = function(minimumTime, maximumTime) {
     }
 
     // Just to make sure no little +- 0.0000001 bits get in there...
-    /*if (this.graph.isZoomed('x') === false) {
-     minimumTime = this.dataset.startTime;
-     maximumTime = this.dataset.endTime;
-     }*/
+    if (this.graph.isZoomed('x') === false) {
+        minimumTime = this.dataset.startTime;
+        maximumTime = this.dataset.endTime;
+     }
+     
     this.window_start_time = minimumTime;
     this.window_end_time = maximumTime;
 
@@ -234,7 +235,6 @@ Graph.prototype.onZoom = function(minimumTime, maximumTime) {
 
 
 Graph.prototype.updateWithNewPanel = function(panel) {
-    console.log("Update with new panel: " + panel.labels);
     var labels = panel.labels;
     var values = panel.values;
     this.drawDygraph(values, labels);
@@ -246,6 +246,12 @@ Graph.prototype.updateWithNewPanel = function(panel) {
 // Public
 //------------------------------------------------------------------------------
 Graph.prototype.setRange = function(minimumTime, maximumTime) {
+    // Go ahead and zoom while loading to at least give the user something to look at.
+    if (typeof this.graph !== "undefined") {
+        this.graph.updateOptions({
+            dateWindow: [minimumTime, maximumTime]// {left: minX, right: maxX}
+        });
+    }
     this.parameters.requestPanelFunction(
             minimumTime, maximumTime,
             this.configuration.axes,
