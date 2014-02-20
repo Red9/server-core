@@ -26,6 +26,7 @@ var site = {
       ], Boolean).join(', ');
     }
   },
+  searchPageSize: 20,
   templates: {},
   urls: {
     apiPath: getApiPath(location),
@@ -118,12 +119,26 @@ var site = {
     }
     var self = this;
     $.get(url, this.getSearchParams(), function (response) {
-      var results = {items: response.sort(site.sortBy('startTime', 'desc'))};
-      if (!self.templates.results) {
-        self.templates.results = Handlebars.compile($('#tmpl-results').html());
-      }
-      $('#container-results').html(self.templates.results(results));
+      self.results = response.sort(site.sortBy('startTime', 'desc'));
+      self.showResults();
     });
+  },
+  showResults: function (page) {
+    var adaptedResults = {items: this.results};
+    if (adaptedResults.items.length > this.searchPageSize) {
+      var paging = {
+        length: Math.ceil(adaptedResults.items.length / this.searchPageSize),
+        current: page ||0
+      };
+      adaptedResults.paging = paging;
+      adaptedResults.items = adaptedResults.items.slice(
+        paging.current * this.searchPageSize,
+        (paging.current+1) * this.searchPageSize);
+    }
+    if (!this.templates.results) {
+      this.templates.results = Handlebars.compile($('#tmpl-results').html());
+    }
+    $('#container-results').html(this.templates.results(adaptedResults));
   },
   setMap: function(lat, lng, zoom, selectCallback) {
     var self = this;
@@ -166,6 +181,9 @@ var site = {
    * Removes the marker from the map
    */
   clearMap: function () {
+    if (!this.mapContext) {
+      return;
+    }
     this.mapContext.marker.setMap(null);
   },
   setSlider: function (context, options) {
@@ -228,6 +246,43 @@ var site = {
 };
 if (Handlebars) {
   Handlebars.registerHelper('toDateString', site.toDateString.bind(site));
+
+  Handlebars.registerHelper('pager', function(context, options) {
+    if (!context) {
+      return null;
+    }
+    var builder = [];
+    var onclick = (options.hash && options.hash['onclick']) || '';
+    function getOnClick(value) {
+      return onclick.replace(/\:0\:/g, value) + ';return false;';
+    }
+    builder.push('<ul class="pagination">');
+    if (context.current > 0) {
+      builder.push('<li><a href="#" onclick="' + getOnClick(context.current-1) + '">&laquo;</a></li>');
+    }
+    else {
+      builder.push('<li class="disabled"><span>&laquo;</span></li>')
+    }
+    for(var i = 0; i < context.length; i++) {
+      builder.push('<li');
+      if (i === context.current) {
+        builder.push(' class="active"')
+      }
+      builder.push('><a href="#" onclick="');
+      builder.push(getOnClick(i));
+      builder.push('">');
+      builder.push(i+1);
+      builder.push('</a></li>');
+    }
+    if (context.current < context.length - 1) {
+      builder.push('<li><a href="#' + getOnClick(context.current+1) + '">&raquo;</a></li>');
+    }
+    else {
+      builder.push('<li class="disabled"><span>&raquo;</span></li>')
+    }
+    builder.push('</ul');
+    return builder.join('');
+});
 }
 function getApiPath(location) {
   var hostPort;
