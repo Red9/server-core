@@ -184,9 +184,7 @@ if (cluster.isMaster) {
      */
     function LoadGlobalTemplateParameters(req, res, next) {
         if (req.isAuthenticated()) {
-            res.locals['user'] = {
-                displayName: req.user.displayName,
-                id: req.user.id};
+            res.locals['user'] = req.user;
         }
         
         res.locals['apiUrl'] = config.apiDomain;

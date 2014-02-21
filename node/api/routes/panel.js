@@ -36,6 +36,7 @@ exports.get = function(req, res, next) {
     panelResource.getPanel({dataset: req.param('id')}, req.query,
             function(dataset, columns) {
                 console.log("Columns: " + columns);
+                console.log('Dataset: ' + dataset);
 
                 if (format === 'csv') {
                     // Add 'time' column to labels

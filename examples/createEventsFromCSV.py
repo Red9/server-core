@@ -33,6 +33,8 @@ def CreateEvent(datasetId, eventType, eventStartTime, eventEndTime):
 	
 	r = requests.post(host + '/event/', data=newEvent)
 	
+	# Print the server response. Will respond with created event if success,
+	# message if failure.
 	print(r.text)
  
 def ParseArgs():

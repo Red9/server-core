@@ -24,20 +24,23 @@ var cassandraDatabase = new cassandraClient({hosts: hosts, keyspace: 'dev'});
  */
 function computeColumns(panelParameters, dataset, commandOptions) {
     var columns = dataset.axes;
+    console.log('A columns: ' + columns);
     if (typeof panelParameters['axes'] !== 'undefined') {
         //Get the intersection with the Dataset axes
         // so that we only request columns that we actually have.
 
         columns = underscore.intersection(
                 panelParameters['axes'].split(','), dataset.axes);
-
+        console.log('A.5 columns: ' + columns);
         if (columns.length === 0) {
             // Default to all axes if the intersection returns an empty set.
             columns = dataset['column_titles'];
         }
+        console.log('A.9 columns: ' + columns);
     }
 
     //result['columns'] = columns;
+    console.log('B columns: ' + columns);
 
     var columnString = "";
 
@@ -53,6 +56,7 @@ function computeColumns(panelParameters, dataset, commandOptions) {
         commandOptions.push('--columns');
         commandOptions.push(columnString);
     }
+    console.log('C columns: ' + columns);
 
     return columns;
 }

@@ -24,8 +24,8 @@ exports.nodetimeProfile = {
 
 exports.releaseRealm = 'http://redninesensor.com';
 exports.releaseApiDomain = 'http://api.redninesensor.com';
-exports.developmentRealm = 'http://localhost';
-exports.developmentApiDomain = 'http://api.localhost';
+exports.developmentRealm = 'http://localdev.redninesensor.com';
+exports.developmentApiDomain = 'http://api.localdev.redninesensor.com';
 
 exports.realm = exports.developmentRealm;
 exports.apiDomain = exports.developmentApiDomain;

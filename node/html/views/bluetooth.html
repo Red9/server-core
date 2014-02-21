@@ -5,13 +5,17 @@
 </style>
 
 <script src="/js/jquery.jeditable.js"></script>
-<script src="/js/spin-1.3.0.min.js"></script>
-<script src="/js/easyspinner.js"></script>
 <script src="/js/moment.min.js"></script>
 
-
-
 <script>
+
+    /**
+     * BluetoothHost is the Android provided (via the App) global variable that we
+     * can use to call the Android Java functions.
+     *
+     */
+
+//---------------------------
 
     var bluetoothDeviceTemplate = '<button class="list-group-item btn btn-default btn-lg btn-block" id="%id">'
             + '<h3>%device</h3>'
@@ -25,58 +29,79 @@
 
     var scadRecordingTemplate = '<tr>'
             + '<td><b>%name</b><br />%filesize, created at %creationdate</td>'
-            + '<td><button class="btn btn-default btn-sm" onclick="TransferFile(\'%name\');">Transfer</button></td>'
+            + '<td><button class="btn btn-default btn-sm" onclick="TransferFile(\'%name\', \'%filesize\', %filesizeInBytes);">Transfer</button></td>'
             + '<td><button class="btn btn-default btn-sm btn-danger" onclick="DeleteFile(\'%name\');">Delete</button></td>'
             + '</tr>';
 
-    var ShowModal = function(filename) {
+    /**
+     * 
+     * @param {type} filename
+     * @param {type} filesize A string with the size and units of the file being transfered
+     * @returns {undefined}
+     */
+    var ShowModal = function(filename, filesize, filesizeInBytes) {
+        $("#modalTransferHeaderStatus").text('In Progress');
+        
         $('#modalTransferFile').modal('show');
         $("#modalTransferFileCloseButton").hide();
         $("#modalTransferFileCancelButton").show();
 
-        //$("#modalTransferFileProgressHolder").addClass("active progress-striped");
+        $('#modalTransferFilename').text(filename);
+        $('#modalTransferTotal').text(filesize);
 
-        var startTime = new Date().getTime();
+        var startTime = moment();
+
+        var modalTransferTotalDownloaded = $('#modalTransferTotalDownloaded');
+        var modalTransferSpeed = $('#modalTransferSpeed');
+        var modalTransferElapsedTime = $('#modalTransferElapsedTime');
 
         var interval = setInterval(function() {
 
+            var elapsedMs = moment().diff(startTime);
             var bytesTransfered = BluetoothHost.GetRecordingBytesTransfered();
-            var transferSpeed = bytesTransfered / (((new Date().getTime()) - startTime) / 1000.0);
+            var transferSpeed = bytesTransfered / (elapsedMs / 1000.0);
 
-            //$("#modalTransferFileProgressBar").width(percent + "%");
-            $("#modalTransferFileProgressText").text((bytesTransfered / 1024).toFixed(2) + " KB, " + (transferSpeed / 1024).toFixed(2) + " KB/s");
+            modalTransferTotalDownloaded.text((bytesTransfered / 1024).toFixed(2) + " KB");
+            modalTransferSpeed.text((transferSpeed / 1024).toFixed(2) + ' KB/s');
+            modalTransferElapsedTime.text(moment.utc(elapsedMs).format('mm:ss'));
 
-
-            if (BluetoothHost.GetRecordingDone()) {
+            var doneBytes = BluetoothHost.GetRecordingDone();
+            if (doneBytes !== -1) {
                 clearInterval(interval);
-                var previousText = $("#modalTransferFileProgressText").text();
-                $("#modalTransferFileProgressText").text(previousText + " ( Done )");
                 $("#modalTransferFileCloseButton").show();
                 $("#modalTransferFileCancelButton").hide();
-                $("#modalTransferFileProgressHolder").removeClass("active progress-striped");
+                if (doneBytes === filesizeInBytes) {
+                    $("#modalTransferHeaderStatus").text('Done');
+                } else {
+                    $("#modalTransferHeaderStatus").text('Erorr');
+                    CheckConnection(function() {
+                        alert('Unknown error occured during transfer: could not transfer all bytes.'
+                                + 'Transfered ' + doneBytes + ' bytes out of ' + filesizeInBytes);
+                    });
+
+                }
             }
         }, 500);
 
         $('#modalTransferFileCancelButton').on('click', function() {
             clearInterval(interval);
-            var previousText = $("#modalTransferFileProgressText").text();
-            $("#modalTransferFileProgressText").text(previousText + " ( Cancelled )");
+            BluetoothHost.GetRecordingCancel();
+            $("#modalTransferHeaderStatus").text('Cancelled');
             $("#modalTransferFileCloseButton").show();
             $("#modalTransferFileCancelButton").hide();
-            $("#modalTransferFileProgressHolder").removeClass("active progress-striped");
-            BluetoothHost.GetRecordingCancel();
         });
     };
 
-    var TransferFile = function(filename) {
+    var TransferFile = function(filename, filesize, filesizeInBytes) {
         console.log("JS: Transfering file " + filename);
-        var result = BluetoothHost.GetRecording(filename, filename);
-        if (result === true) {
-            //alert("Transfering file to Downloads (" + filename + ")");
-            ShowModal();
-        } else {
-            alert("Could not start file transfer.");
-        }
+        CheckConnection(function() {
+            var result = BluetoothHost.GetRecording(filename, filename);
+            if (result === true) {
+                ShowModal(filename, filesize, filesizeInBytes);
+            } else {
+                alert("Could not start file transfer.");
+            }
+        });
 
     };
 
@@ -95,7 +120,9 @@
             console.log(editedValue);
             console.log(settings);
 
-            BluetoothHost.SetParameter(name, editedValue);
+            CheckConnection(function() {
+                BluetoothHost.SetParameter(name, editedValue);
+            });
 
             return(editedValue);
         }, {
@@ -105,26 +132,24 @@
         });
     };
 
-    var AddLineToRecordingTable = function(filename, filesize, creationdate) {
-        $("#scadavailablerecordingstable").append(
-                scadRecordingTemplate
+    var AddLineToRecordingTable = function(filename, filesize, creationdate, filesizeInBytes) {
+        console.log('filesizeInBytes: ' + filesizeInBytes);
+        
+        var row = scadRecordingTemplate
                 .replace("%name", filename) // Three times to replace all 3 of the recordings.
                 .replace("%name", filename)
                 .replace("%name", filename)
+                .replace("%filesizeInBytes", filesizeInBytes)
+                .replace("%filesize", filesize) // and twice for the two filesizes
                 .replace("%filesize", filesize)
-                .replace("%creationdate", creationdate)
+                .replace("%creationdate", creationdate);
+        
+        console.log('Row: ' + row);
+        
+        
+        $("#scadavailablerecordingstable").append(
+                row
                 );
-    };
-
-
-    var ShowSCADDivs = function(connected) {
-        if (connected) {
-            $("#bluetoothDisconnectedDiv").hide();
-            $("#bluetoothConnectedDiv").show();
-        } else {
-            $("#bluetoothDisconnectedDiv").show();
-            $("#bluetoothConnectedDiv").hide();
-        }
     };
 
     var GetConnectionInformation = function() {
@@ -140,19 +165,39 @@
         }
     };
 
+
+    var CheckConnection = function(connectionAvailableCallback) {
+        if (typeof BluetoothHost !== 'undefined') {
+            if (BluetoothHost.IsConnected()) {
+                connectionAvailableCallback();
+            } else {
+                alert('Bluetooth not connected.');
+                $('#bluetoothDisconnectedDiv').show().siblings('div').hide();
+            }
+
+        } else {
+            alert('BluetoothHost is undefined! You must be running an Android device to use Bluetooth.');
+        }
+    };
+
     var updateSCADClock = function() {
         if (typeof BluetoothHost !== "undefined") {
-            var now = new Date();
-            console.log("Before setting time");
-            BluetoothHost.SetDateTime(
-                    now.getUTCFullYear(),
-                    now.getUTCMonth() + 1, // UTC months start at 0.
-                    now.getUTCDate(), // Get the day of month
-                    now.getUTCHours(),
-                    now.getUTCMinutes(),
-                    now.getUTCSeconds()
-                    );
-            alert("Successfully set SCAD clock.");
+            CheckConnection(function() {
+                var now = new Date();
+                console.log("Before setting time");
+                if (BluetoothHost.SetDateTime(
+                        now.getUTCFullYear(),
+                        now.getUTCMonth() + 1, // UTC months start at 0.
+                        now.getUTCDate(), // Get the day of month
+                        now.getUTCHours(),
+                        now.getUTCMinutes(),
+                        now.getUTCSeconds()
+                        )) {
+                    alert("Successfully set SCAD clock.");
+                } else {
+                    alert('Failed to set SCAD clock');
+                }
+            });
         }
     };
 
@@ -163,14 +208,15 @@
         if (typeof result.recordings !== "undefined") {
             $("#scadavailablerecordingstable").empty();
             for (var index = 0; index < result.recordings.length; index++) {
-                
+
                 var createdate = moment(result.recordings[index].creationdate).format("YYYY-MM-DD  hh:mm:ss a");
                 var filesize = (result.recordings[index].filesize / 1024).toFixed(2) + " KB";
-                
+
                 AddLineToRecordingTable(result.recordings[index].filename,
-                filesize,
-                createdate
-                );
+                        filesize,
+                        createdate,
+                        result.recordings[index].filesize
+                        );
             }
         } else {
             alert("No recordings! This is likely a problem with the App. Please report.");
@@ -187,25 +233,28 @@
                 .replace("%id", id)
                 );
         $("#" + id).on('click', function() {
-            //alert("Clicked!");
-            console.log("Showing spinner");
-            var spinner = new SRLM.EasySpinner($("#" + id));
-            spinner.showSpinner(true);
-            console.log("Spinner shown");
-
 
             if (typeof BluetoothHost !== "undefined") {
-                BluetoothHost.ConnectTo(address); // Blocking
-                if (BluetoothHost.IsConnected()) {
-                    ShowSCADDivs(true);
-                    GetConnectionInformation();
-                    GetAvailableRecordings();
-                } else {
-                    alert("Could not connect to device selected.");
-                }
+
+                $('#bluetoothConnectingDiv').show().siblings('div').hide();
+
+                // Need to add timeout. Otherwise, the blocking below prevents
+                // the screen from being updated. So the timeout frees up some
+                // processor cycles to take care of that.
+                setTimeout(function() {
+                    BluetoothHost.ConnectTo(address); // Blocking
+                    if (BluetoothHost.IsConnected()) {
+                        $('#bluetoothConnectedDiv').show().siblings('div').hide();
+                        GetConnectionInformation();
+                        GetAvailableRecordings();
+
+                    } else {
+                        $('#bluetoothDisconnectedDiv').show().siblings('div').hide();
+                        alert("Could not connect to device selected.");
+                    }
+                }, 50);
+
             }
-            console.log("Stopping spinner");
-            spinner.showSpinner(false);
 
         });
     };
@@ -213,15 +262,19 @@
 
     $(document).ready(function() {
         if (typeof BluetoothHost !== "undefined") {
-            $("#NoBluetoothAvailableDiv").hide();
-            $("#BluetoothAvailableDiv").show();
+
+            console.log('Setting info: {{user.id}} {{user.displayName}} {{user.email}}');
+            BluetoothHost.SetUserInfo('{{user.id}}', '{{user.displayName}}', '{{user.email}}');
+
+            $("#BluetoothAvailableDiv").show().siblings('div').hide();
 
             if (BluetoothHost.IsConnected()) {
-                ShowSCADDivs(true);
+                console.log('page refreshed, so get SCAD info');
+                $('#bluetoothConnectedDiv').show().siblings('div').hide();
                 GetConnectionInformation();
                 GetAvailableRecordings();
             } else {
-                ShowSCADDivs(false);
+                $('#bluetoothDisconnectedDiv').show().siblings('div').hide();
             }
 
             $("#bluetoothDeviceList").empty();
@@ -238,17 +291,16 @@
 
             $("#bluetoothDisconnectButton").on('click', function() {
                 BluetoothHost.Disconnect();
-                ShowSCADDivs(false);
+                $('#bluetoothDisconnectedDiv').show().siblings('div').hide()
             });
 
         } else {
-            $("#NoBluetoothAvailableDiv").show();
-            $("#BluetoothAvailableDiv").hide();
-
-            //$("#bluetoothDeviceList").empty();
-            //AddBluetoothDevice("Name", "00:06:66:62:59:2F");
-            //AddBluetoothDevice("Name", "55:55:55:55:55:55");
+            $("#NoBluetoothAvailableDiv").show().siblings('div').hide();
         }
+
+        $('#forceAppCrashButton').on('click', function() {
+            BluetoothHost.ForceCrash();
+        });
     });
 
 
@@ -256,17 +308,14 @@
 </script>
 
 <div id="modalTransferFile" class="modal" data-backdrop="static" tabindex="-1" data-width="760">
-    <div class="modal-header">
-        <h3>Recording Transfer</h3>
+    <div class="modal-header h3">
+        Recording Transfer ( <span id="modalTransferHeaderStatus"></span> )
     </div>
     <div class="modal-body">
+        <p class='h4'><span id="modalTransferTotalDownloaded">0</span> /<span id="modalTransferTotal">0</span> (<span id="modalTransferSpeed">0</span>)</p>
+        <p><span id="modalTransferElapsedTime">00:00</span> elapsed</p>
 
-        <div id="modalTransferFileProgressHolder" class="progress progress-striped">
-            <div class="progress-bar" id="modalTransferFileProgressBar" role="progressbar" style="width:100%;">
-            </div>
-        </div>
-        <p id="modalTransferFileProgressText">Text!</p>
-        <p>File saved to your Download folder (try using ES File explorer to upload it)</p>
+        <p>File saved to your Download folder under "<span id="modalTransferFilename"></span>" (try using ES File explorer to find it)</p>
     </div>
     <div class="modal-footer">
         <button id="modalTransferFileCancelButton" type="button" class="btn btn-danger">Cancel Transfer</button>
@@ -287,44 +336,51 @@
     </div>
 </div>
 
-<div id="NoBluetoothAvailableDiv">
-    <h2>Bluetooth is available with our Android App:</h2>
-    <a href="https://play.google.com/store/apps/details?id=com.redninesensor.android"><img src="images/androidappstore.jpg"/></a>
-</div>
-
-<div id="BluetoothAvailableDiv">
-
-    <div id ="bluetoothDisconnectedDiv">
-        <h3>Connect to a device:</h3>
-
-        <ul class="list-group" id="bluetoothDeviceList">
-            <li class="list-group-item">(No devices available)</li>
-        </ul>
-
-        <h4>Don't see you device listed? Try scanning and pairing from the System Bluetooth Panel first, then restart the App.</h4>
+<div>
+    <div id="NoBluetoothAvailableDiv">
+        <h2>Bluetooth is available with our Android App:</h2>
+        <a href="https://play.google.com/store/apps/details?id=com.redninesensor.android"><img src="images/androidappstore.jpg"/></a>
     </div>
 
+    <div id="BluetoothAvailableDiv">
+        <div id ="bluetoothDisconnectedDiv">
+            <h3>Connect to a device:</h3>
 
-    <div id="bluetoothConnectedDiv">
-        <a class="btn btn-default btn-lg btn-block" id="bluetoothDisconnectButton">Disconnect from SCAD</a>
+            <ul class="list-group" id="bluetoothDeviceList">
+                <li class="list-group-item">(No devices available)</li>
+            </ul>
 
-        <h3>Properties</h3>
-        <table cellpadding="3" cellspacing="3" class="table table-striped" id="scadpropertytable">
-        </table>
+            <h4>Don't see you device listed? Try scanning and pairing from the System Bluetooth Panel first, then restart the App.</h4>
+        </div>
 
-        <button onclick="updateSCADClock()" type="button" class="btn btn-default">Sync SCAD Clock to Phone</button>
-
-        <h3>Available Recordings</h3>
-        <table cellpadding="3" cellspacing="3" class="table table-striped" id="scadavailablerecordingstable">
-        </table>
+        <div id="bluetoothConnectingDiv">
+            <h4>Connecting to selected device...</h4>
+        </div>
 
 
+        <div id="bluetoothConnectedDiv">
+            <a class="btn btn-default btn-lg btn-block" id="bluetoothDisconnectButton">Disconnect from SCAD</a>
 
-        <!--        <h3>Controls</h3>
-                <a class="btn btn-success btn-lg btn-block" id="startRecordingButton">Begin Recording</a>
-                <a class="btn btn-danger btn-lg btn-block" id="endRecordingButton">Stop Recording</a>
-                <br />
-                <a class="btn btn-warning btn-lg btn-block" id="startRecordingButton">Turn Off</a>-->
+            <h3>Properties</h3>
+            <table cellpadding="3" cellspacing="3" class="table table-striped" id="scadpropertytable">
+            </table>
+
+            <button onclick="updateSCADClock()" type="button" class="btn btn-default">Sync SCAD Clock to Phone</button>
+
+            <h3>Available Recordings</h3>
+            <table cellpadding="3" cellspacing="3" class="table table-striped" id="scadavailablerecordingstable">
+            </table>
+
+
+
+            <!--        <h3>Controls</h3>
+                    <a class="btn btn-success btn-lg btn-block" id="startRecordingButton">Begin Recording</a>
+                    <a class="btn btn-danger btn-lg btn-block" id="endRecordingButton">Stop Recording</a>
+                    <br />
+                    <a class="btn btn-warning btn-lg btn-block" id="startRecordingButton">Turn Off</a>-->
+        </div>
+
     </div>
-
 </div>
+
+<button id="forceAppCrashButton" class="btn btn-sm btn-danger">Force App Crash</button>
