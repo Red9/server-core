@@ -3,15 +3,15 @@ var moment = require('moment');
 var underscore = require('underscore')._;
 var validator = require('validator');
 
-var cassandraDatabase = require('./../datasources/cassandra');
-var config = require('./../../../config');
-var log = require('./../../logger').log;
+var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
+var config = requireFromRoot('config');
+var log = requireFromRoot('support/logger').log;
 
-var common = require('./../common');
+var common = requireFromRoot('support/resourcescommon');
 
-var userResource = require('./user_resource');
-var eventResource = require('./event_resource');
-var panelResource = require('./panel_resource');
+var userResource = requireFromRoot('support/resources/user');
+var eventResource = requireFromRoot('support/resources/event');
+var panelResource = requireFromRoot('support/resources/panel');
 
 var datasetResource = {
     title: {

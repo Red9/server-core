@@ -1,7 +1,7 @@
 var spawn = require('child_process').spawn;
 
-var log = require('./../../logger').log;
-var config = require('./../../../config');
+var log = requireFromRoot('support/logger').log;
+var config = requireFromRoot('config');
 
 
 /**

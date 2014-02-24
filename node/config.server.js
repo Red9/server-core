@@ -17,3 +17,5 @@ exports.release = true;
 
 exports.cassandraHosts = ['localhost:9042'];
 exports.cassandraKeyspace = 'dev';
+
+exports.requireRoot = '/home/ubuntu/dev-website/node';

@@ -1,10 +1,10 @@
 var moment = require('moment');
 var validator = require('validator');
 
-var cassandraPanel = require('./../datasources/cassandra_panel');
+var cassandraPanel = requireFromRoot('support/datasources/cassandra_panel');
 
-var common = require('./../common');
-var datasetResource = require('./dataset_resource');
+var common = requireFromRoot('support/resourcescommon');
+var datasetResource = requireFromRoot('support/resources/dataset');
 
 /**
  * 

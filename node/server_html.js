@@ -12,7 +12,7 @@ config.ProcessCommandLine();
 
 if (cluster.isMaster) {
     // Logging setup
-    var logger = require('./support/logger');
+    var logger = requireFromRoot('support/logger');
     logger.init('html', 'master');
     var log = logger.log; // console.log replacement
 
@@ -32,7 +32,7 @@ if (cluster.isMaster) {
 
 } else {//Worker process
     // Logging setup
-    var logger = require('./support/logger');
+    var logger = requireFromRoot('support/logger');
     logger.init('html', '' + cluster.worker.id);
     var log = logger.log; // console.log replacement
 
@@ -44,7 +44,7 @@ if (cluster.isMaster) {
 
 // Standard modules that we need:
     var express = require('express');
-    var routes = require('./html/routes');
+    var routes = requireFromRoot('html/routes');
     var http = require('http');
     var path = require('path');
     var hbs = require('hbs');
@@ -161,7 +161,7 @@ if (cluster.isMaster) {
 // Authentication details
     var passport = require('passport');
     var GoogleStrategy = require('passport-google').Strategy;
-    var authenticate = require('./support/authenticate');
+    var authenticate = requireFromRoot('support/authenticate');
 
     passport.use(new GoogleStrategy({
         returnURL: config.htmlRealm + '/login/google/return',
@@ -235,7 +235,7 @@ if (cluster.isMaster) {
         app.use(express.errorHandler());
     }
 
-    require('./html/routes')(app, passport); // These are the main site routes
+    requireFromRoot('html/routes')(app, passport); // These are the main site routes
 
     app.use(function(req, res, next) {
         res.status(404).render('404_error', {title: "Sorry, page not found"});
@@ -259,7 +259,7 @@ if (cluster.isMaster) {
      * 
      */
     var socket_routes = [];
-    socket_routes.push(require('./html/routes/rncprocess').NewSocket);
+    socket_routes.push(requireFromRoot('html/routes/rncprocess').NewSocket);
 
     io.sockets.on('connection', function(socket) {
         socket.on('page_uuid', function(data) {

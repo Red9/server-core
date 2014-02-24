@@ -2,8 +2,8 @@ var underscore = require('underscore')._;
 var readline = require('readline');
 var async = require('async');
 
-var panelResource = require('./../../support/resources/resource/panel_resource');
-var datasetResource = require('./../../support/resources/resource/dataset_resource');
+var panelResource = requireFromRoot('support/resources/panel');
+var datasetResource = requireFromRoot('support/resources/dataset');
 
 exports.search = function(req, res, next) {
     res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
@@ -170,7 +170,7 @@ exports.update = function(req, res, next) {
     
     
     
-    // TODO(SRLM): Match the database 
+    // TODO(SRLM): Match the database: Get the dataset and make sure that temporaryId actually exists
     var datasetId = req.param('id');
     var temporaryId = req.param('temporaryId');
     if (typeof temporaryId !== 'undefined') {

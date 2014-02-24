@@ -1,6 +1,6 @@
-var log = require('./../support/logger').log;
+var log = requireFromRoot('support/logger').log;
 
-var userResource = require('./resources/resource/user_resource');
+var userResource = requireFromRoot('support/resources/user');
 
 /**
  There's a bit of a problem with the schema here. It assumes that the email is

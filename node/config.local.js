@@ -17,3 +17,5 @@ exports.release = false;
 
 exports.cassandraHosts = ['localhost:9042'];
 exports.cassandraKeyspace = 'dev';
+
+exports.requireRoot = '/home/clewis/consulting/red9/dev-website/node';

@@ -2,9 +2,9 @@ var spawn = require('child_process').spawn;
 var fs = require('fs');
 var underscore = require('underscore');
 
-var config = require('./../../../config.js');
+var config = requireFromRoot('config');
 
-var common = require('./../common');
+var common = requireFromRoot('support/resourcescommon');
 
 /**
  * @warning: If you move this file to a new directory you must update the
@@ -21,7 +21,7 @@ var processUsr = function(usrDirectory) {
             // fs operates relative to where the program is executed, while
             // require operates relative to where this particular file is.
             // Annoying!
-            var package = require('../../../' + usrDirectory + '/package.json');
+            var package = require('../../' + usrDirectory + '/package.json');
             package.directory = usrDirectory;
             package.id = common.generateUUID();
             console.log('Got USR: ' + package.id);
@@ -121,8 +121,10 @@ exports.operateUsr = function(id, usrForm, callback) {
         //TODO(SRLM): Add catch in case the USR throws an error
 
         console.log(JSON.stringify(usrForm) + '\n');
-        runningUsr.stdin.on('error', function() {
+        runningUsr.stdin.on('error', function(err) {
             // process exited before we could write to stdin.
+            log.error('Operate USR Error: ' + err);
+
         });
         runningUsr.stdin.write(JSON.stringify(usrForm) + '\n');
 

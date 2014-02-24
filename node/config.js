@@ -12,7 +12,7 @@ var requiredInstanceKeys = [
     'release',
     'cassandraHosts',
     'cassandraKeyspace'
-
+   
 ];
 
 exports.ProcessCommandLine = function() {
@@ -21,8 +21,8 @@ exports.ProcessCommandLine = function() {
     var ops = stdio.getopt({
         config: {key: 'config', args: 1, description: 'Specify the configuration file'}
     });
-    
-    if(typeof ops.config === 'undefined'){
+
+    if (typeof ops.config === 'undefined') {
         console.log('ERROR: must specify a configuration file.');
         process.exit(1);
     }
@@ -36,6 +36,12 @@ exports.ProcessCommandLine = function() {
             process.exit(1);
         }
     });
+
+    GLOBAL.requireFromRoot = (function(root) {
+        return function(resource) {
+            return require(root + "/" + resource);
+        };
+    })(__dirname);
 };
 
 exports.pageTemplateDefaults = {

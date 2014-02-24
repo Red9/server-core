@@ -1,7 +1,7 @@
 
-var log = require('./../../support/logger').log;
+var log = requireFromRoot('support/logger').log;
 
-var datasetResource = require('./../../support/resources/resource/dataset_resource');
+var datasetResource = requireFromRoot('support/resources/dataset');
 
 exports.get = function(req, res, next){
     if (typeof req.params.uuid === "undefined") {

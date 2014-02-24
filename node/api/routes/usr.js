@@ -2,9 +2,9 @@ var underscore = require('underscore');
 var validator = require('validator');
 var spawn = require('child_process').spawn;
 
-var config = require('./../../config');
+var config = requireFromRoot('config');
 
-var usrResource = require('./../../support/resources/resource/usr_resource');
+var usrResource = requireFromRoot('support/resources/usr');
 
 exports.get = function(req, res, next) {
     usrResource.getUsrs(function(list) {

@@ -1,11 +1,11 @@
 var spawn = require('child_process').spawn;
 
-var log = require('./../../support/logger').log;
-var config = require('./../../config');
+var log = requireFromRoot('support/logger').log;
+var config = requireFromRoot('config');
 
-var datasetResource = require('./../../support/resources/resource/dataset_resource');
-var panelResource = require('./../../support/resources/resource/panel_resource');
-var summaryStatisticsResource = require('./../../support/resources/resource/summarystatistics_resource');
+var datasetResource = requireFromRoot('support/resources/dataset');
+var panelResource = requireFromRoot('support/resources/panel');
+var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 
 exports.post = function(req, res, next) {
     var filename = req.files.file.name.split(".")[0];

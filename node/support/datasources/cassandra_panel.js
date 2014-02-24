@@ -4,13 +4,13 @@ var underscore = require('underscore')._;
 var validator = require('validator');
 var async = require('async');
 
-var log = require('./../../logger').log;
-var config = require('./../../../config');
+var log = requireFromRoot('support/logger').log;
+var config = requireFromRoot('config');
 
 var cassandraClient = require('node-cassandra-cql').Client;
 var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
 
-var datasetResource = require('./../resource/dataset_resource');
+var datasetResource = requireFromRoot('support/resources/dataset');
 
 /**
  * 

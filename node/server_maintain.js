@@ -6,7 +6,7 @@ var config = require('./config');
 config.ProcessCommandLine();
 
 // Logging setup
-var logger = require('./support/logger');
+var logger = requireFromRoot('support/logger');
 logger.init('maintain', '0');
 var log = logger.log; // console.log replacement
 log.info("Maintain Node.js process started.");
@@ -20,8 +20,8 @@ log.info("Maintain Node.js process started.");
 function MoveDatasetPanelMetaToPanelList() {
 
 
-    var panelResource = require('./support/resources/resource/panel_resource');
-    var datasetResource = require('./support/resources/resource/dataset_resource');
+    var panelResource = require('./support/resources/panel');
+    var datasetResource = require('./support/resources/dataset');
 
 // note: requires editing mapToResource so that it doesn't read from dataset.panels...
     datasetResource.getDatasets({}, function(datasets) {

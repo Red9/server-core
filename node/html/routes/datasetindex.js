@@ -1,5 +1,5 @@
 
-var datasetResource = require('./../../support/resources/resource/dataset_resource');
+var datasetResource = requireFromRoot('support/resources/dataset');
 
 exports.get = function(req, res) {
     var parameters = {page_title: "Available Datasets", datasets: []};

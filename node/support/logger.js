@@ -12,7 +12,7 @@ var winston = require('winston');
 var Loggly = require('winston-loggly').Loggly;
 var Papertrail = require('winston-papertrail').Papertrail;
 
-var config = require('./../config');
+var config = requireFromRoot('config');
 
 
 var log_color = {};

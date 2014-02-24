@@ -1,9 +1,9 @@
 var underscore = require('underscore')._;
 
-var log = require('./../../logger').log;
-var cassandraDatabase = require('./../datasources/cassandra');
+var log = requireFromRoot('support/logger').log;
+var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
 
-var common = require('./../common');
+var common = requireFromRoot('support/resourcescommon');
 
 var userResource = {
     id: {
