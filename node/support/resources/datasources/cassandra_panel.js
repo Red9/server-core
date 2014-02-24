@@ -224,6 +224,210 @@ exports.getPanelFromDataset = function(datasetId, panelParameters,
 };
 
 
+
+
+exports.getPanel = function(panelId, startTime, endTime,
+        callbackRow, callbackDone) {
+    var query = 'SELECT time, data FROM raw_data WHERE id=? AND time>=? and time<=?';
+
+    var parameters = [
+        {
+            value: panelId,
+            hint: 'uuid'
+        },
+        {
+            value: startTime,
+            hint: 'timestamp'
+        },
+        {
+            value: endTime,
+            hint: 'timestamp'
+        }
+    ];
+
+    var previousN = -1;
+    cassandraDatabase.eachRow(query, parameters,
+            function(n, row) {
+                if (n !== previousN + 1) {
+                    log.error('n(' + n + ') !== previousN(' + previousN + ')');
+                }
+                previousN = n;
+                callbackRow(moment(row.time).valueOf(), row.data, n);
+            },
+            function(err, rowLength) {
+                if (err) {
+                    log.error(err);
+                }
+                callbackDone(err);
+            });
+};
+
+
+
+
+function Bucket(time, includeMinMax) {
+    this.includeMinMax = includeMinMax;
+    this.resetBucket(time);
+}
+
+Bucket.prototype.resetBucket = function(time){
+    this.time = time;
+    this.count = 0;
+    
+    this.sum = undefined;
+    this.minimum = undefined;
+    this.maximum = undefined;
+};
+
+Bucket.prototype.addRow = function(newValues) {
+    this.count = this.count + 1;
+
+    if (typeof this.minimum === 'undefined') {
+        // Called for the first time
+        this.sum = [];
+        if (this.includeMinMax === true) {
+            this.minimum = [];
+            this.maximum = [];
+        }
+
+        underscore.each(newValues, function(value) {
+            this.sum.push(value);
+            if (this.includeMinMax === true) {
+                this.minimum.push(value);
+                this.maximum.push(value);
+            }
+        }, this);
+    } else {
+        underscore.each(newValues, function(value, index) {
+            this.sum[index] += value;
+            if (this.includeMinMax === true) {
+                if (this.minimum[index] > value) {
+                    this.minimum[index] = value;
+                }
+                if (this.maximum[index] < value) {
+                    this.maximum[index] = value;
+                }
+            }
+        }, this);
+    }
+};
+
+Bucket.prototype.getResultRow = function() {
+    var result = [];
+
+    underscore.each(this.sum, function(sum, index) {
+        var average = sum / this.count;
+        if (this.includeMinMax === true) {
+            result.push([
+                this.minimum[index],
+                average,
+                this.maximum[index]
+            ]);
+        } else {
+            result.push(average);
+        }
+    }, this);
+    return result;
+};
+
+Bucket.prototype.getTime = function(){
+    return this.time;
+};
+
+
+exports.getBucketedPanel = function(panelId, startTime, endTime,
+        buckets, minmax, cache,
+        callbackRow, callbackDone) {
+    var query = 'SELECT time, data FROM raw_data WHERE id=? AND time>=? and time<=?';
+
+    var parameters = [
+        {
+            value: panelId,
+            hint: 'uuid'
+        },
+        {
+            value: startTime,
+            hint: 'timestamp'
+        },
+        {
+            value: endTime,
+            hint: 'timestamp'
+        }
+    ];
+    
+    console.log('panelId = ' + panelId);
+    console.log('startTime = ' + startTime);
+    console.log('endTime = ' + endTime);
+
+    var panelLength = endTime - startTime;
+    var bucketDuration = panelLength / buckets;
+    var currentBucketStartTime = startTime;
+
+    var bucket = new Bucket(currentBucketStartTime, minmax);
+
+    var bucketRow = 0;
+
+    var previousN = -1;
+    cassandraDatabase.eachRow(query, parameters,
+            function(n, row) {
+                if (n !== previousN + 1) {
+                    log.error('n(' + n + ') !== previousN(' + previousN + ')');
+                }
+                previousN = n;
+                
+                var rowTime = moment(row.time).valueOf();
+                var rowData = row.data;
+                
+                if(rowTime > currentBucketStartTime + bucketDuration){
+                    //TODO(SRLM): What if the bucket doesn't have anything in it?
+                    // Empty Bucket
+                    currentBucketStartTime = currentBucketStartTime + bucketDuration;
+                    callbackRow(bucket.getTime(), bucket.getResultRow(), bucketRow);
+                    bucket.resetBucket(currentBucketStartTime);
+                    bucketRow = bucketRow + 1;
+                }
+                
+                bucket.addRow(rowData);
+                
+            },
+            function(err, rowLength) {
+                // Send last bucket
+                callbackRow(bucket.getTime(), bucket.getResultRow(), bucketRow);
+        
+                if (err) {
+                    log.error('Cassandra Database Panel Get Error: ' + err);
+                }
+                callbackDone(err);
+            });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 exports.calculatePanelProperties = function(rawDataId, callback) {
     // Warning: these keys are sensitive to matching the keys in dataset resource!
     var properties = [
@@ -241,14 +445,6 @@ exports.calculatePanelProperties = function(rawDataId, callback) {
             default: 0,
             queryKey: 'time',
             type: 'timestamp'
-        },
-        {
-            key: 'rowCount',
-            query: 'SELECT COUNT(*) FROM raw_data WHERE id=?', // LIMIT ' + config.panelRowCountLimit,
-            default: 0,
-            queryKey: 'count',
-            type: 'int'
-
         }
     ];
 
@@ -310,7 +506,7 @@ function constructAddRowQuery(panelId, time, axes) {
         params: parameters
     };
 }
-;
+
 
 
 exports.addRows = function(panelId, rows, callback) {
