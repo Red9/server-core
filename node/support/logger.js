@@ -1,26 +1,18 @@
-/*!
- * Connect - logger
- * Copyright(c) 2010 Sencha Inc.
- * Copyright(c) 2011 TJ Holowaychuk
- * MIT Licensed
+/**
+ * Based on the Node.js Connect logger 
+ *
  */
 
-/**
- * Module dependencies.
- */
+var underscore = require('underscore')._;
+var moment = require('moment');
 
 var bytes = require('bytes');
-var config = require('./../config');
-
 
 var winston = require('winston');
 var Loggly = require('winston-loggly').Loggly;
 var Papertrail = require('winston-papertrail').Papertrail;
 
-var underscore = require('underscore')._;
-
-
-var moment = require('moment');
+var config = require('./../config');
 
 
 var log_color = {};

@@ -1,17 +1,12 @@
+var moment = require('moment');
+var underscore = require('underscore')._;
+var validator = require('validator');
 
 var log = require('./../../../support/logger').log;
 var config = require('./../../../config');
 
-
 var cassandraClient = require('node-cassandra-cql').Client;
 var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
-
-var moment = require('moment');
-
-var underscore = require('underscore')._;
-
-var validator = require('validator');
-
 
 exports.getAll = function(type, callbackItem, callbackDone) {
 

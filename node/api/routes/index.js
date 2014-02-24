@@ -20,11 +20,6 @@ module.exports = function(app, passport) {
     app.put('/dataset/:id', IsAuthenticated, require('./dataset').update);
     app.delete('/dataset/:id', IsAuthenticated, require('./dataset').delete);
 
-
-    //var connectTimeout = require('connect-timeout');
-    //var longTimeout = connectTimeout({time: 4500});
-
-
     app.get('/dataset/:id/panel', IsAuthenticated, require('./panel').get);
     app.get('/panel/:id', IsAuthenticated, require('./panel').get);
     app.post('/panel/:id', IsAuthenticated, require('./panel').create);
@@ -64,25 +59,4 @@ module.exports = function(app, passport) {
     app.get('/usr/:id/form', IsAuthenticated, require('./usr').getusrform);   
     app.post('/usr/:id/operate', IsAuthenticated, require('./usr').operateusr);
 
-    app.put('/test', IsAuthenticated, function(req, res, next) {
-        console.log('New request');
-        setTimeout(function(){
-            console.log('Sending response');
-            res.json({message: 'Something here.'});
-        }, 60000);
-        
-        req.on('data', function(chunk){
-            
-        });
-        
-        req.on('end', function(){
-           console.log('End upload.'); 
-        });
-        
-        
-    });
-
-
-    //app.post('/upload/rnb/process', IsAuthenticated, require('./rnbprocess').post);
-    //app.post('/upload/rnc/process', IsAuthenticated, require('./rncprocess').post);
 };

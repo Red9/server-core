@@ -1,6 +1,6 @@
-var datasetResource = require('./../../support/resources/resource/dataset_resource');
 var config = require('./../../config');
 
+var datasetResource = require('./../../support/resources/resource/dataset_resource');
 
 var ChangeUnits = function(summary, system) {
     if (typeof system === "undefined" || system === "SI") {

@@ -1,20 +1,17 @@
+var spawn = require('child_process').spawn;
+var fs = require('fs');
+var underscore = require('underscore');
 
+var config = require('./../../../config.js');
 
+var common = require('./../common');
 
 /**
  * @warning: If you move this file to a new directory you must update the
- * 'require' statement below!
+ * 'require' statement below in the body of the code!
  * 
  * @type type
  */
-
-var fs = require('fs');
-var underscore = require('underscore');
-var config = require('./../../../config.js');
-var common = require('./../common');
-
-var spawn = require('child_process').spawn;
-
 
 var usrList = [];
 

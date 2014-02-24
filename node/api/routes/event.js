@@ -1,5 +1,6 @@
-var eventResource = require('./../../support/resources/resource/event_resource');
 var underscore = require('underscore')._;
+
+var eventResource = require('./../../support/resources/resource/event_resource');
 
 function simplifyOutput(eventArray) {
     underscore.each(eventArray, function(element, index, list) {

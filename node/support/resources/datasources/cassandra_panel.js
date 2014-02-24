@@ -1,18 +1,16 @@
-var log = require('./../../logger').log;
-
 var moment = require('moment');
-
 var spawn = require('child_process').spawn;
 var underscore = require('underscore')._;
 var validator = require('validator');
-
 var async = require('async');
-var config = require('./../../../config');
 
-var datasetResource = require('./../resource/dataset_resource');
+var log = require('./../../logger').log;
+var config = require('./../../../config');
 
 var cassandraClient = require('node-cassandra-cql').Client;
 var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
+
+var datasetResource = require('./../resource/dataset_resource');
 
 /**
  * 

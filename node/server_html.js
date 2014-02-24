@@ -259,9 +259,7 @@ if (cluster.isMaster) {
      * 
      */
     var socket_routes = [];
-    socket_routes.push(require('./html/routes/rnbprocess').NewSocket);
     socket_routes.push(require('./html/routes/rncprocess').NewSocket);
-    socket_routes.push(require('./html/routes/eventreprocess').NewSocket);
 
     io.sockets.on('connection', function(socket) {
         socket.on('page_uuid', function(data) {

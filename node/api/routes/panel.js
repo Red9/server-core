@@ -1,11 +1,9 @@
-var panelResource = require('./../../support/resources/resource/panel_resource');
-var datasetResource = require('./../../support/resources/resource/dataset_resource');
 var underscore = require('underscore')._;
-
 var readline = require('readline');
-
 var async = require('async');
 
+var panelResource = require('./../../support/resources/resource/panel_resource');
+var datasetResource = require('./../../support/resources/resource/dataset_resource');
 
 exports.search = function(req, res, next) {
     res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));

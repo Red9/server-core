@@ -1,19 +1,17 @@
 var async = require('async');
-
-var common = require('./../common');
-var cassandraDatabase = require('./../datasources/cassandra');
-var config = require('./../../../config');
-
 var moment = require('moment');
 var underscore = require('underscore')._;
 var validator = require('validator');
 
+var cassandraDatabase = require('./../datasources/cassandra');
+var config = require('./../../../config');
 var log = require('./../../logger').log;
+
+var common = require('./../common');
 
 var userResource = require('./user_resource');
 var eventResource = require('./event_resource');
 var panelResource = require('./panel_resource');
-
 
 var datasetResource = {
     title: {

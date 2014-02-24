@@ -1,12 +1,10 @@
-
+var underscore = require('underscore');
+var validator = require('validator');
 var spawn = require('child_process').spawn;
+
 var config = require('./../../config');
 
-var underscore = require('underscore');
-
 var usrResource = require('./../../support/resources/resource/usr_resource');
-var validator = require('validator');
-
 
 exports.get = function(req, res, next) {
     usrResource.getUsrs(function(list) {

@@ -1,6 +1,6 @@
+var underscore = require('underscore')._;
 
 var datasetResource = require('./../../support/resources/resource/dataset_resource');
-var underscore = require('underscore')._;
 
 function simplifyOutput(datasetArray) {
     underscore.each(datasetArray, function(element, index, list) {

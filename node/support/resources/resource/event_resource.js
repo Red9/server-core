@@ -3,9 +3,9 @@ var moment = require('moment');
 var validator = require('validator');
 var async = require('async');
 
-var common = require('./../common');
 var cassandraDatabase = require('./../datasources/cassandra');
 
+var common = require('./../common');
 var summaryStatisticsResource = require('./summarystatistics_resource');
 
 var eventResource = {
