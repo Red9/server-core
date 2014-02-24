@@ -60,12 +60,9 @@ module.exports = function(app, passport) {
     app.get('/units/', IsAuthenticated, require('./units').search);
     app.get('/units/:system', IsAuthenticated, require('./units').get);
 
-
-    // -------- [JSON Results] --------------------
     app.get('/usr/', IsAuthenticated, require('./usr').get);
     app.get('/usr/:id/form', IsAuthenticated, require('./usr').getusrform);   
     app.post('/usr/:id/operate', IsAuthenticated, require('./usr').operateusr);
-
 
     app.put('/test', IsAuthenticated, function(req, res, next) {
         console.log('New request');
