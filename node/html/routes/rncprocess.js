@@ -88,7 +88,7 @@ exports.post = function(req, res, next) {
                     }
                 }, true);
 
-                summaryStatisticsResource.calculate(id, startTime, endTime, function(statistics) {
+                summaryStatisticsResource.calculate(id, dataset.headPanelId, startTime, endTime, function(statistics) {
                     datasetResource.updateDataset(id, {summaryStatistics: statistics}, function(err) {
                         if (err) {
                             log.error('RNC Process dataset summary statistics update unsuccessful: ' + err);

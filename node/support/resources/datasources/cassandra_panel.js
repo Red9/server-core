@@ -11,10 +11,9 @@ var config = require('./../../../config');
 
 var datasetResource = require('./../resource/dataset_resource');
 
-var cassandraRoot = require('node-cassandra-cql');
-var cassandraClient = cassandraRoot.Client;
-var hosts = ['localhost:9042'];
-var cassandraDatabase = new cassandraClient({hosts: hosts, keyspace: 'dev'});
+var cassandraClient = require('node-cassandra-cql').Client;
+var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
+
 /**
  * 
  * @param {type} panelParameters

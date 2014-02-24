@@ -31,19 +31,17 @@ exports.ProcessLoginRequest = function(identifier, profile, callback) {
     exports.CheckUserForLogin(identifier, profile, function(user_info) {
         if (typeof user_info !== "undefined") {
             // If it's not undefined, then they're in the database. So they have access.
-            log.info("Login attempt (successful)");
+            log.info('Login attempt by "' + user_info.displayName + '" (' + user_info.id + ') successful');
             callback(null, user_info);
         } else {
             // If it is undefined, then they're not in the database.
-            log.info("Login attempt (failed)");
-
             // Let's try to get the domain of their email.
             var email_domain = "";
             try {
                 email_domain = profile.emails[0].value.replace(/.*@/, "");
             } catch (ex) {
                 //Do nothing...
-                log.info("Could not parse login email: " + ex.toString());
+                log.info('Could not parse login email: ' + ex.toString());
             }
 
             // All redninesensor.com emails are valid, so add them to the database and give them access.
@@ -57,15 +55,19 @@ exports.ProcessLoginRequest = function(identifier, profile, callback) {
                     familyName: profile.name.familyName
                 };
 
-                userResource.createUser(newUser, function(err, createdUser) {
+                userResource.createUser(newUser, function(err, createdUserList) {
+                    var createdUser = createdUserList[0];
                     if (err) {
+                        log.error('Could not create new user "' + createdUser.displayName + '" (' + createdUser.id + '): ' + err);
                         callback(err);
                     } else {
+                        log.info('Created new user "' + createdUser.displayName + '" (' + createdUser.id + ')');
                         callback(undefined, createdUser);
                     }
                 });
             } else {
                 // Not in the database, and no redninesensor.com email. Don't authenticate.
+                log.info('Login attempt from "' + profile.emails[0].value + '"');
                 callback(null, false);
             }
         }

@@ -38,7 +38,7 @@ if (cluster.isMaster) {
 
 
     log.info("HTML Node.js worker started.");
-    log.info("Using realm: " + config.realm);
+    log.info("Using realm: " + config.htmlRealm);
     log.info("Are we running release server? " + config.release);
 
 
@@ -164,8 +164,8 @@ if (cluster.isMaster) {
     var authenticate = require('./support/authenticate');
 
     passport.use(new GoogleStrategy({
-        returnURL: config.realm + '/login/google/return',
-        realm: config.realm
+        returnURL: config.htmlRealm + '/login/google/return',
+        realm: config.htmlRealm
     }, authenticate.ProcessLoginRequest));
 
     passport.serializeUser(function(user, done) {
@@ -187,7 +187,7 @@ if (cluster.isMaster) {
             res.locals['user'] = req.user;
         }
         
-        res.locals['apiUrl'] = config.apiDomain;
+        res.locals['apiUrl'] = config.apiRealm;
         
         next();
     }

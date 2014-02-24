@@ -1,9 +1,10 @@
 
 var log = require('./../../../support/logger').log;
+var config = require('./../../../config');
+
 
 var cassandraClient = require('node-cassandra-cql').Client;
-var hosts = ['localhost:9042'];
-var cassandraDatabase = new cassandraClient({hosts: hosts, keyspace: 'dev'});
+var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
 
 var moment = require('moment');
 
