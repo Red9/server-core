@@ -21,6 +21,11 @@ exports.ProcessCommandLine = function() {
     var ops = stdio.getopt({
         config: {key: 'config', args: 1, description: 'Specify the configuration file'}
     });
+    
+    if(typeof ops.config === 'undefined'){
+        console.log('ERROR: must specify a configuration file.');
+        process.exit(1);
+    }
 
     var instanceconfig = require('./' + ops.config);
     underscore.each(requiredInstanceKeys, function(key) {

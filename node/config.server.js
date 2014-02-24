@@ -11,9 +11,9 @@ exports.dataProcessingDirectory = '../../data-processing';
 exports.usrDirectory = exports.dataProcessingDirectory + '/usr';
 exports.statistician_children = exports.dataProcessingDirectory + '/statistics/children';
 
-exports.logfilepath = 'logs/';
+exports.logfilepath = '../logs/';
 
-exports.release = false;
+exports.release = true;
 
 exports.cassandraHosts = ['localhost:9042'];
 exports.cassandraKeyspace = 'dev';
