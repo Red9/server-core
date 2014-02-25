@@ -4,10 +4,7 @@ var cluster = require('cluster');
 var config = require('./config');
 
 
-
-
 config.ProcessCommandLine();
-
 
 var staticDirectories = [
     {
@@ -39,10 +36,6 @@ var staticDirectories = [
         }
     }
 ];
-
-
-
-
 
 if (cluster.isMaster) {
     
