@@ -336,43 +336,100 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
 };
 
 
+//exports.getPanel = function(panelId, startTime, endTime,
+//        callbackRow, callbackDone) {
+//    var query = 'SELECT time, data FROM raw_data WHERE id=? AND time>=? and time<=?';
+//
+//    var parameters = [
+//        {
+//            value: panelId,
+//            hint: 'uuid'
+//        },
+//        {
+//            value: startTime,
+//            hint: 'timestamp'
+//        },
+//        {
+//            value: endTime,
+//            hint: 'timestamp'
+//        }
+//    ];
+//
+//    var previousN = -1;
+//    cassandraDatabase.eachRow(query, parameters,
+//            function(n, row) {
+//                if (n !== previousN + 1) {
+//                    log.error('n(' + n + ') !== previousN(' + previousN + ')');
+//                }
+//                previousN = n;
+//                callbackRow(moment(row.time).valueOf(), row.data, n);
+//            },
+//            function(err, rowLength) {
+//                if (err) {
+//                    log.error(err);
+//                }
+//                callbackDone(err);
+//            });
+//};
+
 exports.getPanel = function(panelId, startTime, endTime,
         callbackRow, callbackDone) {
-    var query = 'SELECT time, data FROM raw_data WHERE id=? AND time>=? and time<=?';
+    var chunkLimit = 1000;
+    var query = 'SELECT time, data FROM raw_data WHERE id=? AND time>=? AND time<=? LIMIT ' + chunkLimit;
 
-    var parameters = [
-        {
-            value: panelId,
-            hint: 'uuid'
-        },
-        {
-            value: startTime,
-            hint: 'timestamp'
-        },
-        {
-            value: endTime,
-            hint: 'timestamp'
-        }
-    ];
-
-    var previousN = -1;
-    cassandraDatabase.eachRow(query, parameters,
-            function(n, row) {
-                if (n !== previousN + 1) {
-                    log.error('n(' + n + ') !== previousN(' + previousN + ')');
-                }
-                previousN = n;
-                callbackRow(moment(row.time).valueOf(), row.data, n);
+    var previousChunkLength;
+    var totalRowIndex = 0;
+    var lastRowTime = startTime;
+    
+    async.doWhilst(
+            function(callbackWhilst) { // While loop body
+        
+                console.log("Get chunk.");
+                var parameters = [
+                    {
+                        value: panelId,
+                        hint: 'uuid'
+                    },
+                    {
+                        value: lastRowTime,
+                        hint: 'timestamp'
+                    },
+                    {
+                        value: endTime,
+                        hint: 'timestamp'
+                    }
+                ];
+                var previousN = -1;
+                
+                cassandraDatabase.eachRow(query, parameters,
+                        function(n, row) {
+                            // Cassandra error checking: we should be getting these in order.
+                            if (n !== previousN + 1) {
+                                log.error('n(' + n + ') !== previousN(' + previousN + ')');
+                            }
+                            previousN = n;
+                            lastRowTime = row.time;
+                            callbackRow(moment(row.time).valueOf(), row.data, totalRowIndex++);
+                        },
+                        function(err, rowLength) {
+                            previousChunkLength = rowLength;
+                            if (err) {
+                                log.error(err);
+                            }
+                            callbackWhilst(err);
+                        }
+                );
             },
-            function(err, rowLength) {
+            function() { // Truth Test
+                return previousChunkLength === chunkLimit;
+            },
+            function(err) {
                 if (err) {
-                    log.error(err);
+                    log.error('Error while getting chunked panel: ' + err);
                 }
                 callbackDone(err);
             });
 };
-
-
 
 
 
