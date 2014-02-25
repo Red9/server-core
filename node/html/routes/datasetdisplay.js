@@ -1,5 +1,5 @@
-var datasetResource = require('./../../support/resources/resource/dataset_resource');
-var config = require('./../../config');
+var datasetResource = requireFromRoot('support/resources/dataset');
+var config = requireFromRoot('config');
 
 // TODO(SRLM): Make this get/calculate the column groups based on the dataset column schema.
 function GetDefaultColumnGroups(dataset) {

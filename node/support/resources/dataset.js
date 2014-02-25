@@ -1,19 +1,17 @@
 var async = require('async');
-
-var common = require('./../common');
-var cassandraDatabase = require('./../datasources/cassandra');
-var config = require('./../../../config');
-
 var moment = require('moment');
 var underscore = require('underscore')._;
 var validator = require('validator');
 
-var log = require('./../../logger').log;
+var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
+var config = requireFromRoot('config');
+var log = requireFromRoot('support/logger').log;
 
-var userResource = require('./user_resource');
-var eventResource = require('./event_resource');
-var panelResource = require('./panel_resource');
+var common = requireFromRoot('support/resourcescommon');
 
+var userResource = requireFromRoot('support/resources/user');
+var eventResource = requireFromRoot('support/resources/event');
+var panelResource = requireFromRoot('support/resources/panel');
 
 var datasetResource = {
     title: {
@@ -32,7 +30,7 @@ var datasetResource = {
         includeToCreate: false,
         editable: false
     },
-    panelId: {
+    headPanelId: {
         type: 'uuid',
         includeToCreate: false,
         editable: true
@@ -42,7 +40,7 @@ var datasetResource = {
         includeToCreate: false,
         editable: true
     },
-    source: {
+    source: { // TODO(SRLM): Rename this to recorderInformation (or something...)
         type: 'resource:source',
         includeToCreate: false,
         editable: true
@@ -68,13 +66,8 @@ var datasetResource = {
         includeToCreate: false,
         editable: false
     },
-    rowCount: {
-        type: 'int',
-        includeToCreate: false,
-        editable: false
-    },
-    alternatePanels: {
-        type: 'resource:alternatePanel',
+    panels: {
+        type: 'resource:panelMeta',
         includeToCreate: false,
         editable: true
     },
@@ -89,27 +82,14 @@ function mapToCassandra(resource) {
     var cassandra = {};
 
     cassandra.id = resource.id;
-    cassandra.column_titles = resource.axes;
     cassandra.name = resource.title;
-    cassandra.number_rows = resource.rowCount;
-    cassandra.raw_data = resource.panelId;
+    cassandra.raw_data = resource.headPanelId;
     cassandra.timezone = resource.timezone;
     cassandra.source = JSON.stringify(resource.source);
     cassandra.owner = resource.owner;
     cassandra.summary_statistics = JSON.stringify(resource.summaryStatistics);
     cassandra.create_time = moment(resource.createTime).toDate();
-    cassandra.raw_data_alternates = JSON.stringify(resource.alternatePanels);
-
-    if (typeof resource.startTime !== 'undefined') {
-        cassandra.start_time = moment(resource.startTime).toDate();
-    }
-    if (typeof resource.endTime !== 'undefined') {
-        cassandra.end_time = moment(resource.endTime).toDate();
-    }
-
-
-
-
+    cassandra.raw_data_list = JSON.stringify(resource.panels);
 
     underscore.each(cassandra, function(value, key) {
         if (typeof value === 'undefined') {
@@ -117,26 +97,17 @@ function mapToCassandra(resource) {
         }
     });
 
-
-
     return cassandra;
 }
 
-
-var defaultAlternatePanels = {
-    temporaryPanels: []
-};
 
 function mapToResource(cassandra) {
     var resource = {};
 
     resource.id = cassandra.id;
-    resource.axes = cassandra.column_titles;
-    resource.startTime = moment(cassandra.start_time).valueOf();
-    resource.endTime = moment(cassandra.end_time).valueOf();
+
     resource.title = cassandra.name;
-    resource.rowCount = cassandra.number_rows;
-    resource.panelId = cassandra.raw_data;
+    resource.headPanelId = cassandra.raw_data;
     resource.timezone = cassandra.timezone;
     resource.owner = cassandra.owner;
     resource.createTime = moment(cassandra.create_time).valueOf();
@@ -152,10 +123,16 @@ function mapToResource(cassandra) {
         resource.summaryStatistics = {};
     }
     try {
-        resource.alternatePanels = JSON.parse(cassandra.raw_data_alternates);
+        resource.panels = JSON.parse(cassandra.raw_data_list);
+        resource.axes = resource.panels[resource.headPanelId].axes;
+        resource.startTime = resource.panels[resource.headPanelId].startTime;
+        resource.endTime = resource.panels[resource.headPanelId].endTime;
     } catch (e) {
-        resource.alternatePanels = defaultAlternatePanels;
-
+        log.error('Failed to read dataset panels. datasetId: ' + resource.id);
+        resource.panels = {};
+        resource.axes = [];
+        resource.startTime = 0;
+        resource.endTime = 0;
     }
 
     return resource;
@@ -171,16 +148,17 @@ exports.createDataset = function(newDataset, callback) {
     }
 
     newDataset.id = common.generateUUID();
-    newDataset.panelId = common.generateUUID();
+    newDataset.headPanelId = common.generateUUID();
     newDataset.timezone = config.defaultTimezone;
     newDataset.source = {};
-    newDataset.axes = [];
     newDataset.summaryStatistics = {};
-    newDataset.startTime = 0;
-    newDataset.endTime = 0;
-    newDataset.rowCount = 0;
-    newDataset.alternatePanels = defaultAlternatePanels;
     newDataset.createTime = moment().valueOf();
+    newDataset.panels = {};
+    newDataset.panels[newDataset.headPanelId] = {
+        startTime: 0,
+        endTime: 0,
+        axes: []
+    };
 
     var cassandraDataset = mapToCassandra(newDataset);
 
@@ -376,11 +354,11 @@ exports.updateToNewPanel = function(datasetId, temporaryId, callback) {
             });
 
             if (typeof panel !== 'undefined') {
-                var oldPanelId = dataset.panelId;
+                var oldPanelId = dataset.headPanelId;
 
                 panelResource.calculatePanelProperties(temporaryId, function(modifiedDataset) {
                     modifiedDataset.alternatePanels = dataset.alternatePanels;
-                    modifiedDataset.panelId = temporaryId;
+                    modifiedDataset.headPanelId = temporaryId;
 
                     exports.updateDataset(datasetId, modifiedDataset,
                             function(err, modifiedDataset) {

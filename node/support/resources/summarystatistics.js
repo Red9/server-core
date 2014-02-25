@@ -1,7 +1,7 @@
 var spawn = require('child_process').spawn;
 
-var log = require('./../../logger').log;
-var config = require('./../../../config');
+var log = requireFromRoot('support/logger').log;
+var config = requireFromRoot('config');
 
 
 /**
@@ -12,7 +12,7 @@ var config = require('./../../../config');
  * @param {function} callback (statistics)
  * @returns {undefined}
  */
-exports.calculate = function(datasetId, startTime, endTime, callback) {
+exports.calculate = function(datasetId, panelId, startTime, endTime, callback) {
     
     var calculationStartTime = new Date();
     
@@ -29,6 +29,8 @@ exports.calculate = function(datasetId, startTime, endTime, callback) {
     parameters.push(startTime);
     parameters.push('--endTime');
     parameters.push(endTime);
+    parameters.push('--panel');
+    parameters.push(panelId);
 
     var statistician = spawn('java', parameters);
     log.info("Starting statistics for dataset " + datasetId);
@@ -41,7 +43,7 @@ exports.calculate = function(datasetId, startTime, endTime, callback) {
         
         var result = {};
         
-        log.info("Statistics done (" + (new Date() - calculationStartTime) + "ms) Code: " + code);
+        log.debug("Statistics done (" + (new Date() - calculationStartTime) + "ms) Code: " + code);
         if(code !== 0){
             log.error("Error log: " + stderr);
         }else{

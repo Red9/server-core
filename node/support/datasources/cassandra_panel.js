@@ -1,20 +1,17 @@
-var log = require('./../../logger').log;
-
 var moment = require('moment');
-
 var spawn = require('child_process').spawn;
 var underscore = require('underscore')._;
 var validator = require('validator');
-
 var async = require('async');
-var config = require('./../../../config');
 
-var datasetResource = require('./../resource/dataset_resource');
+var log = requireFromRoot('support/logger').log;
+var config = requireFromRoot('config');
 
-var cassandraRoot = require('node-cassandra-cql');
-var cassandraClient = cassandraRoot.Client;
-var hosts = ['localhost:9042'];
-var cassandraDatabase = new cassandraClient({hosts: hosts, keyspace: 'dev'});
+var cassandraClient = require('node-cassandra-cql').Client;
+var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
+
+var datasetResource = requireFromRoot('support/resources/dataset');
+
 /**
  * 
  * @param {type} panelParameters

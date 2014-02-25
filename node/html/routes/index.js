@@ -36,9 +36,6 @@ module.exports = function(app, passport) {
     
     app.get('/bluetooth', IsAuthenticated, require('./bluetooth').get);
     
-    //app.get( '/upload/rnb', IsAuthenticated, require('./rnbupload').get);
-    //app.post('/upload/rnb/process', IsAuthenticated, require('./rnbprocess').post);
-    
     app.get('/upload/rnc', IsAuthenticated, require('./rncupload').get);
     app.post('/upload/rnc/process', IsAuthenticated, require('./rncprocess').post);
     
@@ -46,8 +43,15 @@ module.exports = function(app, passport) {
     app.get( '/snippet/:type', IsAuthenticated, require('./getsnippet').get);
     
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
-    app.get('/admin/reprocessstatistics', IsAuthenticated, require('./eventreprocess').get);
-    
+
+    //for Jorge's testing purposes
+    app.post('/noop/', function (req, res) {
+      res.send({prop1: 'value 1'});
+    });
+    app.get('/noop/', function (req, res) {
+      res.send({prop1: 'value 1'});
+    });
+
     app.get('/lens/:type', IsAuthenticated, require('./getlens').get);
     
 };

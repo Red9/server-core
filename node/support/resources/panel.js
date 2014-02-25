@@ -1,9 +1,10 @@
-
-var validator = require('validator');
-var cassandraPanel = require('./../datasources/cassandra_panel');
-var datasetResource = require('./dataset_resource');
-var common = require('./../common');
 var moment = require('moment');
+var validator = require('validator');
+
+var cassandraPanel = requireFromRoot('support/datasources/cassandra_panel');
+
+var common = requireFromRoot('support/resourcescommon');
+var datasetResource = requireFromRoot('support/resources/dataset');
 
 var underscore = require('underscore')._;
 

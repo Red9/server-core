@@ -1,25 +1,68 @@
 
-
+var underscore = require('underscore')._;
 var cluster = require('cluster');
 var config = require('./config');
 
 
-
-
 config.ProcessCommandLine();
 
-
+var staticDirectories = [
+    {
+        rootUrl: '/js',
+        sourcePath: {
+            development: '/html/public/development/js',
+            release: '/html/public/release/js'
+        }
+    },
+    {
+        rootUrl: '/css',
+        sourcePath: {
+            development: '/html/public/common/css',
+            release: '/html/public/common/css'
+        }
+    },
+    {
+        rootUrl: '/images',
+        sourcePath: {
+            development: '/html/public/common/images',
+            release: '/html/public/common/images'
+        }
+    },
+    {
+        rootUrl: '/fonts',
+        sourcePath: {
+            development: '/html/public/common/fonts',
+            release: '/html/public/common/fonts'
+        }
+    }
+];
 
 if (cluster.isMaster) {
+    
     // Logging setup
-    var logger = require('./support/logger');
+    var logger = requireFromRoot('support/logger');
     logger.init('html', 'master');
     var log = logger.log; // console.log replacement
 
-    // Process command line arguments
     if (config.release === true) {
-        // Only use nodetime and logging services on the deployed server
+        // Only use nodetime on the deployed server
         require('nodetime').profile(config.nodetimeProfile);
+        
+        // Only optimize static JS resources on the deployed server.
+        var requirejs = require('requirejs');
+        log.info('Beginning Static File Optimization.');
+        requirejs.optimize({
+            appDir: 'html/public/development/js',
+            dir: 'html/public/release/js'
+        },
+        function(err) {
+            if (err) {
+                log.error('Static file optimization error: ' + err);
+                process.exit(1);
+            } else {
+                log.info('Using optimized static files.');
+            }
+        });
     }
 
     log.info("Master process started. Starting worker process.");
@@ -32,19 +75,19 @@ if (cluster.isMaster) {
 
 } else {//Worker process
     // Logging setup
-    var logger = require('./support/logger');
+    var logger = requireFromRoot('support/logger');
     logger.init('html', '' + cluster.worker.id);
     var log = logger.log; // console.log replacement
 
 
     log.info("HTML Node.js worker started.");
-    log.info("Using realm: " + config.realm);
+    log.info("Using realm: " + config.htmlRealm);
     log.info("Are we running release server? " + config.release);
 
 
 // Standard modules that we need:
     var express = require('express');
-    var routes = require('./html/routes');
+    var routes = requireFromRoot('html/routes');
     var http = require('http');
     var path = require('path');
     var hbs = require('hbs');
@@ -59,41 +102,41 @@ if (cluster.isMaster) {
 
     var FormatDuration = function(startTime, endTime) {
         /*var duration = endTime - startTime;
-        if (duration === 0 || isNaN(duration)) {
-            return "0.000s";
-        }
+         if (duration === 0 || isNaN(duration)) {
+         return "0.000s";
+         }
+         
+         Number.prototype.mod = function(n) {
+         return ((this % n) + n) % n;
+         };
+         
+         var hours = Math.floor(duration / (3600000));
+         
+         var minutes = Math.floor(duration / (60000)) - (hours * 60);
+         
+         var seconds = Math.floor(duration / (1000)) - (hours * 60 * 60) - (minutes * 60);
+         
+         var milliseconds = duration
+         - (seconds * 1000) - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000);
+         var days = Math.floor(hours / 24);
+         hours = hours - 24*days;*/
 
-        Number.prototype.mod = function(n) {
-            return ((this % n) + n) % n;
-        };
-
-        var hours = Math.floor(duration / (3600000));
-
-        var minutes = Math.floor(duration / (60000)) - (hours * 60);
-
-        var seconds = Math.floor(duration / (1000)) - (hours * 60 * 60) - (minutes * 60);
-        
-        var milliseconds = duration
-                - (seconds * 1000) - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000);
-        var days = Math.floor(hours / 24);
-        hours = hours - 24*days;*/
-        
         var result = '';
-        
-        var duration = moment.duration(endTime-startTime);
-        
-        if(duration.years() !== 0){
+
+        var duration = moment.duration(endTime - startTime);
+
+        if (duration.years() !== 0) {
             result = duration.years() + 'Y ' + duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
-        }else if(duration.months() !== 0){
+        } else if (duration.months() !== 0) {
             result = duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
-        }else if(duration.days() !== 0){
+        } else if (duration.days() !== 0) {
             result = duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
-        }else if(duration.hours() !== 0){
+        } else if (duration.hours() !== 0) {
             result = duration.hours() + 'h ' + duration.minutes() + 'm ';
-        }else if(duration.minutes() !== 0){
+        } else if (duration.minutes() !== 0) {
             result = duration.minutes() + 'm ';
         }
-        
+
         result += duration.seconds() + '.' + duration.milliseconds() + 's';
 
         return result;
@@ -161,11 +204,11 @@ if (cluster.isMaster) {
 // Authentication details
     var passport = require('passport');
     var GoogleStrategy = require('passport-google').Strategy;
-    var authenticate = require('./support/authenticate');
+    var authenticate = requireFromRoot('support/authenticate');
 
     passport.use(new GoogleStrategy({
-        returnURL: config.realm + '/login/google/return',
-        realm: config.realm
+        returnURL: config.htmlRealm + '/login/google/return',
+        realm: config.htmlRealm
     }, authenticate.ProcessLoginRequest));
 
     passport.serializeUser(function(user, done) {
@@ -186,9 +229,9 @@ if (cluster.isMaster) {
         if (req.isAuthenticated()) {
             res.locals['user'] = req.user;
         }
-        
-        res.locals['apiUrl'] = config.apiDomain;
-        
+
+        res.locals['apiUrl'] = config.apiRealm;
+
         next();
     }
 
@@ -207,7 +250,19 @@ if (cluster.isMaster) {
     app.use(express.compress());
     app.use(express.methodOverride());
 
-    app.use(express.static(path.join(__dirname, 'html/public')));
+
+    // Set up static directories.
+    underscore.each(staticDirectories, function(resource) {
+        var path;
+        if (config.release === true) {
+            path = resource.sourcePath.release;
+        } else {
+            path = resource.sourcePath.development;
+        }
+
+        app.use(resource.rootUrl, express.static(__dirname + path));
+    });
+
 
     app.use(express.cookieParser());
     app.use(express.bodyParser());
@@ -222,20 +277,7 @@ if (cluster.isMaster) {
     app.use(LoadGlobalTemplateParameters);
     app.use(app.router);
 
-    // Enable CORS: http://enable-cors.org/server_expressjs.html
-    /*app.all('*', function(req, res, next) {
-     res.header("Access-Control-Allow-Origin", "*");
-     res.header("Access-Control-Allow-Headers", "X-Requested-With");
-     next();
-     });*/
-
-
-// development only
-    if ('development' === app.get('env')) {
-        app.use(express.errorHandler());
-    }
-
-    require('./html/routes')(app, passport); // These are the main site routes
+    requireFromRoot('html/routes')(app, passport); // These are the main site routes
 
     app.use(function(req, res, next) {
         res.status(404).render('404_error', {title: "Sorry, page not found"});
@@ -259,9 +301,7 @@ if (cluster.isMaster) {
      * 
      */
     var socket_routes = [];
-    socket_routes.push(require('./html/routes/rnbprocess').NewSocket);
-    socket_routes.push(require('./html/routes/rncprocess').NewSocket);
-    socket_routes.push(require('./html/routes/eventreprocess').NewSocket);
+    socket_routes.push(requireFromRoot('html/routes/rncprocess').NewSocket);
 
     io.sockets.on('connection', function(socket) {
         socket.on('page_uuid', function(data) {

@@ -9,7 +9,7 @@ config.ProcessCommandLine();
 
 if (cluster.isMaster) {
     // Logging setup
-    var logger = require('./support/logger');
+    var logger = requireFromRoot('support/logger');
     logger.init('api', 'master');
     var log = logger.log; // console.log replacement
 
@@ -21,7 +21,7 @@ if (cluster.isMaster) {
     });
 } else {//Worker process
     // Logging setup
-    var logger = require('./support/logger');
+    var logger = requireFromRoot('support/logger');
     logger.init('api', '' + cluster.worker.id);
     var log = logger.log; // console.log replacement
 
@@ -31,7 +31,7 @@ if (cluster.isMaster) {
 
 // Standard modules that we need:
     var express = require('express');
-    var routes = require('./api/routes');
+    var routes = requireFromRoot('api/routes');
     var http = require('http');
 
 // Express and Connect stuff
@@ -63,7 +63,7 @@ if (cluster.isMaster) {
         app.use(express.errorHandler());
     }
 
-    require('./api/routes')(app); // These are the main site routes
+    requireFromRoot('api/routes')(app); // These are the main site routes
 
     app.use(function(req, res, next) {
         res.status(404).json({title: "Sorry, api doesn't exist"});
@@ -76,5 +76,5 @@ if (cluster.isMaster) {
     });
     
     
-    require('./support/resources/resource/usr_resource').loadUsrs();
+    requireFromRoot('support/resources/usr').loadUsrs();
 }

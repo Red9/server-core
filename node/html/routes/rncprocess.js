@@ -1,12 +1,11 @@
 var spawn = require('child_process').spawn;
 
-//var database = require('./../../support/database');
-var log = require('./../../support/logger').log;
-var config = require('./../../config');
+var log = requireFromRoot('support/logger').log;
+var config = requireFromRoot('config');
 
-var datasetResource = require('./../../support/resources/resource/dataset_resource');
-var panelResource = require('./../../support/resources/resource/panel_resource');
-var summaryStatisticsResource = require('./../../support/resources/resource/summarystatistics_resource');
+var datasetResource = requireFromRoot('support/resources/dataset');
+var panelResource = requireFromRoot('support/resources/panel');
+var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 
 exports.post = function(req, res, next) {
     var filename = req.files.file.name.split(".")[0];
@@ -26,9 +25,7 @@ exports.post = function(req, res, next) {
         var dataset = datasetList[0];
         var id = dataset.id;
 
-        var datasetUpdate = {
-            source:{}
-        };
+
 
         var parserncParameters = [];
         parserncParameters.push('-jar');
@@ -38,7 +35,7 @@ exports.post = function(req, res, next) {
         parserncParameters.push('--input');
         parserncParameters.push(req.files.file.path);
         parserncParameters.push('--uuid');
-        parserncParameters.push(dataset.panelId);
+        parserncParameters.push(dataset.headPanelId);
 
         var parsernc = spawn('java', parserncParameters);
         parsernc.stdout.setEncoding('utf8');
@@ -51,21 +48,30 @@ exports.post = function(req, res, next) {
             var processingStatistics = JSON.parse(parsernc.stdout.read());
 
             if (code !== 0) {
-                console.log('Non zero code! ' + code + ': ' + processingInfo);
+                log.error('Non zero code! ' + code + ': ' + processingInfo);
             }
 
 
-            datasetUpdate.axes = processingStatistics.columns;
-            datasetUpdate.source.scad = processingStatistics;
-            datasetUpdate.source.filename = req.files.file.name;
+            var datasetUpdate = {
+                source: {
+                    scad: processingStatistics,
+                    filename:req.files.file.name
+                },
+                panels:{}
+            };
+            
 
-            panelResource.calculatePanelProperties(dataset.panelId, function(additionalProperties) {
+            panelResource.calculatePanelProperties(dataset.headPanelId, function(additionalProperties) {
                 var startTime = additionalProperties.startTime;
                 var endTime = additionalProperties.endTime;
-                var rowCount = additionalProperties.rowCount;
+                //log.debug('New dataset ' + dataset.id + ' startTime: ' + startTime);
+                //log.debug('New dataset ' + dataset.id + ' endTime: ' + endTime);
 
-                log.debug('startTime: ' + startTime);
-                log.debug('endTime: ' + endTime);
+                datasetUpdate.panels[dataset.headPanelId] = {
+                    axes: processingStatistics.columns,
+                    startTime: startTime,
+                    endTime: endTime
+                };
 
                 // Integrity check
                 if (startTime !== processingStatistics.datasetStartTime) {
@@ -74,14 +80,6 @@ exports.post = function(req, res, next) {
                 if (endTime !== processingStatistics.datasetEndTime) {
                     log.error('Calculated panel end time ' + endTime + ' not equal to given end time ' + processingStatistics.datasetEndTime);
                 }
-                if (rowCount !== processingStatistics.rows) {
-                    log.error('Calculated panel rows ' + rowCount + ' not equal to given rows ' + processingStatistics.rows);
-                }
-
-                datasetUpdate.startTime = startTime;
-                datasetUpdate.endTime = endTime;
-                datasetUpdate.rowCount = rowCount;
-
 
                 datasetResource.updateDataset(id, datasetUpdate, function(err) {
                     if (err) {
@@ -89,7 +87,7 @@ exports.post = function(req, res, next) {
                     }
                 }, true);
 
-                summaryStatisticsResource.calculate(id, startTime, endTime, function(statistics) {
+                summaryStatisticsResource.calculate(id, dataset.headPanelId, startTime, endTime, function(statistics) {
                     datasetResource.updateDataset(id, {summaryStatistics: statistics}, function(err) {
                         if (err) {
                             log.error('RNC Process dataset summary statistics update unsuccessful: ' + err);

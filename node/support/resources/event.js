@@ -3,10 +3,12 @@ var moment = require('moment');
 var validator = require('validator');
 var async = require('async');
 
-var common = require('./../common');
-var cassandraDatabase = require('./../datasources/cassandra');
+var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
+var log = requireFromRoot('support/logger').log;
 
-var summaryStatisticsResource = require('./summarystatistics_resource');
+var common = requireFromRoot('support/resourcescommon');
+
+var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 
 var eventResource = {
     startTime: {
@@ -111,15 +113,15 @@ exports.createEvent = function(newEvent, callback) {
 
     cassandraDatabase.addSingle('event', cassandraEvent, function(err) {
         if (err) {
-            console.log("EventResource: Error adding. " + err);
-            callback();
+            log.error("EventResource: Error adding. " + err);
+            callback("EventResource: Error adding. " + err);
         } else {
-            console.log("successfully created event");
+            log.debug("successfully created event");
             callback(undefined, [newEvent]);
             summaryStatisticsResource.calculate(newEvent.datasetId, newEvent.startTime, newEvent.endTime, function(statistics) {
                 exports.updateEvent(newEvent.id, {summaryStatistics: statistics}, function(err) {
                     if (err) {
-                        console.log('Error updating event with summaryStatistics' + err);
+                        log.error('Error updating event with summaryStatistics' + err);
                     }
                 });
             });

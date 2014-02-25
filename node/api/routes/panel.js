@@ -1,14 +1,12 @@
-var panelResource = require('./../../support/resources/resource/panel_resource');
-var datasetResource = require('./../../support/resources/resource/dataset_resource');
 var underscore = require('underscore')._;
-
 var readline = require('readline');
-
 var async = require('async');
-
-var log = require('./../../support/logger').log;
-
 var validator = require('validator');
+
+var log = requireFromRoot('support/logger').log;
+
+var panelResource = requireFromRoot('support/resources/panel');
+var datasetResource = requireFromRoot('support/resources/dataset');
 
 
 exports.search = function(req, res, next) {
@@ -190,10 +188,7 @@ exports.update = function(req, res, next) {
     // panel instead of the default.
     // 
 
-
-
-
-    // TODO(SRLM): Match the database 
+    // TODO(SRLM): Match the database: Get the dataset and make sure that temporaryId actually exists
     var datasetId = req.param('id');
     var temporaryId = req.param('temporaryId');
     if (typeof temporaryId !== 'undefined') {

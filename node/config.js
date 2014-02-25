@@ -1,10 +1,48 @@
-exports.apiPort = 8081;
-exports.htmlPort = 8082;
+var underscore = require('underscore')._;
 
-exports.tempDirectory = "/tmp/red9_dev_website/";
-exports.rnb2rntPath = "bin/rnb2rnt.jar";
-exports.downsamplerPath = "bin/downsampler.jar";
-exports.sessionSecret = 'powells at pdx';
+var requiredInstanceKeys = [
+    'apiPort',
+    'htmlPort',
+    'apiRealm',
+    'htmlRealm',
+    'tempDirectory',
+    'sessionSecret',
+    'usrDirectory',
+    'statistician_children',
+    'release',
+    'cassandraHosts',
+    'cassandraKeyspace'
+   
+];
+
+exports.ProcessCommandLine = function() {
+    // Process command line arguments
+    var stdio = require('stdio');
+    var ops = stdio.getopt({
+        config: {key: 'config', args: 1, description: 'Specify the configuration file'}
+    });
+
+    if (typeof ops.config === 'undefined') {
+        console.log('ERROR: must specify a configuration file.');
+        process.exit(1);
+    }
+
+    var instanceconfig = require('./' + ops.config);
+    underscore.each(requiredInstanceKeys, function(key) {
+        if (typeof instanceconfig[key] !== 'undefined') {
+            exports[key] = instanceconfig[key];
+        } else {
+            console.log('ERROR: must include all required instance keys.');
+            process.exit(1);
+        }
+    });
+
+    GLOBAL.requireFromRoot = (function(root) {
+        return function(resource) {
+            return require(root + "/" + resource);
+        };
+    })(__dirname);
+};
 
 exports.pageTemplateDefaults = {
     site: {
@@ -16,63 +54,24 @@ exports.pageTemplateDefaults = {
         email: 'srlm@srlmproductions.com'
     }
 };
+
 exports.nodetimeProfile = {
     accountKey: 'b0bde370aeb47c1330dbded1c830a5d93be1e5e2',
     appName: 'Dev Website'
 };
 
-
-exports.releaseRealm = 'http://redninesensor.com';
-exports.releaseApiDomain = 'http://api.redninesensor.com';
-exports.developmentRealm = 'http://localdev.redninesensor.com';
-exports.developmentApiDomain = 'http://api.localdev.redninesensor.com';
-
-exports.realm = exports.developmentRealm;
-exports.apiDomain = exports.developmentApiDomain;
-
-exports.release = false;
-
-
-exports.dataProcessingDirectory = '../../data-processing';
-
-exports.usrDirectory = exports.dataProcessingDirectory + '/usr';
-
-exports.statistician_children = '../../data-processing/statistics/children';
-//exports.statistician_children = '/home/clewis/consulting/red9/data-processing/statistics/children';
-
-exports.logfilepath = 'logs/';
-
 exports.defaultTimezone = '';
-
 exports.panelRowCountLimit = 1000000;
 
 exports.logglyparameters = {
-            subdomain: 'redninesensor',
-            inputToken: '517e6f6c-a1fa-454a-a3bc-e8b6659ee8c4'
-        };
-        
+    subdomain: 'redninesensor',
+    inputToken: '517e6f6c-a1fa-454a-a3bc-e8b6659ee8c4'
+};
+
 exports.papertrailparameters = {
     host: 'logs.papertrailapp.com',
     port: 19395,
     colorize: true
-};
-
-
-exports.ProcessCommandLine = function(){
-    // Process command line arguments
-    var stdio = require('stdio');
-    var ops = stdio.getopt({
-        release: {key: 'r', args: 0, description: 'Set for release mode.'}
-    });
-    exports.release = (typeof ops.release !== 'undefined');
-
-    if (exports.release === true) {
-        exports.realm = exports.releaseRealm;
-        exports.apiDomain = exports.releaseApiDomain;
-    } else {
-        exports.realm = exports.developmentRealm;
-        exports.apiDomain = exports.developmentApiDomain;
-    }
 };
 
 exports.unitsMap = {

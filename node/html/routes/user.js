@@ -1,4 +1,4 @@
-var userResource = require('./../../support/resources/resource/user_resource');
+var userResource = requireFromRoot('support/resources/user');
 
 exports.get = function(req, res, next) {
     

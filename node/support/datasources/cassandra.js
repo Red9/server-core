@@ -1,16 +1,12 @@
-
-var log = require('./../../../support/logger').log;
-
-var cassandraClient = require('node-cassandra-cql').Client;
-var hosts = ['localhost:9042'];
-var cassandraDatabase = new cassandraClient({hosts: hosts, keyspace: 'dev'});
-
 var moment = require('moment');
-
 var underscore = require('underscore')._;
-
 var validator = require('validator');
 
+var log = requireFromRoot('support/logger').log;
+var config = requireFromRoot('config');
+
+var cassandraClient = require('node-cassandra-cql').Client;
+var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
 
 exports.getAll = function(type, callbackItem, callbackDone) {
 
@@ -146,10 +142,10 @@ exports.updateSingle = function(type, id, updatedResource, callback) {
     underscore.each(updatedResource, function(value, key) {
         var keyIndex = checkSchemaForKey(schema, key);
         if (keyIndex < 0) {
-            console.log('schema[' + key + '] === not found');
+            log.debug('schema[' + key + '] === not found');
             correctSchema = false;
         } else if (checkType(schema[keyIndex].hint, value) === false) {
-            console.log('value ' + value + ' is not ' + schema[keyIndex].hint);
+            log.debug('value ' + value + ' is not ' + schema[keyIndex].hint);
             correctSchema = false;
         } else {
             keys.push(key);
@@ -243,6 +239,9 @@ function checkSchemaForKey(schema, key) {
             keyIndex = index;
         }
     });
+    if(key === -1){
+        debug.warn('Schema searched for key ' + key + ' and not found');
+    }
     return keyIndex;
 }
 
@@ -265,20 +264,8 @@ var dataset_schema = [
         hint: 'varchar'
     },
     {
-        key: 'start_time',
-        hint: 'timestamp'
-    },
-    {
-        key: 'end_time',
-        hint: 'timestamp'
-    },
-    {
         key: 'summary_statistics',
         hint: 'varchar'
-    },
-    {
-        key: 'number_rows',
-        hint: 'int'
     },
     {
         key: 'timezone',
@@ -293,11 +280,7 @@ var dataset_schema = [
         hint: 'uuid'
     },
     {
-        key: 'column_titles',
-        hint: 'list<varchar>'
-    },
-    {
-        key:'raw_data_alternates',
+        key:'raw_data_list',
         hint:'varchar'
     },
     {
