@@ -147,6 +147,10 @@
     </script>
 </form>
 <script>
+    
+    site.urls.apiPath = '{{apiUrl}}'; // Global variable accessible to all handlebars rendered pages.
+    
+    
     $('#filter-form').submit(function (e) {
         e.preventDefault();
         site.search();
