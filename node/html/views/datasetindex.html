@@ -1,88 +1,281 @@
-<link rel="stylesheet" type="text/css" href="/css/jquery.dataTables.css">
-<script src="/js/jquery.dataTables.js"></script>
+<h1>Explore events and datasets</h1>
+<form id="filter-form" class="filters clearfix">
+    <div class="container panel panel-default">
+        <div class="row">
+            <div class="col-lg-6 filter-item ignore">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Type</h3></div>
+                    <div class="col-sm-9">
+                        <ul class="nav nav-pills simple">
+                            <li class="active"><a href="#">Dataset<input type="radio" name="type" id="type-dataset" checked></a></li>
+                            <li><a href="#">Event<input type="radio" name="type" id="type-event"></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 filter-item inactive" id="event-type-filter">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Event type</h3></div>
+                    <div class="col-sm-5">
+                        <select name="type" id="event-type" class="form-control" multiple>
+                            <option value="wave">Wave</option>
+                            <option value="jump">Jump</option>
+                            <option value="drop">Drop</option>
+                            <option value="another type">Another type</option>
+                            <option value="super">Super</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 filter-item">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Date</h3></div>
+                    <div class="col-sm-2"><label for="timespan">Within</label></div>
+                    <div class="col-sm-3">
+                        <div class="input-group">
+                            <input type="number" id="timespan" class="form-control" />
+                            <span class="input-group-addon">hr</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-1"><label for="datetime">Of</label></div>
+                    <div class="col-sm-3">
+                        <input type="datetime" id="datetime" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 filter-item">
+                <div class="row">
+                    <div class="col-lg-12 filter-item" id="duration-filter">
+                        <div class="row">
+                            <div class="col-sm-3"><h3>Duration</h3></div>
+                            <div class="col-sm-9">
+                                <div class="slider"
+                                    id="duration"
+                                    data-name="duration"
+                                    data-max="180" data-units="min"></div>
+                                <div class="slider-label"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 filter-item" id="location-filter">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Location</h3></div>
+                    <div class="col-sm-2"><label for="distance">Within</label></div>
+                    <div class="col-sm-3">
+                        <div class="input-group">
+                            <input type="number" id="distance" class="form-control" />
+                            <span class="input-group-addon">mi</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-1"><label for="location">Of</label></div>
+                    <div class="col-sm-3">
+                        <span id="location-remove" class="glyphicon glyphicon-remove"></span>
+                        <a href="#"><span class="glyphicon glyphicon-map-marker"></span><span id="location-label">Select</span></a>
+                        <input type="hidden" id="location-name" name="location.name" value="">
+                        <input type="hidden" id="location" value="" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="map">
+                <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzYsEDTVazN_ic9SsHVvhcSCLwlLEHd7Q&sensor=true"></script>
+                <div id="map-canvas"></div>
+            </div>
+        </div>
+        <div id="additional-filters-container"></div>
+        <div class="row">
+            <div class="col-lg-12 buttons">
+                <button class="btn btn-success">Search</button>
+                <button class="btn btn-default btn-clear">Clear</button>
+                <div class="btn-group" id="additional-filters-button">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    More filters <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu pull-right" role="menu">
+                    <li><a href="#" data-name="static.route.path.distance.value" data-template="slider" data-title="Distance" data-units="mi" data-tovalue="mileToMeter">Path distance</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" data-name="instantaneous.acceleration.magnitude.average" data-template="slider" data-title="Instantaneous acceleration" data-max="150" data-units="m<sub>/s<sup>2</sup></sub>">Instantaneous acceleration</a></li>
+                    <li><a href="#" data-name="instantaneous.rotationrate.magnitude.average" data-template="range-input" data-title="Instantaneous rotation" data-units="<sup>rad</sup><sub>/s</sub>">Instantaneous average rotation rate</a></li>
+                  </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<script src="/js/jquery.jeditable.js"></script>
-
+    <script type="text/x-handlebars-template" id="tmpl-filter-range-input">
+        <div class="row" id="filter-\{{id}}">
+            <div class="col-lg-6 filter-item">
+                <div class="row">
+                    <div class="col-sm-3"><h3>\{{title}}</h3></div>
+                    <div class="col-sm-2"><label>More than</label></div>
+                    <div class="col-sm-2">
+                        <div class="input-group">
+                            <input type="number" name="\{{name}}.more" class="form-control" />
+                            <span class="input-group-addon">\{{{units}}}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-2"><label>Less than</label></div>
+                    <div class="col-sm-2">
+                        <div class="input-group">
+                            <input type="number" name="\{{name}}.less" class="form-control" />
+                            <span class="input-group-addon">\{{{units}}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script type="text/x-handlebars-template" id="tmpl-filter-slider">
+        <div class="row" id="filter-\{{id}}">
+            <div class="col-lg-6 filter-item">
+                <div class="row">
+                    <div class="col-sm-3"><h3>\{{title}}</h3></div>
+                    <div class="col-sm-9">
+                        <div class="slider" data-name="\{{name}}" data-tovalue="\{{tovalue}}"></div>
+                        <div class="slider-label"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+</form>
 <script>
-    var oTable;
-    $(document).ready(function() {
-        oTable = $('#dataset_list').dataTable({
-            "aaSorting": [[2, "des"]],
-            "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
-        });
-
-
-        $('.editable').editable(function(value, settings) {
-            console.log(this);
-            console.log(value);
-            console.log(settings);
-            return(value);
-        }, {
-            type: 'text',
-            width: ($('.name_cell').width() - 10) + "px",
-            height: ($('.name_cell').height() + 8) + "px"
-        });
-
+    $('#filter-form').submit(function (e) {
+        e.preventDefault();
+        site.search();
     });
-
-    var apiDomain = '{{apiUrl}}';
-
-    var deleteDataset = function(id) {
-        $.ajax({
-            type: 'DELETE',
-            url: apiDomain + "/dataset/" + id,
-            datatype:'json',
-            success: function() {
-                var row = $("#dataset_list_row_" + id);
-                row.addClass('danger');
-                row.hide("slow", function() {
-                    oTable.fnDeleteRow(row[0]);
-                });
-
-            },
-            error: function() {
-                alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
+    $(function () {
+        $('#filter-form').submit();
+    });
+    $('.filters .nav.simple a').click(function () {
+        $(this).closest('.nav').children('li').removeClass('active');
+        $(this).closest('li').addClass('active');
+        $('input',this).prop('checked', true);
+        return false;
+    });
+    $('.filters .nav.multiple a').click(function () {
+        $(this).closest('li').toggleClass('active');
+        $('input',this).prop('checked',  !$('input',this).prop('checked'));
+    });
+    $('#type-event').closest('.nav').find('a').click(function () {
+        var isDataset = !$('#type-event').prop('checked');
+        $('#event-type-filter').toggleClass('inactive', isDataset);
+        var sliderElement = $("#duration-filter .slider");
+        var maxDuration = 15;
+        if (isDataset) {
+            maxDuration = 180;
+        }
+        sliderElement.slider('option', 'max', maxDuration);
+        sliderElement.slider('values', [0, 0]);
+    });
+    $('#location-label').closest('a').click(function (){
+        var mapContainer = $('.filters .map');
+        if (mapContainer.is(':visible')) {
+            mapContainer.hide();
+            return false;
+        }
+        mapContainer.show();
+        if (!mapContainer.data('mapLoaded')) {
+            mapContainer.data('mapLoaded', true);
+            site.setMap(39.4114,-96.90834, 4, function (lat, lng, name) {
+                $('#location').val(lat + ',' + lng);
+                if (name) {
+                    if (!$('#location-label').data('default-text')) {
+                        $('#location-label').data('default-text', $('#location-label').text());
+                    }
+                    $('#location-label, #location-name').val(name).text(name);
+                }
+                $('#location-remove').show();
+                if (!$('#distance').val()) {
+                    $('#distance').val(10);
+                }
+            });
+        }
+        return false;
+    });
+    $('#location-remove').click(function () {
+        $('#location, #location-name').val(null).text(null);
+        $('#location-label').text($('#location-label').data('default-text'));
+        $('.filters .map, #location-remove').hide();
+        site.clearMap();
+        $('#distance').val(null);
+    });
+    $('#additional-filters-button li a').click(function () {
+        var state = $(this).data();
+        if (!state.name) return true;
+        state.id = state.name.replace(/\./g, "-");
+        if (!$('#filter-' + state.id).length) {
+            var templateId = 'tmpl-filter-' + state.template;
+            if (!site.templates[templateId]) {
+                site.templates[templateId] = Handlebars.compile($('#' + templateId).html());
             }
-        });
-
-    };
+            var filter = $(site.templates[templateId](state));
+            filter.addClass('additional-filter');
+            $('#additional-filters-container').append(filter);
+            if ($(".slider", filter).length) {
+                site.setSlider(filter, state);
+            }
+        }
+        //now its added to the dom
+        $('#filter-' + state.id).show().css({backgroundColor: '#BCE8F1'}).animate({backgroundColor: 'transparent'}, 1000);
+        return true;
+    });
+    $(function () {
+        site.setSlider($("#duration-filter"), $('.slider', $("#duration-filter")).data());
+    });
+    $('.filters .btn-clear').click(function () {
+        site.clearSearchFilter();
+        return false;
+    });
 </script>
 
+<div id="container-results"></div>
+<script type="text/x-handlebars-template" id="tmpl-results">
+    <div class="panel panel-default results">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>User</th>
+                        <th>Created</th>
+                        <th>Duration</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    \{{#each items}}
+                    <tr>
+                        <td>\{{title}} \{{type}}</td>
+                        <td><a href="/user/\{{create_user}}">User A</a></td>
+                        <td>\{{toDateString startTime}}</td>
+                        <td>
+                            \{{#if datasetId}}
+                            <a class="btn btn-xs btn-primary" href="/dataset/\{{datasetId}}">View Dataset</a>
+                            <a class="btn btn-xs btn-danger" onclick="site.deleteDataset('\{{datasetId}}')">Delete</a>
+                            \{{else}}
+                            <a class="btn btn-xs btn-primary" href="/dataset/\{{id}}">View Dataset</a>
+                            <a class="btn btn-xs btn-danger" onclick="site.deleteDataset('\{{id}}')">Delete</a>
+                            \{{/if}}
+                        </td>
+                    </tr>
+                    \{{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-
-<div class="panel panel-default">
-    <div class="panel-heading"><strong>{{page_title}}</strong></div>
-    <div class="panel-body"></div>
-    <table class="table table-striped table-bordered" id="dataset_list">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Owner</th>
-                <th>Created</th>
-                <th>Duration</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-
-            {{#each datasets}}   
-            <tr id="dataset_list_row_{{{id}}}">
-                <td  class="editable name_cell">{{{title}}}</td>
-                <td><a href="/user/{{{create_user.id}}}">{{{owner.displayName}}}</a></td>
-                <td>{{{epochdate createTime}}}&nbsp;&nbsp;{{{epochtime createTime}}}</td>
-                <td>{{{duration startTime endTime}}}</td>
-
-                <td><a class="btn btn-xs btn-primary" href="/dataset/{{{id}}}">View Dataset</a>&nbsp;&nbsp;&nbsp;&nbsp;
-                    <a class="btn btn-xs btn-danger" onclick='deleteDataset("{{{id}}}")'>Delete</a>
-                </td>
-            </tr>
-            {{/each}}
-
-        </tbody>
-    </table>
-</div>
-
-<br /><br /><br /><br />
+    <div>
+        \{{#pager paging onclick="site.showResults(:0:)"}}\{{/pager}}
+    </div>
+</script>
 
 <h2>Tools</h2>
 <div class="panel panel-default">
