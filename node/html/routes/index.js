@@ -43,7 +43,15 @@ module.exports = function(app, passport) {
     app.get( '/snippet/:type', IsAuthenticated, require('./getsnippet').get);
     
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
-    
+
+    //for Jorge's testing purposes
+    app.post('/noop/', function (req, res) {
+      res.send({prop1: 'value 1'});
+    });
+    app.get('/noop/', function (req, res) {
+      res.send({prop1: 'value 1'});
+    });
+
     app.get('/lens/:type', IsAuthenticated, require('./getlens').get);
     
 };
