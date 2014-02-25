@@ -24,6 +24,7 @@
         "cluster": "latest",
         "underscore": "latest",
         "validator":"latest",
-        "connect-timeout":"latest"
+        "connect-timeout":"latest",
+        "requirejs":"latest"
     }
 }
