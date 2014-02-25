@@ -29,7 +29,7 @@ var site = {
   searchPageSize: 20,
   templates: {},
   urls: {
-    apiPath: getApiPath(location),
+    apiPath: 'Nothing Here', // Dynmaically set
     searchDataset: '/dataset/',
     searchEvent: '/event/'
   },
@@ -87,7 +87,7 @@ var site = {
       var values = element.slider('values');
       if (values.length === 2 && values[1]) {
         //unit conversion (ie: mile to meter)
-        var convert = function (value) {return value};
+        var convert = function (value) {return value;};
         if (element.data('tovalue')) {
           convert = self[element.data('tovalue')];
         }
@@ -170,7 +170,7 @@ var site = {
       selectCallback(position.lat(), position.lng());
       geocoder.geocode({'latLng': position}, function(results, status) {
         var locationName = self.adapter.address();
-        if (status == google.maps.GeocoderStatus.OK && results[1]) {
+        if (status === google.maps.GeocoderStatus.OK && results[1]) {
           locationName = self.adapter.address(results[1].address_components);
         }
         selectCallback(position.lat(), position.lng(), locationName);
@@ -199,7 +199,7 @@ var site = {
           values: [0, 0],
           slide: slideChange,
           change: slideChange
-      }).data('initialized', true).on('custom', function (){alert('custom')});
+      }).data('initialized', true).on('custom', function (){alert('custom');});
   },
   /**
    * Returns a date in YYYY-MM-DD format or the string Today and Yesterday
@@ -234,13 +234,13 @@ var site = {
     if (order !== 'desc') {
       return function (a, b) {
         return a[name] - b[name];
-      }
+      };
     }
     else
     {
       return function (a, b) {
         return b[name] - a[name];
-      }
+      };
     }
   }
 };
@@ -261,12 +261,12 @@ if (Handlebars) {
       builder.push('<li><a href="#" onclick="' + getOnClick(context.current-1) + '">&laquo;</a></li>');
     }
     else {
-      builder.push('<li class="disabled"><span>&laquo;</span></li>')
+      builder.push('<li class="disabled"><span>&laquo;</span></li>');
     }
     for(var i = 0; i < context.length; i++) {
       builder.push('<li');
       if (i === context.current) {
-        builder.push(' class="active"')
+        builder.push(' class="active"');
       }
       builder.push('><a href="#" onclick="');
       builder.push(getOnClick(i));
@@ -278,19 +278,9 @@ if (Handlebars) {
       builder.push('<li><a href="#' + getOnClick(context.current+1) + '">&raquo;</a></li>');
     }
     else {
-      builder.push('<li class="disabled"><span>&raquo;</span></li>')
+      builder.push('<li class="disabled"><span>&raquo;</span></li>');
     }
     builder.push('</ul');
     return builder.join('');
 });
-}
-function getApiPath(location) {
-  var hostPort;
-  if (location.hostname.match(/redninesensor\.com/i)) {
-    hostPort = 'api.redninesensor.com';
-  }
-  else {
-    hostPort = 'api.' + location.hostname + (location.port ? ':8081' : '');
-  }
-  return location.protocol + '//' + hostPort;
 }
