@@ -29,7 +29,7 @@ var site = {
   searchPageSize: 20,
   templates: {},
   urls: {
-    apiPath: 'Nothing Here', // Dynmaically set
+    apiPath: null, //Dynamically set
     searchDataset: '/dataset/',
     searchEvent: '/event/'
   },
@@ -52,7 +52,7 @@ var site = {
     var context = $('#filter-form .filter-item:not(.inactive):not(.ignore)');
     var params = {simpleoutput: 1};
     var self = this;
-    $(' input, select', context).not(':radio, :checkbox').each(function () {
+    $('input, select', context).not(':radio, :checkbox, .ignore').each(function () {
       var element = $(this);
       var key = element.attr('id');
       if (element.attr('name')) {
@@ -60,9 +60,13 @@ var site = {
       }
       if (element.val()) {
         params[key] = element.val();
+        if ($.isArray(element.val())) {
+          //separate values by commas
+          params[key] = element.val().join(',');
+        }
       }
     });
-    $(':radio, :checkbox', context).filter(':checked').each(function () {
+    $(':radio, :checkbox', context).not('.ignore').filter(':checked').each(function () {
       var element = $(this);
       if (element.attr('name')) {
         //handle multiple values same name
@@ -71,10 +75,7 @@ var site = {
           value = element.val();
         }
         else {
-          if (!$.isArray(value)) {
-            value = [value];
-          }
-          value.push(element.val());
+          value += ',' + element.val();
         }
         params[element.attr('name')] = value;
       }
