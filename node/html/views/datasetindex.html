@@ -37,29 +37,27 @@
                     <div class="col-sm-2"><label for="timespan">Within</label></div>
                     <div class="col-sm-3">
                         <div class="input-group">
-                            <input type="number" id="timespan" class="form-control" />
-                            <span class="input-group-addon">hr</span>
+                            <input type="number" id="timespan" class="form-control ignore" />
+                            <span class="input-group-addon">day(s)</span>
                         </div>
                     </div>
                     <div class="col-sm-1"><label for="datetime">Of</label></div>
                     <div class="col-sm-3">
-                        <input type="datetime" id="datetime" class="form-control">
+                        <input type="text" id="datetime" class="form-control ignore">
                     </div>
                 </div>
+                <input type="hidden" id="endTime-more" name="endTime.more">
+                <input type="hidden" id="startTime-less" name="startTime.less">
             </div>
-            <div class="col-lg-6 filter-item">
+            <div class="col-lg-6 filter-item" id="duration-filter">
                 <div class="row">
-                    <div class="col-lg-12 filter-item" id="duration-filter">
-                        <div class="row">
-                            <div class="col-sm-3"><h3>Duration</h3></div>
-                            <div class="col-sm-9">
-                                <div class="slider"
-                                    id="duration"
-                                    data-name="duration"
-                                    data-max="180" data-units="min"></div>
-                                <div class="slider-label"></div>
-                            </div>
-                        </div>
+                    <div class="col-sm-3"><h3>Duration</h3></div>
+                    <div class="col-sm-9">
+                        <div class="slider"
+                            id="duration"
+                            data-name="duration"
+                            data-max="180" data-units="min"></div>
+                        <div class="slider-label"></div>
                     </div>
                 </div>
             </div>
@@ -147,9 +145,7 @@
     </script>
 </form>
 <script>
-    
     site.urls.apiPath = '{{apiUrl}}'; // Global variable accessible to all handlebars rendered pages.
-    
     
     $('#filter-form').submit(function (e) {
         e.preventDefault();
@@ -204,6 +200,19 @@
         }
         return false;
     });
+    $('#datetime, #timespan').change(function () {
+        var date = $('#datetime').val();
+        var span = $('#timespan').val();
+        if (!date || !span || span === '0' || isNaN(Date.parse(date)) || isNaN(parseInt(span, 10))) {
+            $('#endTime-more').val('');
+            $('#startTime-less').val('');
+            return;
+        }
+        var baseDate = Date.parse(date);
+        var days = parseInt(span, 10);
+        $('#endTime-more').val(baseDate + days*24*60*60*1000);
+        $('#startTime-less').val(baseDate + (days+1)*24*60*60*1000);
+    });
     $('#location-remove').click(function () {
         $('#location, #location-name').val(null).text(null);
         $('#location-label').text($('#location-label').data('default-text'));
@@ -233,6 +242,7 @@
     });
     $(function () {
         site.setSlider($("#duration-filter"), $('.slider', $("#duration-filter")).data());
+        $('#datetime').datepicker();
     });
     $('.filters .btn-clear').click(function () {
         site.clearSearchFilter();
