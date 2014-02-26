@@ -31,7 +31,7 @@ EventList.prototype.SetEvents = function(events) {
     var classInstance = this;
 
     // Listen for buttons, first
-    $('#' + this.id + '_eventlist_table button').click(function(clickEvent) {
+    $('#' + this.id + '_eventlist_table').on('click', 'button', function(clickEvent) {
         var cellDom = $(this).closest('td')[0];
         var rowDom = $(this).closest('tr')[0];
         var position = oTable.fnGetPosition(cellDom);
@@ -62,6 +62,11 @@ EventList.prototype.SetEvents = function(events) {
                         oTable.fnClose(rowDom);
                         $(rowDom).addClass('danger');
                         $(rowDom).hide('slow', function(){
+                            // TODO(SRLM): Why do we have two copies of the same data?
+                            // We have eventTable and events. Do we really need
+                            // both?
+                            classInstance.eventTable.splice(rowIndex, 1); // For some reason, has to be first.
+                            classInstance.events.splice(rowIndex, 1);
                             oTable.fnDeleteRow(rowDom);
                         });
              
@@ -119,7 +124,7 @@ EventList.prototype.SetEvents = function(events) {
 
 EventList.prototype.createDatatable = function(events) {
     var classInstance = this;
-    var eventTable = [];
+    classInstance.eventTable = [];
     _.each(events, function(event, index, list) {
         var cells = [];
 
@@ -147,7 +152,7 @@ EventList.prototype.createDatatable = function(events) {
 
         cells.push(event.id);
 
-        eventTable.push(cells);
+        classInstance.eventTable.push(cells);
     });
 
     var columns = [
@@ -177,7 +182,7 @@ EventList.prototype.createDatatable = function(events) {
 
 
     var result = {
-        aaData: eventTable,
+        aaData: classInstance.eventTable,
         aoColumns: columns,
         bFilter: false
     };
