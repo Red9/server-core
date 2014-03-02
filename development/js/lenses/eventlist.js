@@ -200,7 +200,7 @@ EventList.prototype.createDatatable = function(events) {
 // -----------------------------------------------------------------------------
 
 
-EventList.prototype.setRange = function(minimumTime, maximumTime) {
+EventList.prototype.setRange = function(startTime, endTime) {
 
 };
 
