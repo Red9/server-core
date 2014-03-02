@@ -27,7 +27,7 @@ function MoveDatasetPanelMetaToPanelList() {
     datasetResource.getDatasets({}, function(datasets) {
         console.log('Updating ' + datasets.length + ' datasets');
         async.eachSeries(datasets, function(dataset, callback) {
-            console.log('Calculating panel properties of ' + dataset.headPanelId);
+            console.log('Calculating panel properties of ' + dataset.headPanelId + ' and createTime of ' + dataset.createTime);
             panelResource.calculatePanelProperties(dataset.headPanelId,
                     function(properties) {
                         console.log('Properties calculated.');

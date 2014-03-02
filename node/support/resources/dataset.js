@@ -88,8 +88,11 @@ function mapToCassandra(resource) {
     cassandra.source = JSON.stringify(resource.source);
     cassandra.owner = resource.owner;
     cassandra.summary_statistics = JSON.stringify(resource.summaryStatistics);
-    cassandra.create_time = moment(resource.createTime).toDate();
     cassandra.raw_data_list = JSON.stringify(resource.panels);
+
+    if (typeof resource.createTime !== 'undefined') {
+        cassandra.create_time = moment(resource.createTime).toDate();
+    }
 
     underscore.each(cassandra, function(value, key) {
         if (typeof value === 'undefined') {

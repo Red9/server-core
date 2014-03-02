@@ -3,8 +3,6 @@
 var cluster = require('cluster');
 
 var config = require('./config');
-
-
 config.ProcessCommandLine();
 
 if (cluster.isMaster) {
@@ -26,7 +24,7 @@ if (cluster.isMaster) {
     var log = logger.log; // console.log replacement
 
     log.info("API Node.js worker started.");
-    log.info("Release Server: " + config.releaseserver);
+    log.info("Release Server: " + config.release);
 
 
 // Standard modules that we need:
