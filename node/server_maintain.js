@@ -14,21 +14,23 @@ log.info("Maintain Node.js process started.");
 
 
 //----------------------------------------------------------------------
-//MoveDatasetPanelMetaToPanelList();
+MoveDatasetPanelMetaToPanelList();
 //----------------------------------------------------------------------
 
 function MoveDatasetPanelMetaToPanelList() {
 
 
-    var panelResource = require('./support/resources/panel');
-    var datasetResource = require('./support/resources/dataset');
+    var panelResource = requireFromRoot('support/resources/panel');
+    var datasetResource = requireFromRoot('support/resources/dataset');
 
 // note: requires editing mapToResource so that it doesn't read from dataset.panels...
     datasetResource.getDatasets({}, function(datasets) {
-       
+        log.debug('Updating ' + datasets.length + ' datasets');
         async.eachSeries(datasets, function(dataset, callback) {
+            log.debug('Calculating panel properties of ' + dataset.headPanelId);
             panelResource.calculatePanelProperties(dataset.headPanelId,
                     function(properties) {
+                        log.debug('Properties calculated.');
                         dataset.panels = {};
                         dataset.panels[dataset.headPanelId] =
                                 {
@@ -62,13 +64,17 @@ function MoveDatasetPanelMetaToPanelList() {
                         datasetResource.updateDataset(
                                 dataset.id,
                                 {panels: dataset.panels},
-                        function() {
-                            log.debug('Updated dataset ' + dataset.id);
+                        function(err) {
+                            if(err){
+                                log.error('Error updating dataset: ' + err);
+                            }else{
+                                log.debug('Updated dataset ' + dataset.id);
+                            }
                             callback();
                         });
                     });
         }, function(err) {
-            log.debug('all done');
+            log.debug('All done');
         });
     });
 }
