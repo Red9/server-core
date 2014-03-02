@@ -1,45 +1,78 @@
-/* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 function RequestQueue(parameters, dataset) {
     this.apiUrl = parameters.apiUrl;
-    this.dataset = dataset;
+
+    this.dataset = {// Explicitly keep only what we need (for memory savings)
+        startTime: dataset.startTime,
+        endTime: dataset.endTime,
+        id: dataset.id,
+        axes: dataset.axes
+
+    };
+
+    this.queue = async.queue($.proxy(this.handleRequest, this), 1);
 
     // Get the dataset panel for later requests (or splicing)
-    var classInstance = this;
-    this.getPanel(this.dataset.startTime, this.dataset.endTime, function(panel) {
-        classInstance.dataset.panel = panel;
+    this.queue.push({
+        startTime: this.dataset.startTime,
+        endTime: this.dataset.endTime,
+        axes: this.dataset.axes,
+        callback: function() {
+        }
     });
 }
-
-
 //-----------------------------------------------------------------------------
 // Private
 //-----------------------------------------------------------------------------
 
-RequestQueue.prototype.getPanel = function(minimumTime, maximumTime, callback) {
-    var requestUrl = this.apiUrl + '/dataset/' + this.dataset.id + '/panel/'
-            + '?minmax'
-            + '&format=json'
-            + '&startTime=' + minimumTime
-            + '&endTime=' + maximumTime
-            + '&buckets=1000';
+RequestQueue.prototype.processPanel = function(request, panel, doneCallback) {
+    panel.startTime = request.startTime;
+    panel.endTime = request.endTime;
 
-    $.ajax({
-        type: 'GET',
-        url: requestUrl,
-        dataType: 'json',
-        success: $.proxy(function(panel) {
-            panel.minimumTime = minimumTime;
-            panel.maximumTime = maximumTime;
-            console.log("Got panel. Values.length: " + panel.values.length);
-            callback(panel);
+    var classInstance = this;
+    if (request.spliced === true) {
+        panel = classInstance.splicePanel(panel);
+    }
+    panel = classInstance.trimPanel(panel, request.axes);
 
-        }, this)
-    });
+    request.callback(panel);
+    doneCallback();
+
+};
+
+RequestQueue.prototype.handleRequest = function(request, doneCallback) {
+
+    console.log('Handling request. this.dataset.panel ' + typeof this.dataset.panel);
+    if (typeof this.dataset.panel !== 'undefined'
+            && request.startTime === this.dataset.panel.startTime
+            && request.endTime === this.dataset.panel.endTime) {
+        this.processPanel(request, this.dataset.panel, doneCallback);
+    } else if (typeof this.lastPanel !== 'undefined'
+            && request.startTime === this.lastPanel.startTime
+            && request.endTime === this.lastPanel.endTime) {
+        this.processPanel(request, this.lastPanel, doneCallback);
+    } else {
+
+        var requestUrl = this.apiUrl + '/dataset/' + this.dataset.id + '/panel/'
+                + '?minmax'
+                + '&format=json'
+                + '&startTime=' + request.startTime
+                + '&endTime=' + request.endTime
+                + '\&buckets=1000';
+        console.log('Request url: ' + requestUrl);
+
+        $.ajax({
+            type: 'GET',
+            url: requestUrl,
+            dataType: 'json',
+            success: $.proxy(function(panel) {
+                this.lastPanel = panel;
+                if (typeof this.dataset.panel === 'undefined') {
+                    this.dataset.panel = panel;
+                }
+                this.processPanel(request, panel, doneCallback);
+            }, this)
+        });
+    }
 };
 
 RequestQueue.prototype.trimPanel = function(panel, axes) {
@@ -81,8 +114,8 @@ RequestQueue.prototype.trimPanel = function(panel, axes) {
     var updatedPanel = {
         labels: updatedAxes,
         values: values,
-        minimumTime: panel.minimumTime,
-        maximumTime: panel.maximumTime
+        startTime: panel.startTime,
+        endTime: panel.endTime
     };
 
     return updatedPanel;
@@ -102,8 +135,9 @@ RequestQueue.prototype.splicePanel = function(panel) {
     var i;
 
     // Add the dataset first "half"
-    for (i = 0; classPanelValues[i][0] < localPanelValues[0][0]
-            && i < classPanelValues.length; i = i + 1) {
+    for (i = 0; i < classPanelValues.length
+            && classPanelValues[i][0] < localPanelValues[0][0]
+            ; i = i + 1) {
         resultPanelValues.push(classPanelValues[i]);
     }
 
@@ -113,17 +147,18 @@ RequestQueue.prototype.splicePanel = function(panel) {
     });
 
     // Find the end of the splice
-    for (; classPanelValues[i][0] <= localPanelValues[localPanelValues.length - 1][0]
-            && i < classPanelValues.length; i = i + 1) {
+    for (; i < classPanelValues.length
+            && classPanelValues[i][0] <= localPanelValues[localPanelValues.length - 1][0]
+            ; i = i + 1) {
     }
-
+    
     // Finish the dataset second "half"
     for (; i < classPanelValues.length; i = i + 1) {
         resultPanelValues.push(classPanelValues[i]);
     }
 
     panel.values = resultPanelValues;
-
+    
     return panel;
 };
 
@@ -133,21 +168,15 @@ RequestQueue.prototype.splicePanel = function(panel) {
 //-----------------------------------------------------------------------------
 
 RequestQueue.prototype.requestPanel
-        = function(minimumTime, maximumTime, axes, callback, spliced) {
-    if (this.dataset.startTime === minimumTime && this.dataset.endTime === maximumTime
-            && typeof this.dataset.panel !== "undefined") {
-        var trimmedPanel = this.trimPanel(this.dataset.panel, axes);
-        callback(trimmedPanel);
-    } else {
-        var classInstance = this;
-        this.getPanel(minimumTime, maximumTime, function(panel) {
-            if (spliced === true) {
-                panel = classInstance.splicePanel(panel);
-            }
-            var trimmedPanel = classInstance.trimPanel(panel, axes);
-            callback(trimmedPanel);
-        });
-    }
-};
+        = function(startTime, endTime, axes, callback, spliced) {
+            var request = {
+                startTime: startTime,
+                endTime: endTime,
+                axes: axes,
+                callback: callback,
+                spliced: spliced
+            };
+            this.queue.push(request);
+        };
 
 

@@ -138,15 +138,7 @@ function mapToResource(cassandra) {
     return resource;
 }
 
-
-
-exports.createDataset = function(newDataset, callback) {
-    var valid = common.checkNewResourceAgainstSchema(datasetResource, newDataset);
-    if (typeof valid !== 'undefined') {
-        callback('Schema failed: ' + valid);
-        return;
-    }
-
+var createFlush = function(newDataset){
     newDataset.id = common.generateUUID();
     newDataset.headPanelId = common.generateUUID();
     newDataset.timezone = config.defaultTimezone;
@@ -159,18 +151,21 @@ exports.createDataset = function(newDataset, callback) {
         endTime: 0,
         axes: []
     };
+};
 
-    var cassandraDataset = mapToCassandra(newDataset);
+exports.resource = {
+  mapToCassandra: mapToCassandra,
+  mapToResource: mapToResource,
+  cassandraTable: 'dataset',
+  schema: datasetResource,
+  create:{
+      flush: createFlush
+  }
+};
 
-    cassandraDatabase.addSingle('dataset', cassandraDataset, function(err) {
-        if (err) {
-            log.warn('DatasetResource: Error on creating new dataset: ' + err);
-            callback('error');
-        } else {
-            log.debug('Successfully created new dataset ' + newDataset.id);
-            callback(undefined, [newDataset]);
-        }
-    });
+
+exports.createDataset = function(newDataset, callback) {
+    common.createResource(exports.resource, newDataset, callback);
 };
 
 exports.deleteDataset = function(id, callback) {
@@ -180,7 +175,7 @@ exports.deleteDataset = function(id, callback) {
             // Clean up associated resources
             var dataset = datasets[0];
             eventResource.deleteEventByDataset(id, function(errEvent) {
-                panelResource.deletePanel(dataset.panelId, function(errPanel) {
+                panelResource.deletePanel(dataset.headPanelId, function(errPanel) {
                     cassandraDatabase.deleteSingle('dataset', id, function(errDataset) {
                         if (errEvent || errPanel || errDataset) {
                             callback(errEvent + ' ' + errPanel + ' ' + errDataset);
@@ -237,7 +232,7 @@ exports.updateDataset = function(id, modifiedDataset, callback, forceEditable) {
 
     cassandraDatabase.updateSingle('dataset', id, cassandraDataset, function(err) {
         if (err) {
-            console.log('error updating dataset: ' + err);
+            log.error('error updating dataset: ' + err);
             callback('error');
         } else {
             callback(undefined, modifiedDataset);

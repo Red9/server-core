@@ -75,7 +75,7 @@ print('Adding events to dataset "' + dataset['title'] + '"')
  
 datasetStartTime = dataset['startTime']
  
-with open(csvName, 'rb') as f:
+with open(csvName, 'rU') as f:
 	reader = csv.reader(f)
 	for row in reader:
 		eventType = row[0]

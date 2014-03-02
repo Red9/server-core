@@ -1,13 +1,16 @@
 function Graph(parameters, dataset, configuration) {
     this.id = parameters['id'];
     this.parameters = parameters;
-    this.dataset = dataset;
+    this.dataset = {// Explicitly keep only what we need (for memory savings)
+        startTime: dataset.startTime,
+        endTime: dataset.endTime,
+        id: dataset.id
+    };
     this.configuration = configuration;
     this.prepareConfiguration();
 
     this.window_start_time = this.dataset.startTime;
     this.window_end_time = this.dataset.endTime;
-
 
     var classInstance = this;
 
@@ -15,13 +18,17 @@ function Graph(parameters, dataset, configuration) {
             '/lens/graph?id=' + classInstance.id,
             function() {
                 classInstance.prepareListeners();
-
+                
+                classInstance.createInitialPlaceholder(classInstance.configuration.axes);
+                
                 classInstance.parameters.requestPanelFunction(
                         classInstance.dataset.startTime,
                         classInstance.dataset.endTime,
                         classInstance.configuration.axes,
                         $.proxy(classInstance.updateWithNewPanel, classInstance));
-            });
+            }
+    );
+
 }
 
 
@@ -29,6 +36,27 @@ function Graph(parameters, dataset, configuration) {
 //------------------------------------------------------------------------------
 // Private
 //------------------------------------------------------------------------------
+Graph.prototype.createInitialPlaceholder = function(axes) {
+    var fakeData = [];
+    var fakeRowData = [];
+
+    _.each(this.configuration.axes, function() {
+        fakeRowData.push([0, 0, 0]);
+    });
+    fakeRowData.unshift(new Date(this.dataset.startTime));
+    fakeData.push(fakeRowData);
+    fakeRowData.shift();
+    fakeRowData.unshift(new Date(this.dataset.endTime));
+    fakeData.push(fakeRowData);
+    
+    var tempAxes = axes;
+    tempAxes.unshift('time');
+
+    // Make empty graph (works as a placeholder during loading).
+    this.drawDygraph(fakeData, tempAxes);
+
+};
+
 /**
  * 
  * @returns {String} Takes the columns and converts it to a CSV string.
@@ -98,7 +126,7 @@ Graph.prototype.prepareConfiguration = function() {
 };
 
 
-Graph.prototype.drawDygraph = function(data, labels) {
+Graph.prototype.drawDygraph = function(data, labels, startTime, endTime) {
     if (!this.graph) {
         var classInstance = this;
         var onClick = function(ev) {
@@ -175,10 +203,13 @@ Graph.prototype.drawDygraph = function(data, labels) {
         console.log("Update existing graph..(" + data.length + " items )");
 
         var graphCfg = {
-            file: data
+            file: data,
+            dateWindow: [startTime, endTime]// {left: minX, right: maxX}
         };
 
         this.graph.updateOptions(graphCfg);
+
+
     }
 
     this.setTitle();
@@ -212,32 +243,30 @@ Graph.prototype.setTitle = function() {
     $('#' + this.id + 'title').text(title);
 };
 
-Graph.prototype.onZoom = function(minimumTime, maximumTime) {
+Graph.prototype.onZoom = function(startTime, endTime) {
     // Dygraphs has this annoying feature of decimals...
-    minimumTime = Math.round(minimumTime);
-    maximumTime = Math.round(maximumTime);
+    startTime = Math.round(startTime);
+    endTime = Math.round(endTime);
     if (this.graph === null) {
         return;
     }
 
     // Just to make sure no little +- 0.0000001 bits get in there...
     if (this.graph.isZoomed('x') === false) {
-        minimumTime = this.dataset.startTime;
-        maximumTime = this.dataset.endTime;
-     }
-     
-    this.window_start_time = minimumTime;
-    this.window_end_time = maximumTime;
+        startTime = this.dataset.startTime;
+        endTime = this.dataset.endTime;
+    }
 
-    this.setRange(minimumTime, maximumTime);
-    this.parameters.updateRangeFunction(this.id, minimumTime, maximumTime);
+    this.window_start_time = startTime;
+    this.window_end_time = endTime;
+
+    this.setRange(startTime, endTime);
+    this.parameters.updateRangeFunction(this.id, startTime, endTime);
 };
 
 
 Graph.prototype.updateWithNewPanel = function(panel) {
-    var labels = panel.labels;
-    var values = panel.values;
-    this.drawDygraph(values, labels);
+    this.drawDygraph(panel.values, panel.labels, panel.startTime, panel.endTime);
 };
 
 
@@ -245,15 +274,15 @@ Graph.prototype.updateWithNewPanel = function(panel) {
 //------------------------------------------------------------------------------
 // Public
 //------------------------------------------------------------------------------
-Graph.prototype.setRange = function(minimumTime, maximumTime) {
+Graph.prototype.setRange = function(startTime, endTime) {
     // Go ahead and zoom while loading to at least give the user something to look at.
     if (typeof this.graph !== "undefined") {
         this.graph.updateOptions({
-            dateWindow: [minimumTime, maximumTime]// {left: minX, right: maxX}
+            dateWindow: [startTime, endTime]// {left: minX, right: maxX}
         });
     }
     this.parameters.requestPanelFunction(
-            minimumTime, maximumTime,
+            startTime, endTime,
             this.configuration.axes,
             $.proxy(this.updateWithNewPanel, this),
             true);

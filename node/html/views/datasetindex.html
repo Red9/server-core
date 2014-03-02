@@ -1,4 +1,6 @@
-<h1>Explore events and datasets</h1>
+<div class="alert alert-warning">Some features are still a work in progress, so if you try using a filter and don't get a result don't be surprised.</div>
+
+<h1>Explore</h1>
 <form id="filter-form" class="filters clearfix">
     <div class="container panel panel-default">
         <div class="row">
@@ -54,9 +56,9 @@
                     <div class="col-sm-3"><h3>Duration</h3></div>
                     <div class="col-sm-9">
                         <div class="slider"
-                            id="duration"
-                            data-name="duration"
-                            data-max="180" data-units="min"></div>
+                             id="duration"
+                             data-name="duration"
+                             data-max="180" data-units="min"></div>
                         <div class="slider-label"></div>
                     </div>
                 </div>
@@ -75,8 +77,9 @@
                     <div class="col-sm-3">
                         <span id="location-remove" class="glyphicon glyphicon-remove"></span>
                         <a href="#"><span class="glyphicon glyphicon-map-marker"></span><span id="location-label">Select</span></a>
-                        <input type="hidden" id="location-name" name="location.name" value="">
-                        <input type="hidden" id="location" value="" />
+                        <!--<input type="hidden" id="location-name" name="location.name" value="">-->
+                        <input type="hidden" id="latitude" value="" />
+                        <input type="hidden" id="longitude" value="" />
                     </div>
                 </div>
             </div>
@@ -93,15 +96,15 @@
                 <button class="btn btn-success">Search</button>
                 <button class="btn btn-default btn-clear">Clear</button>
                 <div class="btn-group" id="additional-filters-button">
-                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                    More filters <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu pull-right" role="menu">
-                    <li><a href="#" data-name="static.route.path.distance.value" data-template="slider" data-title="Distance" data-units="mi" data-tovalue="mileToMeter">Path distance</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#" data-name="instantaneous.acceleration.magnitude.average" data-template="slider" data-title="Instantaneous acceleration" data-max="150" data-units="m<sub>/s<sup>2</sup></sub>">Instantaneous acceleration</a></li>
-                    <li><a href="#" data-name="instantaneous.rotationrate.magnitude.average" data-template="range-input" data-title="Instantaneous rotation" data-units="<sup>rad</sup><sub>/s</sub>">Instantaneous average rotation rate</a></li>
-                  </ul>
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                        More filters <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li><a href="#" data-name="static.route.path.distance.value" data-template="slider" data-title="Distance" data-units="mi" data-tovalue="mileToMeter">Path distance</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#" data-name="instantaneous.acceleration.magnitude.average" data-template="slider" data-title="Instantaneous acceleration" data-max="150" data-units="m<sub>/s<sup>2</sup></sub>">Instantaneous acceleration</a></li>
+                        <li><a href="#" data-name="instantaneous.rotationrate.magnitude.average" data-template="range-input" data-title="Instantaneous rotation" data-units="<sup>rad</sup><sub>/s</sub>">Instantaneous average rotation rate</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -109,181 +112,204 @@
 
     <script type="text/x-handlebars-template" id="tmpl-filter-range-input">
         <div class="row" id="filter-\{{id}}">
-            <div class="col-lg-6 filter-item">
-                <div class="row">
-                    <div class="col-sm-3"><h3>\{{title}}</h3></div>
-                    <div class="col-sm-2"><label>More than</label></div>
-                    <div class="col-sm-2">
-                        <div class="input-group">
-                            <input type="number" name="\{{name}}.more" class="form-control" />
-                            <span class="input-group-addon">\{{{units}}}</span>
-                        </div>
-                    </div>
-                    <div class="col-sm-2"><label>Less than</label></div>
-                    <div class="col-sm-2">
-                        <div class="input-group">
-                            <input type="number" name="\{{name}}.less" class="form-control" />
-                            <span class="input-group-addon">\{{{units}}}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="col-lg-6 filter-item">
+        <div class="row">
+        <div class="col-sm-3"><h3>\{{title}}</h3></div>
+        <div class="col-sm-2"><label>More than</label></div>
+        <div class="col-sm-2">
+        <div class="input-group">
+        <input type="number" name="\{{name}}.more" class="form-control" />
+        <span class="input-group-addon">\{{{units}}}</span>
+        </div>
+        </div>
+        <div class="col-sm-2"><label>Less than</label></div>
+        <div class="col-sm-2">
+        <div class="input-group">
+        <input type="number" name="\{{name}}.less" class="form-control" />
+        <span class="input-group-addon">\{{{units}}}</span>
+        </div>
+        </div>
+        </div>
+        </div>
         </div>
     </script>
     <script type="text/x-handlebars-template" id="tmpl-filter-slider">
         <div class="row" id="filter-\{{id}}">
-            <div class="col-lg-6 filter-item">
-                <div class="row">
-                    <div class="col-sm-3"><h3>\{{title}}</h3></div>
-                    <div class="col-sm-9">
-                        <div class="slider" data-name="\{{name}}" data-tovalue="\{{tovalue}}"></div>
-                        <div class="slider-label"></div>
-                    </div>
-                </div>
-            </div>
+        <div class="col-lg-6 filter-item">
+        <div class="row">
+        <div class="col-sm-3"><h3>\{{title}}</h3></div>
+        <div class="col-sm-9">
+        <div class="slider" data-name="\{{name}}" data-tovalue="\{{tovalue}}"></div>
+        <div class="slider-label"></div>
+        </div>
+        </div>
+        </div>
         </div>
     </script>
 </form>
 <script>
-    site.urls.apiPath = '{{apiUrl}}'; // Global variable accessible to all handlebars rendered pages.
-    
-    $('#filter-form').submit(function (e) {
-        e.preventDefault();
-        site.search();
-    });
-    $(function () {
-        $('#filter-form').submit();
-    });
-    $('.filters .nav.simple a').click(function () {
-        $(this).closest('.nav').children('li').removeClass('active');
-        $(this).closest('li').addClass('active');
-        $('input',this).prop('checked', true);
+site.urls.apiPath = '{{apiUrl}}'; // Global variable accessible to all handlebars rendered pages.
+
+$('#filter-form').submit(function(e) {
+    e.preventDefault();
+    site.search();
+});
+$(function() {
+    $('#filter-form').submit();
+});
+$('.filters .nav.simple a').click(function() {
+    $(this).closest('.nav').children('li').removeClass('active');
+    $(this).closest('li').addClass('active');
+    $('input', this).prop('checked', true);
+    return false;
+});
+$('.filters .nav.multiple a').click(function() {
+    $(this).closest('li').toggleClass('active');
+    $('input', this).prop('checked', !$('input', this).prop('checked'));
+});
+$('#type-event').closest('.nav').find('a').click(function() {
+    var isDataset = !$('#type-event').prop('checked');
+    $('#event-type-filter').toggleClass('inactive', isDataset);
+    var sliderElement = $("#duration-filter .slider");
+    var maxDuration = 15;
+    if (isDataset) {
+        maxDuration = 180;
+    }
+    sliderElement.slider('option', 'max', maxDuration);
+    sliderElement.slider('values', [0, 0]);
+});
+$('#location-label').closest('a').click(function() {
+    var mapContainer = $('.filters .map');
+    if (mapContainer.is(':visible')) {
+        mapContainer.hide();
         return false;
-    });
-    $('.filters .nav.multiple a').click(function () {
-        $(this).closest('li').toggleClass('active');
-        $('input',this).prop('checked',  !$('input',this).prop('checked'));
-    });
-    $('#type-event').closest('.nav').find('a').click(function () {
-        var isDataset = !$('#type-event').prop('checked');
-        $('#event-type-filter').toggleClass('inactive', isDataset);
-        var sliderElement = $("#duration-filter .slider");
-        var maxDuration = 15;
-        if (isDataset) {
-            maxDuration = 180;
-        }
-        sliderElement.slider('option', 'max', maxDuration);
-        sliderElement.slider('values', [0, 0]);
-    });
-    $('#location-label').closest('a').click(function (){
-        var mapContainer = $('.filters .map');
-        if (mapContainer.is(':visible')) {
-            mapContainer.hide();
-            return false;
-        }
-        mapContainer.show();
-        if (!mapContainer.data('mapLoaded')) {
-            mapContainer.data('mapLoaded', true);
-            site.setMap(39.4114,-96.90834, 4, function (lat, lng, name) {
-                $('#location').val(lat + ',' + lng);
-                if (name) {
-                    if (!$('#location-label').data('default-text')) {
-                        $('#location-label').data('default-text', $('#location-label').text());
-                    }
-                    $('#location-label, #location-name').val(name).text(name);
+    }
+    mapContainer.show();
+    if (!mapContainer.data('mapLoaded')) {
+        mapContainer.data('mapLoaded', true);
+        site.setMap(39.4114, -96.90834, 4, function(lat, lng, name) {
+            $('#latitude').val(lat);
+            $('#longitude').val(lng);
+            if (name) {
+                if (!$('#location-label').data('default-text')) {
+                    $('#location-label').data('default-text', $('#location-label').text());
                 }
-                $('#location-remove').show();
-                if (!$('#distance').val()) {
-                    $('#distance').val(10);
-                }
-            });
-        }
-        return false;
-    });
-    $('#datetime, #timespan').change(function () {
-        var date = $('#datetime').val();
-        var span = $('#timespan').val();
-        if (!date || !span || span === '0' || isNaN(Date.parse(date)) || isNaN(parseInt(span, 10))) {
-            $('#endTime-more').val('');
-            $('#startTime-less').val('');
-            return;
-        }
-        var baseDate = Date.parse(date);
-        var days = parseInt(span, 10);
-        $('#endTime-more').val(baseDate + days*24*60*60*1000);
-        $('#startTime-less').val(baseDate + (days+1)*24*60*60*1000);
-    });
-    $('#location-remove').click(function () {
-        $('#location, #location-name').val(null).text(null);
-        $('#location-label').text($('#location-label').data('default-text'));
-        $('.filters .map, #location-remove').hide();
-        site.clearMap();
-        $('#distance').val(null);
-    });
-    $('#additional-filters-button li a').click(function () {
-        var state = $(this).data();
-        if (!state.name) return true;
-        state.id = state.name.replace(/\./g, "-");
-        if (!$('#filter-' + state.id).length) {
-            var templateId = 'tmpl-filter-' + state.template;
-            if (!site.templates[templateId]) {
-                site.templates[templateId] = Handlebars.compile($('#' + templateId).html());
+                $('#location-label').val(name).text(name);
             }
-            var filter = $(site.templates[templateId](state));
-            filter.addClass('additional-filter');
-            $('#additional-filters-container').append(filter);
-            if ($(".slider", filter).length) {
-                site.setSlider(filter, state);
+            $('#location-remove').show();
+            if (!$('#distance').val()) {
+                $('#distance').val(10);
             }
-        }
-        //now its added to the dom
-        $('#filter-' + state.id).show().css({backgroundColor: '#BCE8F1'}).animate({backgroundColor: 'transparent'}, 1000);
+        });
+    }
+    return false;
+});
+$('#datetime, #timespan').change(function() {
+    var date = $('#datetime').val();
+    var span = $('#timespan').val();
+    if (!date || !span || span === '0' || isNaN(Date.parse(date)) || isNaN(parseInt(span, 10))) {
+        $('#endTime-more').val('');
+        $('#startTime-less').val('');
+        return;
+    }
+    var baseDate = Date.parse(date);
+    var days = parseInt(span, 10);
+    $('#endTime-more').val(baseDate - days * 24 * 60 * 60 * 1000);
+    $('#startTime-less').val(baseDate + (days + 1) * 24 * 60 * 60 * 1000);
+});
+$('#location-remove').click(function() {
+    $('#location').val(null).text(null);
+    $('#location-label').text($('#location-label').data('default-text'));
+    $('.filters .map, #location-remove').hide();
+    site.clearMap();
+    $('#distance').val(null);
+});
+$('#additional-filters-button li a').click(function() {
+    var state = $(this).data();
+    if (!state.name)
         return true;
-    });
-    $(function () {
-        site.setSlider($("#duration-filter"), $('.slider', $("#duration-filter")).data());
-        $('#datetime').datepicker();
-    });
-    $('.filters .btn-clear').click(function () {
-        site.clearSearchFilter();
-        return false;
-    });
+    state.id = state.name.replace(/\./g, "-");
+    if (!$('#filter-' + state.id).length) {
+        var templateId = 'tmpl-filter-' + state.template;
+        if (!site.templates[templateId]) {
+            site.templates[templateId] = Handlebars.compile($('#' + templateId).html());
+        }
+        var filter = $(site.templates[templateId](state));
+        filter.addClass('additional-filter');
+        $('#additional-filters-container').append(filter);
+        if ($(".slider", filter).length) {
+            site.setSlider(filter, state);
+        }
+    }
+    //now its added to the dom
+    $('#filter-' + state.id).show().css({backgroundColor: '#BCE8F1'}).animate({backgroundColor: 'transparent'}, 1000);
+    return true;
+});
+$(function() {
+    site.setSlider($("#duration-filter"), $('.slider', $("#duration-filter")).data());
+    $('#datetime').datepicker();
+});
+$('.filters .btn-clear').click(function() {
+    site.clearSearchFilter();
+    return false;
+});
 </script>
 
 <div id="container-results"></div>
 <script type="text/x-handlebars-template" id="tmpl-results">
+    <p class="text-right text-muted">\{{items.length}} results found</p>
     <div class="panel panel-default results">
+        \{{#if type.dataset }}
         <div class="table-responsive">
-            <table class="table table-striped">
+            <table class="table table-hover table-condensed">
                 <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>User</th>
-                        <th>Created</th>
-                        <th>Duration</th>
-                        <th></th>
-                    </tr>
+                    <th><button class="btn btn-md btn-default" onclick="site.deleteChecked('\{{type.string}}')"><span class="glyphicon glyphicon-trash"></span></button></th>
+                    <th>Owner</th>
+                    <th>Title</th>
+                    <th>Started</th>
+                    <th>Duration</th>
+                    <th>Created</th>
                 </thead>
-                <tbody>
-                    \{{#each items}}
-                    <tr>
-                        <td>\{{title}} \{{type}}</td>
-                        <td><a href="/user/\{{create_user}}">User A</a></td>
-                        <td>\{{toDateString startTime}}</td>
-                        <td>
-                            \{{#if datasetId}}
-                            <a class="btn btn-xs btn-primary" href="/dataset/\{{datasetId}}">View Dataset</a>
-                            <a class="btn btn-xs btn-danger" onclick="site.deleteDataset('\{{datasetId}}')">Delete</a>
-                            \{{else}}
-                            <a class="btn btn-xs btn-primary" href="/dataset/\{{id}}">View Dataset</a>
-                            <a class="btn btn-xs btn-danger" onclick="site.deleteDataset('\{{id}}')">Delete</a>
-                            \{{/if}}
-                        </td>
-                    </tr>
-                    \{{/each}}
+        
+                <tbody id="result_tbody">
+                    
+                        \{{#each items}}
+                        <tr id="result_row_\{{id}}">
+                            <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
+                            <td><a href="/user/\{{owner.id}}">\{{owner.displayName}}</a></td>
+                            <td onclick="window.location.assign('/dataset/\{{id}}');">\{{title}} \{{type}}</td>
+                            <td>\{{toDateString startTime}} \{{toTimeString startTime}}</td>
+                            <td>\{{toDurationString startTime endTime}}</td>
+                            <td>\{{toDateString createTime}} \{{toTimeString createTime}}</td>
+                        </tr>
+                        \{{/each}}
                 </tbody>
             </table>
         </div>
+        \{{/if}}
+                            
+        \{{#if type.event }}
+        <div class="table-responsive">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <th><button class="btn btn-md btn-default" onclick="site.deleteChecked('\{{type.string}}')"><span class="glyphicon glyphicon-trash"></span></button></th>
+                    <th>Type</th>
+                    <th>Started</th>
+                    <th>Duration</th>
+                </thead>
+                <tbody id="result_tbody">
+                        \{{#each items}}
+                        <tr id="result_row_\{{id}}">
+                            <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
+                            <td onclick="window.location.assign('/dataset/\{{datasetId}}?startTime=\{{startTime}}&endTime=\{{endTime}}');">\{{type}}</td>
+                            <td>\{{toDateString startTime}} \{{toTimeString startTime}}</td>
+                            <td>\{{toDurationString startTime endTime}}</td>
+                        </tr>
+                        \{{/each}}
+                </tbody>
+            </table>
+        </div>
+        \{{/if}}
     </div>
 
     <div>
@@ -291,11 +317,11 @@
     </div>
 </script>
 
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <h2>Tools</h2>
 <div class="panel panel-default">
     <div class="panel-heading"><strong>Administrator tools</strong></div>
     <ul class="list-group">
         <li class="list-group-item"><a href="/monitor">Monitoring</a></li>
-        <li class="list-group-item"><a href="/admin/reprocessstatistics">Reprocess Statistics</a></li>
     </ul>
 </div>

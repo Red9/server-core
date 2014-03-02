@@ -156,9 +156,9 @@ GoogleMap.prototype.updateWithNewPanel = function(panel) {
 //-----------------------------------------------------------------------------
 
 
-GoogleMap.prototype.setRange = function(minimumTime, maximumTime) {
+GoogleMap.prototype.setRange = function(startTime, endTime) {
     this.parameters.requestPanelFunction(
-            minimumTime, maximumTime,
+            startTime, endTime,
             [
                 'gps:latitude',
                 'gps:longitude'

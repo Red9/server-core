@@ -32,18 +32,18 @@ exports.get = function(req, res, next) {
         delete req.query['simpleoutput'];
         simpleOutput = true;
     }
-    
-    eventResource.getEvents({id:req.param('id')}, function(event){
+
+    eventResource.getEvents({id: req.param('id')}, function(event) {
         if (simpleOutput) {
             event = simplifyOutput(event);
         }
-        
+
         res.json(event);
     });
 };
 
 exports.create = function(req, res, next) {
-    
+
     // TODO(SRLM): Make this section derive from the event Resource
     var newEvent = {
         startTime: parseInt(req.param('startTime')),
@@ -51,20 +51,11 @@ exports.create = function(req, res, next) {
         datasetId: req.param('datasetId'),
         type: req.param('type')
     };
-    
-    
-    
-    
 
-    var validUpload = true;
-    underscore.each(newEvent, function(value) {
-        if (typeof value === 'undefined') {
-            validUpload = false;
-        }
-    });
-    
-    if (validUpload === false) {
-        res.status(403).json({message: 'Must include required parameters.'});
+    if (underscore.some(newEvent, function(value) {
+        return typeof value === 'undefined';
+    })) {
+        res.status(403).json({message: 'Must include required parameters to create event.'});
     } else {
         eventResource.createEvent(newEvent, function(err, event) {
             if (typeof event === 'undefined') {

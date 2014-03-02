@@ -21,23 +21,17 @@ var datasetResource = requireFromRoot('support/resources/dataset');
  */
 function computeColumns(panelParameters, dataset, commandOptions) {
     var columns = dataset.axes;
-    console.log('A columns: ' + columns);
     if (typeof panelParameters['axes'] !== 'undefined') {
         //Get the intersection with the Dataset axes
         // so that we only request columns that we actually have.
 
         columns = underscore.intersection(
                 panelParameters['axes'].split(','), dataset.axes);
-        console.log('A.5 columns: ' + columns);
         if (columns.length === 0) {
             // Default to all axes if the intersection returns an empty set.
             columns = dataset['column_titles'];
         }
-        console.log('A.9 columns: ' + columns);
     }
-
-    //result['columns'] = columns;
-    console.log('B columns: ' + columns);
 
     var columnString = "";
 
@@ -53,7 +47,6 @@ function computeColumns(panelParameters, dataset, commandOptions) {
         commandOptions.push('--columns');
         commandOptions.push(columnString);
     }
-    console.log('C columns: ' + columns);
 
     return columns;
 }
@@ -291,13 +284,20 @@ Bucket.prototype.getTime = function() {
     return this.time;
 };
 
+Bucket.prototype.hasData = function() {
+    return this.count !== 0;
+};
+
 
 exports.getBucketedPanel = function(panelId, startTime, endTime,
         buckets, minmax, cache,
         callbackRow, callbackDone) {
 
-    var panelLength = endTime - startTime;
-    var bucketDuration = panelLength / buckets;
+    var panelDuration = endTime - startTime;
+    var bucketDuration = Math.floor(panelDuration / buckets);
+    if(bucketDuration === 0){
+        bucketDuration = 1; // Minimum 1ms buckets
+    }
     var currentBucketStartTime = startTime;
 
     var bucket = new Bucket(currentBucketStartTime, minmax);
@@ -312,14 +312,15 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
                     log.error('n(' + n + ') !== previousN(' + previousN + ')');
                 }
                 previousN = n;
-
-                if (rowTime > currentBucketStartTime + bucketDuration) {
-                    //TODO(SRLM): What if the bucket doesn't have anything in it?
-                    // Empty Bucket
+                
+                // While loop to account for empty buckets.
+                while (rowTime > currentBucketStartTime + bucketDuration) {
+                    if (bucket.hasData() === true) {
+                        callbackRow(bucket.getTime(), bucket.getResultRow(), bucketRow);
+                        bucketRow = bucketRow + 1;
+                    }
                     currentBucketStartTime = currentBucketStartTime + bucketDuration;
-                    callbackRow(bucket.getTime(), bucket.getResultRow(), bucketRow);
                     bucket.resetBucket(currentBucketStartTime);
-                    bucketRow = bucketRow + 1;
                 }
                 bucket.addRow(rowData);
             },
@@ -380,11 +381,9 @@ exports.getPanel = function(panelId, startTime, endTime,
     var previousChunkLength;
     var totalRowIndex = 0;
     var lastRowTime = startTime;
-    
+
     async.doWhilst(
             function(callbackWhilst) { // While loop body
-        
-                console.log("Get chunk.");
                 var parameters = [
                     {
                         value: panelId,
@@ -400,7 +399,7 @@ exports.getPanel = function(panelId, startTime, endTime,
                     }
                 ];
                 var previousN = -1;
-                
+
                 cassandraDatabase.eachRow(query, parameters,
                         function(n, row) {
                             // Cassandra error checking: we should be getting these in order.
@@ -477,10 +476,9 @@ exports.calculatePanelProperties = function(rawDataId, callback) {
 
     async.eachSeries(properties,
             function(item, asyncCallback) {
-                console.log("Executing " + item.query);
                 cassandraDatabase.execute(item.query, [rawDataId], function(err, row) {
                     if (err || row.rows.length !== 1) {
-                        console.log('Error calculating panel properties: ' + err);
+                        log.debug('Error calculating panel properties: ' + err);
                         result[item.key] = item.default;
                     } else {
                         var value = row.rows[0].get(item.queryKey);
@@ -509,8 +507,6 @@ exports.deletePanel = function(panelId, callback) {
 
 function constructAddRowQuery(panelId, time, axes) {
     var query = 'INSERT INTO raw_data(id, time, data) VALUES (?,?,?)';
-
-    //console.log('Inserting values ' + panelId + ', ' + time);
 
     var parameters = [
         {

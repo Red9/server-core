@@ -101,26 +101,6 @@ if (cluster.isMaster) {
     };
 
     var FormatDuration = function(startTime, endTime) {
-        /*var duration = endTime - startTime;
-         if (duration === 0 || isNaN(duration)) {
-         return "0.000s";
-         }
-         
-         Number.prototype.mod = function(n) {
-         return ((this % n) + n) % n;
-         };
-         
-         var hours = Math.floor(duration / (3600000));
-         
-         var minutes = Math.floor(duration / (60000)) - (hours * 60);
-         
-         var seconds = Math.floor(duration / (1000)) - (hours * 60 * 60) - (minutes * 60);
-         
-         var milliseconds = duration
-         - (seconds * 1000) - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000);
-         var days = Math.floor(hours / 24);
-         hours = hours - 24*days;*/
-
         var result = '';
 
         var duration = moment.duration(endTime - startTime);

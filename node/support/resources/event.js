@@ -10,6 +10,8 @@ var common = requireFromRoot('support/resourcescommon');
 
 var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 
+var datasetResource = requireFromRoot('support/resources/dataset');
+
 var eventResource = {
     startTime: {
         type: 'timestamp',
@@ -100,43 +102,15 @@ function mapToResource(cassandra) {
  * @returns {unresolved}
  */
 exports.createEvent = function(newEvent, callback) {
-    var valid = common.checkNewResourceAgainstSchema(eventResource, newEvent);
-    if (typeof valid !== 'undefined') {
-        callback('Schema failed: ' + valid);
-        return;
-    }
-
-    newEvent.id = common.generateUUID();
-    newEvent.summaryStatistics = {};
-
-    var cassandraEvent = mapToCassandra(newEvent);
-
-    cassandraDatabase.addSingle('event', cassandraEvent, function(err) {
-        if (err) {
-            log.error("EventResource: Error adding. " + err);
-            callback("EventResource: Error adding. " + err);
-        } else {
-            log.debug("successfully created event");
-            callback(undefined, [newEvent]);
-            summaryStatisticsResource.calculate(newEvent.datasetId, newEvent.startTime, newEvent.endTime, function(statistics) {
-                exports.updateEvent(newEvent.id, {summaryStatistics: statistics}, function(err) {
-                    if (err) {
-                        log.error('Error updating event with summaryStatistics' + err);
-                    }
-                });
-            });
-        }
-    });
+    common.createResource(exports.resource, newEvent, callback);
 };
 
 exports.deleteEvent = function(id, callback) {
-    if (validator.isUUID(id) === true) {
-        cassandraDatabase.deleteSingle('event', id, function(err) {
-            callback(err);
-        });
-    } else {
-        callback('Given id is not version 4 UUID ("' + id + '")');
-    }
+    common.deleteResource(exports.resource, id, callback);
+};
+
+exports.updateEvent = function(id, modifiedEvent, callback, forceEditable) {
+   common.updateResource(exports.resource, id, modifiedEvent, callback, forceEditable);
 };
 
 exports.deleteEventByDataset = function(datasetId, callback) {
@@ -149,43 +123,6 @@ exports.deleteEventByDataset = function(datasetId, callback) {
                     callback(err);
                 });
     });
-};
-
-exports.updateEvent = function(id, modifiedEvent, callback, forceEditable) {
-    //------------------------------------------------------------------
-    //TODO(SRLM): Make sure that the event exists!
-    //------------------------------------------------------------------
-
-    if (typeof id === 'undefined' || validator.isUUID(id) === false) {
-        callback('Must include valid ID');
-        return;
-    }
-
-    underscore.each(modifiedEvent, function(value, key) {
-        if (key in eventResource === false
-                || (eventResource[key].editable === false
-                && forceEditable !== true)
-                || key === 'id') {
-            delete modifiedEvent[key];
-        }
-    });
-
-    if (modifiedEvent.length === 0) {
-        callback('Must include at least one editable item');
-        return;
-    }
-
-    var cassandraEvent = mapToCassandra(modifiedEvent);
-
-    cassandraDatabase.updateSingle('event', id, cassandraEvent, function(err) {
-        if (err) {
-            console.log('error updating event: ' + err);
-            callback('error');
-        } else {
-            callback(undefined, modifiedEvent);
-        }
-    });
-
 };
 
 /**
@@ -212,3 +149,47 @@ exports.getEvents = function(constraints, callback) {
             }
     );
 };
+
+var createFlush = function(newEvent) {
+    newEvent.id = common.generateUUID();
+    newEvent.summaryStatistics = {};
+};
+
+var createPost = function(newEvent) {
+    datasetResource.getDatasets({id: newEvent.datasetId}, function(datasetList) {
+        var dataset = datasetList[0];
+        summaryStatisticsResource.calculate(dataset.id, dataset.headPanelId, newEvent.startTime, newEvent.endTime, function(statistics) {
+            exports.updateEvent(newEvent.id, {summaryStatistics: statistics}, function(err) {
+                if (err) {
+                    log.error('Error updating event with summaryStatistics' + err);
+                }
+            });
+        });
+    });
+};
+
+exports.resource = {
+    mapToCassandra: mapToCassandra,
+    mapToResource: mapToResource,
+    cassandraTable: 'event',
+    schema: eventResource,
+    create: {
+        flush: createFlush,
+        post: createPost
+    },
+    search: {
+
+    },
+    update: {
+
+    },
+    delete: {
+        
+    }
+
+
+
+
+};
+
+

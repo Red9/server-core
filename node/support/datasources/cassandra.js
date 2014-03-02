@@ -62,7 +62,6 @@ function checkType(hint, value) {
     if (
             (hint === 'uuid' && validator.isUUID(value) === false)
             || (hint === 'timestamp' && underscore.isDate(value) === false)) {
-        console.log("Value: " + value);
         return false;
     } else {
         return true;
@@ -87,10 +86,10 @@ exports.addSingle = function(type, newResource, callback) {
     // Check that row has all the elements of the schema, and they're the correct type
     underscore.each(schema, function(column) {
         if (typeof newResource[column.key] === 'undefined') {
-            console.log("row[" + column.key + "] === undefined");
+            //log.debug("row[" + column.key + "] === undefined");
             correctSchema = false;
         } else if (checkType(column.hint, newResource[column.key]) === false) {
-            console.log("row[" + column.key + "] is not " + column.hint);
+            //log.debug("row[" + column.key + "] is not " + column.hint);
             correctSchema = false;
         } else {
             databaseRow.push({
@@ -101,7 +100,6 @@ exports.addSingle = function(type, newResource, callback) {
     });
 
     if (correctSchema === false) {
-        console.log("Failed correctSchema");
         callback("Incorrect schema.");
     } else {
 
@@ -157,7 +155,6 @@ exports.updateSingle = function(type, id, updatedResource, callback) {
     });
 
     if (correctSchema === false) {
-        console.log("Failed update schema check.");
         callback('incorrect schema');
     } else {
 
@@ -177,10 +174,10 @@ exports.updateSingle = function(type, id, updatedResource, callback) {
 
         var query = 'UPDATE ' + resources[type].table + ' SET ' + assignments + ' WHERE id=?';
 
-        console.log("Query: " + query);
+        log.debug("Query: " + query);
         cassandraDatabase.execute(query, queryParameters, function(err) {
             if (err) {
-                console.log('err on update: ' + err);
+                log.debug('err on update: ' + err);
                 callback(err);
             } else {
                 callback();

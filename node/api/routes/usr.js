@@ -3,12 +3,11 @@ var validator = require('validator');
 var spawn = require('child_process').spawn;
 
 var config = requireFromRoot('config');
-
+var log = requireFromRoot('support/logger').log;
 var usrResource = requireFromRoot('support/resources/usr');
 
 exports.get = function(req, res, next) {
     usrResource.getUsrs(function(list) {
-        console.log('usr list: ' + JSON.stringify(list));
         res.json(list);
     });
 };
@@ -16,9 +15,6 @@ exports.get = function(req, res, next) {
 exports.getusrform = function(req, res, next) {
 
     // Validate parameters
-
-
-
     var marked = {
     };
 
@@ -34,9 +30,8 @@ exports.getusrform = function(req, res, next) {
             var temp = req.param(type).split(',');
             marked[type] = [];
             underscore.each(temp, function(id) {
-                console.log('Testing ' + id);
                 if (validator.isUUID(id) === false) {
-                    console.log('Not valid id');
+                    log.debug('Not valid resource id: ' + id);
                     validParameters = false;
                 } else {
                     marked[type].push(id);
@@ -147,8 +142,6 @@ exports.getusrform = function(req, res, next) {
 };
 
 exports.operateusr = function(req, res, next) {
-    console.log("Got post request: " + JSON.stringify(req.body));
-
     var form = req.body["form"];
     var marked = req.body["marked"];
 
@@ -163,7 +156,7 @@ exports.operateusr = function(req, res, next) {
         if(err){
             res.status(400).json({message:err});
         }else{
-            console.log(response);
+            log.debug('USR response: ' + response);
             res.json({message:'Success'});
         }
     });

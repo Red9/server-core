@@ -3,6 +3,7 @@
 <script src="/js/lenses/eventlist.js"></script>
 <script src="/js/lenses/googlemap.js"></script>
 <script src="/js/lenses/graph.js"></script>
+<script src="/js/async.js"></script>
 <script src="/js/panelrequestqueue.js"></script>
 
 <script src="/js/dygraph-custom.js"></script>
@@ -42,12 +43,12 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
     var pageDataset;
 
     var lensesList = {};
-    function updateRange(callerId, minimumTime, maximumTime) {
-        console.log("You've updated the time: " + minimumTime + " - " + maximumTime);
+    function updateRange(callerId, startTime, endTime) {
+        console.log("You've updated the time: " + startTime + " - " + endTime);
         if ($('#sync_lenses_button').hasClass('active')) {
             _.each(lensesList, function(lens, id) {
                 if (callerId !== id) {
-                    lens.setRange(minimumTime, maximumTime);
+                    lens.setRange(startTime, endTime);
                 }
             });
         }
@@ -315,7 +316,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 
 
 <br /> <b>Dataset UUID: </b> {{dataset.id}}
-<br /> <b>Raw Data UUID: </b> {{dataset.panelId}}
+<br /> <b>Raw Data UUID: </b> {{dataset.headPanelId}}
 <br />
 
 

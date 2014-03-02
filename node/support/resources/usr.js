@@ -2,6 +2,7 @@ var spawn = require('child_process').spawn;
 var fs = require('fs');
 var underscore = require('underscore');
 
+var log = requireFromRoot('support/logger').log;
 var config = requireFromRoot('config');
 
 var common = requireFromRoot('support/resourcescommon');
@@ -24,7 +25,7 @@ var processUsr = function(usrDirectory) {
             var package = require('../../' + usrDirectory + '/package.json');
             package.directory = usrDirectory;
             package.id = common.generateUUID();
-            console.log('Got USR: ' + package.id);
+            log.debug('Got USR: ' + package.id);
             usrList.push(package);
         }
     });
@@ -66,13 +67,13 @@ exports.getForm = function(id, marked, callback) {
             //TODO(SRLM): Add a catch in case the USR doesn't return a JSON structure
             var form = JSON.parse(runningUsr.stdout.read());
             
-            console.log('USR errors: "' + runningUsr.stderr.read() + '"');
+            log.debug('USR errors: "' + runningUsr.stderr.read() + '"');
             callback(undefined, form);
         });
 
 
     } else {
-        console.log("Couldn't find matching usr...");
+        log.debug("Couldn't find matching usr...");
         callback("couldn't find matching usr");
     }
 
@@ -82,17 +83,12 @@ exports.getForm = function(id, marked, callback) {
 exports.loadUsrs = function() {
     var usrDirectory = config.usrDirectory;
 
-    console.log(usrDirectory);
+    log.debug('USR Directory: ' + usrDirectory);
     fs.readdir(usrDirectory + '/', function(err, files) {
-        console.log(err);
-        console.log("Found files: " + JSON.stringify(files));
         underscore.each(files, function(folder, index) {
-            console.log("Testing file " + folder);
             fs.stat(usrDirectory + '/' + folder, function(err, stat) {
                 if (stat && stat.isDirectory()) {
-                    console.log(folder + ' is a directory!');
                     processUsr(usrDirectory + '/' + folder);
-
                 }
             });
 
@@ -120,7 +116,6 @@ exports.operateUsr = function(id, usrForm, callback) {
 
         //TODO(SRLM): Add catch in case the USR throws an error
 
-        console.log(JSON.stringify(usrForm) + '\n');
         runningUsr.stdin.on('error', function(err) {
             // process exited before we could write to stdin.
             log.error('Operate USR Error: ' + err);
@@ -132,7 +127,7 @@ exports.operateUsr = function(id, usrForm, callback) {
             //TODO(SRLM): Add a catch in case the USR doesn't return a JSON structure
             var result = JSON.parse(runningUsr.stdout.read());
             
-            console.log('USR errors: "' + runningUsr.stderr.read() + '"');
+            log.debug('USR errors: "' + runningUsr.stderr.read() + '"');
             callback(undefined, result);
         });
 

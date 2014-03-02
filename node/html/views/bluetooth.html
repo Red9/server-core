@@ -54,16 +54,23 @@
         var modalTransferTotalDownloaded = $('#modalTransferTotalDownloaded');
         var modalTransferSpeed = $('#modalTransferSpeed');
         var modalTransferElapsedTime = $('#modalTransferElapsedTime');
+        var modalTransferRemainingTime = $('#modalTransferRemainingTime');
 
         var interval = setInterval(function() {
 
             var elapsedMs = moment().diff(startTime);
             var bytesTransfered = BluetoothHost.GetRecordingBytesTransfered();
             var transferSpeed = bytesTransfered / (elapsedMs / 1000.0);
+            var bytesRemaining = filesizeInBytes - bytesTransfered;
+            var remainingMs = bytesRemaining / (bytesTransfered / elapsedMs);
+            
 
             modalTransferTotalDownloaded.text((bytesTransfered / 1024).toFixed(2) + " KB");
             modalTransferSpeed.text((transferSpeed / 1024).toFixed(2) + ' KB/s');
             modalTransferElapsedTime.text(moment.utc(elapsedMs).format('mm:ss'));
+            modalTransferRemainingTime.text(moment.utc(remainingMs).format('mm:ss'));
+            
+            
 
             var doneBytes = BluetoothHost.GetRecordingDone();
             if (doneBytes !== -1) {
@@ -313,7 +320,7 @@
     </div>
     <div class="modal-body">
         <p class='h4'><span id="modalTransferTotalDownloaded">0</span> /<span id="modalTransferTotal">0</span> (<span id="modalTransferSpeed">0</span>)</p>
-        <p><span id="modalTransferElapsedTime">00:00</span> elapsed</p>
+        <p><span id="modalTransferElapsedTime">00:00</span> elapsed, <span id="modalTransferRemainingTime">00:00</span> remaining</p>
 
         <p>File saved to your Download folder under "<span id="modalTransferFilename"></span>" (try using ES File explorer to find it)</p>
     </div>
@@ -383,4 +390,5 @@
     </div>
 </div>
 
+<br/><br/><br/><br/><br/><br/>
 <button id="forceAppCrashButton" class="btn btn-sm btn-danger">Force App Crash</button>

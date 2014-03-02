@@ -33,20 +33,46 @@ var site = {
     searchDataset: '/dataset/',
     searchEvent: '/event/'
   },
+  deleteChecked: function(resultType){
+      console.log('Result type: ' + resultType);
+      $('#result_tbody tr td #selectCheckbox').each(function(index, element){
+          var checkbox = $(element);
+          if(checkbox.prop('checked') === true){
+              //console.log('Checked: ' + checkbox.attr('value'));
+              site.deleteDataset(resultType, checkbox.attr('value'));
+          }
+          
+      });
+  },
   //methods
-  deleteDataset: function(id) {
+  deleteDataset: function(type, id) {
+    var self = this;
     $.ajax(
-      "/api/dataset/" + id,
-      {type: "delete"}
+      this.urls.apiPath + '/' + type + '/' + id,
+      {type: "DELETE"}
     ).done(function() {
-      var row = $("#dataset_list_row_" + id);
+      var row = $("#result_row_" + id);
       row.addClass('danger');
       row.hide("slow", function() {
-        oTable.fnDeleteRow(row[0]);
+        // Remove from data master
+        var index = self.getIndexInResults(id);
+        // We're guarenteed to find the index, so don't need to bounds check.
+        self.results.splice(index, 1);
+        
+        row.remove();
       });
     }).fail(function() {
-      alert("Internal Error: could not delete dataset. Please notify a sysadmin.");
+      alert('Internal Error: could not delete ' + type + '. Please notify a sysadmin.');
     });
+  },
+  getIndexInResults: function(id){
+      var i;
+      for(i = 0; i < this.results.length; i++){
+          if(this.results[i].id === id){
+              return i;
+          }
+      }
+      return -1;
   },
   getSearchParams: function () {
     var context = $('#filter-form .filter-item:not(.inactive):not(.ignore)');
@@ -115,17 +141,23 @@ var site = {
   },
   search: function () {
     var url = this.urls.apiPath + this.urls.searchDataset;
+    this.resultType = 'dataset';
     if ($('#type-event').is(':checked')) {
       url = this.urls.apiPath + this.urls.searchEvent;
+      this.resultType = 'event';
     }
     var self = this;
     $.get(url, this.getSearchParams(), function (response) {
-      self.results = response.sort(site.sortBy('startTime', 'desc'));
+      self.results = response.sort(site.sortBy('createTime', 'desc'));
       self.showResults();
     });
   },
   showResults: function (page) {
     var adaptedResults = {items: this.results};
+    adaptedResults.type = {};
+    adaptedResults.type.string = this.resultType;
+    adaptedResults.type[this.resultType] = this.resultType; // Create a specific property for use in Handlebars if statements
+    
     if (adaptedResults.items.length > this.searchPageSize) {
       var paging = {
         length: Math.ceil(adaptedResults.items.length / this.searchPageSize),
@@ -225,6 +257,33 @@ var site = {
     }
     return date.getFullYear() + '-' + this.padZeros(date.getMonth()+1, 2) + '-' + this.padZeros(date.getDay(), 2);
   },
+  
+  toTimeString: function(value){
+      return moment(value).format('hh:mm:ss');
+  },
+  toDurationString: function(startTime, endTime) {
+        var result = '';
+
+        var duration = moment.duration(endTime - startTime);
+
+        if (duration.years() !== 0) {
+            result = duration.years() + 'Y ' + duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
+        } else if (duration.months() !== 0) {
+            result = duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
+        } else if (duration.days() !== 0) {
+            result = duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
+        } else if (duration.hours() !== 0) {
+            result = duration.hours() + 'h ' + duration.minutes() + 'm ';
+        } else if (duration.minutes() !== 0) {
+            result = duration.minutes() + 'm ';
+        }
+
+        result += duration.seconds() + '.' + duration.milliseconds() + 's';
+
+        return result;
+
+    },
+  
   padZeros: function (value, length) {
     return ('000000' + value).substr(-length);
   },
@@ -247,6 +306,8 @@ var site = {
 };
 if (Handlebars) {
   Handlebars.registerHelper('toDateString', site.toDateString.bind(site));
+  Handlebars.registerHelper('toTimeString', site.toTimeString.bind(site));
+  Handlebars.registerHelper('toDurationString', site.toDurationString.bind(site));
 
   Handlebars.registerHelper('pager', function(context, options) {
     if (!context) {

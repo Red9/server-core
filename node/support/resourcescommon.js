@@ -2,6 +2,9 @@ var underscore = require('underscore')._;
 var validator = require('validator');
 var moment = require('moment');
 
+var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
+var log = requireFromRoot('support/logger').log;
+
 /**
  * 
  * Constraints are a list of things that fit:
@@ -45,40 +48,46 @@ exports.CheckConstraints = function(object, constraints) {
 
         if (underscore.isString(objectValue) === false
                 && underscore.isNumber(objectValue) === false) {
-            // Can't compare to complex objects.
+            // Can't compare to complex objects (non-string, non-numerical).
             result = false;
         } else {
             underscore.each(constraintValues, function(constraintValue) {
-                if (comparison === 'less' || comparison === 'more') {
-                    // If it's not a number but could be convert it.
-                    if (underscore.isNumber(constraintValue) === false
-                            && validator.isFloat(constraintValue)) {
-                        constraintValue = parseFloat(constraintValue);
-                    }
-
-                    if (underscore.isString(objectValue)
-                            || underscore.isString(constraintValue)) {
-                        result = false; // Can't compare less/more with strings...
-                    } else if (comparison === 'less' && objectValue > constraintValue) {
-                        result = false;
-                    } else if (comparison === 'more' && objectValue < constraintValue) {
-                        result = false;
-                    }
-
-                } else { // equal
-                    // If they're not equal (both directly or as strings)
-                    if (!(constraintValue === objectValue
-                            || constraintValue.toString().toUpperCase()
-                            === objectValue.toString().toUpperCase())) {
-                        result = false;
-                    }
-                }
+                result = result && CheckIndividualConstraint(comparison, constraintValue, objectValue);
             });
         }
     });
 
     return result;
 };
+
+function CheckIndividualConstraint(comparison, constraintValue, objectValue) {
+    var result = false;
+    if (comparison === 'less' || comparison === 'more') {
+        // If it's not a number but could be convert it.
+        if (underscore.isNumber(constraintValue) === false
+                && validator.isFloat(constraintValue)) {
+            constraintValue = parseFloat(constraintValue);
+        }
+
+        if (underscore.isString(objectValue)
+                || underscore.isString(constraintValue)) {
+            result = false; // Can't compare less/more with strings...
+        } else if (comparison === 'less' && objectValue < constraintValue) {
+            result = true;
+        } else if (comparison === 'more' && objectValue > constraintValue) {
+            result = true;
+        }
+
+    } else { // equal
+        // If they're not equal (both directly or as strings)
+        if (constraintValue === objectValue
+                || constraintValue.toString().toUpperCase()
+                === objectValue.toString().toUpperCase()) {
+            result = true;
+        }
+    }
+    return result;
+}
 
 /** Given an array of keys will drill down and get the value from following all
  * those keys.
@@ -168,17 +177,17 @@ exports.generateUUID = function() {
 
 
 
-exports.checkNewResourceAgainstSchema = function(resourceSchema, proposedResource){
+exports.checkNewResourceAgainstSchema = function(resourceSchema, proposedResource) {
     // Check if we have the correct set of keys
     var correctKeys = true;
     underscore.each(resourceSchema, function(value, key) {
         correctKeys = correctKeys && (key in proposedResource) === value.includeToCreate;
     });
-    
+
     if (correctKeys === false) {
         return "Incorrect keys given.";
     }
-    
+
     // Check for the correct value types
     var correctTypes = true;
     underscore.each(proposedResource, function(value, key) {
@@ -187,4 +196,123 @@ exports.checkNewResourceAgainstSchema = function(resourceSchema, proposedResourc
     if (correctTypes === false) {
         return "Incorrect types given";
     }
+};
+
+
+function emptyPre(resource, callback) {
+    callback(true);
+}
+function emptyPost() {
+}
+
+
+
+exports.updateResource = function(resource, id, modifiedResource, callback, forceEditable) {
+    var preFunction = typeof resource.update === 'undefined'
+            || typeof resource.update.pre === 'undefined' ? emptyPre : resource.update.pre;
+    var postFunction = typeof resource.update === 'undefined'
+            || typeof resource.update.post === 'undefined' ? emptyPost : resource.update.post;
+
+    //------------------------------------------------------------------
+    //TODO(SRLM): Make sure that the resource exists!
+    //------------------------------------------------------------------
+
+    preFunction({id: id, resource: modifiedResource}, function(continueProcessing) {
+        if (continueProcessing === false) {
+            callback('update.pre failed');
+        } else {
+
+            if (typeof id === 'undefined' || validator.isUUID(id) === false) {
+                callback('Must include valid ID');
+                return;
+            }
+
+            underscore.each(modifiedResource, function(value, key) {
+                if (key in resource.schema === false
+                        || (resource.schema[key].editable === false
+                                && forceEditable !== true)
+                        || key === 'id') {
+                    delete modifiedResource[key];
+                }
+            });
+
+            if (modifiedResource.length === 0) {
+                callback('Must include at least one editable item');
+                return;
+            }
+
+            var cassandraResource = resource.mapToCassandra(modifiedResource);
+
+            cassandraDatabase.updateSingle(resource.cassandraTable, id, cassandraResource, function(err) {
+                if (err) {
+                    log.debug('Error updating resource: ' + err);
+                    callback('error');
+                } else {
+                    postFunction({id: id, resource: modifiedResource});
+                    callback(undefined, modifiedResource);
+                }
+            });
+        }
+    });
+};
+
+exports.deleteResource = function(resource, id, callback) {
+    var preFunction = typeof resource.delete === 'undefined'
+            || typeof resource.delete.pre === 'undefined' ? emptyPre : resource.delete.pre;
+    var postFunction = typeof resource.delete === 'undefined'
+            || typeof resource.delete.post === 'undefined' ? emptyPost : resource.delete.post;
+
+
+    preFunction(id, function(continueProcessing) {
+        if (continueProcessing === false) {
+            callback('create.pre failed.');
+        } else {
+
+            if (validator.isUUID(id) === true) {
+                cassandraDatabase.deleteSingle(resource.cassandraTable, id, function(err) {
+                    postFunction(id);
+                    callback(err);
+                });
+            } else {
+                callback('Given id is not version 4 UUID ("' + id + '")');
+            }
+        }
+    });
+};
+
+exports.createResource = function(resource, newResource, callback) {
+
+    var preFunction = typeof resource.create === 'undefined'
+            || typeof resource.create.pre === 'undefined' ? emptyPre : resource.create.pre;
+    var postFunction = typeof resource.create === 'undefined'
+            || typeof resource.create.post === 'undefined' ? emptyPost : resource.create.post;
+
+
+    preFunction(newResource, function(continueprocessing) {
+        if (continueprocessing === false) {
+            callback('create.pre failed.');
+        } else {
+            var valid = exports.checkNewResourceAgainstSchema(resource.schema, newResource);
+            if (typeof valid !== 'undefined') {
+                callback('Schema failed: ' + valid);
+                return;
+            }
+
+            resource.create.flush(newResource);
+            var cassandraResource = resource.mapToCassandra(newResource);
+
+            var table = resource.cassandraTable;
+            cassandraDatabase.addSingle(table, cassandraResource, function(err) {
+                if (err) {
+                    log.error(table + " resource: Error adding. " + err);
+                    callback(table + " resource: Error adding. " + err);
+                } else {
+                    log.debug("successfully created in table " + table);
+                    postFunction(newResource);
+                    callback(undefined, [newResource]);
+                }
+            });
+
+        }
+    });
 };

@@ -50,6 +50,7 @@ exports.calculate = function(datasetId, panelId, startTime, endTime, callback) {
             try{
                 result = JSON.parse(stdout);
             }catch(e){
+                log.error('Could not parse statistician stdout');
             }
         }
         callback(result);
