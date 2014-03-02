@@ -25,12 +25,12 @@ function MoveDatasetPanelMetaToPanelList() {
 
 // note: requires editing mapToResource so that it doesn't read from dataset.panels...
     datasetResource.getDatasets({}, function(datasets) {
-        log.debug('Updating ' + datasets.length + ' datasets');
+        console.log('Updating ' + datasets.length + ' datasets');
         async.eachSeries(datasets, function(dataset, callback) {
-            log.debug('Calculating panel properties of ' + dataset.headPanelId);
+            console.log('Calculating panel properties of ' + dataset.headPanelId);
             panelResource.calculatePanelProperties(dataset.headPanelId,
                     function(properties) {
-                        log.debug('Properties calculated.');
+                        console.log('Properties calculated.');
                         dataset.panels = {};
                         dataset.panels[dataset.headPanelId] =
                                 {
@@ -66,15 +66,15 @@ function MoveDatasetPanelMetaToPanelList() {
                                 {panels: dataset.panels},
                         function(err) {
                             if(err){
-                                log.error('Error updating dataset: ' + err);
+                                console.log('Error updating dataset: ' + err);
                             }else{
-                                log.debug('Updated dataset ' + dataset.id);
+                                console.log('Updated dataset ' + dataset.id);
                             }
                             callback();
                         });
                     });
         }, function(err) {
-            log.debug('All done');
+            console.log('All done');
         });
     });
 }
