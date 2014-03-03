@@ -394,10 +394,10 @@ function SiteSpinLoader(targetId) {
     });
     
     var canvas = this.loader.canvas;    
-    var id = 'SiteSpinLoaderCanvas' + targetId;
+    this.id = 'SiteSpinLoaderCanvas' + targetId;
     
-    $('#' + targetId).after($(canvas).attr('id', id));
-    $('#' + id).position({
+    $('#' + targetId).after($(canvas).attr('id', this.id));
+    $('#' + this.id).position({
         my: 'center',
         at: 'center',
         of: '#' + targetId
@@ -424,4 +424,5 @@ SiteSpinLoader.prototype.start = function() {
 
 SiteSpinLoader.prototype.stop = function() {
     this.loader.stop();
+    $('#' + this.id).remove();
 };

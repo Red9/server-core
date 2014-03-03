@@ -21,7 +21,7 @@ function Graph(parameters, dataset, configuration) {
                 
                 classInstance.createInitialPlaceholder(classInstance.configuration.axes);
                 
-                this.siteSpinLoader = new SiteSpinLoader(this.id + "section");
+                classInstance.siteSpinLoader = new SiteSpinLoader(classInstance.id + "graph");
                 classInstance.parameters.requestPanelFunction(
                         classInstance.dataset.startTime,
                         classInstance.dataset.endTime,
@@ -290,7 +290,7 @@ Graph.prototype.setRange = function(startTime, endTime) {
             dateWindow: [startTime, endTime]// {left: minX, right: maxX}
         });
     }
-    
+   
     this.siteSpinLoader = new SiteSpinLoader(this.id + "graph");
     
     this.parameters.requestPanelFunction(
