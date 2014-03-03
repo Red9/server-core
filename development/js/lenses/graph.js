@@ -21,11 +21,13 @@ function Graph(parameters, dataset, configuration) {
                 
                 classInstance.createInitialPlaceholder(classInstance.configuration.axes);
                 
+                this.siteSpinLoader = new SiteSpinLoader(this.id + "section");
                 classInstance.parameters.requestPanelFunction(
                         classInstance.dataset.startTime,
                         classInstance.dataset.endTime,
                         classInstance.configuration.axes,
                         $.proxy(classInstance.updateWithNewPanel, classInstance));
+         
             }
     );
 
@@ -49,9 +51,12 @@ Graph.prototype.createInitialPlaceholder = function(axes) {
     fakeRowData.unshift(new Date(this.dataset.endTime));
     fakeData.push(fakeRowData);
     
-    var tempAxes = axes;
-    tempAxes.unshift('time');
-
+    // Make a deep copy so that we don't modify the original axes.
+    var tempAxes = ['time'];
+    _.each(axes, function(axis){
+        tempAxes.push(axis);
+    });
+    
     // Make empty graph (works as a placeholder during loading).
     this.drawDygraph(fakeData, tempAxes);
 
@@ -267,6 +272,10 @@ Graph.prototype.onZoom = function(startTime, endTime) {
 
 Graph.prototype.updateWithNewPanel = function(panel) {
     this.drawDygraph(panel.values, panel.labels, panel.startTime, panel.endTime);
+    if(typeof this.siteSpinLoader !== 'undefined'){
+        this.siteSpinLoader.stop();
+        delete this.siteSpinLoader;
+    }
 };
 
 
@@ -281,6 +290,9 @@ Graph.prototype.setRange = function(startTime, endTime) {
             dateWindow: [startTime, endTime]// {left: minX, right: maxX}
         });
     }
+    
+    this.siteSpinLoader = new SiteSpinLoader(this.id + "graph");
+    
     this.parameters.requestPanelFunction(
             startTime, endTime,
             this.configuration.axes,
