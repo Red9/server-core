@@ -253,17 +253,38 @@ $('.filters .btn-clear').click(function() {
     site.clearSearchFilter();
     return false;
 });
+
+
+var usrModalInstance;
+var GetUSROperands = function() {
+    
+    var checked = site.getChecked();
+    console.log('Result type: ' + $('#resultType').attr('value'));
+    
+    var result = {
+        datasets: checked
+    };
+    return result;
+};
+
 </script>
+<div id="usr_modal_div"></div>
 
 <div id="container-results"></div>
 <script type="text/x-handlebars-template" id="tmpl-results">
     <p class="text-right text-muted">\{{items.length}} results found</p>
+    <div id="resultType" value="\{{type.string}}"></div>
     <div class="panel panel-default results">
         \{{#if type.dataset }}
         <div class="table-responsive">
             <table class="table table-hover table-condensed">
                 <thead>
-                    <th><button class="btn btn-md btn-default" onclick="site.deleteChecked('\{{type.string}}')"><span class="glyphicon glyphicon-trash"></span></button></th>
+                    <th>
+                        <div class="btn-toolbar" role="toolbar"><div class="btn-group">
+                        <button class="btn btn-md btn-default" onclick="site.deleteChecked('\{{type.string}}')"><span class="glyphicon glyphicon-trash"></span></button>
+                        <button class="btn btn-md btn-default" onclick="site.usrChecked('\{{type.string}}')"><span class="glyphicon glyphicon-tasks"></span></button>
+                        </div></div>
+                    </th>
                     <th>Owner</th>
                     <th>Title</th>
                     <th>Started</th>

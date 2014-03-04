@@ -85,7 +85,7 @@ function mapToCassandra(resource) {
     cassandra.name = resource.title;
     cassandra.raw_data = resource.headPanelId;
     cassandra.timezone = resource.timezone;
-    cassandra.source = JSON.stringify(resource.source);
+    cassandra.source = JSON.stringify(resource.source); // TODO(SRLM): This should give an error if this is not a JSON object
     cassandra.owner = resource.owner;
     cassandra.summary_statistics = JSON.stringify(resource.summaryStatistics);
     cassandra.raw_data_list = JSON.stringify(resource.panels);

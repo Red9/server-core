@@ -1,16 +1,68 @@
 <link rel="stylesheet" type="text/css" href="/css/jquery.dataTables.css">
 <script src="/js/jquery.dataTables.js"></script>
-
-<script type="text/javascript" src="/js/underscore.js"></script>
 <script type="text/javascript" src="/js/jsv.js"></script>
 <script type="text/javascript" src="/js/jsonform.js"></script>
 
 <script>
 
-    var usr_list = [];
 
-    var ValidSubmit = function(id) {
+    function usrModal() {
+        this.usr_list = [];
 
+        $('#usr_modal_body_list').show().siblings('div').hide();
+
+        $('#usr_modal').on('hidden.bs.modal', function() {
+            $('#usr_modal_body_list').show().siblings('div').hide();
+        });
+
+        var self = this;
+
+        $.ajax({
+            dataType: "json",
+            url: "{{apiUrl}}/usr/",
+            success: function(subroutines) {
+                self.usr_list = subroutines;
+
+                var datatables = [];
+
+                for (var i = 0; i < self.usr_list.length; i++) {
+                    var usr = self.usr_list[i];
+
+                    var row = [];
+                    row.push(usr["title"]);
+                    row.push(usr["description"]);
+
+                    datatables.push(row);
+                }
+
+                var oTable = $('#usr_list_table').dataTable({
+                    aoColumns: [
+                        {sTitle: "Title"},
+                        {
+                            sTitle: "Description",
+                            bSortable: false
+                        }
+                    ],
+                    aaData: datatables,
+                    bFilter: false
+                });
+
+                $('#usr_list_table').on('click', 'tr', self.ItemSelectedInTable(oTable));
+            }
+        });
+
+    }
+
+    usrModal.prototype.show = function() {
+        $('#usr_modal').modal('show');
+    };
+
+    usrModal.prototype.hide = function() {
+        $('#usr_modal').modal('hide');
+    };
+
+
+    usrModal.prototype.validSubmit = function(id) {
         function SubmitHandler(values) {
             //TODO(SRLM): come up with something more elegant for the passing of what's marked
             var marked = GetUSROperands();
@@ -20,8 +72,8 @@
                 marked: marked
             };
             var post_url = "{{apiUrl}}/usr/" + id + "/operate";
-            $("#usr_modal_body_form").hide();
-            $("#usr_modal_body_processing").show();
+            $("#usr_modal_body_processing").show().siblings('div').hide();
+
 
             $.ajax({
                 type: 'POST',
@@ -29,13 +81,11 @@
                 data: post,
                 dataType: 'json',
                 success: function(data) {
-                    $("#usr_modal_body_processing").hide();
-                    $("#usr_modal_body_done").show();
+                    $("#usr_modal_body_done").show().siblings('div').hide();
                 },
                 error: function(data, status, errorThrown) {
                     console.log("Error POSTing form");
-                    $("#usr_modal_body_processing").hide();
-                    $('#usr_modal_body_error').show();
+                    $('#usr_modal_body_error').show().siblings('div').hide();
                     $('#usr_modal_body_error').find('#description').text('Some error occurred: ' + status + ', ' + errorThrown);
                 }
             });
@@ -46,7 +96,8 @@
     };
 
 
-    var GetAndDisplayForm = function(usr_url, id) {
+    usrModal.prototype.GetAndDisplayForm = function(usr_url, id) {
+        var self = this;
         $.ajax({
             dataType: "json",
             url: usr_url,
@@ -66,22 +117,24 @@
                     title: "Submit"
                 });
 
-                usr_form["onSubmitValid"] = ValidSubmit(id);
-                $("#usr_modal_form").jsonForm(usr_form);
+                usr_form["onSubmitValid"] = self.validSubmit(id);
+                $("#usr_modal_form").empty().jsonForm(usr_form);
             }
         });
     };
 
-    function ItemSelectedInTable(oTable) {
+    usrModal.prototype.ItemSelectedInTable = function(oTable) {
+        var self = this;
         function SelectionHandler(event) {
-            $("#usr_modal_body_list").hide();
-            $("#usr_modal_body_form").show();
+            $("#usr_modal_body_form").show().siblings('div').hide();
+
+
 
             var title = oTable.fnGetData(this, 0);
 
-            for (var i = 0; i < usr_list.length; i++) {
-                if (usr_list[i]["title"] === title) {
-                    var usr_id = usr_list[i]["id"];
+            for (var i = 0; i < self.usr_list.length; i++) {
+                if (self.usr_list[i]["title"] === title) {
+                    var usr_id = self.usr_list[i]["id"];
 
                     //---------------------------------
                     // Construct the form URL
@@ -108,7 +161,7 @@
 
                     console.log("Operands: " + JSON.stringify(operands));
 
-                    GetAndDisplayForm(usr_url, usr_id);
+                    self.GetAndDisplayForm(usr_url, usr_id);
                 }
             }
 
@@ -117,78 +170,37 @@
         return SelectionHandler;
     }
 
-    $(document).ready(function() {
-        $("#usr_modal_body_list").show();
-        $("#usr_modal_body_form").hide();
-        $("#usr_modal_body_processing").hide();
-        $('#usr_modal_body_done').hide();
-        $('#usr_modal_body_error').hide();
-
-        $.ajax({
-            dataType: "json",
-            url: "{{apiUrl}}/usr/",
-            success: function(subroutines) {
-                usr_list = subroutines;
-
-                var datatables = [];
-
-                for (var i = 0; i < usr_list.length; i++) {
-                    var usr = usr_list[i];
-
-                    var row = [];
-                    row.push(usr["title"]);
-                    row.push(usr["description"]);
-
-                    datatables.push(row);
-                }
-
-                var oTable = $('#usr_list_table').dataTable({
-                    aoColumns: [
-                        {sTitle: "Title"},
-                        {
-                            sTitle: "Description",
-                            bSortable: false
-                        }
-                    ],
-                    aaData: datatables,
-                    bFilter: false
-                });
-
-                $('#usr_list_table').on('click', 'tr', ItemSelectedInTable(oTable));
-            }
-        });
-    });
-
 </script>
 
+<div class="modal" id="usr_modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Run User Subroutine</h4>
+            </div>
+            <div class="modal-body" id="usr_body">
+                <div id="usr_modal_body_list">
+                    <h4>Click on a USR to select.</h4>
+                    <table id="usr_list_table"></table>
+                </div>
+                <div id="usr_modal_body_form">
+                    <form id="usr_modal_form"></form>
+                </div>
+                <div id="usr_modal_body_processing">
+                    <p>The USR is processing. This dialog will update when processing is done. Please do not rerun-USR until done.</p>
+                </div>
+                <div id="usr_modal_body_done">
+                    <p>The USR is done processing. Please refresh this page to see the results.</p>
+                </div>
+                <div id="usr_modal_body_error">
+                    <p id="description">Something's wrong. That's all we know.</p>
+                </div>
 
-
-
-<div class="modal" id="usr_modal" tabindex="-1" style="display: none;">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title">Run User Subroutine</h4>
-    </div>
-    <div class="modal-body" id="usr_body">
-        <div id="usr_modal_body_list">
-            <h4>Click on a USR to select.</h4>
-            <table id="usr_list_table"></table>
-        </div>
-        <div id="usr_modal_body_form">
-            <form id="usr_modal_form"></form>
-        </div>
-        <div id="usr_modal_body_processing">
-            <p>The USR is processing. This dialog will update when processing is done. Please do not rerun-USR until done.</p>
-        </div>
-        <div id="usr_modal_body_done">
-            <p>The USR is done processing. Please refresh this page to see the results.</p>
-        </div>
-        <div id="usr_modal_body_error">
-            <p id="description">Something's wrong. That's all we know.</p>
-        </div>
-
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-    </div>
-</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

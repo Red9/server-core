@@ -38,10 +38,10 @@ function GetUsrFromList(id) {
     });
 }
 
-function GetCommonUSRParameters(){
+function GetCommonUSRParameters() {
     var parameters = [];
     parameters.push('--apiDomain');
-    parameters.push(config.apiDomain);
+    parameters.push(config.apiRealm);
     return parameters;
 }
 
@@ -49,10 +49,14 @@ exports.getForm = function(id, marked, callback) {
     var usr = GetUsrFromList(id);
 
     if (usr) {
-        var formExecutable = './' + usr.directory + '/' + usr.executables.form;
+        var formExecutable = process.cwd() + '/' + usr.directory + '/' + usr.executables.form;
         var parameters = GetCommonUSRParameters();
 
-        var runningUsr = spawn(formExecutable, parameters);
+        var options = {
+            cwd: process.cwd() + '/' + usr.directory,
+            env: process.env
+        };
+        var runningUsr = spawn(formExecutable, parameters, options);
         runningUsr.stdout.setEncoding('utf8');
         runningUsr.stderr.setEncoding('utf8');
 
@@ -66,7 +70,7 @@ exports.getForm = function(id, marked, callback) {
         runningUsr.on('exit', function(code, signal) {
             //TODO(SRLM): Add a catch in case the USR doesn't return a JSON structure
             var form = JSON.parse(runningUsr.stdout.read());
-            
+
             log.debug('USR errors: "' + runningUsr.stderr.read() + '"');
             callback(undefined, form);
         });
@@ -105,10 +109,14 @@ exports.getUsrs = function(callback) {
 exports.operateUsr = function(id, usrForm, callback) {
     var usr = GetUsrFromList(id);
     if (usr) {
-        var usrExecutable = './' + usr.directory + '/' + usr.executables.execute;
+        var usrExecutable = process.cwd() + '/' + usr.directory + '/' + usr.executables.execute;
         var parameters = GetCommonUSRParameters();
 
-        var runningUsr = spawn(usrExecutable, parameters);
+        var options = {
+            cwd: process.cwd() + '/' + usr.directory,
+            env: process.env
+        };
+        var runningUsr = spawn(usrExecutable, parameters, options);
         runningUsr.stdout.setEncoding('utf8');
         runningUsr.stderr.setEncoding('utf8');
 
@@ -126,7 +134,7 @@ exports.operateUsr = function(id, usrForm, callback) {
         runningUsr.on('exit', function(code, signal) {
             //TODO(SRLM): Add a catch in case the USR doesn't return a JSON structure
             var result = JSON.parse(runningUsr.stdout.read());
-            
+
             log.debug('USR errors: "' + runningUsr.stderr.read() + '"');
             callback(undefined, result);
         });

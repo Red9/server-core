@@ -18,16 +18,12 @@
         <script src="/js/handlebars-v1.3.0.js"></script>
 
         <script src="/js/bootstrap.js"></script>
-        <script src="/js/bootstrap-modalmanager.js"></script>
-        <script src="/js/bootstrap-modal.js"></script>
         <script src="/js/site.js"></script>
         <script src="/js/moment.js"></script>
         
-        <link href="/css/bootstrap-theme.css" rel="stylesheet">
         <link href="/css/jquery-ui-1.10.3.css" rel="stylesheet">
         <link href="/css/bootstrap.css" rel="stylesheet">
-        <link href="/css/bootstrap-modal-bs3patch.css" rel="stylesheet">
-        <link href="/css/bootstrap-modal.css" rel="stylesheet">
+        <link href="/css/bootstrap-theme.css" rel="stylesheet">
         <link href="/css/style.css" rel="stylesheet">
     </head>
 
@@ -67,7 +63,11 @@
 
             </div>
         </div>
-        <div class="container">{{{body}}}</div>
+        <div class="container">
+            {{#if development}}<div class="alert alert-info">Careful: you're working on the development site</div>{{/if}}
+            {{{body}}}
+        
+        </div>
         <br />
         <br />
         <div class="navbar">

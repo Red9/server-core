@@ -211,6 +211,9 @@ if (cluster.isMaster) {
         }
 
         res.locals['apiUrl'] = config.apiRealm;
+        if(config.release === false){
+            res.locals['development'] = true;
+        }
 
         next();
     }

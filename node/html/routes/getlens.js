@@ -21,6 +21,11 @@ exports.get = function(req, res, next) {
             layout: false,
             id: id
         });
+    } else if(type === 'summarystatistics'){
+        res.render('lenses/summarystatistics',{
+           layout:false,
+           id:id
+        });
     }
 
     else {

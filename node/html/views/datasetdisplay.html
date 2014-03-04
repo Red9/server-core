@@ -1,13 +1,17 @@
 <script src="/js/moment.js"></script>
 
-<script src="/js/lenses/eventlist.js"></script>
-<script src="/js/lenses/googlemap.js"></script>
-<script src="/js/lenses/graph.js"></script>
 <script src="/js/async.js"></script>
 <script src="/js/panelrequestqueue.js"></script>
 <script src="/js/siteSpinLoader.js"></script>
 
 <script src="/js/dygraph-custom.js"></script>
+
+<script src="/js/lenses/eventlist.js"></script>
+<script src="/js/lenses/googlemap.js"></script>
+<script src="/js/lenses/graph.js"></script>
+<script src="/js/lenses/summarystatistics.js"></script>
+
+
 
 <!-- The Google Maps script tag should really be with the googlemaps.html
 lens, but it turns out that it's subject to same origin policy. So, it's
@@ -86,6 +90,8 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
             lens = new Graph(lens_parameters, dataset, configuration);
         } else if (type === 'GoogleMap') {
             lens = new GoogleMap(lens_parameters, dataset, configuration);
+        } else if (type === 'SummaryStatistics') {
+            lens = new SummaryStatistics(lens_parameters, dataset, configuration);
         } else { // Not found...
             return;
         }
@@ -140,6 +146,9 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
             ]
         });
 
+        CreateLens(requestqueue, dataset, 'SummaryStatistics', {});
+
+
 
 
 
@@ -158,22 +167,33 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
         $('#reset_range_button').click(function() {
             updateRange(null, pageDataset.startTime, pageDataset.endTime);
         });
-        
-        $('#run_usr_on_dataset_button').click(function(){
-            $('#usr_modal_div').load('/snippet/usrmodal', function(){
-                $('#usr_modal').modal('show');
-            });
-        });
+
+
 
 
     });
     
-    var GetUSROperands = function(){
+    var usrModalInstance;
+    function displayUsrModal() {
+        
+        if (typeof usrModalInstance === 'undefined') {
+            console.log('First time load...');
+            // First time, load modal
+            $('#usr_modal_div').load('/snippet/usrmodal', function() {
+                usrModalInstance = new usrModal();
+                usrModalInstance.show();
+            });
+        } else {
+            usrModalInstance.show();
+        }
+        
+    }
+
+    var GetUSROperands = function() {
         var result = {
-            
-          datasets:[
-              datasetId
-          ]  
+            datasets: [
+                datasetId
+            ]
         };
         return result;
     };
@@ -181,7 +201,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 
 </script>
 
-
+<div id="usr_modal_div"></div>
 
 
 
@@ -191,7 +211,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 <button id="reset_range_button" class="btn btn-default">Global Zoom Out</button>
 <button id="sync_lenses_button" class="btn btn-default active" data-toggle="button">Sync Lenses</button>
 
-<button id="run_usr_on_dataset_button" class="btn btn-default pull-right">Run USR</button>
+<button onclick="displayUsrModal()" class="btn btn-default pull-right">Run USR</button>
 
 <br /><br /><br />
 
@@ -277,39 +297,71 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 
 
 
-<h2>Processing Statistics</h2>
+<h2>Recording Source</h2>
 <div class="panel panel-default">
-    <div class="panel-heading"><strong>Outputs from the conversion</strong></div>
+    <div class="panel-heading"><strong>Information about the recorder that generated this dataset</strong></div>
     <div class="panel-body">
-        <pre><code>
-{{{dataset.processing_statistics}}}
-</code></pre>
-    </div>
-</div>
+        <h3>Parsed Properties</h3>
+        <div class="row">
+            <div class="col-md-12"><strong>Filename</strong>: {{dataset.source.filename}}</div>
+        </div>
+        {{#if dataset.source.scad}}{{#with dataset.source.scad}}
 
-<br />
+        <div class="row">
+            <div class="col-md-3">
+                <div class="row"><div class="col-md-3"><strong>Unit</strong>: {{unit}}</div></div>
+                <div class="row"><div class="col-md-3"><strong>Rows</strong>: {{rows}}</div></div>
+            </div>
+            <div class="col-md-4">
+                <div class="row"><strong>Recorder Start Time</strong>:</div>
+                <div class="row">{{epochdate datasetStartTime}} {{epochtime datasetStartTime}}<br/>({{datasetStartTime}})</div>
+            </div>
+            <div class="col-md-5">
+                <div class="row"><strong>Recorder End Time</strong>:</div>
+                <div class="row">{{epochdate datasetEndTime}} {{epochtime datasetEndTime}}<br/>({{datasetEndTime}})</div>
+            </div>
+        </div>
 
-<h2>Processing Configuration</h2>
-<div class="panel panel-default">
-    <div class="panel-heading"><strong>Parameters to the conversion</strong></div>
-    <div class="panel-body">
-        <pre><code>
-{{{dataset.processing_config}}}
-</code></pre>
-    </div>
-</div>
+
+        <h3>RNC Properties</h3>
+        {{#with rncParameters}}
+        <div class="row">
+            <div class="col-md-3"><strong>Sensors</strong><br/>
+                <table class="table table-condensed">
+                    <thead>
+                    <th>Class</th><th>id</th><th>Name</th>
+                    </thead>
+                    <tbody>
+                        {{#each sensors}}
+                        <tr><td>{{@key}}</td><td>{{id}}</td><td>{{name}}</td></tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="col-md-9">
+                <div class="row">
+                    <div class="col-md-4"><strong>Create CNT</strong>: {{createTime.timestamp}}</div>
+                    <div class="col-md-5"><strong>Broken Time</strong>: {{createTime.brokenTime}}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4"><strong>Bits/Timestamp</strong>: {{timestampFormat.bitsPerTimestamp}}</div>
+                    <div class="col-md-5"><strong>Frequency</strong>: {{timestampFormat.frequency}}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4"><strong>SW Version</strong>: {{softwareVersion}}</div>
+                    <div class="col-md-5"><strong>Create Filename</strong>: {{createName}}</div>
+                </div>
+
+            </div>
+        </div>
+        {{/with}}
+
+        {{/with}}{{else}}
+        Unknown source (not SCAD).
+        {{/if}}
 
 
-<br />
-
-
-<h2>Processing Notes</h2>
-<div class="panel panel-default">
-    <div class="panel-heading"><strong>Comments from the conversion</strong></div>
-    <div class="panel-body">
-        <pre><code>
-{{{dataset.processing_notes}}}
-</code></pre>
     </div>
 </div>
 
@@ -321,7 +373,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 <br />
 
 
-<div id="usr_modal_div"></div>
+
 
 
 

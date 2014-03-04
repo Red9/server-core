@@ -1,5 +1,5 @@
 var underscore = require('underscore')._;
-
+var validator = require('validator');
 var datasetResource = requireFromRoot('support/resources/dataset');
 
 function simplifyOutput(datasetArray) {
@@ -69,7 +69,52 @@ exports.get = function(req, res, next) {
 
 exports.update = function(req, res, next) {
 
-    res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
+    var updatedDataset = {};
+
+    var id = req.params['id'];
+    delete req.params['id']; // Remove so that we don't try to update with the key.
+
+    underscore.each(datasetResource.resource.schema, function(keyDescription, key) {
+        console.log('Searching for key: ' + key);
+        if (typeof req.param(key) !== 'undefined') {
+            console.log('Found key: ' + key);
+            var value = req.param(key);
+
+            // Lazy validation: if we know what type it is, we check to make
+            // sure. But we're fine with defaulting to ok.
+            if (keyDescription.type === 'uuid') {
+                if (validator.isUUID(value) === false) {
+                    return;
+                }
+            } else if (keyDescription.type === 'timestamp') {
+                if (validator.isInt(value) === false) {
+                    return;
+                } else {
+                    value = parseInt(value);
+                }
+            } else if (keyDescription.type === 'resource:summaryStatistics') {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    return; // Can't parse the summary statistics.
+                }
+            }
+            updatedDataset[key] = value;
+        }
+    });
+
+    if (underscore.isEmpty(updatedDataset) === false) {
+
+        datasetResource.updateDataset(id, updatedDataset, function(err, modifiedDataset) {
+            if (err) {
+                res.status(400).json({message: 'Error updating dataset: ' + err});
+            } else {
+                res.json(modifiedDataset);
+            }
+        });
+    } else {
+        res.status(400).json({message: 'Must submit at least one valid key to update'});
+    }
 };
 
 exports.delete = function(req, res, next) {
