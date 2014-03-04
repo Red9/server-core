@@ -1,40 +1,43 @@
+<div class="modal" id="new_event_modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Create Event</h4>
+            </div>
+            <div class="modal-body">
+                <form id="create_event_form">
+                    <fieldset>
 
-<div class="modal" id="new_event_modal" tabindex="-1" style="display: none;">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title">Create Event</h4>
-    </div>
-    <div class="modal-body">
-        <form id="create_event_form">
-            <fieldset>
+                        <div class="form-group">
+                            <label for="event_form_start_time">Start Time</label>
+                            <input class="form-control" id="event_form_start_time" name="event_form_start_time" value="{{{startTime}}}" type="text">
+                            <p class="help-block">Start time to clip a new event from</p>
+                        </div>
 
-                <div class="form-group">
-                    <label for="event_form_start_time">Start Time</label>
-                    <input class="form-control" id="event_form_start_time" name="event_form_start_time" value="{{{startTime}}}" type="text">
-                    <p class="help-block">Start time to clip a new event from</p>
-                </div>
+                        <div class="form-group">
+                            <label for="event_form_end_time">End Time</label>
+                            <input class="form-control"  value="{{{endTime}}}" id="event_form_end_time" name="event_form_end_time" placeholder="eg 9999999" type="text">
+                            <p class="help-block">End time to clip a new event from</p>
+                        </div>
 
-                <div class="form-group">
-                    <label for="event_form_end_time">End Time</label>
-                    <input class="form-control"  value="{{{endTime}}}" id="event_form_end_time" name="event_form_end_time" placeholder="eg 9999999" type="text">
-                    <p class="help-block">End time to clip a new event from</p>
-                </div>
-
-                <div class="form-group">
-                    <label for="event_form_type">Event Type</label>
-                    <select class="form-control " id="event_form_type" name="event_form_type">
-                        {{#each EventType}}<option>{{name}}</option>
-                        {{/each}}
-                    </select>
-                </div>
-            </fieldset>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="new_event_modal_submit">Clip to Event</button>
-    </div>
-</div>
+                        <div class="form-group">
+                            <label for="event_form_type">Event Type</label>
+                            <select class="form-control " id="event_form_type" name="event_form_type">
+                                {{#each EventType}}<option>{{name}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="new_event_modal_submit">Clip to Event</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 
 <script>

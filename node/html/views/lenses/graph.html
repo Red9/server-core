@@ -1,20 +1,24 @@
-<!-- Clip to [somewhere] Modal -->
-<div class="modal" id="{{id}}graph_export" tabindex="-1" role="dialog">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">Graph Actions</h4>
-    </div>
-    <div class="modal-body">
-        <h3>Clip to</h3>
-        <a download="{{id}}-image.png" id="{{id}}clip_to_img_button" class="btn btn-default btn-block">PNG</a>
-        <a download="{{id}}-data.txt" id="{{id}}clip_to_download_button" class="btn btn-default btn-block">Download</a>
-        <a id="{{id}}clip_to_custom_download_button" class="btn btn-default btn-block">Custom Download</a>
-        <a id="{{id}}clip_to_event_button" class="btn btn-default btn-block">New Event</a>
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-    </div>
-</div>
+<!-- Clip to [somewhere] Modal -->        
+<div class="modal" id="{{id}}graph_export">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Graph Actions</h4>
+            </div>
+            <div class="modal-body">
+                <h3>Clip to</h3>
+                <a download="{{id}}-image.png" id="{{id}}clip_to_img_button" class="btn btn-default btn-block">PNG</a>
+                <a download="{{id}}-data.txt" id="{{id}}clip_to_download_button" class="btn btn-default btn-block">Download</a>
+                <a id="{{id}}clip_to_custom_download_button" class="btn btn-default btn-block">Custom Download</a>
+                <a id="{{id}}clip_to_event_button" class="btn btn-default btn-block">New Event</a>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <div class="row">
     <h2><div id='{{id}}title'>Default Graph Title</div>

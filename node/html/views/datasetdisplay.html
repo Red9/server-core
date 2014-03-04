@@ -46,12 +46,12 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
     var pageDataset;
 
     var lensesList = {};
-    function updateRange(callerId, startTime, endTime) {
-        console.log("You've updated the time: " + startTime + " - " + endTime);
+    function updateRange(callerId, startTime, endTime, reference) {
+        console.log('Reference: ' + JSON.stringify(reference));
         if ($('#sync_lenses_button').hasClass('active')) {
             _.each(lensesList, function(lens, id) {
                 if (callerId !== id) {
-                    lens.setRange(startTime, endTime);
+                    lens.setRange(startTime, endTime, reference);
                 }
             });
         }
@@ -163,7 +163,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
         });
 
         $('#reset_range_button').click(function() {
-            updateRange(null, pageDataset.startTime, pageDataset.endTime);
+            updateRange(null, pageDataset.startTime, pageDataset.endTime, {type:'dataset', id:pageDataset.id});
         });
 
 

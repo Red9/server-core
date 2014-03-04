@@ -110,6 +110,7 @@ Graph.prototype.prepareListeners = function() {
 
         // Is this repeat safe? Every time this button is clicked then
         // the modal is reloaded. Is this ok?
+        $('#' + classInstance.id + 'graph_export').modal('hide');
         $("#create_event_modal").load(request_url, function() {
             $("#new_event_modal").modal('show');
         });
@@ -226,7 +227,10 @@ Graph.prototype.setTitle = function() {
     var title = 'Default Title';
     if (typeof this.configuration.title !== 'undefined') {
         title = this.configuration.title;
-    } else if (this.configuration.axes.length > 0) {
+    } else if(this.configuration.axes.length === 1){
+        var brokenAxis = this.configuration.axes[0].split(':');
+        title = brokenAxis[0] + ' ' + brokenAxis[1];
+    } else if (this.configuration.axes.length > 1) {
         var types = [];
         _.each(this.configuration.axes, function(axis) {
             types.push(axis.split(':')[0]);
