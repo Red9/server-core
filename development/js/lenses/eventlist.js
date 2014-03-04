@@ -84,7 +84,11 @@ EventList.prototype.SetEvents = function(events) {
             classInstance.parameters.updateRangeFunction(
                     classInstance.id,
                     rowData[classInstance.index.startTime],
-                    rowData[classInstance.index.endTime]
+                    rowData[classInstance.index.endTime],
+                    {
+                        type:'event',
+                        id:classInstance.events[rowIndex].id
+                    }
                     );
 
         } else {
