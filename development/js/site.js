@@ -33,19 +33,44 @@ var site = {
     searchDataset: '/dataset/',
     searchEvent: '/event/'
   },
+  
+  getChecked: function(){
+      var checkedItems = [];
+      $('#result_tbody tr td #selectCheckbox').each(function(index, element){
+          var checkbox = $(element);
+          if(checkbox.prop('checked') === true){
+              checkedItems.push(checkbox.attr('value'));
+          }
+      });
+      return checkedItems;
+  },
+  
+  usrChecked: function(resultType){
+      console.log('usrChecked!');
+    if (typeof usrModalInstance === 'undefined') {
+        // First time, load modal
+        $('#usr_modal_div').load('/snippet/usrmodal', function() {
+            usrModalInstance = new usrModal();
+            usrModalInstance.show();
+        });
+    } else {
+        usrModalInstance.show();
+    }
+  },
+  
   deleteChecked: function(resultType){
       console.log('Result type: ' + resultType);
       $('#result_tbody tr td #selectCheckbox').each(function(index, element){
           var checkbox = $(element);
           if(checkbox.prop('checked') === true){
               //console.log('Checked: ' + checkbox.attr('value'));
-              site.deleteDataset(resultType, checkbox.attr('value'));
+              site.deleteItem(resultType, checkbox.attr('value'));
           }
           
       });
   },
   //methods
-  deleteDataset: function(type, id) {
+  deleteItem: function(type, id) {
     var self = this;
     $.ajax(
       this.urls.apiPath + '/' + type + '/' + id,
