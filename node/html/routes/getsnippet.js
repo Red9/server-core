@@ -33,6 +33,39 @@ var ChangeUnits = function(summary, system) {
     }
 };
 
+var eventTypeList = [
+  {name: "Default"},
+  {name: "Wave: Left"},
+  {name: "Wave: Right"},
+  {name: "Wave"},
+  {name: "Drop In"},
+  {name: "Bottom Turn"},
+  {name: "Snap"},
+  {name: "Snap: Closeout"},
+  {name: "Air Drop"},
+  {name: "Cutback"},
+  {name: "Floater"},
+  {name: "Carve"},
+  {name: "Tail Slide"},
+  {name: "Pump"},
+  {name: "360"},
+  {name: "Reverse"},
+  {name: "Air"},
+  {name: "Paddle for Wave"},
+  {name: "Paddle Out"},
+  {name: "Paddle In"},
+  {name: "Paddle Left"},
+  {name: "Paddle Right"},
+  {name: "Paddle"},
+  {name: "Duck Dive"},
+  {name: "Wipe out"},
+  {name: "Pearling"},
+  {name: "Session"},
+  {name: "Walk"},
+  {name: "Run"},
+  {name: "Stationary"}
+];
+
 
 exports.get = function(req, res, next) {
     var snippet_type = req.params.type;
@@ -66,38 +99,7 @@ exports.get = function(req, res, next) {
             startTime: startTime,
             endTime: endTime,
             datasetId: dataset,
-            EventType: [
-                {name: "Default"},
-                {name: "Wave: Left"},
-                {name: "Wave: Right"},
-                {name: "Wave"},
-                {name: "Drop In"},
-                {name: "Bottom Turn"},
-                {name: "Snap"},
-                {name: "Snap: Closeout"},
-                {name: "Air Drop"},
-                {name: "Cutback"},
-                {name: "Floater"},
-                {name: "Carve"},
-                {name: "Tail Slide"},
-                {name: "Pump"},
-                {name: "360"},
-                {name: "Reverse"},
-                {name: "Air"},
-                {name: "Paddle for Wave"},
-                {name: "Paddle Out"},
-                {name: "Paddle In"},
-                {name: "Paddle Left"},
-                {name: "Paddle Right"},
-                {name: "Paddle"},
-                {name: "Duck Dive"},
-                {name: "Wipe out"},
-                {name: "Pearling"},
-                {name: "Session"},
-                {name: "Walk"},
-                {name: "Run"},
-                {name: "Stationary"}
-            ]
+            EventType: eventTypeList
         };
         res.render('snippets/createeventmodal', parameters);
     } else if (snippet_type === 'summarystatistics') {
@@ -128,7 +130,10 @@ exports.get = function(req, res, next) {
         };
 
         res.render('snippets/usrmodal', parameters);
-    } else {
+    } else if (snippet_type === "eventtype") {
+      res.json(eventTypeList);
+    }
+    else {
         next();
     }
 
