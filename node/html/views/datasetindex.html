@@ -21,13 +21,7 @@
                 <div class="row">
                     <div class="col-sm-3"><h3>Event type</h3></div>
                     <div class="col-sm-5">
-                        <select name="type" id="event-type" class="form-control" multiple>
-                            <option value="wave">Wave</option>
-                            <option value="jump">Jump</option>
-                            <option value="drop">Drop</option>
-                            <option value="another type">Another type</option>
-                            <option value="super">Super</option>
-                        </select>
+                        <select name="type" id="event-type" class="form-control" multiple></select>
                     </div>
                 </div>
             </div>
@@ -156,9 +150,6 @@ $('#filter-form').submit(function(e) {
     e.preventDefault();
     site.search();
 });
-$(function() {
-    $('#filter-form').submit();
-});
 $('.filters .nav.simple a').click(function() {
     $(this).closest('.nav').children('li').removeClass('active');
     $(this).closest('li').addClass('active');
@@ -250,6 +241,12 @@ $('#additional-filters-button li a').click(function() {
 $(function() {
     site.setSlider($("#duration-filter"), $('.slider', $("#duration-filter")).data());
     $('#datetime').datepicker();
+    $('#filter-form').submit();
+    $.getJSON(site.urls.eventTypes, function (list) {
+        $.each(list, function () {
+            $('#event-type').append('<option>' + this.name + '</option>');
+        });
+    });
 });
 $('.filters .btn-clear').click(function() {
     site.clearSearchFilter();

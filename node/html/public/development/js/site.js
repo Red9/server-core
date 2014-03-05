@@ -31,7 +31,8 @@ var site = {
   urls: {
     apiPath: null, //Dynamically set
     searchDataset: '/dataset/',
-    searchEvent: '/event/'
+    searchEvent: '/event/',
+    eventTypes: '/snippet/eventtype'
   },
   
   getChecked: function(){
