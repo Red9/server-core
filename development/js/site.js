@@ -31,7 +31,8 @@ var site = {
   urls: {
     apiPath: null, //Dynamically set
     searchDataset: '/dataset/',
-    searchEvent: '/event/'
+    searchEvent: '/event/',
+    eventTypes: '/snippet/eventtype'
   },
   
   getChecked: function(){
@@ -257,7 +258,7 @@ var site = {
           values: [0, 0],
           slide: slideChange,
           change: slideChange
-      }).data('initialized', true).on('custom', function (){alert('custom');});
+      }).data('initialized', true);
   },
   /**
    * Returns a date in YYYY-MM-DD format or the string Today and Yesterday
@@ -314,6 +315,9 @@ var site = {
   },
   mileToMeter: function (value) {
     return parseFloat(value) / 0.00062137;
+  },
+  minToMs: function (value) {
+    return parseFloat(value) * 60000;
   },
   sortBy: function (name, order) {
     if (order !== 'desc') {

@@ -7,8 +7,7 @@ body {
 }
 .filters > .panel {
     background-color: #F5F5F5;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding: 10px;
     font-size: 0.9em;
     line-height: 1;
 }
