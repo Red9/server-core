@@ -57,8 +57,6 @@ exports.get = function(req, res, next) {
     
     panelResource.getPanel(parameters,
             function(axes) {
-                console.log("Panel Resource axes got...");
-
                 if (format === 'csv') {
                     res.write('time');
                     underscore.each(axes, function(axis) {
@@ -75,10 +73,6 @@ exports.get = function(req, res, next) {
 
             },
             function(time, values, rowIndex) {
-                if(rowIndex % 10000 === 0){
-                    console.log("Got row " + rowIndex);
-                }
-                
                 if (format === 'csv') {
                     resWriteBuffer += time;
                     
@@ -121,7 +115,6 @@ exports.get = function(req, res, next) {
                 }
             },
             function(err) {
-                console.log("Got done...");
                 if (err) {
                     log.debug('Get panel Error: ' + err);
                 }

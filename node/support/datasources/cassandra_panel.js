@@ -248,6 +248,7 @@ Bucket.prototype.addRow = function(newValues) {
             }
         }, this);
     } else {
+        // Called each subsequent time
         underscore.each(newValues, function(value, index) {
             this.sum[index] += value;
             if (this.includeMinMax === true) {
@@ -336,46 +337,9 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
     );
 };
 
-
-//exports.getPanel = function(panelId, startTime, endTime,
-//        callbackRow, callbackDone) {
-//    var query = 'SELECT time, data FROM raw_data WHERE id=? AND time>=? and time<=?';
-//
-//    var parameters = [
-//        {
-//            value: panelId,
-//            hint: 'uuid'
-//        },
-//        {
-//            value: startTime,
-//            hint: 'timestamp'
-//        },
-//        {
-//            value: endTime,
-//            hint: 'timestamp'
-//        }
-//    ];
-//
-//    var previousN = -1;
-//    cassandraDatabase.eachRow(query, parameters,
-//            function(n, row) {
-//                if (n !== previousN + 1) {
-//                    log.error('n(' + n + ') !== previousN(' + previousN + ')');
-//                }
-//                previousN = n;
-//                callbackRow(moment(row.time).valueOf(), row.data, n);
-//            },
-//            function(err, rowLength) {
-//                if (err) {
-//                    log.error(err);
-//                }
-//                callbackDone(err);
-//            });
-//};
-
 exports.getPanel = function(panelId, startTime, endTime,
         callbackRow, callbackDone) {
-    var chunkLimit = 1000;
+    var chunkLimit = 5000; // 5000 seems to be a little bit faster than 1000
     var query = 'SELECT time, data FROM raw_data WHERE id=? AND time>=? AND time<=? LIMIT ' + chunkLimit;
 
     var previousChunkLength;
@@ -429,28 +393,6 @@ exports.getPanel = function(panelId, startTime, endTime,
                 callbackDone(err);
             });
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 exports.calculatePanelProperties = function(rawDataId, callback) {
     // Warning: these keys are sensitive to matching the keys in dataset resource!
