@@ -38,7 +38,17 @@ SummaryStatistics.prototype.setRange = function(startTime, endTime, reference) {
         if (reference.type === 'dataset') {
             this.setDisplay('dataset', this.dataset.summaryStatistics);
         } else if (reference.type === 'event') {
-            this.setDisplay('event', {});
+            var self = this;
+            $.ajax({
+                type: 'GET',
+                url: self.parameters.apiDomain + '/event/' + reference.id,
+                dataType: 'json',
+                success:function(eventList){
+                    if(eventList.length === 1){
+                        self.setDisplay('event', eventList[0].summaryStatistics);
+                    }
+                }
+            });
         }
     }
 

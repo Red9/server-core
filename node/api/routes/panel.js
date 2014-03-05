@@ -15,7 +15,6 @@ exports.search = function(req, res, next) {
 
 
 exports.get = function(req, res, next) {
-    console.log("Get panel...");
     var parameters = {
         datasetId: req.param('id')
     };
@@ -46,10 +45,7 @@ exports.get = function(req, res, next) {
     else if (format === 'json') {
         res.writeHead(200, {'Content-Type': 'application/json'});
         res.write('{\n');
-    }
-
-    console.log("About to get panel...");
-    
+    }    
     
     // Reduce the number of res.write's by using a string to temporarily write
     // the results to, and output after some number of rows.
