@@ -15,7 +15,7 @@ exports.search = function(req, res, next) {
 
 
 exports.get = function(req, res, next) {
-    
+    console.log("Get panel...");
     var parameters = {
         datasetId: req.param('id')
     };
@@ -48,8 +48,16 @@ exports.get = function(req, res, next) {
         res.write('{\n');
     }
 
+    console.log("About to get panel...");
+    
+    
+    // Reduce the number of res.write's by using a string to temporarily write
+    // the results to, and output after some number of rows.
+    var resWriteBuffer = '';
+    
     panelResource.getPanel(parameters,
             function(axes) {
+                console.log("Panel Resource axes got...");
 
                 if (format === 'csv') {
                     res.write('time');
@@ -67,38 +75,58 @@ exports.get = function(req, res, next) {
 
             },
             function(time, values, rowIndex) {
+                if(rowIndex % 10000 === 0){
+                    console.log("Got row " + rowIndex);
+                }
+                
                 if (format === 'csv') {
-                    res.write('' + time);
+                    resWriteBuffer += time;
                     
                     underscore.each(values, function(value){
-                       res.write(',');
+                       resWriteBuffer += ',';
                         
                        if(underscore.isArray(value)){
                            // Deal with min/avg/max, if present
                            underscore.each(value, function(v, index){
                                if(index !== 0){
-                                   res.write(';');
+                                   resWriteBuffer += ';';
                                }
-                               res.write('' + v);
+                               resWriteBuffer += v;
                            });
                        }else{
-                           res.write('' + value);
+                           resWriteBuffer += value;
                        }
                     });
-                    res.write('\n');
+                    resWriteBuffer += '\n';
+                    
+                    if(rowIndex % 100 === 0){
+                        res.write(resWriteBuffer);
+                        resWriteBuffer = '';
+                    }
                     
                 } else if (format === 'json') {
-                    if(rowIndex > 0){
-                        res.write(',\n');
-                    }
+                    
                     values.unshift(time);
-                    res.write(JSON.stringify(values));
+                    
+                    if(rowIndex > 0){
+                        resWriteBuffer += ',\n';
+                    }
+                    resWriteBuffer += JSON.stringify(values);
+                    
+                    if(rowIndex % 100 === 0){
+                        res.write(resWriteBuffer);
+                        resWriteBuffer = '';
+                    }
+                    
                 }
             },
             function(err) {
+                console.log("Got done...");
                 if (err) {
                     log.debug('Get panel Error: ' + err);
                 }
+                
+                res.write(resWriteBuffer);
 
                 if (format === 'json') {
                     res.write('\n]\n}');
