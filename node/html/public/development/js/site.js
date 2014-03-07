@@ -214,13 +214,21 @@ var site = {
       position: position,
       draggable: true
     });
-    this.mapContext = {map: map, marker: marker};
+    var circle = new google.maps.Circle({
+      map: map,
+      radius: 100,
+      fillColor: '#224B8A',
+      fillOpacity: 0.6,
+      strokeColor: 'transparent'
+    });
+    this.mapContext = {map: map, marker: marker, circle: circle};
 
     google.maps.event.addListener(map, 'click', function(event) {
       if (!marker.getMap()) {
         marker.setPosition(event.latLng);
         marker.setMap(map);
         markerPositionChanged();
+        circle.bindTo('center', marker, 'position');
       }
     });
     google.maps.event.addListener(marker, 'dragend', markerPositionChanged);

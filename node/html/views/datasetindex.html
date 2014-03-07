@@ -193,7 +193,9 @@ $('#location-label').closest('a').click(function() {
             if (!$('#distance').val()) {
                 $('#distance').val(10);
             }
-            $('#intersects').val('circle(' + lat + ',' + lng + ',' + site.mileToMeter($('#distance').val()) + ')');
+            var radius = site.mileToMeter($('#distance').val());
+            site.mapContext.circle.setRadius(radius);
+            $('#intersects').val('circle(' + lat + ',' + lng + ',' + radius + ')');
             $('#location-remove').show();
             if (name) {
                 if (!$('#location-label').data('default-text')) {
@@ -205,11 +207,13 @@ $('#location-label').closest('a').click(function() {
     }
     return false;
 });
-$('#distance').change(function () {
+$('#distance').on('input', function () {
+    var radius = site.mileToMeter($(this).val());
+    site.mapContext.circle.setRadius(radius);
     var targetElement = $('#intersects');
     var values = $('#intersects').val().split(',');
     if (values.length === 3) {
-        targetElement.val('circle(' + values[0] + ',' + values[1] + ',' + site.mileToMeter($(this).val()) + ')');
+        targetElement.val('circle(' + values[0] + ',' + values[1] + ',' + radius + ')');
     }
 });
 $('#datetime, #timespan').change(function() {
