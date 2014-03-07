@@ -32,9 +32,9 @@ var site = {
     apiPath: null, //Dynamically set
     searchDataset: '/dataset/',
     searchEvent: '/event/',
-    eventTypes: '/snippet/eventtype'
+    eventTypes: '/snippet/eventtype',
+    userList: '/user/'
   },
-  
   getChecked: function(){
       var checkedItems = [];
       $('#result_tbody tr td #selectCheckbox').each(function(index, element){
@@ -172,6 +172,7 @@ var site = {
       url = this.urls.apiPath + this.urls.searchEvent;
       this.resultType = 'event';
     }
+    $('#container-results').empty();
     var self = this;
     $.get(url, this.getSearchParams(), function (response) {
       self.results = response.sort(site.sortBy('createTime', 'desc'));
@@ -187,7 +188,8 @@ var site = {
     if (adaptedResults.items.length > this.searchPageSize) {
       var paging = {
         length: Math.ceil(adaptedResults.items.length / this.searchPageSize),
-        current: page ||0
+        current: page ||0,
+        totalResults: adaptedResults.items.length
       };
       adaptedResults.paging = paging;
       adaptedResults.items = adaptedResults.items.slice(
@@ -309,7 +311,6 @@ var site = {
         return result;
 
     },
-  
   padZeros: function (value, length) {
     return ('000000' + value).substr(-length);
   },
@@ -322,13 +323,25 @@ var site = {
   sortBy: function (name, order) {
     if (order !== 'desc') {
       return function (a, b) {
-        return a[name] - b[name];
+        if (a[name] > b[name]) {
+          return 1;
+        }
+        else if (a[name] < b[name]) {
+          return -1;
+        }
+        return 0;
       };
     }
     else
     {
       return function (a, b) {
-        return b[name] - a[name];
+        if (b[name] > a[name]) {
+          return 1;
+        }
+        else if (b[name] < a[name]) {
+          return -1;
+        }
+        return 0;
       };
     }
   }
