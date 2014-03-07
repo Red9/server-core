@@ -73,17 +73,18 @@
                     <div class="col-sm-2"><label for="distance">Within</label></div>
                     <div class="col-sm-3">
                         <div class="input-group">
-                            <input type="number" id="distance" class="form-control" />
+                            <input type="number" id="distance" class="form-control ignore" />
                             <span class="input-group-addon">mi</span>
                         </div>
                     </div>
-                    <div class="col-sm-1"><label for="location">Of</label></div>
+                    <div class="col-sm-1"><label>Of</label></div>
                     <div class="col-sm-3">
                         <span id="location-remove" class="glyphicon glyphicon-remove"></span>
-                        <a href="#"><span class="glyphicon glyphicon-map-marker"></span><span id="location-label">Select</span></a>
-                        <!--<input type="hidden" id="location-name" name="location.name" value="">-->
-                        <input type="hidden" id="latitude" value="" />
-                        <input type="hidden" id="longitude" value="" />
+                        <a href="#">
+                            <span class="glyphicon glyphicon-map-marker"></span>
+                            <span id="location-label">Select</span>
+                        </a>
+                        <input type="hidden" id="intersects" value="">
                     </div>
                 </div>
             </div>
@@ -189,21 +190,27 @@ $('#location-label').closest('a').click(function() {
     if (!mapContainer.data('mapLoaded')) {
         mapContainer.data('mapLoaded', true);
         site.setMap(39.4114, -96.90834, 4, function(lat, lng, name) {
-            $('#latitude').val(lat);
-            $('#longitude').val(lng);
+            if (!$('#distance').val()) {
+                $('#distance').val(10);
+            }
+            $('#intersects').val('circle(' + lat + ',' + lng + ',' + site.mileToMeter($('#distance').val()) + ')');
+            $('#location-remove').show();
             if (name) {
                 if (!$('#location-label').data('default-text')) {
                     $('#location-label').data('default-text', $('#location-label').text());
                 }
                 $('#location-label').val(name).text(name);
             }
-            $('#location-remove').show();
-            if (!$('#distance').val()) {
-                $('#distance').val(10);
-            }
         });
     }
     return false;
+});
+$('#distance').change(function () {
+    var targetElement = $('#intersects');
+    var values = $('#intersects').val().split(',');
+    if (values.length === 3) {
+        targetElement.val('circle(' + values[0] + ',' + values[1] + ',' + site.mileToMeter($(this).val()) + ')');
+    }
 });
 $('#datetime, #timespan').change(function() {
     var date = $('#datetime').val();
@@ -219,7 +226,7 @@ $('#datetime, #timespan').change(function() {
     $('#startTime-less').val(baseDate + (days + 1) * 24 * 60 * 60 * 1000);
 });
 $('#location-remove').click(function() {
-    $('#location').val(null).text(null);
+    $('#intersects').val(null).text(null);
     $('#location-label').text($('#location-label').data('default-text'));
     $('.filters .map, #location-remove').hide();
     site.clearMap();
