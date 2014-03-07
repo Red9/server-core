@@ -17,6 +17,14 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-lg-6 filter-item">
+                <div class="row">
+                    <div class="col-sm-3"><h3>User</h3></div>
+                    <div class="col-sm-5">
+                        <select id="user-list" name="owner" class="form-control" multiple></select>
+                    </div>
+                </div>
+            </div>
             <div class="col-lg-6 filter-item inactive" id="event-type-filter">
                 <div class="row">
                     <div class="col-sm-3"><h3>Event type</h3></div>
@@ -238,6 +246,10 @@ $('#additional-filters-button li a').click(function() {
     $('#filter-' + state.id).show().css({backgroundColor: '#BCE8F1'}).animate({backgroundColor: 'transparent'}, 1000);
     return true;
 });
+$('.filters .btn-clear').click(function() {
+    site.clearSearchFilter();
+    return false;
+});
 $(function() {
     site.setSlider($("#duration-filter"), $('.slider', $("#duration-filter")).data());
     $('#datetime').datepicker();
@@ -247,12 +259,12 @@ $(function() {
             $('#event-type').append('<option>' + this.name + '</option>');
         });
     });
+    $.getJSON(site.urls.apiPath + site.urls.userList, function (list) {
+        $.each(list.sort(site.sortBy('displayName')), function () {
+            $('#user-list').append('<option id="' + this.id + '">' + this.displayName + '</option>');
+        });
+    });
 });
-$('.filters .btn-clear').click(function() {
-    site.clearSearchFilter();
-    return false;
-});
-
 
 var usrModalInstance;
 var GetUSROperands = function() {
@@ -271,70 +283,74 @@ var GetUSROperands = function() {
 
 <div id="container-results"></div>
 <script type="text/x-handlebars-template" id="tmpl-results">
-    <p class="text-right text-muted">\{{items.length}} results found</p>
-    <div id="resultType" value="\{{type.string}}"></div>
-    <div class="panel panel-default results">
-        \{{#if type.dataset }}
-        <div class="table-responsive">
-            <table class="table table-hover table-condensed">
-                <thead>
-                    <th>
-                        <div class="btn-toolbar" role="toolbar"><div class="btn-group">
-                        <button class="btn btn-md btn-default" onclick="site.deleteChecked('\{{type.string}}')"><span class="glyphicon glyphicon-trash"></span></button>
-                        <button class="btn btn-md btn-default" onclick="site.usrChecked('\{{type.string}}')"><span class="glyphicon glyphicon-tasks"></span></button>
-                        </div></div>
-                    </th>
-                    <th>Owner</th>
-                    <th>Title</th>
-                    <th>Started</th>
-                    <th>Duration</th>
-                    <th>Created</th>
-                </thead>
-        
-                <tbody id="result_tbody">
-                    
-                        \{{#each items}}
-                        <tr id="result_row_\{{id}}">
-                            <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
-                            <td><a href="/user/\{{owner.id}}">\{{owner.displayName}}</a></td>
-                            <td onclick="window.location.assign('/dataset/\{{id}}');">\{{title}} \{{type}}</td>
-                            <td>\{{toDateString startTime}} \{{toTimeString startTime}}</td>
-                            <td>\{{toDurationString startTime endTime}}</td>
-                            <td>\{{toDateString createTime}} \{{toTimeString createTime}}</td>
-                        </tr>
-                        \{{/each}}
-                </tbody>
-            </table>
-        </div>
-        \{{/if}}
-                            
-        \{{#if type.event }}
-        <div class="table-responsive">
-            <table class="table table-hover table-condensed">
-                <thead>
-                    <th><button class="btn btn-md btn-default" onclick="site.deleteChecked('\{{type.string}}')"><span class="glyphicon glyphicon-trash"></span></button></th>
-                    <th>Type</th>
-                    <th>Started</th>
-                    <th>Duration</th>
-                </thead>
-                <tbody id="result_tbody">
-                        \{{#each items}}
-                        <tr id="result_row_\{{id}}">
-                            <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
-                            <td onclick="window.location.assign('/dataset/\{{datasetId}}?startTime=\{{startTime}}&endTime=\{{endTime}}');">\{{type}}</td>
-                            <td>\{{toDateString startTime}} \{{toTimeString startTime}}</td>
-                            <td>\{{toDurationString startTime endTime}}</td>
-                        </tr>
-                        \{{/each}}
-                </tbody>
-            </table>
-        </div>
-        \{{/if}}
-    </div>
+    \{{#if items.length }}
+        <p class="text-right text-muted">\{{paging.totalResults}} results found</p>
+        <div id="resultType" value="\{{type.string}}"></div>
+        <div class="panel panel-default results">
+            \{{#if type.dataset }}
+            <div class="table-responsive">
+                <table class="table table-hover table-condensed">
+                    <thead>
+                        <th>
+                            <div class="btn-toolbar" role="toolbar"><div class="btn-group">
+                            <button class="btn btn-md btn-default" onclick="site.deleteChecked('\{{type.string}}')"><span class="glyphicon glyphicon-trash"></span></button>
+                            <button class="btn btn-md btn-default" onclick="site.usrChecked('\{{type.string}}')"><span class="glyphicon glyphicon-tasks"></span></button>
+                            </div></div>
+                        </th>
+                        <th>Owner</th>
+                        <th>Title</th>
+                        <th>Started</th>
+                        <th>Duration</th>
+                        <th>Created</th>
+                    </thead>
 
-    <div>
-        \{{#pager paging onclick="site.showResults(:0:)"}}\{{/pager}}
-    </div>
+                    <tbody id="result_tbody">
+
+                            \{{#each items}}
+                            <tr id="result_row_\{{id}}">
+                                <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
+                                <td><a href="/user/\{{owner.id}}">\{{owner.displayName}}</a></td>
+                                <td onclick="window.location.assign('/dataset/\{{id}}');">\{{title}} \{{type}}</td>
+                                <td>\{{toDateString startTime}} \{{toTimeString startTime}}</td>
+                                <td>\{{toDurationString startTime endTime}}</td>
+                                <td>\{{toDateString createTime}} \{{toTimeString createTime}}</td>
+                            </tr>
+                            \{{/each}}
+                    </tbody>
+                </table>
+            </div>
+            \{{/if}}
+
+            \{{#if type.event }}
+            <div class="table-responsive">
+                <table class="table table-hover table-condensed">
+                    <thead>
+                        <th><button class="btn btn-md btn-default" onclick="site.deleteChecked('\{{type.string}}')"><span class="glyphicon glyphicon-trash"></span></button></th>
+                        <th>Type</th>
+                        <th>Started</th>
+                        <th>Duration</th>
+                    </thead>
+                    <tbody id="result_tbody">
+                            \{{#each items}}
+                            <tr id="result_row_\{{id}}">
+                                <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
+                                <td onclick="window.location.assign('/dataset/\{{datasetId}}?startTime=\{{startTime}}&endTime=\{{endTime}}');">\{{type}}</td>
+                                <td>\{{toDateString startTime}} \{{toTimeString startTime}}</td>
+                                <td>\{{toDurationString startTime endTime}}</td>
+                            </tr>
+                            \{{/each}}
+                    </tbody>
+                </table>
+            </div>
+            \{{/if}}
+        </div>
+
+        <div>
+            \{{#pager paging onclick="site.showResults(:0:)"}}\{{/pager}}
+        </div>
+    \{{else}}
+        <div class="alert">No results found.</div>
+    \{{/if}}
 </script>
 
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
