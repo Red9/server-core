@@ -25,11 +25,19 @@
                     </div>
                 </div>
             </div>
+            <div class="col-lg-6 filter-item" id="dataset-name-filter">
+                <div class="row">
+                    <div class="col-sm-3"><h3>Name</h3></div>
+                    <div class="col-sm-9">
+                        <input type="text" name="name" class="form-control">
+                    </div>
+                </div>
+            </div>
             <div class="col-lg-6 filter-item inactive" id="event-type-filter">
                 <div class="row">
                     <div class="col-sm-3"><h3>Event type</h3></div>
-                    <div class="col-sm-5">
-                        <select name="type" id="event-type" class="form-control" multiple></select>
+                    <div class="col-sm-9">
+                        <input type="text" name="type" id="event-type" class="form-control">
                     </div>
                 </div>
             </div>
@@ -171,6 +179,7 @@ $('.filters .nav.multiple a').click(function() {
 });
 $('#type-event').closest('.nav').find('a').click(function() {
     var isDataset = !$('#type-event').prop('checked');
+    $('#dataset-name-filter').toggleClass('inactive', !isDataset);
     $('#event-type-filter').toggleClass('inactive', isDataset);
     var sliderElement = $("#duration-filter .slider");
     var maxDuration = 15;
@@ -266,9 +275,9 @@ $(function() {
     $('#datetime').datepicker();
     $('#filter-form').submit();
     $.getJSON(site.urls.eventTypes, function (list) {
-        $.each(list, function () {
-            $('#event-type').append('<option>' + this.name + '</option>');
-        });
+        //change the list to a sorted Array of strings
+        var list = list.map(function (x){return x.name}).sort();
+        site.setAutocompleteMultiple('#event-type', list);
     });
     $.getJSON(site.urls.apiPath + site.urls.userList, function (list) {
         $.each(list.sort(site.sortBy('displayName')), function () {
