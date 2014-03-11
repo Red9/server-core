@@ -246,6 +246,42 @@ var site = {
       });
     }
   },
+  setAutocompleteMultiple: function (element, list) {
+    function split(val) {
+      return val.split(/,\s*/);
+    }
+    function extractLast(term) {
+      return split( term ).pop();
+    }
+    $(element)
+      .bind('keydown', function(event) {
+        // don't navigate away from the field on tab when selecting an item
+        if (event.keyCode === $.ui.keyCode.TAB && $( this ).data('ui-autocomplete').menu.active) {
+          event.preventDefault();
+        }
+      })
+      .autocomplete({
+        minLength: 0,
+        source: function(request, response) {
+          // delegate back to autocomplete, but extract the last term
+          response($.ui.autocomplete.filter(
+              list, extractLast(request.term))
+          );
+        },
+        focus: function() {
+          // prevent value inserted on focus
+          return false;
+        },
+        select: function( event, ui ) {
+          var terms = split(this.value);
+          terms.pop();
+          terms.push(ui.item.value);
+          terms.push('');
+          this.value = terms.join(', ');
+          return false;
+        }
+      });
+  },
   /**
    * Removes the marker from the map
    */
