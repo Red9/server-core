@@ -90,4 +90,11 @@ var customHandlebarsHelpers = {
     }
 };
 
-customHandlebarsHelpers.RegisterHelpers(Handlebars);
+if(typeof exports !== 'undefined'){
+    // Running in Node.js
+    exports.RegisterHelpers = customHandlebarsHelpers.RegisterHelpers;
+    moment = require('moment');
+}else{
+    // Running in client
+    customHandlebarsHelpers.RegisterHelpers(Handlebars);
+}

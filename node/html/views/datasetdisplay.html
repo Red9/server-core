@@ -109,8 +109,6 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 
         CreateLens(requestqueue, dataset, 'EventList', {});
 
-        CreateLens(requestqueue, dataset, 'GoogleMap', {});
-
         CreateLens(requestqueue, dataset, 'Graph', {
             axes: [
                 'gps:speed'
@@ -143,6 +141,8 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
                 'pressure:pressure'
             ]
         });
+        
+        CreateLens(requestqueue, dataset, 'GoogleMap', {});
 
         CreateLens(requestqueue, dataset, 'SummaryStatistics', {});
 

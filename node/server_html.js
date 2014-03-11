@@ -92,94 +92,9 @@ if (cluster.isMaster) {
     var path = require('path');
     var hbs = require('hbs');
 
-    var moment = require('moment');
-
-    var padNumber = function(n, width, z) {
-        z = z || '0';
-        n = n + '';
-        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-    };
-
-    var FormatDuration = function(startTime, endTime) {
-        var result = '';
-
-        var duration = moment.duration(endTime - startTime);
-
-        if (duration.years() !== 0) {
-            result = duration.years() + 'Y ' + duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
-        } else if (duration.months() !== 0) {
-            result = duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
-        } else if (duration.days() !== 0) {
-            result = duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
-        } else if (duration.hours() !== 0) {
-            result = duration.hours() + 'h ' + duration.minutes() + 'm ';
-        } else if (duration.minutes() !== 0) {
-            result = duration.minutes() + 'm ';
-        }
-
-        result += duration.seconds() + '.' + duration.milliseconds() + 's';
-
-        return result;
-
-    };
-
-    var NumberToDecimal = function(number) {
-        if (typeof number === "undefined") {
-            return "";
-        }
-        if (Math.abs(number) > 9999 || Math.abs(number) < 0.01) {
-            return number.toExponential(2);
-        } else {
-            return parseFloat(Math.round(number * 100) / 100).toFixed(2);
-        }
-    };
-
-    var MillisecondsEpochToTime = function(milliseconds) {
-        return moment.utc(milliseconds).format("h:mm:ss.SSS a");
-    };
-
-    var MillisecondsEpochToDate = function(milliseconds) {
-        return moment.utc(milliseconds).format("YYYY-MM-DD");
-    };
-
-    var FormatUnits = function(units) {
-        /*if(units === "m/s^2"){
-         return new hbs.SafeString("<sup>m</sup>&frasl;<sub>s</sub><small>2</small>");
-         }else if(units === "ft/s^2"){
-         return new hbs.SafeString("<sup>ft</sup>&frasl;<sub>s</sub><small>2</small>");
-         }*/
-
-        return units;
-    };
-
-    var Unitize = function(value, units) {
-        if (units === "date") {
-            return  MillisecondsEpochToDate(value) + MillisecondsEpochToTime(value);
-        } else if (units === "ms") {
-            return FormatDuration(0, value);
-        } else if (typeof units === "undefined") {
-            return NumberToDecimal(value);
-        } else {
-            return NumberToDecimal(value);
-        }
-    };
-
-    var PercentFormater = function(numerator, denominator) {
-        if (isNaN(numerator) || isNaN(denominator)) {
-            return "---";
-        } else {
-            return (NumberToDecimal(numerator / (numerator + denominator)) * 100) + "%";
-        }
-    };
-
-    hbs.registerHelper('decimal', NumberToDecimal);
-    hbs.registerHelper('epochtime', MillisecondsEpochToTime);
-    hbs.registerHelper('epochdate', MillisecondsEpochToDate);
-    hbs.registerHelper('unitize', Unitize);
-    hbs.registerHelper('formatunits', FormatUnits);
-    hbs.registerHelper('percent', PercentFormater);
-    hbs.registerHelper('duration', FormatDuration);
-
+    // TODO(SRLM): Figure out a better way to share code between client and server
+    var hbsHelpers = requireFromRoot('html/public/development/js/utilities/customHandlebarsHelpers');
+    hbsHelpers.RegisterHelpers(hbs);
 
 // Authentication details
     var passport = require('passport');
@@ -271,36 +186,4 @@ if (cluster.isMaster) {
     server.listen(app.get('port'), function() {
         log.info('Express server listening on port ' + app.get('port'));
     });
-
-
-
-// Socket.io stuff
-    io = require('socket.io').listen(server);
-    io.set('log level', 2); // reduce logging
-
-    /** This socket_routes business is to be able to associate a particular socket
-     * with a particular page. This way, a server route can send data via a socket
-     * even after rendering a page.
-     * 
-     */
-    var socket_routes = [];
-    socket_routes.push(requireFromRoot('html/routes/rncprocess').NewSocket);
-
-    io.sockets.on('connection', function(socket) {
-        socket.on('page_uuid', function(data) {
-            var page_uuid = data.page_uuid;
-            //log.info("Got new page uuid (" + page_uuid + "). Searching for handler.");
-            var i = 0;
-            // This is a little bit tricky, but notice that a function is being called.
-            // That function will add or not the new socket, depending on the page_uuid.
-            // If it does add the socket then it will return false, and the loop 
-            // ends. From the time of it's addition it's up to the route to handle
-            // the socket. It's out of this function's hands.
-            while (i < socket_routes.length && socket_routes[i](socket, page_uuid) === false) {
-                i++;
-            }
-        });
-    });
-
-
 }
