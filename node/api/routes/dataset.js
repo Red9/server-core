@@ -4,7 +4,6 @@ var datasetResource = requireFromRoot('support/resources/dataset');
 
 function simplifyOutput(datasetArray) {
     underscore.each(datasetArray, function(element, index, list) {
-        delete element['summaryStatistics'];
         delete element['source'];
     });
 
@@ -19,24 +18,13 @@ exports.search = function(req, res, next) {
         simpleOutput = true;
     }
 
-    var flushOutput = false;
-    if (typeof req.query['flushoutput'] !== 'undefined') {
-        delete req.query['flushoutput'];
-        flushOutput = true;
-    }
     // At this point, req.query has constraints.
 
     datasetResource.getDatasets(req.query, function(datasets) {
         if (simpleOutput) {
             datasets = simplifyOutput(datasets);
         }
-        if (flushOutput === true) {
-            datasetResource.flushDatasets(datasets, function(flushedDatasets) {
-                res.json(flushedDatasets);
-            });
-        } else {
-            res.json(datasets);
-        }
+        res.json(datasets);
     });
 };
 
@@ -47,24 +35,18 @@ exports.get = function(req, res, next) {
         simpleOutput = true;
     }
 
-    var flushOutput = false;
-    if (typeof req.query['flushoutput'] !== 'undefined') {
-        delete req.query['flushoutput'];
-        flushOutput = true;
+    var expand;
+    if (typeof req.query['expand'] !== 'undefined') {
+        expand = req.query['expand'].split(',');
+        delete req.query['expand'];
     }
 
     datasetResource.getDatasets({id: req.param('id')}, function(datasets) {
         if (simpleOutput) {
             datasets = simplifyOutput(datasets);
         }
-        if (flushOutput === true) {
-            datasetResource.flushDatasets(datasets, function(flushedDatasets) {
-                res.json(flushedDatasets);
-            });
-        } else {
-            res.json(datasets);
-        }
-    });
+        res.json(datasets);
+    }, expand);
 };
 
 exports.update = function(req, res, next) {

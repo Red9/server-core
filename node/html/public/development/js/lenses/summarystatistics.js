@@ -3,7 +3,9 @@ function SummaryStatistics(parameters, dataset, configuration) {
     this.parameters = parameters;
 
     this.dataset = {
-        summaryStatistics: dataset.summaryStatistics
+        headPanel: {
+            summaryStatistics: dataset.headPanel.summaryStatistics
+        }
     };
     var self = this;
 
@@ -12,8 +14,8 @@ function SummaryStatistics(parameters, dataset, configuration) {
                 // Do stuff once the lens is loaded.
                 var source = $('#summarystatistics-details-template').html();
                 self.template = Handlebars.compile(source);
-                
-                $.proxy(self.setDisplay('dataset', self.dataset.summaryStatistics), self);
+
+                $.proxy(self.setDisplay('dataset', self.dataset.headPanel.summaryStatistics), self);
             });
 }
 
@@ -36,15 +38,15 @@ SummaryStatistics.prototype.setDisplay = function(type, summaryStatistics) {
 SummaryStatistics.prototype.setRange = function(startTime, endTime, reference) {
     if (typeof reference !== 'undefined') {
         if (reference.type === 'dataset') {
-            this.setDisplay('dataset', this.dataset.summaryStatistics);
+            this.setDisplay('dataset', this.dataset.headPanel.summaryStatistics);
         } else if (reference.type === 'event') {
             var self = this;
             $.ajax({
                 type: 'GET',
                 url: self.parameters.apiDomain + '/event/' + reference.id,
                 dataType: 'json',
-                success:function(eventList){
-                    if(eventList.length === 1){
+                success: function(eventList) {
+                    if (eventList.length === 1) {
                         self.setDisplay('event', eventList[0].summaryStatistics);
                     }
                 }

@@ -9,49 +9,120 @@ var panelResource = requireFromRoot('support/resources/panel');
 var datasetResource = requireFromRoot('support/resources/dataset');
 
 
+
+
+function simplifyOutput(panelArray) {
+    underscore.each(panelArray, function(element, index, list) {
+    });
+    return panelArray;
+}
+
 exports.search = function(req, res, next) {
-    res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
+    var simpleOutput = false;
+    if (typeof req.query['simpleoutput'] !== 'undefined') {
+        delete req.query['simpleoutput'];
+        simpleOutput = true;
+    }
+
+    panelResource.getPanel(req.query, function(panel) {
+        if (simpleOutput) {
+            panel = simplifyOutput(panel);
+        }
+        res.json(panel);
+    });
+};
+
+exports.get = function(req, res, next) {
+    var simpleOutput = false;
+    if (typeof req.query['simpleoutput'] !== 'undefined') {
+        delete req.query['simpleoutput'];
+        simpleOutput = true;
+    }
+
+    panelResource.getPanel({id: req.param('id')}, function(panel) {
+        if (simpleOutput) {
+            panel = simplifyOutput(panel);
+        }
+        res.json(panel);
+    });
 };
 
 
-exports.get = function(req, res, next) {
-    var parameters = {
-        datasetId: req.param('id')
+
+exports.create = function(req, res, next) {
+
+    var newPanel = {
+        datasetId: req.param('datasetId')
     };
-    
-    
-    if(validator.isInt(req.param('buckets'))){
+
+    if (underscore.some(newPanel, function(value) {
+        return typeof value === 'undefined';
+    })) {
+        res.status(403).json({message: 'Must include required parameters to create panel.'});
+    } else {
+        panelResource.createPanel(newPanel, function(err, panel) {
+            if (typeof panel === 'undefined') {
+                res.status(500).json({message: 'Could not create panel: ' + err});
+            } else {
+                res.json(panel);
+            }
+        });
+    }
+};
+
+exports.delete = function(req, res, next) {
+    var id = req.param('id');
+
+    panelResource.deletePanel(id, function(err) {
+        if (err) {
+            res.status(500).json({message: err});
+        } else {
+            res.json({});
+        }
+    });
+};
+
+
+
+
+exports.getBody = function(req, res, next) {
+    var parameters = {
+        id: req.param('id')
+    };
+
+
+    if (validator.isInt(req.param('buckets'))) {
         parameters.buckets = parseInt(req.param('buckets'));
     }
-    if(validator.isInt(req.param('startTime'))){
+    if (validator.isInt(req.param('startTime'))) {
         parameters.startTime = parseInt(req.param('startTime'));
     }
-    if(validator.isInt(req.param('endTime'))){
+    if (validator.isInt(req.param('endTime'))) {
         parameters.endTime = parseInt(req.param('endTime'));
     }
-    
-    if(typeof req.param('minmax') !== 'undefined'){
+
+    if (typeof req.param('minmax') !== 'undefined') {
         parameters.minmax = true;
     }
-    
+
     var format = 'csv';
     if (req.param('format') === 'json') {
         format = 'json';
     }
-    
+
     if (format === 'csv') {
         res.writeHead(200, {'Content-Type': 'text/csv'});
     }
     else if (format === 'json') {
         res.writeHead(200, {'Content-Type': 'application/json'});
         res.write('{\n');
-    }    
-    
+    }
+
     // Reduce the number of res.write's by using a string to temporarily write
     // the results to, and output after some number of rows.
     var resWriteBuffer = '';
-    
-    panelResource.getPanel(parameters,
+
+    panelResource.getPanelBody(parameters,
             function(axes) {
                 if (format === 'csv') {
                     res.write('time');
@@ -71,50 +142,50 @@ exports.get = function(req, res, next) {
             function(time, values, rowIndex) {
                 if (format === 'csv') {
                     resWriteBuffer += time;
-                    
-                    underscore.each(values, function(value){
-                       resWriteBuffer += ',';
-                        
-                       if(underscore.isArray(value)){
-                           // Deal with min/avg/max, if present
-                           underscore.each(value, function(v, index){
-                               if(index !== 0){
-                                   resWriteBuffer += ';';
-                               }
-                               resWriteBuffer += v;
-                           });
-                       }else{
-                           resWriteBuffer += value;
-                       }
+
+                    underscore.each(values, function(value) {
+                        resWriteBuffer += ',';
+
+                        if (underscore.isArray(value)) {
+                            // Deal with min/avg/max, if present
+                            underscore.each(value, function(v, index) {
+                                if (index !== 0) {
+                                    resWriteBuffer += ';';
+                                }
+                                resWriteBuffer += v;
+                            });
+                        } else {
+                            resWriteBuffer += value;
+                        }
                     });
                     resWriteBuffer += '\n';
-                    
-                    if(rowIndex % 100 === 0){
+
+                    if (rowIndex % 100 === 0) {
                         res.write(resWriteBuffer);
                         resWriteBuffer = '';
                     }
-                    
+
                 } else if (format === 'json') {
-                    
+
                     values.unshift(time);
-                    
-                    if(rowIndex > 0){
+
+                    if (rowIndex > 0) {
                         resWriteBuffer += ',\n';
                     }
                     resWriteBuffer += JSON.stringify(values);
-                    
-                    if(rowIndex % 100 === 0){
+
+                    if (rowIndex % 100 === 0) {
                         res.write(resWriteBuffer);
                         resWriteBuffer = '';
                     }
-                    
+
                 }
             },
             function(err) {
                 if (err) {
                     log.debug('Get panel Error: ' + err);
                 }
-                
+
                 res.write(resWriteBuffer);
 
                 if (format === 'json') {
@@ -124,36 +195,6 @@ exports.get = function(req, res, next) {
                 res.end();
             }
     );
-};
-
-exports.create = function(req, res, next) {
-    var datasetId = req.param('id');
-    var temporaryId = req.param('temporaryId');
-
-    if (typeof temporaryId === 'undefined') {
-        // First time reply with new temporary key.
-        panelResource.createTemporaryPanel(datasetId, function(err, newTemporaryId) {
-            if (err) {
-                next();
-            } else {
-                res.json({
-                    temporaryId: newTemporaryId
-                });
-            }
-        });
-    } else {
-        console.log('temporaryId: ' + temporaryId);
-        // Second time update the panel with the new temporary.
-        datasetResource.updateToNewPanel(datasetId, temporaryId, function(err) {
-            if (err) {
-                res.status(501).json({message: err});
-            } else {
-                res.json({message: 'Successfully updated panel.'});
-            }
-        });
-
-
-    }
 };
 
 var parseLine = function(line, rows) {
@@ -171,13 +212,31 @@ var parseLine = function(line, rows) {
 };
 
 
-function updateInsertCompleteFunction(previousChunk, res) {
+function updateInsertCompleteFunction(previousChunk, datasetId, panelId) {
     if (previousChunk !== '') {
         console.log('Last line: "' + previousChunk + '"');
         //lineCount = lineCount + 1;
     }
     console.log('Sending response');
-    res.json({message: 'Read a bunch of lines.'});
+
+    // Now, we need to update the panel description with start and end times
+    panelResource.calculatePanelProperties(panelId, function(properties) {
+        datasetResource.getDatasets({id: datasetId}, function(datasetList) {
+            if (datasetList.length === 1) {
+                var dataset = datasetList[0];
+                dataset.panels[panelId].startTime = properties.startTime;
+                dataset.panels[panelId].endTime = properties.endTime;
+
+                datasetResource.updateDataset(datasetId, {panels: dataset.panels}, function(err) {
+                    if (err) {
+                        log.error('Error updating dataset with new panel start/end time: ' + err);
+                    }
+                });
+            } else {
+                log.warn('Bad dataset id given: ' + datasetId + ' for modification to panel ' + panelId);
+            }
+        });
+    });
 }
 
 var processLines = function(parameters, callback) {
@@ -200,7 +259,7 @@ var processLines = function(parameters, callback) {
 
 
 
-exports.update = function(req, res, next) {
+exports.updateBody = function(req, res, next) {
     // Check for temporaryId. If set then it indicates that we should use that
     // panel instead of the default.
     // 
@@ -256,22 +315,19 @@ exports.update = function(req, res, next) {
                     chunksNotDone = chunksNotDone - 1;
                     console.log('Dequeue: chunksNotDone: ' + chunksNotDone);
 
-                    if (reqEnd === true && chunksNotDone === 0) {
+                    if (chunksNotDone === 0) {
                         console.log('Finishing after database callback');
-                        updateInsertCompleteFunction(previousChunk, res);
+                        updateInsertCompleteFunction(previousChunk, datasetId, temporaryId);
                     }
                 });
             });
 
             req.on('end', function() {
                 console.log('End reached. Chunks counter = ' + chunksNotDone);
-                if (chunksNotDone === 0) {
-                    // Finish here
-                    console.log('Finishing after req end');
-                    updateInsertCompleteFunction(previousChunk, res);
-                } else { // Finish in the on('data') database callback
-                    reqEnd = true;
-                }
+
+                // Send the response as soon as we've got the entire upload.
+                res.json({message: 'Read a bunch of lines. Now processing those lines.'});
+
             });
         } else {
             next();
@@ -282,8 +338,4 @@ exports.update = function(req, res, next) {
 
 
 
-};
-
-exports.delete = function(req, res, next) {
-    res.status(501).json(JSON.parse('{"message":"Function not implemented yet."}'));
 };

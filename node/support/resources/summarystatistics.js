@@ -4,7 +4,7 @@ var underscore = require('underscore')._;
 var log = requireFromRoot('support/logger').log;
 var config = requireFromRoot('config');
 
-var datasetResource = requireFromRoot('support/resources/dataset');
+var panelResource = requireFromRoot('support/resources/panel');
 
 
 /**
@@ -15,16 +15,16 @@ var datasetResource = requireFromRoot('support/resources/dataset');
  * @param {function} callback (statistics)
  * @returns {undefined}
  */
-exports.calculate = function(datasetId, panelId, startTime, endTime, callback) {
+exports.calculate = function(panelId, startTime, endTime, callback) {
 
     var calculationStartTime = new Date();
 
-    datasetResource.getDatasets({id: datasetId}, function(datasetList) {
-        if (datasetList.length !== 1) {
+    panelResource.getPanel({id: panelId}, function(panelList) {
+        if (panelList.length !== 1) {
 
         } else {
-            var dataset = datasetList[0];
-            var axes = dataset.panels[panelId].axes;
+            var panel = panelList[0];
+            var axes = panel.axes;
 
             var axesString = '';
             underscore.each(axes, function(axis, index) {
@@ -52,7 +52,7 @@ exports.calculate = function(datasetId, panelId, startTime, endTime, callback) {
             parameters.push(panelId);
 
             var statistician = spawn('java', parameters);
-            log.info("Starting statistics for dataset " + datasetId);
+            log.info("Starting statistics for panel " + panelId);
 
             statistician.on('exit', function(code, signal) {
                 statistician.stdout.setEncoding("utf8");

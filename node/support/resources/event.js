@@ -158,7 +158,7 @@ var createFlush = function(newEvent) {
 var createPost = function(newEvent) {
     datasetResource.getDatasets({id: newEvent.datasetId}, function(datasetList) {
         var dataset = datasetList[0];
-        summaryStatisticsResource.calculate(dataset.id, dataset.headPanelId, newEvent.startTime, newEvent.endTime, function(statistics) {
+        summaryStatisticsResource.calculate(dataset.headPanelId, newEvent.startTime, newEvent.endTime, function(statistics) {
             exports.updateEvent(newEvent.id, {summaryStatistics: statistics}, function(err) {
                 if (err) {
                     log.error('Error updating event with summaryStatistics' + err);

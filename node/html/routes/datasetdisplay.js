@@ -28,6 +28,6 @@ exports.get = function(req, res, next) {
             res.render('datasetdisplay', content);
         }
 
-    });
+    }, ['headPanel', 'owner']);
 
 };

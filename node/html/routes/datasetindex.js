@@ -7,10 +7,8 @@ exports.get = function(req, res) {
 
 
     datasetResource.getDatasets({}, function(datasets) {
-        datasetResource.flushDatasets(datasets, function(flushedDatasets) {
-            parameters['datasets'] = flushedDatasets;
-            res.render('datasetindex', parameters);
-        });
+        parameters['datasets'] = datasets;
+        res.render('datasetindex', parameters);
     });
 };
 

@@ -2,15 +2,18 @@ function Graph(parameters, dataset, configuration) {
     this.id = parameters['id'];
     this.parameters = parameters;
     this.dataset = {// Explicitly keep only what we need (for memory savings)
-        startTime: dataset.startTime,
-        endTime: dataset.endTime,
-        id: dataset.id
+        id: dataset.id,
+        headPanel: {
+            id: dataset.headPanel.id,
+            startTime: dataset.headPanel.startTime,
+            endTime: dataset.headPanel.endTime
+        }
     };
     this.configuration = configuration;
     this.prepareConfiguration();
 
-    this.window_start_time = this.dataset.startTime;
-    this.window_end_time = this.dataset.endTime;
+    this.window_start_time = this.dataset.headPanel.startTime;
+    this.window_end_time = this.dataset.headPanel.endTime;
 
     var classInstance = this;
 
@@ -23,8 +26,8 @@ function Graph(parameters, dataset, configuration) {
 
                 classInstance.siteSpinLoader = new SiteSpinLoader(classInstance.id + "graph");
                 classInstance.parameters.requestPanelFunction(
-                        classInstance.dataset.startTime,
-                        classInstance.dataset.endTime,
+                        classInstance.dataset.headPanel.startTime,
+                        classInstance.dataset.headPanel.endTime,
                         classInstance.configuration.axes,
                         $.proxy(classInstance.updateWithNewPanel, classInstance));
 
@@ -45,10 +48,10 @@ Graph.prototype.createInitialPlaceholder = function(axes) {
     _.each(this.configuration.axes, function() {
         fakeRowData.push([0, 0, 0]);
     });
-    fakeRowData.unshift(new Date(this.dataset.startTime));
+    fakeRowData.unshift(new Date(this.dataset.headPanel.startTime));
     fakeData.push(fakeRowData);
     fakeRowData.shift();
-    fakeRowData.unshift(new Date(this.dataset.endTime));
+    fakeRowData.unshift(new Date(this.dataset.headPanel.endTime));
     fakeData.push(fakeRowData);
 
     // Make a deep copy so that we don't modify the original axes.
@@ -87,15 +90,15 @@ Graph.prototype.prepareListeners = function() {
 
     $('#' + this.id + 'clip_to_download_button').click(function() {
         var request_url = classInstance.parameters.apiDomain
-                + '/dataset/' + classInstance.dataset.id
-                + '/panel?axes=' + classInstance.getCSVColumns()
+                + '/panel/' + classInstance.dataset.headPanel.id
+                + '/body?axes=' + classInstance.getCSVColumns()
                 + '&startTime=' + classInstance.window_start_time
                 + '&endTime=' + classInstance.window_end_time;
         $('#' + classInstance.id + 'clip_to_download_button').attr("href", request_url);
     });
 
     $('#' + this.id + 'clip_to_custom_download_button').click(function() {
-        var request_url = '/dataset/' + classInstance.dataset.id
+        var request_url = '/panel/' + classInstance.dataset.headPanel.id
                 + '/download?axes=' + classInstance.getCSVColumns()
                 + '&startTime=' + classInstance.window_start_time
                 + '&endTime=' + classInstance.window_end_time;
@@ -227,7 +230,7 @@ Graph.prototype.setTitle = function() {
     var title = 'Default Title';
     if (typeof this.configuration.title !== 'undefined') {
         title = this.configuration.title;
-    } else if(this.configuration.axes.length === 1){
+    } else if (this.configuration.axes.length === 1) {
         var brokenAxis = this.configuration.axes[0].split(':');
         title = brokenAxis[0] + ' ' + brokenAxis[1];
     } else if (this.configuration.axes.length > 1) {
@@ -262,8 +265,8 @@ Graph.prototype.onZoom = function(startTime, endTime) {
 
     // Just to make sure no little +- 0.0000001 bits get in there...
     if (this.graph.isZoomed('x') === false) {
-        startTime = this.dataset.startTime;
-        endTime = this.dataset.endTime;
+        startTime = this.dataset.headPanel.startTime;
+        endTime = this.dataset.headPanel.endTime;
     }
 
     this.window_start_time = startTime;

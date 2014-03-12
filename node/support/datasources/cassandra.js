@@ -9,7 +9,7 @@ var cassandraClient = require('node-cassandra-cql').Client;
 var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
 
 exports.getAll = function(type, callbackItem, callbackDone) {
-
+    
     var command = 'SELECT * FROM ' + resources[type].table;
     cassandraDatabase.eachRow(command,
             function(n, row) {
@@ -120,7 +120,7 @@ exports.addSingle = function(type, newResource, callback) {
         cassandraDatabase.execute(query, databaseRow, function(err) {
             if (err) {
                 // Shouldn't ever happen.
-                // TODO(SRLM): Log this.
+                log.error('Error adding single, ' + type + ': ' + err);
                 callback(err);
             } else {
                 callback(undefined, newResource);
@@ -351,6 +351,33 @@ var raw_data_schema = [
     }
 ];
 
+var raw_data_meta_schema = [
+    {
+        key: 'id',
+        hint: 'uuid'
+    },
+    {
+        key:'dataset_id',
+        hint:'uuid'
+    },
+    {
+        key: 'start_time',
+        hint: 'timestamp'
+    },
+    {
+        key:'end_time',
+        hint: 'timestamp'
+    },
+    {
+        key:'columns',
+        hint:'list<varchar>'
+    },
+    {
+        key:'summary_statistics',
+        hint:'varchar'
+    }
+];
+
 var resources = {
     dataset: {
         table: 'dataset',
@@ -367,5 +394,9 @@ var resources = {
     panel: {
         table: 'raw_data',
         schema: raw_data_schema
+    },
+    panelProperties: {
+        table: 'raw_data_meta',
+        schema: raw_data_meta_schema
     }
 };

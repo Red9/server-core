@@ -40,37 +40,12 @@ var datasetResource = {
         includeToCreate: false,
         editable: true
     },
-    source: { // TODO(SRLM): Rename this to recorderInformation (or something...)
+    source: {// TODO(SRLM): Rename this to recorderInformation (or something...)
         type: 'resource:source',
         includeToCreate: false,
         editable: true
     },
-    axes: {
-        type: 'array:string',
-        includeToCreate: false,
-        editable: true
-    },
     // ----------------------
-    summaryStatistics: {
-        type: 'resource:summaryStatistics',
-        includeToCreate: false,
-        editable: true
-    },
-    startTime: {
-        type: 'timestamp',
-        includeToCreate: false,
-        editable: false
-    },
-    endTime: {
-        type: 'timestamp',
-        includeToCreate: false,
-        editable: false
-    },
-    panels: {
-        type: 'resource:panelMeta',
-        includeToCreate: false,
-        editable: true
-    },
     createTime: {
         type: 'timestamp',
         includeToCreate: false,
@@ -87,8 +62,6 @@ function mapToCassandra(resource) {
     cassandra.timezone = resource.timezone;
     cassandra.source = JSON.stringify(resource.source); // TODO(SRLM): This should give an error if this is not a JSON object
     cassandra.owner = resource.owner;
-    cassandra.summary_statistics = JSON.stringify(resource.summaryStatistics);
-    cassandra.raw_data_list = JSON.stringify(resource.panels);
 
     if (typeof resource.createTime !== 'undefined') {
         cassandra.create_time = moment(resource.createTime).toDate();
@@ -120,50 +93,26 @@ function mapToResource(cassandra) {
     } catch (e) {
         resource.source = {};
     }
-    try {
-        resource.summaryStatistics = JSON.parse(cassandra.summary_statistics);
-    } catch (e) {
-        resource.summaryStatistics = {};
-    }
-    try {
-        resource.panels = JSON.parse(cassandra.raw_data_list);
-        resource.axes = resource.panels[resource.headPanelId].axes;
-        resource.startTime = resource.panels[resource.headPanelId].startTime;
-        resource.endTime = resource.panels[resource.headPanelId].endTime;
-    } catch (e) {
-        log.error('Failed to read dataset panels. datasetId: ' + resource.id);
-        resource.panels = {};
-        resource.axes = [];
-        resource.startTime = 0;
-        resource.endTime = 0;
-    }
 
     return resource;
 }
 
-var createFlush = function(newDataset){
+var createFlush = function(newDataset) {
     newDataset.id = common.generateUUID();
     newDataset.headPanelId = common.generateUUID();
     newDataset.timezone = config.defaultTimezone;
     newDataset.source = {};
-    newDataset.summaryStatistics = {};
     newDataset.createTime = moment().valueOf();
-    newDataset.panels = {};
-    newDataset.panels[newDataset.headPanelId] = {
-        startTime: 0,
-        endTime: 0,
-        axes: []
-    };
 };
 
 exports.resource = {
-  mapToCassandra: mapToCassandra,
-  mapToResource: mapToResource,
-  cassandraTable: 'dataset',
-  schema: datasetResource,
-  create:{
-      flush: createFlush
-  }
+    mapToCassandra: mapToCassandra,
+    mapToResource: mapToResource,
+    cassandraTable: 'dataset',
+    schema: datasetResource,
+    create: {
+        flush: createFlush
+    }
 };
 
 
@@ -220,7 +169,7 @@ exports.updateDataset = function(id, modifiedDataset, callback, forceEditable) {
     underscore.each(modifiedDataset, function(value, key) {
         if (key in datasetResource === false
                 || (datasetResource[key].editable === false
-                && forceEditable !== true)
+                        && forceEditable !== true)
                 || key === 'id') {
             delete modifiedDataset[key];
         }
@@ -243,13 +192,49 @@ exports.updateDataset = function(id, modifiedDataset, callback, forceEditable) {
     });
 };
 
+function expandResource(resourceList, expand, callback) {
+    async.eachSeries(resourceList,
+            function(resource, resourceExpandedCallback) {
+                async.eachSeries(expand,
+                        function(expandOption, expandCallback) {
+                            if (expandOption === 'owner') {
+                                userResource.getUsers({id: resource.owner}, function(userList) {
+                                    if (userList.length !== 1) {
+
+                                    } else {
+                                        resource.owner = userList[0];
+                                    }
+                                    expandCallback();
+                                });
+                            } else if (expandOption === 'headPanel') {
+                                panelResource.getPanel({id: resource.headPanelId}, function(panelList) {
+                                    if (panelList.length !== 1) {
+
+                                    } else {
+                                        resource.headPanel = panelList[0];
+                                    }
+                                    expandCallback();
+                                });
+                            } else{
+                                expandCallback();
+                            }
+                        },
+                        function(err) {
+                            resourceExpandedCallback();
+                        });
+            },
+            function(err) {
+                callback(resourceList);
+            });
+}
+
 /**
  * @param {type} constraints
  * @param {type} callback
  * @returns {undefined} Returns an array of datasets.
  * 
  */
-exports.getDatasets = function(constraints, callback) {
+exports.getDatasets = function(constraints, callback, expand) {
     //TODO(SRLM): Add check: if just a single dataset (given by ID) then do a direct search for that.
     var result = [];
 
@@ -263,7 +248,11 @@ exports.getDatasets = function(constraints, callback) {
                 }
             },
             function(err) {
-                callback(result);
+                if (typeof expand !== 'undefined') {
+                    expandResource(result, expand, callback);
+                } else {
+                    callback(result);
+                }
             });
 };
 
@@ -342,14 +331,14 @@ exports.updateToNewPanel = function(datasetId, temporaryId, callback) {
             var panel;
             dataset.alternatePanels.temporaryPanels
                     = underscore.reject(
-                    dataset.alternatePanels.temporaryPanels, function(item) {
-                if (item.id === temporaryId) {
-                    panel = item;
-                    return true; // Don't keep matching panel
-                } else {
-                    return false; // Keep other panels
-                }
-            });
+                            dataset.alternatePanels.temporaryPanels, function(item) {
+                                if (item.id === temporaryId) {
+                                    panel = item;
+                                    return true; // Don't keep matching panel
+                                } else {
+                                    return false; // Keep other panels
+                                }
+                            });
 
             if (typeof panel !== 'undefined') {
                 var oldPanelId = dataset.headPanelId;

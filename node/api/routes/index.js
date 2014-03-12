@@ -20,12 +20,12 @@ module.exports = function(app, passport) {
     app.put('/dataset/:id', IsAuthenticated, require('./dataset').update);
     app.delete('/dataset/:id', IsAuthenticated, require('./dataset').delete);
 
-    app.get('/dataset/:id/panel', IsAuthenticated, require('./panel').get);
+    app.get('/panel/', IsAuthenticated, require('./panel').search);
     app.get('/panel/:id', IsAuthenticated, require('./panel').get);
+    app.get('/panel/:id/body', IsAuthenticated, require('./panel').getBody);
     app.post('/panel/:id', IsAuthenticated, require('./panel').create);
-    //app.put('/panel/:id', IsAuthenticated, longTimeout, require('./panel').update);
-    app.put('/panel/:id', IsAuthenticated, require('./panel').update);
-    app.put('/panel/:id', IsAuthenticated, require('./panel').delete);
+    app.put('/panel/:id/body', IsAuthenticated, require('./panel').updateBody);
+    app.delete('/panel/:id', IsAuthenticated, require('./panel').delete);
 
 
 
@@ -56,7 +56,7 @@ module.exports = function(app, passport) {
     app.get('/units/:system', IsAuthenticated, require('./units').get);
 
     app.get('/usr/', IsAuthenticated, require('./usr').get);
-    app.get('/usr/:id/form', IsAuthenticated, require('./usr').getusrform);   
+    app.get('/usr/:id/form', IsAuthenticated, require('./usr').getusrform);
     app.post('/usr/:id/operate', IsAuthenticated, require('./usr').operateusr);
 
 };
