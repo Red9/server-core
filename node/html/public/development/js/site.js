@@ -32,9 +32,9 @@ var site = {
     apiPath: null, //Dynamically set
     searchDataset: '/dataset/',
     searchEvent: '/event/',
-    eventTypes: '/snippet/eventtype'
+    eventTypes: '/snippet/eventtype',
+    userList: '/user/'
   },
-  
   getChecked: function(){
       var checkedItems = [];
       $('#result_tbody tr td #selectCheckbox').each(function(index, element){
@@ -172,6 +172,7 @@ var site = {
       url = this.urls.apiPath + this.urls.searchEvent;
       this.resultType = 'event';
     }
+    $('#container-results').empty();
     var self = this;
     $.get(url, this.getSearchParams(), function (response) {
       self.results = response.sort(site.sortBy('createTime', 'desc'));
@@ -187,7 +188,8 @@ var site = {
     if (adaptedResults.items.length > this.searchPageSize) {
       var paging = {
         length: Math.ceil(adaptedResults.items.length / this.searchPageSize),
-        current: page ||0
+        current: page ||0,
+        totalResults: adaptedResults.items.length
       };
       adaptedResults.paging = paging;
       adaptedResults.items = adaptedResults.items.slice(
@@ -212,13 +214,21 @@ var site = {
       position: position,
       draggable: true
     });
-    this.mapContext = {map: map, marker: marker};
+    var circle = new google.maps.Circle({
+      map: map,
+      radius: 100,
+      fillColor: '#224B8A',
+      fillOpacity: 0.6,
+      strokeColor: 'transparent'
+    });
+    this.mapContext = {map: map, marker: marker, circle: circle};
 
     google.maps.event.addListener(map, 'click', function(event) {
       if (!marker.getMap()) {
         marker.setPosition(event.latLng);
         marker.setMap(map);
         markerPositionChanged();
+        circle.bindTo('center', marker, 'position');
       }
     });
     google.maps.event.addListener(marker, 'dragend', markerPositionChanged);
@@ -235,6 +245,42 @@ var site = {
         selectCallback(position.lat(), position.lng(), locationName);
       });
     }
+  },
+  setAutocompleteMultiple: function (element, list) {
+    function split(val) {
+      return val.split(/,\s*/);
+    }
+    function extractLast(term) {
+      return split( term ).pop();
+    }
+    $(element)
+      .bind('keydown', function(event) {
+        // don't navigate away from the field on tab when selecting an item
+        if (event.keyCode === $.ui.keyCode.TAB && $( this ).data('ui-autocomplete').menu.active) {
+          event.preventDefault();
+        }
+      })
+      .autocomplete({
+        minLength: 0,
+        source: function(request, response) {
+          // delegate back to autocomplete, but extract the last term
+          response($.ui.autocomplete.filter(
+              list, extractLast(request.term))
+          );
+        },
+        focus: function() {
+          // prevent value inserted on focus
+          return false;
+        },
+        select: function( event, ui ) {
+          var terms = split(this.value);
+          terms.pop();
+          terms.push(ui.item.value);
+          terms.push('');
+          this.value = terms.join(', ');
+          return false;
+        }
+      });
   },
   /**
    * Removes the marker from the map
@@ -309,7 +355,6 @@ var site = {
         return result;
 
     },
-  
   padZeros: function (value, length) {
     return ('000000' + value).substr(-length);
   },
@@ -322,13 +367,25 @@ var site = {
   sortBy: function (name, order) {
     if (order !== 'desc') {
       return function (a, b) {
-        return a[name] - b[name];
+        if (a[name] > b[name]) {
+          return 1;
+        }
+        else if (a[name] < b[name]) {
+          return -1;
+        }
+        return 0;
       };
     }
     else
     {
       return function (a, b) {
-        return b[name] - a[name];
+        if (b[name] > a[name]) {
+          return 1;
+        }
+        else if (b[name] < a[name]) {
+          return -1;
+        }
+        return 0;
       };
     }
   }
