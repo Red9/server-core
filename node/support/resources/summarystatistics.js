@@ -21,7 +21,8 @@ exports.calculate = function(panelId, startTime, endTime, callback) {
 
     panelResource.getPanel({id: panelId}, function(panelList) {
         if (panelList.length !== 1) {
-
+            log.warn('Warning: no panel found that matches given id of ' + panelId);
+            callback({});
         } else {
             var panel = panelList[0];
             var axes = panel.axes;

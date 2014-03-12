@@ -235,7 +235,7 @@ exports.updateResource = function(resource, id, modifiedResource, callback, forc
                     delete modifiedResource[key];
                 }
             });
-
+            
             if (modifiedResource.length === 0) {
                 callback('Must include at least one editable item');
                 return;

@@ -53,7 +53,7 @@ function mapToCassandra(resource) {
     cassandra.id = resource.id;
     cassandra.dataset_id = resource.datasetId;
     cassandra.columns = resource.axes;
-    cassandra.summary_statistics = resource.summaryStatistics;
+    cassandra.summary_statistics = JSON.stringify(resource.summaryStatistics);
 
 
     if (typeof resource.createTime !== 'undefined') {
@@ -99,6 +99,7 @@ function createFlush(newPanel) {
     newPanel.startTime = moment().valueOf();// Default to now
     newPanel.endTime = moment().valueOf();// Default to now
     newPanel.summaryStatistics = {};
+    newPanel.axes = [];
 }
 
 function deletePost(id) {
@@ -151,15 +152,6 @@ exports.getPanel = function(constraints, callback) {
 
 exports.deletePanel = function(id, callback) {
     common.deleteResource(exports.resource, id, callback);
-};
-
-/**
- * 
- * @param {type} panelId the actual raw data panel ID (not dataset ID)
- * @param {type} callback
- * @returns {undefined} */
-exports.deletePanel = function(panelId, callback) {
-    cassandraPanel.deletePanel(panelId, callback);
 };
 
 /**

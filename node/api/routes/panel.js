@@ -7,6 +7,7 @@ var log = requireFromRoot('support/logger').log;
 
 var panelResource = requireFromRoot('support/resources/panel');
 var datasetResource = requireFromRoot('support/resources/dataset');
+var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 
 
 
@@ -54,6 +55,8 @@ exports.create = function(req, res, next) {
     var newPanel = {
         datasetId: req.param('datasetId')
     };
+
+    console.log('newPanel: ' + JSON.stringify(newPanel));
 
     if (underscore.some(newPanel, function(value) {
         return typeof value === 'undefined';
@@ -203,7 +206,7 @@ var parseLine = function(line, rows) {
     var data = [];
 
     underscore.each(columns, function(value) {
-        data.push(parseFloat(value));
+        data.push(parseFloat(value)); // Is this parse necessary? We're just converting back to text...
     });
 
     if (isNaN(time) === false) {
@@ -212,44 +215,37 @@ var parseLine = function(line, rows) {
 };
 
 
-function updateInsertCompleteFunction(previousChunk, datasetId, panelId) {
-    if (previousChunk !== '') {
-        console.log('Last line: "' + previousChunk + '"');
-        //lineCount = lineCount + 1;
-    }
-    console.log('Sending response');
-
+function updateInsertCompleteFunction(panel) {
     // Now, we need to update the panel description with start and end times
-    panelResource.calculatePanelProperties(panelId, function(properties) {
-        datasetResource.getDatasets({id: datasetId}, function(datasetList) {
-            if (datasetList.length === 1) {
-                var dataset = datasetList[0];
-                dataset.panels[panelId].startTime = properties.startTime;
-                dataset.panels[panelId].endTime = properties.endTime;
+    panelResource.calculatePanelProperties(panel.id, function(properties) {
+        panel.startTime = properties.startTime;
+        panel.endTime = properties.endTime;
 
-                datasetResource.updateDataset(datasetId, {panels: dataset.panels}, function(err) {
-                    if (err) {
-                        log.error('Error updating dataset with new panel start/end time: ' + err);
+        var panelId = panel.id;
+        // Need to update the panel so that summary statistics can get the columns
+        panelResource.updatePanel(panelId, panel, function(err1, updatedResource) {
+            summaryStatisticsResource.calculate(panelId, properties.startTime, properties.endTime, function(statistics) {
+                panelResource.updatePanel(panelId, {summaryStatistics: statistics}, function(err2, updatedResource) {
+                    if (err1 || err2) {
+                        log.error('Error update insert complete function: ' + err1 + " " + err2);
                     }
-                });
-            } else {
-                log.warn('Bad dataset id given: ' + datasetId + ' for modification to panel ' + panelId);
-            }
-        });
+                }, true);
+            });
+        }, true);
     });
 }
 
 var processLines = function(parameters, callback) {
 
-    var temporaryId = parameters.temporaryId;
+    var id = parameters.id;
     var lines = parameters.lines;
 
     var rows = [];
-    underscore.each(lines, function(line, index) {
+    underscore.each(lines, function(line) {
         parseLine(line, rows);
     });
 
-    panelResource.addRows(temporaryId, rows, function(err) {
+    panelResource.addRows(id, rows, function(err) {
         if (err) {
             console.log('Insert rows error: ' + err);
         }
@@ -257,85 +253,79 @@ var processLines = function(parameters, callback) {
     });
 };
 
-
-
 exports.updateBody = function(req, res, next) {
-    // Check for temporaryId. If set then it indicates that we should use that
-    // panel instead of the default.
-    // 
 
     // TODO(SRLM): Match the database: Get the dataset and make sure that temporaryId actually exists
-    var datasetId = req.param('id');
-    var temporaryId = req.param('temporaryId');
-    if (typeof temporaryId !== 'undefined') {
-        if (req.is('text/*')) {
-            req.setEncoding('utf8');
+    var id = req.param('id');
 
-
-
-
-
-            // We can finish in one of two places, depending on timing. If the
-            // database insert happens real quick we'll end in the 'end' method
-            // of the req stream. But if the database insert takes a while, the
-            // req.on('end') function will fire *first*, *then* the database
-            // callback.
-            //
-            // We have to be preparped to end in either spot.
-            // TODO(SRLM): Validate this algorithm for correctness.
-
-            var reqEnd = false;
-            var chunksNotDone = 0;
-            var processingQueue = async.queue(processLines, 1);
-
-            var firstChunk = true;
-            var previousChunk = '';
-            req.on('data', function(chunk) {
-                chunksNotDone = chunksNotDone + 1;
-                console.log('Queue: chunksNotDone: ' + chunksNotDone);
-
-                if (firstChunk === true) {
-                    firstChunk = false;
-                    var endOfFirstLine = chunk.indexOf('\n');
-                    var firstLine = chunk.substr(0, endOfFirstLine);
-                    console.log('First line: ' + firstLine);
-                    //TODO(SRLM): Do something more intelligent here.
-                    chunk = chunk.substr(endOfFirstLine + 1);
-                }
-
-                var temp = previousChunk + chunk;
-                var lines = temp.split('\n');
-                previousChunk = lines.pop();
-
-                parameters = {
-                    lines: lines,
-                    temporaryId: temporaryId
-                };
-                processingQueue.push(parameters, function() {
-                    chunksNotDone = chunksNotDone - 1;
-                    console.log('Dequeue: chunksNotDone: ' + chunksNotDone);
-
-                    if (chunksNotDone === 0) {
-                        console.log('Finishing after database callback');
-                        updateInsertCompleteFunction(previousChunk, datasetId, temporaryId);
-                    }
-                });
-            });
-
-            req.on('end', function() {
-                console.log('End reached. Chunks counter = ' + chunksNotDone);
-
-                // Send the response as soon as we've got the entire upload.
-                res.json({message: 'Read a bunch of lines. Now processing those lines.'});
-
-            });
-        } else {
+    panelResource.getPanel({id: id}, function(panelList) {
+        if (panelList.length !== 1) {
             next();
+        } else if (panelList[0].axes !== null) {
+            res.status(403).json({message: 'Can not modify existing panels. Must modify a new panel whose axes === null'});
+        } else {
+            var panel = panelList[0];
+            if (req.is('text/*')) {
+                req.setEncoding('utf8');
+
+                // We have to be preparped to end in either spot.
+                // TODO(SRLM): Validate this algorithm for correctness.
+
+                var chunksNotDone = 0;
+                var processingQueue = async.queue(processLines, 1);
+
+                var firstChunk = true;
+                var previousChunk = '';
+                req.on('data', function(chunk) {
+                    chunksNotDone = chunksNotDone + 1;
+                    //log.debug('Queue: chunksNotDone: ' + chunksNotDone);
+
+                    if (firstChunk === true) {
+                        firstChunk = false;
+                        var endOfFirstLine = chunk.indexOf('\n');
+                        var firstLine = chunk.substr(0, endOfFirstLine);
+                        //log.debug('First line: ' + firstLine);
+
+                        panel.axes = firstLine.split(',');
+                        if (panel.axes.shift() !== 'time') {
+                            log.error('First column of first line should be time: "' + firstLine + '"');
+                        }
+
+                        chunk = chunk.substr(endOfFirstLine + 1);
+                    }
+
+                    var temp = previousChunk + chunk;
+                    var lines = temp.split('\n');
+                    previousChunk = lines.pop();
+
+                    var parameters = {
+                        lines: lines,
+                        id: id
+                    };
+                    processingQueue.push(parameters, function() {
+                        chunksNotDone = chunksNotDone - 1;
+                        //log.debug('Dequeue: chunksNotDone: ' + chunksNotDone);
+
+                        if (chunksNotDone === 0) {
+                            if (previousChunk !== '') {
+                                //log.debug('Last line: "' + previousChunk + '"');
+                            }
+
+                            updateInsertCompleteFunction(panel);
+                        }
+                    });
+                });
+
+                req.on('end', function() {
+                    //log.debug('End reached. Chunks counter = ' + chunksNotDone);
+
+                    // Send the response as soon as we've got the entire upload.
+                    res.json({message: 'Read a bunch of lines. Now processing those lines.'});
+
+                });
+            } else {
+                next();
+            }
         }
-    } else {
-        next();
-    }
-
-
-
+    });
 };

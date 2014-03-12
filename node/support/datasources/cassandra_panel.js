@@ -296,7 +296,7 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
 
     var panelDuration = endTime - startTime;
     var bucketDuration = Math.floor(panelDuration / buckets);
-    if(bucketDuration === 0){
+    if (bucketDuration === 0) {
         bucketDuration = 1; // Minimum 1ms buckets
     }
     var currentBucketStartTime = startTime;
@@ -313,7 +313,7 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
                     log.error('n(' + n + ') !== previousN(' + previousN + ')');
                 }
                 previousN = n;
-                
+
                 // While loop to account for empty buckets.
                 while (rowTime > currentBucketStartTime + bucketDuration) {
                     if (bucket.hasData() === true) {
@@ -478,5 +478,5 @@ exports.addRows = function(panelId, rows, callback) {
         queries.push(constructAddRowQuery(panelId, new Date(row.time), row.axes));
     });
 
-    cassandraDatabase.executeBatch(queries, cassandraRoot.types.consistencies.quaum, null, callback);
+    cassandraDatabase.executeBatch(queries, callback);
 };

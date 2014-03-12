@@ -9,7 +9,7 @@ var cassandraClient = require('node-cassandra-cql').Client;
 var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
 
 exports.getAll = function(type, callbackItem, callbackDone) {
-    
+
     var command = 'SELECT * FROM ' + resources[type].table;
     cassandraDatabase.eachRow(command,
             function(n, row) {
@@ -79,6 +79,11 @@ exports.addSingle = function(type, newResource, callback) {
 
     var schema = resources[type].schema;
 
+    if (typeof schema === 'undefined') {
+        callback("Schema not found");
+        return;
+    }
+
     var databaseRow = [];
 
     // Make sure that the table was a real table...
@@ -92,6 +97,7 @@ exports.addSingle = function(type, newResource, callback) {
             //log.debug("row[" + column.key + "] is not " + column.hint);
             correctSchema = false;
         } else {
+            //log.debug('newResource[' + column.key + '] === ' + newResource[column.key]);
             databaseRow.push({
                 value: newResource[column.key],
                 hint: column.hint
@@ -101,33 +107,34 @@ exports.addSingle = function(type, newResource, callback) {
 
     if (correctSchema === false) {
         callback("Incorrect schema.");
-    } else {
-
-        // Construct string with CSV column titles, and string with CSV ? holders
-        var queryColumns = '';
-        var queryPlaceholders = '';
-        underscore.each(schema, function(column, index) {
-            if (index > 0) {
-                queryColumns += ',';
-                queryPlaceholders += ',';
-            }
-            queryColumns += column.key;
-            queryPlaceholders += '?';
-        });
-
-        var query = 'INSERT INTO ' + resources[type].table + ' (' + queryColumns + ') VALUES (' + queryPlaceholders + ')';
-
-        cassandraDatabase.execute(query, databaseRow, function(err) {
-            if (err) {
-                // Shouldn't ever happen.
-                log.error('Error adding single, ' + type + ': ' + err);
-                callback(err);
-            } else {
-                callback(undefined, newResource);
-            }
-        });
-
+        return;
     }
+
+    // Construct string with CSV column titles, and string with CSV ? holders
+    var queryColumns = '';
+    var queryPlaceholders = '';
+    underscore.each(schema, function(column, index) {
+        if (index > 0) {
+            queryColumns += ',';
+            queryPlaceholders += ',';
+        }
+        queryColumns += column.key;
+        queryPlaceholders += '?';
+    });
+
+    var query = 'INSERT INTO ' + resources[type].table + ' (' + queryColumns + ') VALUES (' + queryPlaceholders + ')';
+
+    cassandraDatabase.execute(query, databaseRow, function(err) {
+        if (err) {
+            // Shouldn't ever happen.
+            log.error('Error adding single, ' + type + ': ' + err);
+            callback(err);
+        } else {
+            callback(undefined, newResource);
+        }
+    });
+
+
 };
 
 exports.updateSingle = function(type, id, updatedResource, callback) {
@@ -217,11 +224,11 @@ function ExtractRowToJSON(schema, row) {
         if (schema[i]['hint'] === 'timestamp') {
             value = moment(value).valueOf(); // Get Milliseconds
         } else {/*
-            try { // Make it a JSON object if it's stringified.
-                value = JSON.parse(value);
-            } catch (e) {
-                // Do nothing;
-            }*/
+         try { // Make it a JSON object if it's stringified.
+         value = JSON.parse(value);
+         } catch (e) {
+         // Do nothing;
+         }*/
         }
 
         content[schema[i]['key']] = value;
@@ -236,7 +243,7 @@ function checkSchemaForKey(schema, key) {
             keyIndex = index;
         }
     });
-    if(key === -1){
+    if (key === -1) {
         debug.warn('Schema searched for key ' + key + ' and not found');
     }
     return keyIndex;
@@ -261,10 +268,6 @@ var dataset_schema = [
         hint: 'varchar'
     },
     {
-        key: 'summary_statistics',
-        hint: 'varchar'
-    },
-    {
         key: 'timezone',
         hint: 'varchar'
     },
@@ -277,12 +280,8 @@ var dataset_schema = [
         hint: 'uuid'
     },
     {
-        key:'raw_data_list',
-        hint:'varchar'
-    },
-    {
         key: 'create_time',
-        hint:'timestamp'
+        hint: 'timestamp'
     }
 ];
 
@@ -357,24 +356,28 @@ var raw_data_meta_schema = [
         hint: 'uuid'
     },
     {
-        key:'dataset_id',
-        hint:'uuid'
+        key: 'dataset_id',
+        hint: 'uuid'
     },
     {
         key: 'start_time',
         hint: 'timestamp'
     },
     {
-        key:'end_time',
+        key: 'end_time',
         hint: 'timestamp'
     },
     {
-        key:'columns',
-        hint:'list<varchar>'
+        key: 'create_time',
+        hint: 'timestamp'
     },
     {
-        key:'summary_statistics',
-        hint:'varchar'
+        key: 'columns',
+        hint: 'list<varchar>'
+    },
+    {
+        key: 'summary_statistics',
+        hint: 'varchar'
     }
 ];
 

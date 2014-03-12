@@ -22,81 +22,84 @@ exports.post = function(req, res, next) {
     };
 
     datasetResource.createDataset(newDataset, function(err, datasetList) {
+        
         var dataset = datasetList[0];
         var id = dataset.id;
 
+        panelResource.createPanel({datasetId: id}, function(err, newPanelList) {
+            var newPanel = newPanelList[0];
+
+            var parserncParameters = [];
+            parserncParameters.push('-jar');
+            parserncParameters.push('bin/parsernc.jar');
+            parserncParameters.push('--nodeaddress');
+            parserncParameters.push('localhost');
+            parserncParameters.push('--input');
+            parserncParameters.push(req.files.file.path);
+            parserncParameters.push('--uuid');
+            parserncParameters.push(newPanel.id);
+
+            var parsernc = spawn('java', parserncParameters);
+            parsernc.stdout.setEncoding('utf8');
+            parsernc.stderr.setEncoding('utf8');
+
+            res.render('processupload', {page_title: 'Processing', dataset: dataset});
+
+            parsernc.on('exit', function(code, signal) {
+                var processingInfo = parsernc.stderr.read();
+                var processingStatistics = JSON.parse(parsernc.stdout.read());
+
+                if (code !== 0) {
+                    log.error('Non zero code! ' + code + ': ' + processingInfo);
+                }
 
 
-        var parserncParameters = [];
-        parserncParameters.push('-jar');
-        parserncParameters.push('bin/parsernc.jar');
-        parserncParameters.push('--nodeaddress');
-        parserncParameters.push('localhost');
-        parserncParameters.push('--input');
-        parserncParameters.push(req.files.file.path);
-        parserncParameters.push('--uuid');
-        parserncParameters.push(dataset.headPanelId);
-
-        var parsernc = spawn('java', parserncParameters);
-        parsernc.stdout.setEncoding('utf8');
-        parsernc.stderr.setEncoding('utf8');
-
-        res.render('processupload', {page_title: 'Processing', dataset: dataset});
-
-        parsernc.on('exit', function(code, signal) {
-            var processingInfo = parsernc.stderr.read();
-            var processingStatistics = JSON.parse(parsernc.stdout.read());
-
-            if (code !== 0) {
-                log.error('Non zero code! ' + code + ': ' + processingInfo);
-            }
-
-
-            var datasetUpdate = {
-                source: {
-                    scad: processingStatistics,
-                    filename:req.files.file.name
-                },
-                panels:{}
-            };
-            
-
-            panelResource.calculatePanelProperties(dataset.headPanelId, function(additionalProperties) {
-                var startTime = additionalProperties.startTime;
-                var endTime = additionalProperties.endTime;
-                //log.debug('New dataset ' + dataset.id + ' startTime: ' + startTime);
-                //log.debug('New dataset ' + dataset.id + ' endTime: ' + endTime);
-
-                datasetUpdate.panels[dataset.headPanelId] = {
-                    axes: processingStatistics.columns,
-                    startTime: startTime,
-                    endTime: endTime
+                var datasetUpdate = {
+                    source: {
+                        scad: processingStatistics,
+                        filename: req.files.file.name
+                    },
+                    headPanelId: newPanel.id
                 };
 
-                // Integrity check
-                if (startTime !== processingStatistics.datasetStartTime) {
-                    log.error('Calculated panel start time ' + startTime + ' not equal to given start time ' + processingStatistics.datasetStartTime);
-                }
-                if (endTime !== processingStatistics.datasetEndTime) {
-                    log.error('Calculated panel end time ' + endTime + ' not equal to given end time ' + processingStatistics.datasetEndTime);
-                }
 
-                datasetResource.updateDataset(id, datasetUpdate, function(err) {
-                    if (err) {
-                        log.error('RNC Process dataset udate unsucessful: ' + err);
+                panelResource.calculatePanelProperties(newPanel.id, function(additionalProperties) {
+                    var startTime = additionalProperties.startTime;
+                    var endTime = additionalProperties.endTime;
+
+                    var panelUpdate = {
+                        startTime: startTime,
+                        endTime: endTime,
+                        axes: processingStatistics.columns
+                    };
+
+                    // Integrity check
+                    if (startTime !== processingStatistics.datasetStartTime) {
+                        log.error('Calculated panel start time ' + startTime + ' not equal to given start time ' + processingStatistics.datasetStartTime);
                     }
-                }, true);
+                    if (endTime !== processingStatistics.datasetEndTime) {
+                        log.error('Calculated panel end time ' + endTime + ' not equal to given end time ' + processingStatistics.datasetEndTime);
+                    }
 
-                summaryStatisticsResource.calculate(dataset.headPanelId, startTime, endTime, function(statistics) {
-                    datasetResource.updateDataset(id, {summaryStatistics: statistics}, function(err) {
+                    datasetResource.updateDataset(id, datasetUpdate, function(err) {
                         if (err) {
-                            log.error('RNC Process dataset summary statistics update unsuccessful: ' + err);
+                            log.error('RNC Process dataset udate unsucessful: ' + err);
                         }
-                    });
+                    }, true);
+
+                    panelResource.updatePanel(newPanel.id, panelUpdate, function(err1) {
+                        summaryStatisticsResource.calculate(newPanel.id, startTime, endTime, function(statistics) {
+                            panelResource.updatePanel(newPanel.id, {summaryStatistics: statistics}, function(err) {
+                                if (err) {
+                                    log.error('RNC Process dataset summary statistics update unsuccessful: ' + err);
+                                }
+                            },true);
+                        });
+                    },true);
+
                 });
 
             });
-
         });
 
 
