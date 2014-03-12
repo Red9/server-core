@@ -2,10 +2,11 @@ function RequestQueue(parameters, dataset) {
     this.apiUrl = parameters.apiUrl;
 
     this.dataset = {// Explicitly keep only what we need (for memory savings)
-        startTime: dataset.startTime,
-        endTime: dataset.endTime,
+        startTime: dataset.headPanel.startTime,
+        endTime: dataset.headPanel.endTime,
+        headPanelId: dataset.headPanel.id,
         id: dataset.id,
-        axes: dataset.axes
+        axes: dataset.headPanel.axes
 
     };
 
@@ -52,7 +53,7 @@ RequestQueue.prototype.handleRequest = function(request, doneCallback) {
         this.processPanel(request, this.lastPanel, doneCallback);
     } else {
 
-        var requestUrl = this.apiUrl + '/dataset/' + this.dataset.id + '/panel/'
+        var requestUrl = this.apiUrl + '/panel/' + this.dataset.headPanelId + '/body/'
                 + '?minmax'
                 + '&format=json'
                 + '&startTime=' + request.startTime
