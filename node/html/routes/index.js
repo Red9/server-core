@@ -30,7 +30,8 @@ module.exports = function(app, passport) {
     
     app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
     app.get('/dataset/:uuid', IsAuthenticated, require('./datasetdisplay').get);
-    app.get('/dataset/:uuid/download', IsAuthenticated, require('./customdownload').get);
+    
+    app.get('/panel/:uuid/download', IsAuthenticated, require('./customdownload').get);
         
     app.get('/user/:uuid', IsAuthenticated, require('./user').get);
     

@@ -2,7 +2,7 @@
     <fieldset>
 
         <!-- Form Name -->
-        <legend>Download Dataset</legend>
+        <legend>Download Panel</legend>
 
         <!-- Prepended checkbox -->
         <div class="form-group">
@@ -55,7 +55,7 @@
             <label class="col-md-3 control-label" for="include_min_max_label">Min/Max</label>
             <div class="col-lg-8">
                 <label class="checkbox-inline" for="include_min_max_checkbox">
-                    <input type="checkbox" name="include_min_max_label" id="include_min_max_checkbox" value="true" checked>
+                    <input type="checkbox" name="include_min_max_label" id="include_min_max_checkbox" value="true">
                     Include Minimum and Maximum
                 </label>
             </div>
@@ -96,7 +96,7 @@
         <div class="form-group">
             <label class="col-md-3 control-label" for="singlebutton"></label>
             <div class="col-lg-6">
-                <a download="{{data}}-custom.txt" id="download_button" class="col-md-3 btn btn-large btn-default" href="">Download</a>
+                <a download="custom.txt" id="download_button" class="col-md-3 btn btn-large btn-default" href="">Download</a>
             </div>
         </div>
 
@@ -165,8 +165,8 @@
         }
     }
 
-    var startTime = Date.parse("{{startTime}}");
-    var endTime = Date.parse("{{endTime}}");
+    var startTime = {{startTime}};
+    var endTime = {{endTime}};
     $('#minimum_start_time').text(startTime);
     $('#maximum_end_time').text(endTime);
 
@@ -178,7 +178,7 @@
 
 
         console.log("Button clicked");
-        var datasetId = "{{id}}";
+        var panelId = "{{id}}";
         var user_start_time = startTime;
         var user_end_time = endTime;
         if ($("#start_time_checkbox").is(':checked')) {
@@ -214,7 +214,7 @@
             alert("Error: must select at least one column.");
         } else {
 
-            var request_url = '{{apiUrl}}/dataset/' + datasetId + "/panel?axes=";
+            var request_url = '{{apiUrl}}/panel/' + panelId + "/body?axes=";
             request_url += columns[0];
             for (var i = 1; i < columns.length; i++) {
                 request_url += "," + columns[i];
@@ -230,6 +230,7 @@
 
             //window.location = request_url;
             $("#download_button").attr("href", request_url);
+            $('#download_button').attr('download', panelId + '_' + user_start_time + '_to_' + user_end_time + '_' + columns.length + '_columns' );
             //$("#download_button").show('slow');
         }
         //});
