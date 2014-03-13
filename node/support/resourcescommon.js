@@ -1,6 +1,7 @@
 var underscore = require('underscore')._;
 var validator = require('validator');
 var moment = require('moment');
+var async = require('async');
 
 var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
 var log = requireFromRoot('support/logger').log;
@@ -100,10 +101,11 @@ function CheckIndividualConstraint(comparison, constraintValue, objectValue) {
  */
 function GetValueFromPathAndRecurse(source, path) {
     var key = path.shift();
-    if (path.length === 0) {
-        return source[key];
-    } else if (typeof source[key] === 'undefined') {
+    if (typeof source === 'undefined' || source === null
+            || typeof source[key] === 'undefined' || source[key] === null) {
         return;
+    } else if (path.length === 0) {
+        return source[key];
     } else {
         return GetValueFromPathAndRecurse(source[key], path);
     }
@@ -235,7 +237,7 @@ exports.updateResource = function(resource, id, modifiedResource, callback, forc
                     delete modifiedResource[key];
                 }
             });
-            
+
             if (modifiedResource.length === 0) {
                 callback('Must include at least one editable item');
                 return;
@@ -316,3 +318,92 @@ exports.createResource = function(resource, newResource, callback) {
         }
     });
 };
+
+function expandIndividualResource(expandFunctions, resourceInstance, expand, resourceExpandedCallback) {
+    if (typeof expand === 'undefined') {
+        resourceExpandedCallback(resourceInstance);
+        return;
+    }
+
+    async.each(expand,
+            function(expandOption, expandCallback) {
+                if (typeof expandFunctions[expandOption] !== 'undefined') {
+                    expandFunctions[expandOption](resourceInstance, expandCallback);
+                } else {
+                    expandCallback();
+                }
+            },
+            function(err) {
+                resourceExpandedCallback();
+            });
+}
+
+function processResource(parameters, doneCallback) {
+    var resourceDescription = parameters.resourceDescription;
+    var resourceInstance = parameters.resourceInstance;
+    var expand = parameters.expand;
+    var constraints = parameters.constraints;
+    var result = parameters.result;
+    
+    var expandFunctions = typeof resourceDescription.get === 'undefined'
+            || typeof resourceDescription.get.expandFunctions === 'undefined' ? {} : resourceDescription.get.expandFunctions;
+
+    expandIndividualResource(expandFunctions, resourceInstance, expand, function(newDataset) {
+        if (exports.CheckConstraints(resourceInstance, constraints) === true) {
+            result.push(resourceInstance);
+        } else {
+            // Resource failed constraints
+        }
+        doneCallback();
+    });
+}
+
+exports.getResource = function(resourceDescription, constraints, callback, expand) {
+    var preFunction = typeof resourceDescription.get === 'undefined'
+            || typeof resourceDescription.get.pre === 'undefined' ? emptyPre : resourceDescription.get.pre;
+    var postFunction = typeof resourceDescription.get === 'undefined'
+            || typeof resourceDescription.get.post === 'undefined' ? emptyPost : resourceDescription.get.post;
+
+
+    preFunction(constraints, function(continueProcessing) {
+        if (continueProcessing === false) {
+            callback('get.pre failed');
+            return;
+        }
+
+        //TODO(SRLM): Add check: if just a single resource (given by ID) then do a direct search for that.
+
+        var calculationStartTime = new Date();
+
+        var result = [];
+        var queue = async.queue(processResource, 0);
+
+        var table = resourceDescription.cassandraTable;
+        cassandraDatabase.getAll(table,
+                function(cassandraResource) {
+                    var resource = resourceDescription.mapToResource(cassandraResource);
+
+                    var parameters = {
+                        resourceDescription: resourceDescription,
+                        constraints: constraints,
+                        resourceInstance: resource,
+                        expand: expand,
+                        result: result
+                    };
+                    queue.push(parameters);
+
+                },
+                function(err) {
+                    queue.drain = function() {
+                        log.debug('Resource search (' + table + ') done. Expanded ' + JSON.stringify(expand) + ' and tested ' + underscore.size(constraints) + ' constraints in ' + (new Date() - calculationStartTime) + ' ms');
+
+                        postFunction(result);
+                        callback(result);
+                    };
+
+                    // Turn on the queue
+                    queue.concurrency = 5;
+                });
+    });
+};
+

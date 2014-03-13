@@ -1,6 +1,5 @@
 var underscore = require('underscore')._;
 var moment = require('moment');
-var validator = require('validator');
 var async = require('async');
 
 var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
@@ -9,7 +8,6 @@ var log = requireFromRoot('support/logger').log;
 var common = requireFromRoot('support/resourcescommon');
 
 var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
-
 var datasetResource = requireFromRoot('support/resources/dataset');
 
 var eventResource = {
@@ -45,9 +43,6 @@ var eventResource = {
         editable: false
     }
 };
-exports.schema = eventResource;
-
-
 
 function mapToCassandra(resource) {
     var cassandra = {};
@@ -110,7 +105,7 @@ exports.deleteEvent = function(id, callback) {
 };
 
 exports.updateEvent = function(id, modifiedEvent, callback, forceEditable) {
-   common.updateResource(exports.resource, id, modifiedEvent, callback, forceEditable);
+    common.updateResource(exports.resource, id, modifiedEvent, callback, forceEditable);
 };
 
 exports.deleteEventByDataset = function(datasetId, callback) {
@@ -131,23 +126,9 @@ exports.deleteEventByDataset = function(datasetId, callback) {
  * @returns {undefined} Returns an array of event.
  * 
  */
-exports.getEvents = function(constraints, callback) {
-    //TODO(SRLM): Add check: if just a single dataset (given by ID) then do a direct search for that.
+exports.getEvents = function(constraints, callback, expand) {
     //TODO(SRLM): Can we add "Get Events by Dataset" for efficiency?
-    var result = [];
-    cassandraDatabase.getAll('event',
-            function(cassandraEvent) {
-                var event = mapToResource(cassandraEvent);
-                if (common.CheckConstraints(event, constraints) === true) {
-                    result.push(event);
-                } else {
-                    // Event failed constraints.
-                }
-            },
-            function(err) {
-                callback(result);
-            }
-    );
+    common.getResource(exports.resource, constraints, callback, expand);
 };
 
 var createFlush = function(newEvent) {
@@ -176,20 +157,7 @@ exports.resource = {
     create: {
         flush: createFlush,
         post: createPost
-    },
-    search: {
-
-    },
-    update: {
-
-    },
-    delete: {
-        
     }
-
-
-
-
 };
 
 

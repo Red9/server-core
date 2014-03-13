@@ -116,8 +116,6 @@ exports.resource = {
     create: {
         flush: createFlush
     },
-    search: {},
-    update: {},
     delete: {
         post: deletePost
     }
@@ -134,20 +132,8 @@ exports.updatePanel = function(id, modifiedPanel, callback, forceEditable) {
     common.updateResource(exports.resource, id, modifiedPanel, callback, forceEditable);
 };
 
-exports.getPanel = function(constraints, callback) {
-    var result = [];
-    cassandraDatabase.getAll('panelProperties',
-            function(cassandraPanel) {
-                var panel = mapToResource(cassandraPanel);
-                if (common.CheckConstraints(panel, constraints) === true) {
-                    result.push(panel);
-                } else {
-                    //panel failed constraints
-                }
-            },
-            function(err) {
-                callback(result);
-            });
+exports.getPanel = function(constraints, callback, expand) {
+    common.getResource(exports.resource, constraints, callback, expand);
 };
 
 exports.deletePanel = function(id, callback) {

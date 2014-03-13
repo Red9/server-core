@@ -34,83 +34,56 @@ var userResource = {
     }
 };
 
-function mapToCassandra(resource){
+function mapToCassandra(resource) {
     var cassandra = {};
-    
+
     cassandra.id = resource.id;
     cassandra.email = resource.email;
     cassandra.display_name = resource.displayName;
     cassandra.first = resource.givenName;
     cassandra.last = resource.familyName;
-    
-    underscore.each(cassandra, function(value, key){
-        if(typeof value === 'undefined'){
+
+    underscore.each(cassandra, function(value, key) {
+        if (typeof value === 'undefined') {
             delete cassandra[key];
         }
     });
-    
+
     return cassandra;
 }
 
-function mapToResource(cassandra){
+function mapToResource(cassandra) {
     var resource = {};
-    
+
     resource.id = cassandra.id;
     resource.email = cassandra.email;
     resource.displayName = cassandra.display_name;
     resource.givenName = cassandra.first;
     resource.familyName = cassandra.last;
-    
+
     return resource;
 }
 
-
+exports.resource = {
+    mapToCassandra: mapToCassandra,
+    mapToResource: mapToResource,
+    cassandraTable: 'user',
+    schema: userResource
+};
 
 
 exports.createUser = function(newUser, callback) {
-    var valid = common.checkNewResourceAgainstSchema(userResource, newUser);
-    if(typeof valid !== 'undefined'){
-        callback('Schema failed: ' + valid);
-        return;
-    }
-    
-    newUser.id = common.generateUUID();
-    
-    var cassandraUser = mapToCassandra(newUser);
-    
-    cassandraDatabase.addSingle('user', cassandraUser, function(err){
-       if(err){
-           log.error('UserResource: Error adding. ' + err);
-       } else{
-           log.debug('Sucessfully created user');
-           callback(undefined, [newUser]);
-       }
-    });
-    
-
+    common.createResource(exports.resource, newUser, callback);
 };
 
-exports.deleteUser = function(parameters, callback) {
-
+exports.deleteUser = function(id, callback) {
+    common.deleteResource(exports.resource, id, callback);
 };
 
-exports.updateUser = function(parameters, callback) {
-
+exports.updateUser = function(id, modifiedUser, callback, forceEditable) {
+    common.updateResource(exports.resource, id, modifiedUser, callback, forceEditable);
 };
 
-exports.getUsers = function(constraints, callback) {
-    // TODO(SRLM): Add check: if constraint by email use table.
-    var result = [];
-    cassandraDatabase.getAll('user',
-            function(cassandraUser) {
-                var user = mapToResource(cassandraUser);
-                if (common.CheckConstraints(user, constraints) === true) {
-                    result.push(user);
-                } else {
-                    // User failed constraints
-                }
-            },
-            function(err) {
-                callback(result);
-            });
+exports.getUsers = function(constraints, callback, expand) {
+    common.getResource(exports.resource, constraints, callback, expand);
 };
