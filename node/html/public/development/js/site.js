@@ -166,15 +166,19 @@ var site = {
     this.search();
   },
   search: function () {
-    var url = this.urls.apiPath + this.urls.searchDataset;
-    this.resultType = 'dataset';
+    var url = '';
+    var searchParams = this.getSearchParams();
     if ($('#type-event').is(':checked')) {
       url = this.urls.apiPath + this.urls.searchEvent;
       this.resultType = 'event';
+    }else{ // Dataset
+        url = this.urls.apiPath + this.urls.searchDataset;
+        this.resultType = 'dataset';
+        searchParams['expand'] = 'headPanel,owner';
     }
     $('#container-results').empty();
     var self = this;
-    $.get(url, this.getSearchParams(), function (response) {
+    $.get(url, searchParams, function (response) {
       self.results = response.sort(site.sortBy('createTime', 'desc'));
       self.showResults();
     });

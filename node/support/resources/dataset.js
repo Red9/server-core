@@ -192,41 +192,59 @@ exports.updateDataset = function(id, modifiedDataset, callback, forceEditable) {
     });
 };
 
-function expandResource(resourceList, expand, callback) {
-    async.eachSeries(resourceList,
-            function(resource, resourceExpandedCallback) {
-                async.eachSeries(expand,
-                        function(expandOption, expandCallback) {
-                            if (expandOption === 'owner') {
-                                userResource.getUsers({id: resource.owner}, function(userList) {
-                                    if (userList.length !== 1) {
 
-                                    } else {
-                                        resource.owner = userList[0];
-                                    }
-                                    expandCallback();
-                                });
-                            } else if (expandOption === 'headPanel') {
-                                panelResource.getPanel({id: resource.headPanelId}, function(panelList) {
-                                    if (panelList.length !== 1) {
+function expandIndividualResource(resource, expand, resourceExpandedCallback) {
+    if(typeof expand === 'undefined'){
+        resourceExpandedCallback(resource);
+        return;
+    }
+    
+    async.each(expand,
+            function(expandOption, expandCallback) {
+                if (expandOption === 'owner') {
+                    userResource.getUsers({id: resource.owner}, function(userList) {
+                        if (userList.length !== 1) {
 
-                                    } else {
-                                        resource.headPanel = panelList[0];
-                                    }
-                                    expandCallback();
-                                });
-                            } else{
-                                expandCallback();
-                            }
-                        },
-                        function(err) {
-                            resourceExpandedCallback();
-                        });
+                        } else {
+                            resource.owner = userList[0];
+                        }
+                        expandCallback();
+                    });
+                } else if (expandOption === 'headPanel') {
+                    panelResource.getPanel({id: resource.headPanelId}, function(panelList) {
+                        if (panelList.length !== 1) {
+
+                        } else {
+                            resource.headPanel = panelList[0];
+                        }
+                        expandCallback();
+                    });
+                } else {
+                    expandCallback();
+                }
             },
             function(err) {
-                callback(resourceList);
+                resourceExpandedCallback();
             });
 }
+
+
+function processDataset(parameters, doneCallback) {
+    var dataset = parameters.dataset;
+    var expand = parameters.expand;
+    var constraints = parameters.constraints;
+    var result = parameters.result;
+
+    expandIndividualResource(dataset, expand, function(newDataset) {
+        if (common.CheckConstraints(dataset, constraints) === true) {
+            result.push(dataset);
+        } else {
+            // Dataset failed constraints
+        }
+        doneCallback();
+    });
+}
+
 
 /**
  * @param {type} constraints
@@ -236,31 +254,35 @@ function expandResource(resourceList, expand, callback) {
  */
 exports.getDatasets = function(constraints, callback, expand) {
     //TODO(SRLM): Add check: if just a single dataset (given by ID) then do a direct search for that.
+    
+    var calculationStartTime = new Date();
+    
     var result = [];
+    var queue = async.queue(processDataset, 0);
 
     cassandraDatabase.getAll('dataset',
             function(cassandraDataset) {
                 var dataset = mapToResource(cassandraDataset);
-                if (common.CheckConstraints(dataset, constraints) === true) {
-                    result.push(dataset);
-                } else {
-                    // Dataset failed constraints
-                }
+
+                var parameters = {
+                    constraints: constraints,
+                    dataset: dataset,
+                    expand: expand,
+                    result: result
+                };
+                queue.push(parameters);
+
             },
             function(err) {
-                if (typeof expand !== 'undefined') {
-                    expandResource(result, expand, callback);
-                } else {
+                queue.drain = function() {
+                    log.debug('Dataset search done. Expanded ' + JSON.stringify(expand) + ' and tested ' + underscore.size(constraints) + ' constraints in ' + (new Date() - calculationStartTime) + ' ms');
+                    
                     callback(result);
-                }
+                };
+
+                queue.concurrency = 5;
             });
 };
-
-
-// This stuff needs to be updated...
-
-
-
 
 exports.flushDatasets = function(datasets, callback) {
     // TODO(SRLM): This can be optimized: we should request all the user IDs at

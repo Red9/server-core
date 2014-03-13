@@ -17,6 +17,12 @@ exports.search = function(req, res, next) {
         delete req.query['simpleoutput'];
         simpleOutput = true;
     }
+    
+    var expand;
+    if (typeof req.query['expand'] !== 'undefined') {
+        expand = req.query['expand'].split(',');
+        delete req.query['expand'];
+    }
 
     // At this point, req.query has constraints.
 
@@ -25,7 +31,7 @@ exports.search = function(req, res, next) {
             datasets = simplifyOutput(datasets);
         }
         res.json(datasets);
-    });
+    }, expand);
 };
 
 exports.get = function(req, res, next) {

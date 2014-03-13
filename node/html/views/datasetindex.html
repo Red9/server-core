@@ -21,7 +21,7 @@
                 <div class="row">
                     <div class="col-sm-3"><h3>User</h3></div>
                     <div class="col-sm-5">
-                        <select id="user-list" name="owner" class="form-control" multiple></select>
+                        <select id="user-list" name="owner.displayName" class="form-control" multiple></select>
                     </div>
                 </div>
             </div>
@@ -58,8 +58,8 @@
                         <input type="text" id="datetime" class="form-control ignore">
                     </div>
                 </div>
-                <input type="hidden" id="endTime-more" name="endTime.more">
-                <input type="hidden" id="startTime-less" name="startTime.less">
+                <input type="hidden" id="endTime-more" name="headPanel.endTime.more">
+                <input type="hidden" id="startTime-less" name="headPanel.startTime.less">
             </div>
             <div class="col-lg-6 filter-item" id="duration-filter">
                 <div class="row">
@@ -67,7 +67,7 @@
                     <div class="col-sm-9">
                         <div class="slider"
                              id="duration"
-                             data-name="summaryStatistics.static.time.duration.value"
+                             data-name="headPanel.summaryStatistics.static.time.duration.value"
                              data-max="180"
                              data-tovalue="minToMs"
                              data-units="min"></div>
@@ -331,8 +331,8 @@ var GetUSROperands = function() {
                                 <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
                                 <td><a href="/user/\{{owner.id}}">\{{owner.displayName}}</a></td>
                                 <td onclick="window.location.assign('/dataset/\{{id}}');">\{{title}} \{{type}}</td>
-                                <td>\{{toDateString startTime}} \{{toTimeString startTime}}</td>
-                                <td>\{{toDurationString startTime endTime}}</td>
+                                <td>\{{toDateString headPanel.startTime}} \{{toTimeString headPanel.startTime}}</td>
+                                <td>\{{toDurationString headPanel.startTime headPanel.endTime}}</td>
                                 <td>\{{toDateString createTime}} \{{toTimeString createTime}}</td>
                             </tr>
                             \{{/each}}
