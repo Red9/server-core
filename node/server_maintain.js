@@ -32,52 +32,59 @@ function createRawDataMetaTable() {
             console.log('Calculating panel properties of ' + dataset.headPanelId + ' and createTime of ' + dataset.createTime);
             panelResource.calculatePanelProperties(dataset.headPanelId,
                     function(properties) {
-                        summaryStatisticsResource.calculate(dataset.headPanelId, properties.startTime, properties.endTime, function(summaryStatistics) {
-                            console.log('Properties calculated.');
-                            var newRow = [
-                                dataset.headPanelId,
-                                dataset.id,
-                                {value: new Date().getTime(), hint: 'timestamp'},
-                                [
-                                    "gps:latitude",
-                                    "gps:longitude",
-                                    "gps:altitude",
-                                    "gps:speed",
-                                    "gps:satellite",
-                                    "gps:hdop",
-                                    "gps:magneticvariation",
-                                    "gps:date",
-                                    "gps:time",
-                                    "rotationrate:x",
-                                    "rotationrate:y",
-                                    "rotationrate:z",
-                                    "magneticfield:x",
-                                    "magneticfield:y",
-                                    "magneticfield:z",
-                                    "pressure:pressure",
-                                    "pressure:temperature",
-                                    "acceleration:x",
-                                    "acceleration:y",
-                                    "acceleration:z"
-                                ],
-                                {value: properties.startTime, hint: 'timestamp'},
-                                {value: properties.endTime, hint: 'timestamp'},
-                                JSON.stringify(summaryStatistics)
-                            ];
-                            //console.log("New row: " + JSON.stringify(newRow));
 
-                            var query = "INSERT INTO raw_data_meta(id, dataset_id, create_time, columns,start_time,end_time, summary_statistics) VALUES (?,?,?,?,?,?,?)";
-                            cassandraDatabase.execute(query, newRow,
-                                    function(err) {
-                                        if (err) {
-                                            console.log('Error updating raw data meta: ' + err);
-                                        } else {
-                                            console.log('Updated dataset ' + dataset.id);
-                                        }
-                                        callback();
-                                    });
+                        console.log('Properties calculated.');
+                        var newRow = [
+                            dataset.headPanelId,
+                            dataset.id,
+                            {value: new Date(), hint: 'timestamp'},
+                            [
+                                "gps:latitude",
+                                "gps:longitude",
+                                "gps:altitude",
+                                "gps:speed",
+                                "gps:satellite",
+                                "gps:hdop",
+                                "gps:magneticvariation",
+                                "gps:date",
+                                "gps:time",
+                                "rotationrate:x",
+                                "rotationrate:y",
+                                "rotationrate:z",
+                                "magneticfield:x",
+                                "magneticfield:y",
+                                "magneticfield:z",
+                                "pressure:pressure",
+                                "pressure:temperature",
+                                "acceleration:x",
+                                "acceleration:y",
+                                "acceleration:z"
+                            ],
+                            {value: new Date(properties.startTime), hint: 'timestamp'},
+                            {value: new Date(properties.endTime), hint: 'timestamp'},
+                            JSON.stringify({})
+                        ];
+                        //console.log("New row: " + JSON.stringify(newRow));
+
+                        var query = "INSERT INTO raw_data_meta(id, dataset_id, create_time, columns,start_time,end_time, summary_statistics) VALUES (?,?,?,?,?,?,?)";
+                        cassandraDatabase.execute(query, newRow, function(err) {
+                            summaryStatisticsResource.calculate(dataset.headPanelId, properties.startTime, properties.endTime, function(summaryStatistics) {
+
+                                var query2 = "INSERT INTO raw_data_meta(summary_statistics) VALUES (?)";
+                                var newRow2 = [JSON.stringify(summaryStatistics)];
+
+                                cassandraDatabase.execute(query2, newRow2, function(err2) {
+                                    if (err) {
+                                        console.log('Error updating raw data meta: ' + err);
+                                    } else {
+                                        console.log('Updated dataset ' + dataset.id);
+                                    }
+                                    callback();
+                                });
+                            });
                         });
                     });
+
         }, function(err) {
             console.log('All done');
         });
