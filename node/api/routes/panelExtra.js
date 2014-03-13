@@ -1,92 +1,11 @@
 var underscore = require('underscore')._;
-var readline = require('readline');
 var async = require('async');
 var validator = require('validator');
 
 var log = requireFromRoot('support/logger').log;
 
 var panelResource = requireFromRoot('support/resources/panel');
-var datasetResource = requireFromRoot('support/resources/dataset');
 var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
-
-
-
-
-function simplifyOutput(panelArray) {
-    underscore.each(panelArray, function(element, index, list) {
-    });
-    return panelArray;
-}
-
-exports.search = function(req, res, next) {
-    var simpleOutput = false;
-    if (typeof req.query['simpleoutput'] !== 'undefined') {
-        delete req.query['simpleoutput'];
-        simpleOutput = true;
-    }
-
-    panelResource.getPanel(req.query, function(panel) {
-        if (simpleOutput) {
-            panel = simplifyOutput(panel);
-        }
-        res.json(panel);
-    });
-};
-
-exports.get = function(req, res, next) {
-    var simpleOutput = false;
-    if (typeof req.query['simpleoutput'] !== 'undefined') {
-        delete req.query['simpleoutput'];
-        simpleOutput = true;
-    }
-
-    panelResource.getPanel({id: req.param('id')}, function(panel) {
-        if (simpleOutput) {
-            panel = simplifyOutput(panel);
-        }
-        res.json(panel);
-    });
-};
-
-
-
-exports.create = function(req, res, next) {
-
-    var newPanel = {
-        datasetId: req.param('datasetId')
-    };
-
-    console.log('newPanel: ' + JSON.stringify(newPanel));
-
-    if (underscore.some(newPanel, function(value) {
-        return typeof value === 'undefined';
-    })) {
-        res.status(403).json({message: 'Must include required parameters to create panel.'});
-    } else {
-        panelResource.createPanel(newPanel, function(err, panel) {
-            if (typeof panel === 'undefined') {
-                res.status(500).json({message: 'Could not create panel: ' + err});
-            } else {
-                res.json(panel);
-            }
-        });
-    }
-};
-
-exports.delete = function(req, res, next) {
-    var id = req.param('id');
-
-    panelResource.deletePanel(id, function(err) {
-        if (err) {
-            res.status(500).json({message: err});
-        } else {
-            res.json({});
-        }
-    });
-};
-
-
-
 
 exports.getBody = function(req, res, next) {
     var parameters = {
@@ -223,9 +142,9 @@ function updateInsertCompleteFunction(panel) {
 
         var panelId = panel.id;
         // Need to update the panel so that summary statistics can get the columns
-        panelResource.updatePanel(panelId, panel, function(err1, updatedResource) {
+        panelResource.update(panelId, panel, function(err1, updatedResource) {
             summaryStatisticsResource.calculate(panelId, properties.startTime, properties.endTime, function(statistics) {
-                panelResource.updatePanel(panelId, {summaryStatistics: statistics}, function(err2, updatedResource) {
+                panelResource.update(panelId, {summaryStatistics: statistics}, function(err2, updatedResource) {
                     if (err1 || err2) {
                         log.error('Error update insert complete function: ' + err1 + " " + err2);
                     }
@@ -258,7 +177,7 @@ exports.updateBody = function(req, res, next) {
     // TODO(SRLM): Match the database: Get the dataset and make sure that temporaryId actually exists
     var id = req.param('id');
 
-    panelResource.getPanel({id: id}, function(panelList) {
+    panelResource.get({id: id}, function(panelList) {
         if (panelList.length !== 1) {
             next();
         } else if (panelList[0].axes !== null) {

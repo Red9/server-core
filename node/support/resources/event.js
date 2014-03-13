@@ -96,15 +96,15 @@ function mapToResource(cassandra) {
  * @param {type} callback
  * @returns {unresolved}
  */
-exports.createEvent = function(newEvent, callback) {
+exports.create = function(newEvent, callback) {
     common.createResource(exports.resource, newEvent, callback);
 };
 
-exports.deleteEvent = function(id, callback) {
+exports.delete = function(id, callback) {
     common.deleteResource(exports.resource, id, callback);
 };
 
-exports.updateEvent = function(id, modifiedEvent, callback, forceEditable) {
+exports.update = function(id, modifiedEvent, callback, forceEditable) {
     common.updateResource(exports.resource, id, modifiedEvent, callback, forceEditable);
 };
 
@@ -112,7 +112,7 @@ exports.deleteEventByDataset = function(datasetId, callback) {
     exports.getEvents({datasetId: datasetId}, function(events) {
         async.each(events,
                 function(event, asyncCallback) {
-                    exports.deleteEvent(event.id, asyncCallback);
+                    exports.delete(event.id, asyncCallback);
                 },
                 function(err) {
                     callback(err);
@@ -126,7 +126,7 @@ exports.deleteEventByDataset = function(datasetId, callback) {
  * @returns {undefined} Returns an array of event.
  * 
  */
-exports.getEvents = function(constraints, callback, expand) {
+exports.get = function(constraints, callback, expand) {
     //TODO(SRLM): Can we add "Get Events by Dataset" for efficiency?
     common.getResource(exports.resource, constraints, callback, expand);
 };
@@ -137,10 +137,10 @@ var createFlush = function(newEvent) {
 };
 
 var createPost = function(newEvent) {
-    datasetResource.getDatasets({id: newEvent.datasetId}, function(datasetList) {
+    datasetResource.get({id: newEvent.datasetId}, function(datasetList) {
         var dataset = datasetList[0];
         summaryStatisticsResource.calculate(dataset.headPanelId, newEvent.startTime, newEvent.endTime, function(statistics) {
-            exports.updateEvent(newEvent.id, {summaryStatistics: statistics}, function(err) {
+            exports.update(newEvent.id, {summaryStatistics: statistics}, function(err) {
                 if (err) {
                     log.error('Error updating event with summaryStatistics' + err);
                 }

@@ -6,7 +6,7 @@ exports.get = function(req, res) {
 
 
 
-    datasetResource.getDatasets({}, function(datasets) {
+    datasetResource.get({}, function(datasets) {
         parameters['datasets'] = datasets;
         res.render('datasetindex', parameters);
     });

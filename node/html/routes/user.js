@@ -2,7 +2,7 @@ var userResource = requireFromRoot('support/resources/user');
 
 exports.get = function(req, res, next) {
     
-    userResource.getUsers({id:req.params.uuid}, function(userList) {
+    userResource.get({id:req.params.uuid}, function(userList) {
         if (userList.length === 0) {
             next();
         } else {

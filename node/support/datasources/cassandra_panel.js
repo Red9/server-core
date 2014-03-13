@@ -196,7 +196,7 @@ function SpawnDownsampler(commandOptions, format, callbackData, callbackDone) {
  */
 exports.getPanelFromDataset = function(datasetId, panelParameters,
         callbackDataset, callbackData, callbackDone) {
-    datasetResource.getDatasets({id: datasetId}, function(datasetList) {
+    datasetResource.get({id: datasetId}, function(datasetList) {
         if (underscore.isArray(datasetList) === false
                 || datasetList.length !== 1) {
             callbackDone('No dataset matches ID');

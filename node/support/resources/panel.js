@@ -124,19 +124,19 @@ exports.resource = {
 
 
 
-exports.createPanel = function(newPanel, callback) {
+exports.create = function(newPanel, callback) {
     common.createResource(exports.resource, newPanel, callback);
 };
 
-exports.updatePanel = function(id, modifiedPanel, callback, forceEditable) {
+exports.update = function(id, modifiedPanel, callback, forceEditable) {
     common.updateResource(exports.resource, id, modifiedPanel, callback, forceEditable);
 };
 
-exports.getPanel = function(constraints, callback, expand) {
+exports.get = function(constraints, callback, expand) {
     common.getResource(exports.resource, constraints, callback, expand);
 };
 
-exports.deletePanel = function(id, callback) {
+exports.delete = function(id, callback) {
     common.deleteResource(exports.resource, id, callback);
 };
 
@@ -186,7 +186,7 @@ exports.getPanelBody = function(options,
     var axes = options.axes;
 
 
-    exports.getPanel({id: panelId}, function(panelList) {
+    exports.get({id: panelId}, function(panelList) {
         if (panelList.length !== 1) {
             callbackDone('incorrect number of panels ' + panelList.length + ' for ' + panelId);
         } else {

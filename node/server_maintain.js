@@ -26,7 +26,7 @@ function createRawDataMetaTable() {
     var cassandraClient = require('node-cassandra-cql').Client;
     var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
     var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
-    datasetResource.getDatasets({}, function(datasets) {
+    datasetResource.get({}, function(datasets) {
         console.log('Updating ' + datasets.length + ' datasets');
         async.eachLimit(datasets, 4, function(dataset, callback) {
             console.log('Calculating panel properties of ' + dataset.headPanelId + ' and createTime of ' + dataset.createTime);
@@ -97,7 +97,7 @@ function MoveDatasetPanelMetaToPanelList() {
     var panelResource = requireFromRoot('support/resources/panel');
     var datasetResource = requireFromRoot('support/resources/dataset');
 // note: requires editing mapToResource so that it doesn't read from dataset.panels...
-    datasetResource.getDatasets({}, function(datasets) {
+    datasetResource.get({}, function(datasets) {
         console.log('Updating ' + datasets.length + ' datasets');
         async.eachSeries(datasets, function(dataset, callback) {
             console.log('Calculating panel properties of ' + dataset.headPanelId + ' and createTime of ' + dataset.createTime);
@@ -134,7 +134,7 @@ function MoveDatasetPanelMetaToPanelList() {
                                     temporary: false,
                                     parent: null
                                 };
-                        datasetResource.updateDataset(
+                        datasetResource.update(
                                 dataset.id,
                                 {panels: dataset.panels},
                         function(err) {

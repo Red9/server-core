@@ -72,18 +72,18 @@ exports.resource = {
 };
 
 
-exports.createUser = function(newUser, callback) {
+exports.create = function(newUser, callback) {
     common.createResource(exports.resource, newUser, callback);
 };
 
-exports.deleteUser = function(id, callback) {
+exports.delete = function(id, callback) {
     common.deleteResource(exports.resource, id, callback);
 };
 
-exports.updateUser = function(id, modifiedUser, callback, forceEditable) {
+exports.update = function(id, modifiedUser, callback, forceEditable) {
     common.updateResource(exports.resource, id, modifiedUser, callback, forceEditable);
 };
 
-exports.getUsers = function(constraints, callback, expand) {
+exports.get = function(constraints, callback, expand) {
     common.getResource(exports.resource, constraints, callback, expand);
 };

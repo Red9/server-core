@@ -108,7 +108,7 @@ var deletePre = function(id, continueCallback) {
             // Clean up associated resources
             var dataset = datasets[0];
             eventResource.deleteEventByDataset(id, function(errEvent) {
-                panelResource.deletePanel(dataset.headPanelId, function(errPanel) {
+                panelResource.delete(dataset.headPanelId, function(errPanel) {
                     if (errEvent || errPanel) {
                         log.error('Could error deleting associated resources with dataset ' + id + ': ' + errEvent + ', ' + errPanel);
                         continueCallback(false);
@@ -127,7 +127,7 @@ var deletePre = function(id, continueCallback) {
 
 var expandFunctions = {
     owner: function(resource, expandCallback) {
-        userResource.getUsers({id: resource.owner}, function(userList) {
+        userResource.get({id: resource.owner}, function(userList) {
             if (userList.length !== 1) {
 
             } else {
@@ -137,7 +137,7 @@ var expandFunctions = {
         });
     },
     headPanel: function(resource, expandCallback) {
-        panelResource.getPanel({id: resource.headPanelId}, function(panelList) {
+        panelResource.get({id: resource.headPanelId}, function(panelList) {
             if (panelList.length !== 1) {
 
             } else {
@@ -167,18 +167,18 @@ exports.resource = {
 };
 
 
-exports.createDataset = function(newDataset, callback) {
+exports.create = function(newDataset, callback) {
     common.createResource(exports.resource, newDataset, callback);
 };
 
-exports.deleteDataset = function(id, callback) {
+exports.delete = function(id, callback) {
     common.deleteResource(exports.resource, id, callback);
 };
 
-exports.updateDataset = function(id, modifiedDataset, callback, forceEditable) {
+exports.update = function(id, modifiedDataset, callback, forceEditable) {
     common.updateResource(exports.resource, id, modifiedDataset, callback, forceEditable);
 };
 
-exports.getDatasets = function(constraints, callback, expand) {
+exports.get = function(constraints, callback, expand) {
     common.getResource(exports.resource, constraints, callback, expand);
 };

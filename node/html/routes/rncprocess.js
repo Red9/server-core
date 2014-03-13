@@ -21,12 +21,12 @@ exports.post = function(req, res, next) {
         owner: req.user.id
     };
 
-    datasetResource.createDataset(newDataset, function(err, datasetList) {
+    datasetResource.create(newDataset, function(err, datasetList) {
         
         var dataset = datasetList[0];
         var id = dataset.id;
 
-        panelResource.createPanel({datasetId: id}, function(err, newPanelList) {
+        panelResource.create({datasetId: id}, function(err, newPanelList) {
             var newPanel = newPanelList[0];
 
             var parserncParameters = [];
@@ -81,15 +81,15 @@ exports.post = function(req, res, next) {
                         log.error('Calculated panel end time ' + endTime + ' not equal to given end time ' + processingStatistics.datasetEndTime);
                     }
 
-                    datasetResource.updateDataset(id, datasetUpdate, function(err) {
+                    datasetResource.update(id, datasetUpdate, function(err) {
                         if (err) {
                             log.error('RNC Process dataset udate unsucessful: ' + err);
                         }
                     }, true);
 
-                    panelResource.updatePanel(newPanel.id, panelUpdate, function(err1) {
+                    panelResource.update(newPanel.id, panelUpdate, function(err1) {
                         summaryStatisticsResource.calculate(newPanel.id, startTime, endTime, function(statistics) {
-                            panelResource.updatePanel(newPanel.id, {summaryStatistics: statistics}, function(err) {
+                            panelResource.update(newPanel.id, {summaryStatistics: statistics}, function(err) {
                                 if (err) {
                                     log.error('RNC Process dataset summary statistics update unsuccessful: ' + err);
                                 }

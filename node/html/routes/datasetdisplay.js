@@ -16,7 +16,7 @@ function GetDefaultColumnGroups(dataset) {
 
 
 exports.get = function(req, res, next) {
-    datasetResource.getDatasets({id:req.param('uuid')}, function(dataset) {
+    datasetResource.get({id:req.param('uuid')}, function(dataset) {
         if (dataset.length !== 1) {
             next();
         } else {

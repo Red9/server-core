@@ -15,7 +15,7 @@ var userResource = requireFromRoot('support/resources/user');
  * @param {type} callback function(user uuid) or "" if not found.
  */
 exports.CheckUserForLogin = function(id, user, callback) {
-    userResource.getUsers({email: user.emails[0].value}, function(result) {
+    userResource.get({email: user.emails[0].value}, function(result) {
         callback(result[0]);
     });
 };
@@ -55,7 +55,7 @@ exports.ProcessLoginRequest = function(identifier, profile, callback) {
                     familyName: profile.name.familyName
                 };
 
-                userResource.createUser(newUser, function(err, createdUserList) {
+                userResource.create(newUser, function(err, createdUserList) {
                     var createdUser = createdUserList[0];
                     if (err) {
                         log.error('Could not create new user "' + createdUser.displayName + '" (' + createdUser.id + '): ' + err);

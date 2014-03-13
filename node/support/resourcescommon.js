@@ -395,7 +395,7 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
                 },
                 function(err) {
                     queue.drain = function() {
-                        log.debug('Resource search (' + table + ') done. Expanded ' + JSON.stringify(expand) + ' and tested ' + underscore.size(constraints) + ' constraints in ' + (new Date() - calculationStartTime) + ' ms');
+                        //log.debug('Resource search (' + table + ') done. Expanded ' + JSON.stringify(expand) + ' and tested ' + underscore.size(constraints) + ' constraints in ' + (new Date() - calculationStartTime) + ' ms');
 
                         postFunction(result);
                         callback(result);

@@ -104,7 +104,7 @@ exports.get = function(req, res, next) {
         res.render('snippets/createeventmodal', parameters);
     } else if (snippet_type === 'summarystatistics') {
         if (typeof req.param('dataset') !== 'undefined') {
-            datasetResource.getDatasets({id: req.param('dataset')}, function(event) {
+            datasetResource.get({id: req.param('dataset')}, function(event) {
                 if (typeof event === 'undefined') {
                     next();
                 } else {

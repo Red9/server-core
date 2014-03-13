@@ -5,8 +5,9 @@
 function GoogleMap(parameters, dataset, configuration) {
     this.id = parameters['id'];
     this.parameters = parameters;
-    this.dataset = dataset;
 
+    var startTime = dataset.headPanel.startTime;
+    var endTime = dataset.headPanel.endTime;
 
 
 
@@ -28,8 +29,8 @@ function GoogleMap(parameters, dataset, configuration) {
                         document.getElementById(classInstance.id + 'map-canvas'),
                         mapOptions);
 
-                classInstance.parameters.requestPanelFunction(classInstance.dataset.startTime,
-                        classInstance.dataset.endTime,
+                classInstance.parameters.requestPanelFunction(startTime,
+                        endTime,
                         [
                             'gps:latitude',
                             'gps:longitude'

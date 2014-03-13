@@ -8,7 +8,7 @@ exports.get = function(req, res, next){
         next();
     }
     
-    panelResource.getPanel({id:req.params.uuid}, function(content){
+    panelResource.get({id:req.params.uuid}, function(content){
         if(content.length !== 1){
             next();
         }else{
