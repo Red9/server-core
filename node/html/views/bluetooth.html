@@ -40,7 +40,7 @@
      */
     var ShowModal = function(filename, filesize, filesizeInBytes) {
         $("#modalTransferHeaderStatus").text('In Progress');
-        
+
         $('#modalTransferFile').modal('show');
         $("#modalTransferFileCloseButton").hide();
         $("#modalTransferFileCancelButton").show();
@@ -62,14 +62,14 @@
             var transferSpeed = bytesTransfered / (elapsedMs / 1000.0);
             var bytesRemaining = filesizeInBytes - bytesTransfered;
             var remainingMs = bytesRemaining / (bytesTransfered / elapsedMs);
-            
+
 
             modalTransferTotalDownloaded.text((bytesTransfered / 1024).toFixed(2) + " KB");
             modalTransferSpeed.text((transferSpeed / 1024).toFixed(2) + ' KB/s');
             modalTransferElapsedTime.text(moment.utc(elapsedMs).format('mm:ss'));
             modalTransferRemainingTime.text(moment.utc(remainingMs).format('mm:ss'));
-            
-            
+
+
 
             var doneBytes = BluetoothHost.GetRecordingDone();
             if (doneBytes !== -1) {
@@ -140,7 +140,7 @@
 
     var AddLineToRecordingTable = function(filename, filesize, creationdate, filesizeInBytes) {
         console.log('filesizeInBytes: ' + filesizeInBytes);
-        
+
         var row = scadRecordingTemplate
                 .replace("%name", filename) // Three times to replace all 3 of the recordings.
                 .replace("%name", filename)
@@ -149,10 +149,10 @@
                 .replace("%filesize", filesize) // and twice for the two filesizes
                 .replace("%filesize", filesize)
                 .replace("%creationdate", creationdate);
-        
+
         console.log('Row: ' + row);
-        
-        
+
+
         $("#scadavailablerecordingstable").append(
                 row
                 );
@@ -313,34 +313,42 @@
 
 </script>
 
-<div id="modalTransferFile" class="modal" data-backdrop="static" tabindex="-1" data-width="760">
-    <div class="modal-header h3">
-        Recording Transfer ( <span id="modalTransferHeaderStatus"></span> )
-    </div>
-    <div class="modal-body">
-        <p class='h4'><span id="modalTransferTotalDownloaded">0</span> /<span id="modalTransferTotal">0</span> (<span id="modalTransferSpeed">0</span>)</p>
-        <p><span id="modalTransferElapsedTime">00:00</span> elapsed, <span id="modalTransferRemainingTime">00:00</span> remaining</p>
+<div class="modal" id="modalTransferFile">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header h3">
+                Recording Transfer ( <span id="modalTransferHeaderStatus"></span> )
+            </div>
+            <div class="modal-body">
+                <p class='h4'><span id="modalTransferTotalDownloaded">0</span> /<span id="modalTransferTotal">0</span> (<span id="modalTransferSpeed">0</span>)</p>
+                <p><span id="modalTransferElapsedTime">00:00</span> elapsed, <span id="modalTransferRemainingTime">00:00</span> remaining</p>
 
-        <p>File saved to your Download folder under "<span id="modalTransferFilename"></span>" (try using ES File explorer to find it)</p>
-    </div>
-    <div class="modal-footer">
-        <button id="modalTransferFileCancelButton" type="button" class="btn btn-danger">Cancel Transfer</button>
-        <button id="modalTransferFileCloseButton" type="button" data-dismiss="modal" class="btn">Close</button>
-    </div>
-</div>
+                <p>File saved to your Download folder under "<span id="modalTransferFilename"></span>" (try using ES File explorer to find it)</p>
+            </div>
+            <div class="modal-footer">
+                <button id="modalTransferFileCancelButton" type="button" class="btn btn-danger">Cancel Transfer</button>
+                <button id="modalTransferFileCloseButton" type="button" data-dismiss="modal" class="btn">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
-<div id="modalDeleteFile" class="modal" data-backdrop="static" tabindex="-1" data-width="760">
-    <div class="modal-header">
-        <h3>Recording Transfer</h3>
-    </div>
-    <div class="modal-body">
-        <p>Are you sure? This is permanent and cannot be undone.</p>
-    </div>
-    <div class="modal-footer">
-        <button id="modalDeleteFileConfirmButton" type="button" class="btn btn-danger">Delete</button>
-        <button id="modalDeleteFileCloseButton" type="button" data-dismiss="modal" class="btn">Cancel</button>
-    </div>
-</div>
+<div class="modal" id="modalDeleteFile">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Recording Transfer</h3>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure? This is permanent and cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="modalDeleteFileConfirmButton" type="button" class="btn btn-danger">Delete</button>
+                <button id="modalDeleteFileCloseButton" type="button" data-dismiss="modal" class="btn">Cancel</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <div>
     <div id="NoBluetoothAvailableDiv">
