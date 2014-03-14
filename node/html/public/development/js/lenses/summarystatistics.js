@@ -4,6 +4,7 @@ function SummaryStatistics(parameters, dataset, configuration) {
 
     this.dataset = {
         headPanel: {
+            id: dataset.headPanel.id,
             summaryStatistics: dataset.headPanel.summaryStatistics
         }
     };
@@ -14,6 +15,9 @@ function SummaryStatistics(parameters, dataset, configuration) {
                 // Do stuff once the lens is loaded.
                 var source = $('#summarystatistics-details-template').html();
                 self.template = Handlebars.compile(source);
+
+                source = $('#summarystatistics-calculate-template').html();
+                self.calculateTemplate = Handlebars.compile(source);
 
                 $.proxy(self.setDisplay('dataset', self.dataset.headPanel.summaryStatistics), self);
             });
@@ -36,11 +40,11 @@ SummaryStatistics.prototype.setDisplay = function(type, summaryStatistics) {
 
 
 SummaryStatistics.prototype.setRange = function(startTime, endTime, reference) {
+    var self = this;
     if (typeof reference !== 'undefined') {
         if (reference.type === 'dataset') {
             this.setDisplay('dataset', this.dataset.headPanel.summaryStatistics);
         } else if (reference.type === 'event') {
-            var self = this;
             $.ajax({
                 type: 'GET',
                 url: self.parameters.apiDomain + '/event/' + reference.id,
@@ -52,6 +56,20 @@ SummaryStatistics.prototype.setRange = function(startTime, endTime, reference) {
                 }
             });
         }
+    } else {
+
+        $('#' + self.id + 'placeholder').html(this.calculateTemplate({}));
+        $('#summaryStatisticsCalculateButton').on('click', function() {
+            $('#summaryStatisticsCalculateButton').addClass('disabled');
+            $.ajax({
+                type: 'GET',
+                url: self.parameters.apiDomain + '/summarystatistics/' + self.dataset.headPanel.id + '?startTime=' + startTime + '&endTime=' + endTime,
+                dataType: 'json',
+                success: function(summaryStatistics) {
+                    self.setDisplay('custom range', summaryStatistics);
+                }
+            });
+        });
     }
 
 };

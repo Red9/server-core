@@ -11,7 +11,6 @@ var resources = {
 };
 
 underscore.each(resources, function(value, key) {
-    console.log('Lets do this!');
     value.create = function(newResource, callback) {
         common.createResource(value.resource, newResource, callback);
     };

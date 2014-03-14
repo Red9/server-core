@@ -173,6 +173,7 @@ var processLines = function(parameters, callback) {
 };
 
 exports.updateBody = function(req, res, next) {
+    // TODO(SRLM): Check to make sure that the uploaded panel is balanced.
 
     // TODO(SRLM): Match the database: Get the dataset and make sure that temporaryId actually exists
     var id = req.param('id');

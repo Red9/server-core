@@ -10,8 +10,8 @@ var panelResource = requireFromRoot('support/resources/panel');
 /**
  * 
  * @param {uuid} datasetId
- * @param {int} startTime
- * @param {int} endTime
+ * @param {int} startTime note: pass undefined or explicit null if you want to default to panel startTime
+ * @param {int} endTime note: pass undefined or explicit null if you want to default to panel endTime
  * @param {function} callback (statistics)
  * @returns {undefined}
  */
@@ -25,6 +25,14 @@ exports.calculate = function(panelId, startTime, endTime, callback) {
             callback({});
         } else {
             var panel = panelList[0];
+            
+            if(typeof startTime === 'undefined' || startTime === null){
+                startTime = panel.startTime;
+            }
+            if(typeof endTime === 'undefined' || endTime === null){
+                endTime = panel.endTime;
+            }
+            
             var axes = panel.axes;
 
             var axesString = '';

@@ -11,11 +11,13 @@ module.exports = function(app, passport) {
     app.get('/usr/', require('./usr').get);
     app.get('/usr/:id/form', require('./usr').getusrform);
     app.post('/usr/:id/operate', require('./usr').operateusr);
+    
+    app.get('/summarystatistics/:id', require('./summarystatistics').calculate);
 
 
     // Resources
     var common = requireFromRoot('api/routes/common');
-    var resourceRoutes = requireFromRoot('api/routes/resourceRoutes');
+    var resourceRoutes = requireFromRoot('api/routes/resourceroutes');
     common.addRoutesToApp(app, resourceRoutes.dataset);
     common.addRoutesToApp(app, resourceRoutes.event);
     common.addRoutesToApp(app, resourceRoutes.user);

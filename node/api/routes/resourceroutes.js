@@ -51,12 +51,12 @@ var panel = {
         {
             method:'get',
             path: '/panel/:id/body',
-            handler:requireFromRoot('api/routes/panelExtra').getBody
+            handler:requireFromRoot('api/routes/panelextra').getBody
         },
         {
             method:'put',
             path: '/panel/:id/body',
-            handler:requireFromRoot('api/routes/panelExtra').updateBody
+            handler:requireFromRoot('api/routes/panelextra').updateBody
         }
     ]
             
