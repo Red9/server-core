@@ -175,7 +175,7 @@ exports.addRows = function(panelId, rows, callback) {
  * @returns {undefined}
  */
 exports.getPanelBody = function(options,
-        callbackAxes, callbackData, callbackDone) {
+        callbackPanelProperties, callbackData, callbackDone) {
 
     var panelId = options.id;
     var startTime = options.startTime;
@@ -207,7 +207,7 @@ exports.getPanelBody = function(options,
                 return panel.axes.indexOf(axis);
             });
 
-            callbackAxes(axes);
+            callbackPanelProperties(panel);
 
 
             if (typeof startTime === 'undefined') {

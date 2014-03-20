@@ -55,4 +55,6 @@ module.exports = function(app, passport) {
 
     app.get('/lens/:type', IsAuthenticated, require('./getlens').get);
     
+    app.get('/spa', require('./spa').get);
+    
 };

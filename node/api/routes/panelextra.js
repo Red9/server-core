@@ -12,9 +12,11 @@ exports.getBody = function(req, res, next) {
         id: req.param('id')
     };
 
-
+    var buckets = -1;
+    var minmax = false;
     if (validator.isInt(req.param('buckets'))) {
         parameters.buckets = parseInt(req.param('buckets'));
+        buckets = parameters.buckets;
     }
     if (validator.isInt(req.param('startTime'))) {
         parameters.startTime = parseInt(req.param('startTime'));
@@ -23,8 +25,10 @@ exports.getBody = function(req, res, next) {
         parameters.endTime = parseInt(req.param('endTime'));
     }
 
-    if (typeof req.param('minmax') !== 'undefined') {
+    // Only have minmax when we have buckets
+    if (typeof req.param('minmax') !== 'undefined' && buckets !== -1) {
         parameters.minmax = true;
+        minmax = true;
     }
 
     var format = 'csv';
@@ -45,19 +49,24 @@ exports.getBody = function(req, res, next) {
     var resWriteBuffer = '';
 
     panelResource.getPanelBody(parameters,
-            function(axes) {
+            function(panelProperties) {
                 if (format === 'csv') {
                     res.write('time');
-                    underscore.each(axes, function(axis) {
+                    underscore.each(panelProperties.axes, function(axis) {
                         res.write(',' + axis);
                     });
                     res.write('\n');
 
                 } else if (format === 'json') {
-                    axes.unshift('time');
-                    res.write('"labels":' + JSON.stringify(axes) + ',');
-                    res.write('"values":[');
-                    res.write('\n');
+                    panelProperties.axes.unshift('time');
+                    res.write(
+                            '"labels":' + JSON.stringify(panelProperties.axes) + ','
+                            + '"startTime":' + panelProperties.startTime + ','
+                            + '"endTime":' + panelProperties.endTime + ','
+                            + '"id":"' + panelProperties.id + '",'
+                            + '"buckets":' + buckets + ','
+                            + '"minmax":' + minmax + ','
+                            + '"values":[\n');
                 }
 
             },

@@ -145,6 +145,26 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
         CreateLens(requestqueue, dataset, 'GoogleMap', {});
 
         CreateLens(requestqueue, dataset, 'SummaryStatistics', {});
+        
+        CreateLens(requestqueue, dataset, 'Graph', {
+            axes: [
+                'gps:altitude'
+            ]
+        });
+        
+        CreateLens(requestqueue, dataset, 'Graph', {
+            axes: [
+                'gps:hdop'
+            ]
+        });
+        
+        CreateLens(requestqueue, dataset, 'Graph', {
+            axes: [
+                'gps:satellite'
+            ]
+        });
+        
+        
 
 
 

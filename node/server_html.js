@@ -34,6 +34,13 @@ var staticDirectories = [
             development: '/html/public/common/fonts',
             release: '/html/public/common/fonts'
         }
+    },
+    {
+        rootUrl: '/templates',
+        sourcePath: {
+            development: '/html/public/common/templates',
+            release: '/html/public/common/templates'
+        }
     }
 ];
 

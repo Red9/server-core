@@ -35,6 +35,14 @@ exports.CheckConstraints = function(object, constraints) {
 
     var result = true; // Default to true for no constraints.
     underscore.each(constraints, function(constraintValues, constraintPath) {
+        
+        // Handle "special" constraints:
+        if(constraintPath === 'intersects'){
+            result = result && CheckIntersectionConstraint(object, constraintValues);
+            return; // Break out of this iteration.
+        }
+        
+        
         if (underscore.isString(constraintValues) === true) {
             constraintValues = constraintValues.split(',');
         }
@@ -61,6 +69,31 @@ exports.CheckConstraints = function(object, constraints) {
     return result;
 };
 
+
+function GetNestedKey(targetKey, object){
+    var result;
+    for(var key in object){
+        if(targetKey === key){
+            result = object[key];
+            break;
+        }
+        if(underscore.isObject(object[key])){
+            result = GetNestedKey(targetKey, object[key]);
+            if(typeof result !== 'undefined'){
+                return result;
+            }
+        }
+    }
+    return result;
+}
+
+function CheckIntersectionConstraint(object, description){
+    var statistics = GetNestedKey('summaryStatistics', object);
+    if(typeof statistics === 'undefined'){
+        return false;
+    }
+}
+
 function CheckIndividualConstraint(comparison, constraintValue, objectValue) {
     var result = false;
     if (comparison === 'less' || comparison === 'more') {
@@ -80,10 +113,11 @@ function CheckIndividualConstraint(comparison, constraintValue, objectValue) {
         }
 
     } else { // equal
-        // If they're not equal (both directly or as strings)
+        // Test for equality (both directly and as case insensitive strings and as a regex)
         if (constraintValue === objectValue
                 || constraintValue.toString().toUpperCase()
-                === objectValue.toString().toUpperCase()) {
+                === objectValue.toString().toUpperCase()
+                || new RegExp(constraintValue).test(objectValue)) {
             result = true;
         }
     }

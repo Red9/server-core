@@ -1,4 +1,29 @@
-for run in {1..40}
+#!/bin/bash
+
+
+url="http://api.redninesensor.com/dataset/?expand=headPanel,owner"
+#url="http://api.redninesensor.com/panel/ec5db3c7-cab5-eddb-186d-9c08f087e15a/body?buckets=1000&format=csv&nocache"
+
+temporaryFile="apiTimeFile.txt"
+#command="ping -c 2 -i 0.2 'redninesensor.com'"
+command="wget --quiet --output-document - '$url'"
+
+for run in {1..10}
 do
-	/usr/bin/time -f "%e" wget --quiet --output-document - 'http://api.redninesensor.com/dataset/479de4e6-870d-a55a-255e-4eefadd5e519/panel?buckets=1000&format=csv&nocache' > /dev/null
+	eval "/usr/bin/time --output " $temporaryFile " --append -f \"%e\" " $command " > /dev/null"
+	tail -n 1 ${temporaryFile}
 done
+
+
+#taken from http://unix.stackexchange.com/a/13779
+cat ${temporaryFile} | sort -n |
+awk 'BEGIN{c=0;sum=0;}\
+/^[^#]/{a[c++]=$1;sum+=$1;}\
+END{ave=sum/c;\
+if((c%2)==1){median=a[int(c/2)];}\
+else{median=(a[c/2]+a[c/2-1])/2;}\
+print "sum: ",sum," seconds\ncnt: ",c," hits\navg: ",ave," seconds\nmed: ",median,"\nmin: ",a[0],"\nmax: ",a[c-1]}'
+
+rm ${temporaryFile}
+
+
