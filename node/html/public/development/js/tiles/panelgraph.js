@@ -60,11 +60,11 @@ panelGraph.prototype.prepareListeners = function() {
             $(defaultButton)
             .text('New Event')
             .on('click', function() {
-                
+
                 var range = self.graph.xAxisRange();
                 var startTime = range[0];
                 var endTime = range[1];
-                
+
                 var request_url = '/snippet/createeventmodal'
                         + '?startTime=' + startTime
                         + '&endTime=' + endTime
@@ -159,6 +159,53 @@ var FormatLabels = function(labels) {
     return result;
 };
 
+panelGraph.prototype.setupGraphPanHandling = function() {
+    /**
+     * Internal method that provides a hook in to Dygraphs default pan interaction handling.  This is a bit of hack
+     * and relies on Dygraphs' internals. Without this, pan interactions (holding SHIFT and dragging graph) do not result
+     * in detail data being loaded.
+     *
+     * This method works by replacing the global Dygraph.Interaction.endPan method.  The replacement method
+     * is global to all instances of this class, and so it can not rely on "self" scope.  To support muliple graphs
+     * with their own pan interactions, we keep a circular reference to this object instance on the dygraphs instance
+     * itself when creating it. This allows us to look up the correct page object instance when the endPan callback is
+     * triggered. We use a global JGS.Demo3Page.isGlobalPanInteractionHandlerInstalled flag to make sure we only install
+     * the global handler once.
+     *
+     * Taken from a dygraphs example:
+     * https://github.com/kaliatech/dygraphs-dynamiczooming-example/blob/master/j/JGS.Demo3Page.js
+     *
+     * @method _setupPanInteractionHandling
+     * @private
+     */
+
+     // Make sure we don't setup multiple times
+    if (this.isGlobalPanInteractionHandlerInstalled) {
+        return;
+    } else {
+        this.isGlobalPanInteractionHandlerInstalled = true;
+    }
+    var self = this;
+
+    //Save original endPan function
+    var origEndPan = Dygraph.Interaction.endPan;
+
+    //Replace built-in handling with our own function
+    Dygraph.Interaction.endPan = function(event, g, context) {
+
+        var myInstance = g.dynamicDygraphInstance;
+
+        //Call the original to let it do it's magic
+        origEndPan(event, g, context);
+
+        var axisX = g.xAxisRange();
+
+        self.onZoom(axisX[0], axisX[1]);
+    };
+    Dygraph.endPan = Dygraph.Interaction.endPan; //see dygraph-interaction-model.js
+};
+
+
 
 panelGraph.prototype.constructDygraph = function(graphDiv) {
     if (typeof this.graph === 'undefined') {
@@ -198,8 +245,7 @@ panelGraph.prototype.constructDygraph = function(graphDiv) {
         };
 
         this.graph = new Dygraph(graphDiv[0], [[0, 0]], graphCfg);
-        //this._setupPanInteractionHandling();
-        //this.graph.dynamicDygraphInstance = this;
+        this.setupGraphPanHandling();
     }
 };
 
