@@ -179,7 +179,7 @@ panelGraph.prototype.setupGraphPanHandling = function() {
      * @private
      */
 
-     // Make sure we don't setup multiple times
+    // Make sure we don't setup multiple times
     if (this.isGlobalPanInteractionHandlerInstalled) {
         return;
     } else {
@@ -205,7 +205,69 @@ panelGraph.prototype.setupGraphPanHandling = function() {
     Dygraph.endPan = Dygraph.Interaction.endPan; //see dygraph-interaction-model.js
 };
 
+panelGraph.prototype.createEventRegion = function(canvas, area, dygraph, index, event) {
+    var min_data_x = dygraph.getValue(0, 0);
+    var max_data_x = dygraph.getValue(dygraph.numRows() - 1, 0);
 
+    var startTimeX = dygraph.toDomXCoord(event.startTime);
+    var endTimeX = dygraph.toDomXCoord(event.endTime);
+
+    var fontHeight = 14;
+    var fontPadding = 4;
+
+    var style = '';
+
+    if (index % 2 === 0) {
+        style = 'rgba(80,70,190,1.0)';
+    } else {
+        style = 'rgba(190,25,80,1.0)';
+    }
+    canvas.fillStyle = style;
+    canvas.strokeStyle = style;
+
+    // Draw rectangle to span event time
+    //canvas.fillRect(startTimeX, area.y + area.h - (fontHeight + fontPadding), endTimeX - startTimeX, fontHeight + fontPadding);
+    
+    // Draw background canvas
+    canvas.fillStyle = 'rgba(255,255,255,0.8';
+    canvas.fillRect(startTimeX, area.y + area.h - (fontHeight + fontPadding), canvas.measureText(event.type).width, fontHeight);
+    
+    
+    // Draw line tickers
+    canvas.lineWidth = 3;
+    
+    canvas.beginPath();
+    canvas.moveTo(startTimeX, area.y + area.h - fontHeight);
+    canvas.lineTo(startTimeX, area.y + area.h - fontHeight*2);
+    canvas.lineTo(startTimeX, area.y + area.h - fontHeight*3/2);
+    canvas.lineTo(startTimeX + fontHeight / 2, area.y + area.h - fontHeight*3/2);
+    canvas.stroke();
+
+    canvas.beginPath();
+    canvas.moveTo(endTimeX, area.y + area.h - fontHeight);
+    canvas.lineTo(endTimeX, area.y + area.h - fontHeight*2);
+    canvas.lineTo(endTimeX, area.y + area.h - fontHeight*3/2);
+    canvas.lineTo(endTimeX - fontHeight / 2, area.y + area.h - fontHeight*3/2);
+    canvas.stroke();
+    
+    // Draw label
+    canvas.font = fontHeight + 'px Arial';
+    canvas.fillStyle = 'rgba(0,0,0,1.0)';
+    canvas.fillText(event.type, startTimeX + 2, area.y + area.h - fontPadding);
+};
+
+panelGraph.prototype.underlayCallback = function(canvas, area, dygraph) {
+    var self = this;
+    sandbox.get('event', {datasetId: this.datasetId}, function(events) {
+        var sortedEvents = _.sortBy(events, function(event) {
+            return event.startTime;
+        });
+
+        _.each(sortedEvents, function(event, index) {
+            self.createEventRegion(canvas, area, dygraph, index, event);
+        });
+    });
+};
 
 panelGraph.prototype.constructDygraph = function(graphDiv) {
     if (typeof this.graph === 'undefined') {
@@ -241,7 +303,8 @@ panelGraph.prototype.constructDygraph = function(graphDiv) {
                 x: {
                     valueFormatter: DygraphTimeFormatter
                 }
-            }
+            },
+            underlayCallback: $.proxy(this.underlayCallback, this)
         };
 
         this.graph = new Dygraph(graphDiv[0], [[0, 0]], graphCfg);
