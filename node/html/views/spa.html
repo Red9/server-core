@@ -21,6 +21,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 <script src="/js/tiles/googlemap.js"></script>
 <script src="/js/tiles/panelgraph.js"></script>
 <script src="/js/tiles/summarystatistics.js"></script>
+<script src="/js/tiles/resourcedetails.js"></script>
 
 <script src="/js/URI.js"></script>
 
@@ -29,10 +30,23 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 <a class="btn btn-default" id="focusOnDatasetButton">Zoom To Dataset</a>
 
 <script>
-            $('#focusOnDatasetButton').bind('click', function() {
-                console.log('button clicked');
-                sandbox.resourceFocused('dataset');
-            });
+            sandbox.apiUrl = '{{apiUrl}}';
+            
+            (function() {
+                var datasetId = '';
+                    
+                $('#focusOnDatasetButton').bind('click', function() {
+                    sandbox.resourceFocused('dataset', datasetId);
+                });
+
+                $(sandbox).on('totalState.resource-focused', function(event, parameters) {
+                    if(parameters.type === 'event'){
+                        datasetId = parameters.resource.datasetId;
+                    }else if(parameters.type === 'dataset'){
+                        datasetId = parameters.resource.id;
+                    }
+                });
+            })();
 
 </script>
 

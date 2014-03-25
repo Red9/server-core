@@ -1,11 +1,9 @@
 
 var sandbox = {
-    apiDomain: 'http://api.localdev.redninesensor.com',
-    //datasetId: 'aed13a7e-ced5-5f39-893a-237a51bebea7', //'483ab517-58bc-aff6-3e28-5627e7c5a942',
-
-    lastFocused: {},
     init: function() {
 
+        sandbox.setPageTitle('Red9 Sensor');
+        
         History.Adapter.bind(window, 'statechange', sandbox.onHistoryChange); // Note: We are using statechange instead of popstate
 
 
@@ -97,6 +95,10 @@ var sandbox = {
                         'gps:satellite'
                     ]
                 }
+            },
+            {
+                class: resourceDetails,
+                configuration: {}
             }
         ];
 
@@ -187,7 +189,7 @@ var sandbox = {
 
             $.ajax({
                 type: 'GET',
-                url: sandbox.apiDomain + '/panel/' + constraints.id + '/body/?' + $.param(panelParameters),
+                url: sandbox.apiUrl + '/panel/' + constraints.id + '/body/?' + $.param(panelParameters),
                 dataType: 'json',
                 success: function(panel) {
                     _.each(panel.values, function(row) {
@@ -214,7 +216,7 @@ var sandbox = {
 
             $.ajax({
                 type: 'GET',
-                url: sandbox.apiDomain + '/' + resourceType + '/?' + $.param(constraints),
+                url: sandbox.apiUrl + '/' + resourceType + '/?' + $.param(constraints),
                 dataType: 'json',
                 success: callback
             });
@@ -276,16 +278,8 @@ var sandbox = {
     resourceFocused: function(type, id, startTime, endTime) {
         var uri = URI();
 
-        if (typeof type !== 'undefined') {
+        if (typeof type !== 'undefined' && typeof id !== 'undefined') {
             uri.directory(type);
-            if (typeof id !== 'undefined') {
-                // Don't need to do anything
-            } else if (typeof sandbox.lastFocused[type] !== 'undefined') {
-                // We have to get the last dataset
-                id = sandbox.lastFocused[type];
-            } else {
-                throw 'No previous focus of type ' + type + ' to focus on (can not find id).';
-            }
             uri.filename(id);
         } else { // Default to dataset ID
             throw 'Must define a resource type and id to focus on.';
@@ -302,14 +296,20 @@ var sandbox = {
 
         uri.query(focus);
 
-        History.pushState(null, 'Focus on ' + type + ' ' + id, uri.toString());
+        History.pushState(null, 'Focusing on ' + type + ' ' + id, uri.toString());
     },
     initiateEvent: function(eventName, parameters) {
         $(sandbox).trigger(eventName, parameters);
     },
+    setPageTitle: function(newTitle){
+        $(document).attr('title', newTitle);
+    },
     initiateResourceFocusedEvent: function(resource, id, startTime, endTime) {
-        sandbox.lastFocused[resource] = id;
         var eventName = 'totalState.resource-focused';
+        
+        
+        
+        
         if (resource === 'event') {
             sandbox.get(resource, {id: id}, function(event) {
                 if (typeof startTime === 'undefined') {
@@ -320,6 +320,7 @@ var sandbox = {
                 }
                 sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
                     sandbox.getSplicedPanel(dataset[0].headPanelId, startTime, endTime, function(panel) {
+                        sandbox.setPageTitle('Event: ' + event[0].type);
                         sandbox.initiateEvent(eventName,
                                 {
                                     type: resource,
@@ -338,6 +339,7 @@ var sandbox = {
                     endTime = dataset[0].headPanel.endTime;
                 }
                 sandbox.getSplicedPanel(dataset[0].headPanel.id, startTime, endTime, function(panel) {
+                    sandbox.setPageTitle(dataset[0].title);
                     sandbox.initiateEvent(eventName,
                             {
                                 type: resource,

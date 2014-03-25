@@ -354,7 +354,7 @@ var GetUSROperands = function() {
                             \{{#each items}}
                             <tr id="result_row_\{{id}}">
                                 <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
-                                <td onclick="window.location.assign('/dataset/\{{datasetId}}?startTime=\{{startTime}}&endTime=\{{endTime}}');">\{{type}}</td>
+                                <td onclick="window.location.assign('/event/\{{id}}');">\{{type}}</td>
                                 <td>\{{toDateString startTime}} \{{toTimeString startTime}}</td>
                                 <td>\{{toDurationString startTime endTime}}</td>
                             </tr>
