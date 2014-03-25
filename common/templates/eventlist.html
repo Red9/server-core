@@ -1,0 +1,26 @@
+<link rel="stylesheet" type="text/css" href="/css/jquery.dataTables.css">
+<script src="/js/jquery.dataTables.js"></script>
+
+<h2>Events</h2>
+
+
+<div class="table-responsive">
+    <table class="table table-hover table-condensed">
+        <thead>
+        <th><button class="btn btn-md btn-default"><span class="glyphicon glyphicon-trash"></span></button></th>
+        <th>Type</th>
+        <th>Started</th>
+        <th>Duration</th>
+        </thead>
+        <tbody id="result_tbody">
+            {{#each events}}
+            <tr name='{{id}}'>
+                <td><input type="checkbox"></td>
+                <td>{{type}}</td>
+                <td>{{toDateString startTime}} {{toTimeString startTime}}</td>
+                <td>{{toDurationString startTime endTime}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
