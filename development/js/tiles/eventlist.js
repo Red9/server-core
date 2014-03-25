@@ -2,6 +2,9 @@ function eventList(myPlace, configuration, doneCallback) {
 
     this.myPlace = myPlace;
     $(sandbox).on('totalState.resource-focused', $.proxy(this.resourceFocused, this));
+    
+    this.setEvents([]);
+    
     doneCallback();
 }
 

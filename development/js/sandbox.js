@@ -1,7 +1,9 @@
 
 var sandbox = {
     apiDomain: 'http://api.localdev.redninesensor.com',
-    datasetId: 'aed13a7e-ced5-5f39-893a-237a51bebea7', //'483ab517-58bc-aff6-3e28-5627e7c5a942',
+    //datasetId: 'aed13a7e-ced5-5f39-893a-237a51bebea7', //'483ab517-58bc-aff6-3e28-5627e7c5a942',
+
+    lastFocused: {},
     init: function() {
 
         History.Adapter.bind(window, 'statechange', sandbox.onHistoryChange); // Note: We are using statechange instead of popstate
@@ -66,6 +68,10 @@ var sandbox = {
             },
             {
                 class: googleMap,
+                configuration: {}
+            },
+            {
+                class: summaryStatistics,
                 configuration: {}
             },
             {
@@ -270,13 +276,20 @@ var sandbox = {
     resourceFocused: function(type, id, startTime, endTime) {
         var uri = URI();
 
-        if (typeof type !== 'undefined' && typeof id !== 'undefined') {
+        if (typeof type !== 'undefined') {
             uri.directory(type);
+            if (typeof id !== 'undefined') {
+                // Don't need to do anything
+            } else if (typeof sandbox.lastFocused[type] !== 'undefined') {
+                // We have to get the last dataset
+                id = sandbox.lastFocused[type];
+            } else {
+                throw 'No previous focus of type ' + type + ' to focus on (can not find id).';
+            }
             uri.filename(id);
         } else { // Default to dataset ID
             throw 'Must define a resource type and id to focus on.';
         }
-
 
         var focus = {};
         if (typeof startTime !== 'undefined') {
@@ -295,6 +308,7 @@ var sandbox = {
         $(sandbox).trigger(eventName, parameters);
     },
     initiateResourceFocusedEvent: function(resource, id, startTime, endTime) {
+        sandbox.lastFocused[resource] = id;
         var eventName = 'totalState.resource-focused';
         if (resource === 'event') {
             sandbox.get(resource, {id: id}, function(event) {
@@ -309,7 +323,7 @@ var sandbox = {
                         sandbox.initiateEvent(eventName,
                                 {
                                     type: resource,
-                                    resource:event[0],
+                                    resource: event[0],
                                     panel: panel
                                 });
                     });
@@ -327,7 +341,7 @@ var sandbox = {
                     sandbox.initiateEvent(eventName,
                             {
                                 type: resource,
-                                resource:dataset[0],
+                                resource: dataset[0],
                                 panel: panel
                             });
                 });
@@ -343,8 +357,6 @@ var sandbox = {
 
         var resource = uri.directory().substring(1); // remove leading '/'
         var id = uri.filename();
-
-
 
         sandbox.initiateResourceFocusedEvent(resource, id, query['focus.starttime'], query['focus.endtime']);
     }
