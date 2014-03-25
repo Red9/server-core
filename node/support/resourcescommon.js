@@ -209,7 +209,7 @@ exports.generateUUID = function() {
         return s ? "-" + p.substr(0, 4) + "-" + p.substr(4, 4) : p;
     }
     return (_p8() + _p8(true) + _p8(true) + _p8());
-}
+};
 
 
 

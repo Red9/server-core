@@ -207,7 +207,7 @@ exports.getPanelBody = function(options,
                 return panel.axes.indexOf(axis);
             });
 
-            callbackPanelProperties(panel);
+            
 
 
             if (typeof startTime === 'undefined') {
@@ -222,8 +222,12 @@ exports.getPanelBody = function(options,
             if (underscore.isBoolean(cache) === false) {
                 cache = false;
             }
+            
+            // If we're getting a subset of the "orginal" panel
+            panel.startTime = startTime;
+            panel.endTime = endTime;
 
-
+            callbackPanelProperties(panel);
 
             var valueFunction = function(time, values, rowIndex) {
                 var resultValues = underscore.map(axesIndex, function(index) {
