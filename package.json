@@ -7,7 +7,7 @@
     },
     "dependencies": {
         "express": "latest",
-        "node-cassandra-cql": "0.4.x",
+        "node-cassandra-cql": "0.5.x",
         "hbs": "latest",
         "lazy": "latest",
         "async": "latest",
