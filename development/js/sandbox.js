@@ -3,7 +3,7 @@ var sandbox = {
     init: function() {
 
         sandbox.setPageTitle('Red9 Sensor');
-        
+
         History.Adapter.bind(window, 'statechange', sandbox.onHistoryChange); // Note: We are using statechange instead of popstate
 
 
@@ -172,66 +172,63 @@ var sandbox = {
 
     },
     get: function(resourceType, constraints, callback, expand) {
-        if (resourceType === 'panel') {
-
-            var panelParameters = {
-                minmax: true,
-                buckets: 1000,
-                format: 'json'
-            };
-
-            if (typeof constraints.startTime !== 'undefined') {
-                panelParameters.startTime = constraints.startTime;
-            }
-            if (typeof constraints.endTime !== 'undefined') {
-                panelParameters.endTime = constraints.endTime;
-            }
-
-            $.ajax({
-                type: 'GET',
-                url: sandbox.apiUrl + '/panel/' + constraints.id + '/body/?' + $.param(panelParameters),
-                dataType: 'json',
-                success: function(panel) {
-                    _.each(panel.values, function(row) {
-                        row[0] = moment(row[0]).toDate();
-                    });
-                    callback(panel);
+        if (typeof expand !== 'undefined') {
+            constraints.expand = "";
+            _.each(expand, function(value, index) {
+                if (index > 0) {
+                    constraints.expand += ',';
                 }
-            });
-
-
-
-        } else {
-
-
-            if (typeof expand !== 'undefined') {
-                constraints.expand = "";
-                _.each(expand, function(value, index) {
-                    if (index > 0) {
-                        constraints.expand += ',';
-                    }
-                    constraints.expand += value;
-                });
-            }
-
-            $.ajax({
-                type: 'GET',
-                url: sandbox.apiUrl + '/' + resourceType + '/?' + $.param(constraints),
-                dataType: 'json',
-                success: callback
+                constraints.expand += value;
             });
         }
+
+        $.ajax({
+            type: 'GET',
+            url: sandbox.apiUrl + '/' + resourceType + '/?' + $.param(constraints),
+            dataType: 'json',
+            success: callback
+        });
     },
-    getSplicedPanel: function(panelId, startTime, endTime, callback) {
-        var callback = arguments[arguments.length - 1];
-        sandbox.get('panel', {id: panelId}, function(datasetPanel) {
+    getPanel: function(id, startTime, endTime, cache, callback) {
+        var panelParameters = {
+            minmax: true,
+            buckets: 1000,
+            format: 'json',
+            cache: 'off'
+        };
+
+        if (typeof startTime !== 'undefined') {
+            panelParameters.startTime = startTime;
+        }
+        if (typeof endTime !== 'undefined') {
+            panelParameters.endTime = endTime;
+        }
+        if (cache === true) {
+            panelParameters.cache = 'on';
+        }
+
+        $.ajax({
+            type: 'GET',
+            url: sandbox.apiUrl + '/panel/' + id + '/body/?' + $.param(panelParameters),
+            dataType: 'json',
+            success: function(panel) {
+                _.each(panel.values, function(row) {
+                    row[0] = moment(row[0]).toDate();
+                });
+                callback(panel);
+            }
+        });
+    },
+    getSplicedPanel: function(panelId, startTime, endTime, cache, callback) {
+        //var callback = arguments[arguments.length - 1];
+        sandbox.getPanel( panelId, undefined, undefined, true, function(datasetPanel) {
 
             if (_.isFunction(startTime) === true // Then not specified at all
                     || (datasetPanel.startTime === startTime && datasetPanel.endTime === endTime)) {
                 //No splicing necessary
                 callback(datasetPanel);
             } else {
-                sandbox.get('panel', {id: panelId, startTime: startTime, endTime: endTime}, function(corePanel) {
+                sandbox.getPanel(panelId, startTime,endTime, cache, function(corePanel) {
                     var finalPanel = sandbox.splicePanel(corePanel, datasetPanel);
                     callback(finalPanel);
                 });
@@ -301,25 +298,19 @@ var sandbox = {
     initiateEvent: function(eventName, parameters) {
         $(sandbox).trigger(eventName, parameters);
     },
-    setPageTitle: function(newTitle){
+    setPageTitle: function(newTitle) {
         $(document).attr('title', newTitle);
     },
     initiateResourceFocusedEvent: function(resource, id, startTime, endTime) {
         var eventName = 'totalState.resource-focused';
-        
-        
-        
-        
+
+
+
+
         if (resource === 'event') {
             sandbox.get(resource, {id: id}, function(event) {
-                if (typeof startTime === 'undefined') {
-                    startTime = event[0].startTime;
-                }
-                if (typeof endTime === 'undefined') {
-                    endTime = event[0].endTime;
-                }
                 sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
-                    sandbox.getSplicedPanel(dataset[0].headPanelId, startTime, endTime, function(panel) {
+                    sandbox.getSplicedPanel(dataset[0].headPanelId, event[0].startTime, event[0].endTime, true, function(panel) {
                         sandbox.setPageTitle('Event: ' + event[0].type);
                         sandbox.initiateEvent(eventName,
                                 {
@@ -332,13 +323,16 @@ var sandbox = {
             });
         } else if (resource === 'dataset') {
             sandbox.get(resource, {id: id}, function(dataset) {
+                var cache = true;
                 if (typeof startTime === 'undefined') {
                     startTime = dataset[0].headPanel.startTime;
+                    cache = false;
                 }
                 if (typeof endTime === 'undefined') {
                     endTime = dataset[0].headPanel.endTime;
+                    cache = false;
                 }
-                sandbox.getSplicedPanel(dataset[0].headPanel.id, startTime, endTime, function(panel) {
+                sandbox.getSplicedPanel(dataset[0].headPanel.id, startTime, endTime, cache, function(panel) {
                     sandbox.setPageTitle(dataset[0].title);
                     sandbox.initiateEvent(eventName,
                             {
