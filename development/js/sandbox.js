@@ -304,9 +304,6 @@ var sandbox = {
     initiateResourceFocusedEvent: function(resource, id, startTime, endTime) {
         var eventName = 'totalState.resource-focused';
 
-
-
-
         if (resource === 'event') {
             sandbox.get(resource, {id: id}, function(event) {
                 sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
@@ -323,14 +320,13 @@ var sandbox = {
             });
         } else if (resource === 'dataset') {
             sandbox.get(resource, {id: id}, function(dataset) {
-                var cache = true;
+                var cache = typeof startTime === 'undefined' && typeof endTime === 'undefined';
+                
                 if (typeof startTime === 'undefined') {
                     startTime = dataset[0].headPanel.startTime;
-                    cache = false;
                 }
                 if (typeof endTime === 'undefined') {
                     endTime = dataset[0].headPanel.endTime;
-                    cache = false;
                 }
                 sandbox.getSplicedPanel(dataset[0].headPanel.id, startTime, endTime, cache, function(panel) {
                     sandbox.setPageTitle(dataset[0].title);
