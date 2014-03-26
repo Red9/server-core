@@ -290,21 +290,54 @@ Bucket.prototype.hasData = function() {
 };
 
 
-exports.getBucketedPanel = function(panelId, startTime, endTime,
-        buckets, minmax, cache,
-        callbackRow, callbackDone) {
+function createCacheInsertQuery(id, buckets, startTime, endTime, minmax, time, data) {
 
+    data = underscore.flatten(data);
+
+    return {
+        query: 'INSERT INTO raw_data_cache (id,buckets,start_time,end_time,minmax,time,data) VALUES (?,?,?,?,?,?,?) USING TTL 604800', // One week ttl
+        params: [
+            {
+                value: id,
+                hint: 'uuid'
+            },
+            {
+                value: buckets,
+                hint: 'int'
+            },
+            {
+                value: startTime,
+                hint: 'timestamp'
+            },
+            {
+                value: endTime,
+                hint: 'timestamp'
+            },
+            {
+                value:minmax,
+                hint:'boolean'
+            },
+            {
+                value: time,
+                hint: 'timestamp'
+            },
+            {
+                value: data,
+                hint: 'list<float>'
+            }
+        ]
+    };
+}
+
+function internalGetBucketedPanel(panelId, startTime, endTime, buckets, minmax, callbackRow, callbackDone) {
     var panelDuration = endTime - startTime;
     var bucketDuration = Math.floor(panelDuration / buckets);
     if (bucketDuration === 0) {
         bucketDuration = 1; // Minimum 1ms buckets
     }
     var currentBucketStartTime = startTime;
-
     var bucket = new Bucket(currentBucketStartTime, minmax);
-
     var bucketRow = 0;
-
     var previousN = -1;
 
     exports.getPanel(panelId, startTime, endTime,
@@ -317,7 +350,11 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
                 // While loop to account for empty buckets.
                 while (rowTime > currentBucketStartTime + bucketDuration) {
                     if (bucket.hasData() === true) {
-                        callbackRow(bucket.getTime(), bucket.getResultRow(), bucketRow);
+                        var bucketTime = bucket.getTime();
+                        var bucketDataRow = bucket.getResultRow();
+                        callbackRow(bucketTime, bucketDataRow, bucketRow);
+
+
                         bucketRow = bucketRow + 1;
                     }
                     currentBucketStartTime = currentBucketStartTime + bucketDuration;
@@ -327,7 +364,9 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
             },
             function(err) {
                 // Send last bucket
-                callbackRow(bucket.getTime(), bucket.getResultRow(), bucketRow);
+                var bucketTime = bucket.getTime();
+                var bucketDataRow = bucket.getResultRow();
+                callbackRow(bucketTime, bucketDataRow, bucketRow);
 
                 if (err) {
                     log.error('Cassandra Database Panel Get Error: ' + err);
@@ -335,6 +374,92 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
                 callbackDone(err);
             }
     );
+}
+
+
+exports.getBucketedPanel = function(panelId, startTime, endTime,
+        buckets, minmax, cache,
+        callbackRow, callbackDone) {
+
+
+    if (cache !== 'on') {
+        console.log('Lets not use the cache');
+        internalGetBucketedPanel(panelId, startTime, endTime, buckets, minmax, callbackRow, callbackDone);
+        return;
+    }
+    // else, we want to work with the cache
+
+    console.log('Working with the cache');
+
+    var cacheQuery = 'SELECT time, data FROM raw_data_cache WHERE id=? AND buckets=? AND start_time=? AND end_time=? AND minmax=?';
+    var cacheParameters = [
+        {
+            value: panelId,
+            hint: 'uuid'
+        },
+        {
+            value: buckets,
+            hint: 'int'
+        },
+        {
+            value: startTime,
+            hint: 'timestamp'
+        },
+        {
+            value: endTime,
+            hint: 'timestamp'
+        },
+        {
+            value: minmax,
+            hint: 'boolean'
+        }
+    ];
+    console.log('minmax: ' + minmax);
+    cassandraDatabase.execute(cacheQuery, cacheParameters, function(err, result) {
+        if(err){
+            log.error('Error getting panel cache: ' + err);
+        }
+        if (result.rows.length === 0) {
+            // Could not find cache
+            var cacheBatch = [];
+            internalGetBucketedPanel(panelId, startTime, endTime, buckets, minmax,
+                    function(time, data, index) {
+                        cacheBatch.push(createCacheInsertQuery(panelId, buckets, startTime, endTime, minmax, time, data));
+                        callbackRow(time, data, index);
+                    },
+                    function(err) {
+                        callbackDone(err);
+                        cassandraDatabase.executeBatch(cacheBatch, function(err) {
+                            if (err) {
+                                log.error('Error inserting cache: ' + err);
+                            }
+                        });
+                    });
+
+        } else {
+            // Found cache!
+            underscore.each(result.rows, function(row, index) {
+
+                var data = row.data;
+                var values = [];
+
+                if (minmax === true) {
+                    // Convert the flat list of min/avg/max to nested arrays.
+                    for (var i = 0; i < data.length / 3; i++) {
+                        var temp = [];
+                        temp.push(data[i * 3 + 0]);
+                        temp.push(data[i * 3 + 1]);
+                        temp.push(data[i * 3 + 2]);
+                        values.push(temp);
+                    }
+                } else { // minmax === false, so we don't need to process the array at all.
+                    values = data;
+                }
+                callbackRow(row.time, values, index);
+            });
+            callbackDone();
+        }
+    });
 };
 
 exports.getPanel = function(panelId, startTime, endTime,

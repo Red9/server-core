@@ -219,9 +219,6 @@ exports.getPanelBody = function(options,
             if (underscore.isBoolean(minmax) === false) {
                 minmax = false;
             }
-            if (underscore.isBoolean(cache) === false) {
-                cache = false;
-            }
             
             // If we're getting a subset of the "orginal" panel
             panel.startTime = startTime;

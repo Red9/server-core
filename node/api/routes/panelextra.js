@@ -30,6 +30,8 @@ exports.getBody = function(req, res, next) {
         parameters.minmax = true;
         minmax = true;
     }
+    
+    parameters.cache = req.param('cache');
 
     var format = 'csv';
     if (req.param('format') === 'json') {
