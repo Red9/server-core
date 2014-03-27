@@ -24,64 +24,22 @@ function panelGraph(myPlace, configuration, doneCallback) {
         self.setTitle();
         self.constructDygraph(myPlace.find('.row div div'));
 
-        myPlace.find('div h2 span a').on('click', function() {
-            myPlace.children('.modal').modal('show');
-        });
-
-
         self.prepareListeners();
 
         doneCallback();
     });
-
-
-
 }
 
 panelGraph.prototype.prepareListeners = function() {
     var self = this;
-    var exportModalBody = this.myPlace.find('.modal-body');
-
-    var defaultButton = '<a class="btn btn-default btn-block"></a>';
-    exportModalBody.append(
-            $(defaultButton)
-            .attr('download', 'graph-image.png')
-            .text('PNG')
-            .on('click', function() {
-                console.log('PNG download clicked');
-                var imageUrl = Dygraph.Export.asCanvas(self.graph).toDataURL();
-                console.log('Image url: ' + imageUrl);
-                $(event.target).attr("href",
-                        imageUrl);
-            })
-            );
-
-    exportModalBody.append(
-            $(defaultButton)
-            .text('New Event')
-            .on('click', function() {
-
-                var range = self.graph.xAxisRange();
-                var startTime = range[0];
-                var endTime = range[1];
-
-                var request_url = '/snippet/createeventmodal'
-                        + '?startTime=' + startTime
-                        + '&endTime=' + endTime
-                        + '&dataset=' + self.datasetId;
-
-                // Is this repeat safe? Every time this button is clicked then
-                // the modal is reloaded. Is this ok?
-                self.myPlace.find('.modal').modal('hide');
-                $("#create_event_modal").load(request_url, function() {
-                    $("#new_event_modal").modal('show');
-                });
-
-
-            })
-            );
-
-
+    
+    this.myPlace.find('[data-name=save-as-image]').on('click', function(event) {
+        var imageUrl = Dygraph.Export.asCanvas(self.graph).toDataURL();
+        var downloadName = sandbox.focusState.dataset + '_' + sandbox.focusState.startTime
+                + '_' + sandbox.focusState.endTime + '-graph.png';
+        $(this).attr('href', imageUrl);
+        $(this).attr('download', downloadName);
+    });
 };
 
 panelGraph.prototype.setTitle = function() {
@@ -227,29 +185,29 @@ panelGraph.prototype.createEventRegion = function(canvas, area, dygraph, index, 
 
     // Draw rectangle to span event time
     //canvas.fillRect(startTimeX, area.y + area.h - (fontHeight + fontPadding), endTimeX - startTimeX, fontHeight + fontPadding);
-    
+
     // Draw background canvas
     canvas.fillStyle = 'rgba(255,255,255,0.8';
     canvas.fillRect(startTimeX, area.y + area.h - (fontHeight + fontPadding), canvas.measureText(event.type).width, fontHeight);
-    
-    
+
+
     // Draw line tickers
     canvas.lineWidth = 3;
-    
+
     canvas.beginPath();
     canvas.moveTo(startTimeX, area.y + area.h - fontHeight);
-    canvas.lineTo(startTimeX, area.y + area.h - fontHeight*2);
-    canvas.lineTo(startTimeX, area.y + area.h - fontHeight*3/2);
-    canvas.lineTo(startTimeX + fontHeight / 2, area.y + area.h - fontHeight*3/2);
+    canvas.lineTo(startTimeX, area.y + area.h - fontHeight * 2);
+    canvas.lineTo(startTimeX, area.y + area.h - fontHeight * 3 / 2);
+    canvas.lineTo(startTimeX + fontHeight / 2, area.y + area.h - fontHeight * 3 / 2);
     canvas.stroke();
 
     canvas.beginPath();
     canvas.moveTo(endTimeX, area.y + area.h - fontHeight);
-    canvas.lineTo(endTimeX, area.y + area.h - fontHeight*2);
-    canvas.lineTo(endTimeX, area.y + area.h - fontHeight*3/2);
-    canvas.lineTo(endTimeX - fontHeight / 2, area.y + area.h - fontHeight*3/2);
+    canvas.lineTo(endTimeX, area.y + area.h - fontHeight * 2);
+    canvas.lineTo(endTimeX, area.y + area.h - fontHeight * 3 / 2);
+    canvas.lineTo(endTimeX - fontHeight / 2, area.y + area.h - fontHeight * 3 / 2);
     canvas.stroke();
-    
+
     // Draw label
     canvas.font = fontHeight + 'px Arial';
     canvas.fillStyle = 'rgba(0,0,0,1.0)';

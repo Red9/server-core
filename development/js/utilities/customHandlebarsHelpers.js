@@ -5,6 +5,10 @@ var customHandlebarsHelpers = {
         return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
     },
     FormatDuration: function(startTime, endTime) {
+        if (typeof startTime === 'undefined' || typeof endTime === 'undefined') {
+            return 'unknown';
+        }
+
         var result = '';
 
         var duration = moment.duration(endTime - startTime);
@@ -37,10 +41,18 @@ var customHandlebarsHelpers = {
         }
     },
     MillisecondsEpochToTime: function(milliseconds) {
-        return moment.utc(milliseconds).format("h:mm:ss.SSS a");
+        if (typeof milliseconds === 'undefined') {
+            return 'unknown';
+        } else {
+            return moment.utc(milliseconds).format("h:mm:ss.SSS a");
+        }
     },
     MillisecondsEpochToDate: function(milliseconds) {
-        return moment.utc(milliseconds).format("YYYY-MM-DD");
+        if (typeof milliseconds === 'undefined') {
+            return 'unknown';
+        } else {
+            return moment.utc(milliseconds).format("YYYY-MM-DD");
+        }
     },
     FormatUnits: function(units) {
         /*if(units === "m/s^2"){
@@ -72,7 +84,7 @@ var customHandlebarsHelpers = {
     BytesToHumanSize: function bytesToSize(bytes) {
         bytes = parseInt(bytes);
         var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        if (bytes === 0){
+        if (bytes === 0) {
             return '0 Bytes';
         }
         var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
@@ -90,11 +102,11 @@ var customHandlebarsHelpers = {
     }
 };
 
-if(typeof exports !== 'undefined'){
+if (typeof exports !== 'undefined') {
     // Running in Node.js
     exports.RegisterHelpers = customHandlebarsHelpers.RegisterHelpers;
     moment = require('moment');
-}else{
+} else {
     // Running in client
     customHandlebarsHelpers.RegisterHelpers(Handlebars);
 }

@@ -1,0 +1,110 @@
+
+<div class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hnameden="true">×</button>
+                <h4 class="modal-title">Download Panel</h4>
+            </div>
+            <div class="modal-body">
+                <form name="download_panel_form" class="form-horizontal">
+                    <fieldset>
+
+                        <!-- Form Name -->
+                        <legend>Download Panel</legend>
+
+                        <!-- Prepended checkbox -->
+                        <div class="form-group">
+                            <label class="col-md-3 control-label" for="start_time_input">Start Time</label>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <input name="start_time_checkbox" type="checkbox">
+                                    </span>
+                                    <input name="start_time_input" class="form-control" type="text" placeholder="eg 123456789">
+                                </div>
+                                <p class="help-block">The start time of the dataset to download. Minimum is <b name="minimum_start_time">{{startTime}}</b></p>
+                            </div>
+                        </div>
+
+                        <!-- Prepended checkbox -->
+                        <div class="form-group">
+                            <label class="col-md-3 control-label" for="end_time_input">End Time</label>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <input type="checkbox" name="end_time_checkbox">
+                                    </span>
+                                    <input name="end_time_input" name="end_time_checkbox" class="form-control" type="text" placeholder="eg 987654321">
+                                </div>
+                                <p class="help-block">The end time of the dataset to download. Maximum is <b name="maximum_end_time">{{endTime}}</b></p>
+                            </div>
+                        </div>
+
+                        <!-- Prepended checkbox -->
+                        <div class="form-group">
+                            <label class="col-md-3 control-label" for="buckets_input">Bucketize</label>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+
+                                        <input type="checkbox" name="buckets_checkbox">
+
+                                    </span>
+                                    <input name="buckets_input" class="form-control" type="text" placeholder="eg 100">
+                                </div>
+                                <p class="help-block">Choose the number of buckets (output rows) to force the data into.</p>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label class="col-md-3 control-label" for="include_min_max_label">Min/Max</label>
+                            <div class="col-lg-8">
+                                <label class="checkbox-inline" for="minmax_checkbox">
+                                    <input type="checkbox" name="minmax_checkbox" value="true">
+                                    Include Minimum and Maximum
+                                </label>
+                            </div>
+                        </div>
+
+
+                        <!-- Multiple Checkboxes -->
+                        <div class="form-group">
+                            <label class="col-md-3 control-label" for="column_checkboxes">Columns</label>
+
+                            <div data-name="column_checkbox_selection_group">
+                                <a  name="all">Select All</a>
+                                ~ <a  name="none">Select None</a>
+                                ~ <a  name="not">Invert Selection</a>
+                            </div>
+
+                            <div class="input-group">
+                                {{#each axes}}
+                                <div class="checkbox col-lg-8">
+                                    <label for="column_checkboxes-{{ this }}">
+                                        <input data-name="column_checkboxes" type="checkbox" name="column_checkboxes-{{ this }}" value="{{ this }}" checked>
+                                        {{ this }}
+                                    </label>
+                                </div>
+                                {{else}}
+                                <p class="form-control-static">Sorry, no columns. Probably a bug. Please report.</p>
+                                {{/each}}
+                            </div>
+                        </div>
+
+                        <!-- Button -->
+                            <button name="download_button" class="btn btn-large btn-default pull-right" type="submit">Download</button>
+
+                    </fieldset>
+                </form>
+
+                <a href="" target="_blank" data-name="download-perma-link">perma-link</a>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

@@ -61,8 +61,8 @@ GoogleMap.prototype.updateWithNewPanel = function(panel) {
     if (typeof this.path !== 'undefined') {
         this.path.setMap(null);
     }
-
-
+    
+    
     var latitudeIndex = $.inArray('gps:latitude', panel.labels);
     var longitudeIndex = $.inArray('gps:longitude', panel.labels);
     var timeIndex = 0;
@@ -73,8 +73,7 @@ GoogleMap.prototype.updateWithNewPanel = function(panel) {
     var bounds = new google.maps.LatLngBounds();
 
     var classInstance = this;
-
-    _.each(panel.values, function(row) {
+    
 
         // Only include rows that exist.
         // TODO(SRLM): It would be better to indicate this somehow (gaps in the
@@ -101,7 +100,7 @@ GoogleMap.prototype.updateWithNewPanel = function(panel) {
             return;
         }
 
-
+        
 
         var point = new google.maps.LatLng(latitude, longitude);
         bounds.extend(point);
