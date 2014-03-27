@@ -14,6 +14,7 @@ exports.getBody = function(req, res, next) {
 
     var buckets = -1;
     var minmax = false;
+    var axes;
     if (validator.isInt(req.param('buckets'))) {
         parameters.buckets = parseInt(req.param('buckets'));
         buckets = parameters.buckets;
@@ -30,7 +31,12 @@ exports.getBody = function(req, res, next) {
         parameters.minmax = true;
         minmax = true;
     }
-    
+
+    if (typeof req.param('axes') !== 'undefined') {
+        axes = req.param('axes').split(',');
+        console.log('Axes to get: ' + JSON.stringify(axes));
+    }
+
     parameters.cache = req.param('cache');
 
     var format = 'csv';
@@ -50,19 +56,30 @@ exports.getBody = function(req, res, next) {
     // the results to, and output after some number of rows.
     var resWriteBuffer = '';
 
+    var axesIndicies = [];
+
     panelResource.getPanelBody(parameters,
             function(panelProperties) {
+                var outputAxes = panelProperties.axes;
+                if(typeof axes !== 'undefined'){
+                    outputAxes = underscore.intersection(panelProperties.axes, axes);
+                };
+
+                underscore.each(outputAxes, function(axis) {
+                    axesIndicies.push(underscore.indexOf(panelProperties.axes, axis));
+                });
+
                 if (format === 'csv') {
                     res.write('time');
-                    underscore.each(panelProperties.axes, function(axis) {
+                    underscore.each(outputAxes, function(axis) {
                         res.write(',' + axis);
                     });
                     res.write('\n');
 
                 } else if (format === 'json') {
-                    panelProperties.axes.unshift('time');
+                    outputAxes.unshift('time');
                     res.write(
-                            '"labels":' + JSON.stringify(panelProperties.axes) + ','
+                            '"labels":' + JSON.stringify(outputAxes) + ','
                             + '"startTime":' + panelProperties.startTime + ','
                             + '"endTime":' + panelProperties.endTime + ','
                             + '"id":"' + panelProperties.id + '",'
@@ -72,7 +89,16 @@ exports.getBody = function(req, res, next) {
                 }
 
             },
-            function(time, values, rowIndex) {
+            function(time, allValues, rowIndex) {
+                var values = [];
+                if (axesIndicies.length !== 0) {
+                    underscore.each(axesIndicies, function(index) {
+                        values.push(allValues[index]);
+                    });
+                } else {
+                    values = allValues;
+                }
+
                 if (format === 'csv') {
                     resWriteBuffer += time;
 

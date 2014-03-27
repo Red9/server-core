@@ -1,6 +1,6 @@
 function googleMap(myPlace, configuration, doneCallback) {
     var self = this;
-    
+
     $(sandbox).on('totalState.resource-focused', $.proxy(this.resourceFocused, this));
 
     sandbox.requestTemplate('googlemap', function(template) {
@@ -20,9 +20,9 @@ function googleMap(myPlace, configuration, doneCallback) {
 }
 
 googleMap.prototype.resourceFocused = function(event, parameter) {
-    if(typeof parameter.panel !== 'undefined'){
+    if (typeof parameter.panel !== 'undefined') {
         this.updateWithNewPanel(parameter.panel);
-    }    
+    }
 };
 
 googleMap.prototype.updateWithNewPanel = function(panel) {
@@ -36,6 +36,13 @@ googleMap.prototype.updateWithNewPanel = function(panel) {
     if (typeof this.path !== 'undefined') {
         this.path.setMap(null);
     }
+    if (typeof this.startMarker !== 'undefined') {
+        this.startMarker.setMap(null);
+    }
+    if (typeof this.endMarker !== 'undefined') {
+        this.endMarker.setMap(null);
+    }
+
 
 
     var latitudeIndex = $.inArray('gps:latitude', panel.labels);
@@ -43,13 +50,13 @@ googleMap.prototype.updateWithNewPanel = function(panel) {
     var timeIndex = 0;
 
     var linePoints = [];
-    var discretePoints = [];
-
     var bounds = new google.maps.LatLngBounds();
-
     var self = this;
+    self.discretePoints = [];
+    
+    var firstPoint = true;
 
-    _.each(panel.values, function(row) {
+    _.each(panel.values, function(row, index) {
 
         // Only include rows that exist.
         // TODO(SRLM): It would be better to indicate this somehow (gaps in the
@@ -57,7 +64,7 @@ googleMap.prototype.updateWithNewPanel = function(panel) {
 
         // The panel is spliced, so let's only map the values within the 
         // core range.
-        if(row[timeIndex] < panel.startTime || row[timeIndex] > panel.endTime){
+        if (row[timeIndex] < panel.startTime || row[timeIndex] > panel.endTime) {
             return;
         }
 
@@ -84,6 +91,26 @@ googleMap.prototype.updateWithNewPanel = function(panel) {
 
 
         var point = new google.maps.LatLng(latitude, longitude);
+        
+        if (firstPoint === true) {
+            firstPoint = false;
+            self.startMarker = new google.maps.Marker({
+                position: point,
+                map:self.map,
+                title: 'Start',
+                icon:'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+            });
+            console.log('startMarker: ' + self.startMarker);
+        } else if (index === panel.values.length - 1) {
+            console.log('Creating end marker');
+            self.endMarker = new google.maps.Marker({
+                position: point,
+                map:self.map,
+                title: 'End',
+                icon:'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+            });
+        }
+
         bounds.extend(point);
 
         linePoints.push(point);
@@ -97,7 +124,7 @@ googleMap.prototype.updateWithNewPanel = function(panel) {
             position: point,
             icon: 'https://maps.gstatic.com/intl/en_us/mapfiles/markers2/measle_blue.png'
         });
-        discretePoints.push(marker);
+        self.discretePoints.push(marker);
     });
 
     ///---------------
@@ -124,7 +151,6 @@ googleMap.prototype.updateWithNewPanel = function(panel) {
             }]
     });
 
-    this.discretePoints = discretePoints;
     this.path.setMap(this.map);
     this.map.fitBounds(bounds);
 };

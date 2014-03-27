@@ -1,4 +1,6 @@
 var underscore = require('underscore')._;
+var validator = require('validator');
+
 var resources = requireFromRoot('support/resources/resources');
 
 
@@ -136,9 +138,7 @@ exports.update = function(route, req, res, next) {
 
     // Check for the various keys in the upload. Save whataver ones we find.
     underscore.each(resources[route.resource].resource.schema, function(keyDescription, key) {
-        console.log('Searching for key: ' + key);
         if (typeof req.param(key) !== 'undefined') {
-            console.log('Found key: ' + key);
             var value = req.param(key);
 
             // Lazy validation: if we know what type it is, we check to make

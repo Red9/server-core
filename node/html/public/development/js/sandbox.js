@@ -12,11 +12,15 @@ var sandbox = {
 
         sandbox.div = $('#sandboxContentDiv');
 
+        sandbox.focusState = undefined;
+
 
         var tiles = [
             {
-                class: eventList,
-                configuration: {}
+                class: downloadPanelModal
+            },
+            {
+                class: eventList
             },
             {
                 class: panelGraph,
@@ -65,12 +69,10 @@ var sandbox = {
                 }
             },
             {
-                class: googleMap,
-                configuration: {}
+                class: googleMap
             },
             {
-                class: summaryStatistics,
-                configuration: {}
+                class: summaryStatistics
             },
             {
                 class: panelGraph,
@@ -97,8 +99,7 @@ var sandbox = {
                 }
             },
             {
-                class: resourceDetails,
-                configuration: {}
+                class: resourceDetails
             }
         ];
 
@@ -106,6 +107,10 @@ var sandbox = {
                 function(tile, doneCallback) {
                     var temp = $('<div></div>');
                     sandbox.div.append(temp);
+
+                    if (typeof tile.configuration === 'undefined') {
+                        tile.configuration = {};
+                    }
                     sandbox.modules.push(new tile.class(temp, tile.configuration, function() {
                         doneCallback();
                     }));
@@ -189,6 +194,16 @@ var sandbox = {
             success: callback
         });
     },
+    delete: function(resourceType, id) {
+        $.ajax({
+            type: 'DELETE',
+            url: sandbox.apiUrl + '/' + resourceType + '/' + id,
+            dataType: 'json',
+            success: function() {
+                sandbox.initiateResourceDeletedEvent(resourceType, id);
+            }
+        });
+    },
     getPanel: function(id, startTime, endTime, cache, callback) {
         var panelParameters = {
             minmax: true,
@@ -212,6 +227,7 @@ var sandbox = {
             url: sandbox.apiUrl + '/panel/' + id + '/body/?' + $.param(panelParameters),
             dataType: 'json',
             success: function(panel) {
+                console.log('Got Panel');
                 _.each(panel.values, function(row) {
                     row[0] = moment(row[0]).toDate();
                 });
@@ -221,14 +237,14 @@ var sandbox = {
     },
     getSplicedPanel: function(panelId, startTime, endTime, cache, callback) {
         //var callback = arguments[arguments.length - 1];
-        sandbox.getPanel( panelId, undefined, undefined, true, function(datasetPanel) {
+        sandbox.getPanel(panelId, undefined, undefined, true, function(datasetPanel) {
 
             if (_.isFunction(startTime) === true // Then not specified at all
                     || (datasetPanel.startTime === startTime && datasetPanel.endTime === endTime)) {
                 //No splicing necessary
                 callback(datasetPanel);
             } else {
-                sandbox.getPanel(panelId, startTime,endTime, cache, function(corePanel) {
+                sandbox.getPanel(panelId, startTime, endTime, cache, function(corePanel) {
                     var finalPanel = sandbox.splicePanel(corePanel, datasetPanel);
                     callback(finalPanel);
                 });
@@ -295,11 +311,27 @@ var sandbox = {
 
         History.pushState(null, 'Focusing on ' + type + ' ' + id, uri.toString());
     },
+    resourceDownload: function(type, id) {
+        var eventName = 'totalState.resource-download';
+        sandbox.get(type, {id: id}, function(resourceList) {
+            if (resourceList.length === 1) {
+                sandbox.initiateEvent(eventName, {
+                    type: type,
+                    resource: resourceList[0]
+                });
+            }
+        });
+    },
     initiateEvent: function(eventName, parameters) {
         $(sandbox).trigger(eventName, parameters);
     },
     setPageTitle: function(newTitle) {
         $(document).attr('title', newTitle);
+        $('#footer-page-title').text(newTitle);
+    },
+    initiateResourceDeletedEvent: function(resource, id) {
+        var eventName = 'totalState.resource-deleted';
+        sandbox.initiateEvent(eventName, {type: resource, id: id});
     },
     initiateResourceFocusedEvent: function(resource, id, startTime, endTime) {
         var eventName = 'totalState.resource-focused';
@@ -307,8 +339,20 @@ var sandbox = {
         if (resource === 'event') {
             sandbox.get(resource, {id: id}, function(event) {
                 sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
-                    sandbox.getSplicedPanel(dataset[0].headPanelId, event[0].startTime, event[0].endTime, true, function(panel) {
+                    startTime = event[0].startTime;
+                    endTime = event[0].endTime;
+
+                    sandbox.getSplicedPanel(dataset[0].headPanelId, startTime, endTime, true, function(panel) {
                         sandbox.setPageTitle('Event: ' + event[0].type);
+                        sandbox.focusState = {
+                            dataset: dataset[0].id,
+                            panel: dataset[0].headPanel.id,
+                            minStartTime: dataset[0].headPanel.startTime,
+                            maxEndTime: dataset[0].headPanel.endTime,
+                            startTime: startTime,
+                            endTime: endTime,
+                            event: event[0].id
+                        };
                         sandbox.initiateEvent(eventName,
                                 {
                                     type: resource,
@@ -316,12 +360,12 @@ var sandbox = {
                                     panel: panel
                                 });
                     });
-                });
+                }, ['headPanel']);
             });
         } else if (resource === 'dataset') {
             sandbox.get(resource, {id: id}, function(dataset) {
                 var cache = typeof startTime === 'undefined' && typeof endTime === 'undefined';
-                
+
                 if (typeof startTime === 'undefined') {
                     startTime = dataset[0].headPanel.startTime;
                 }
@@ -330,6 +374,14 @@ var sandbox = {
                 }
                 sandbox.getSplicedPanel(dataset[0].headPanel.id, startTime, endTime, cache, function(panel) {
                     sandbox.setPageTitle(dataset[0].title);
+                    sandbox.focusState = {
+                        dataset: dataset[0].id,
+                        panel: dataset[0].headPanel.id,
+                        minStartTime: dataset[0].headPanel.startTime,
+                        maxEndTime: dataset[0].headPanel.endTime,
+                        startTime: parseInt(startTime), // Need to parse, since we don't know where it came from...
+                        endTime: parseInt(endTime)
+                    };
                     sandbox.initiateEvent(eventName,
                             {
                                 type: resource,

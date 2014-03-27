@@ -109,7 +109,7 @@ exports.update = function(id, modifiedEvent, callback, forceEditable) {
 };
 
 exports.deleteEventByDataset = function(datasetId, callback) {
-    exports.getEvents({datasetId: datasetId}, function(events) {
+    exports.get({datasetId: datasetId}, function(events) {
         async.each(events,
                 function(event, asyncCallback) {
                     exports.delete(event.id, asyncCallback);

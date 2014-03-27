@@ -10,22 +10,23 @@
 
         <script src="/js/jquery-2.0.3.js"></script>
         <script src="/js/jquery-ui-1.10.3.js"></script>
-        
+
         <script src="/js/jquery.validate.js"></script>
         <script src="/js/jquery.validate.additional-methods.js"></script>
-        
+
         <script src="/js/underscore.js"></script>
         <script src="/js/handlebars-v1.3.0.js"></script>
         <script src="/js/moment.js"></script>
         <script src="/js/bootstrap.js"></script>
-        
+
         <script src="/js/site.js"></script>
         <script src="/js/utilities/customHandlebarsHelpers.js"></script>
-        
+
         <link href="/css/jquery-ui-1.10.3.css" rel="stylesheet">
         <link href="/css/bootstrap.css" rel="stylesheet">
         <link href="/css/bootstrap-theme.css" rel="stylesheet">
         <link href="/css/style.css" rel="stylesheet">
+
     </head>
 
     <body>
@@ -67,10 +68,44 @@
         <div class="container">
             {{#if development}}<div class="alert alert-info">Careful: you're working on the development site</div>{{/if}}
             {{{body}}}
-        
+
         </div>
         <br />
         <br />
+
+
+        {{#if spa}}
+        <!--TODO(SRLM): This is a bit of a hack. Get this out of layout and into it's own place.-->
+        <br />
+        <br />
+        <br />
+        <br />
+        <nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="pull-left">
+                        <button id="navbar-fixed-bottom-run-usr-button" type="button" class="btn btn-default btn-md" title="run USR"><span class="glyphicon glyphicon-tasks"></span></button>
+                        <button id="navbar-fixed-bottom-download-panel-button" type="button" class="btn btn-default btn-md" title="download panel"><span class="glyphicon glyphicon-cloud-download"></span></button>
+                        <!--<button id="navbar-fixed-bottom-edit-dataset-button" type="button" class="btn btn-default btn-md" title="edit dataset"><span class="glyphicon glyphicon-pencil"></span></button>-->
+                        <button id="navbar-fixed-bottom-create-event-button" type="button" class="btn btn-default btn-md" title="create event"><span class="glyphicon glyphicon-bookmark"></span></button>
+                    </div>
+
+                </div>
+                <div class="col-sm-4">
+                    <h4 class="text-center"><span id="footer-page-title">Dataset</span></h4>
+                </div>
+                <div class="col-sm-4">
+                    <div class="pull-right">
+                        <div class="btn-group">
+                            <button id="navbar-fixed-bottom-zoom-out-button" type="button" class="btn btn-default btn-md" title="zoom out"><span class="glyphicon glyphicon-zoom-out"></span></button>
+                            <button id="navbar-fixed-bottom-zoom-out-full-button" type="button" class="btn btn-default btn-md" title="zoom out full"><span class="glyphicon glyphicon-fullscreen"></span></button>
+                            <button id="navbar-fixed-bottom-zoom-in-button" type="button" class="btn btn-default btn-md" title="zoom in"><span class="glyphicon glyphicon-zoom-in"></span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        {{else}}
         <div class="navbar">
             <div class="navbar-inner">
                 <div class="width-constraint clearfix">
@@ -80,6 +115,7 @@
                 </div>
             </div>
         </div>
-        <!-- Placed at the end of the document so the pages load faster -->
+        {{/if}}
+
     </body>
 </html>

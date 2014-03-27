@@ -30,8 +30,8 @@ module.exports = function(app, passport) {
     
     app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
     //app.get('/dataset/:uuid', IsAuthenticated, require('./datasetdisplay').get);
-    app.get('/dataset/:id', IsAuthenticated, require('./spa').get);
-    app.get('/event/:id', IsAuthenticated, require('./spa').get);
+    app.get('/dataset/:id', IsAuthenticated, require('./spa').getDataset);
+    app.get('/event/:id', IsAuthenticated, require('./spa').getEvent);
     
     
     app.get('/panel/:uuid/download', IsAuthenticated, require('./customdownload').get);
@@ -58,6 +58,6 @@ module.exports = function(app, passport) {
 
     app.get('/lens/:type', IsAuthenticated, require('./getlens').get);
     
-    app.get('/spa', require('./spa').get);
+    //app.get('/spa', require('./spa').get);
     
 };

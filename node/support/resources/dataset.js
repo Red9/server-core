@@ -103,7 +103,7 @@ var createFlush = function(newDataset) {
 };
 
 var deletePre = function(id, continueCallback) {
-    exports.getDatasets({id: id}, function(datasets) {
+    exports.get({id: id}, function(datasets) {
         if (datasets.length === 1) {
             // Clean up associated resources
             var dataset = datasets[0];
