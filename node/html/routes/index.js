@@ -29,12 +29,8 @@ module.exports = function(app, passport) {
     app.get('/', IsAuthenticated, require('./datasetindex').get);
     
     app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
-    //app.get('/dataset/:uuid', IsAuthenticated, require('./datasetdisplay').get);
     app.get('/dataset/:id', IsAuthenticated, require('./spa').getDataset);
     app.get('/event/:id', IsAuthenticated, require('./spa').getEvent);
-    
-    
-    app.get('/panel/:uuid/download', IsAuthenticated, require('./customdownload').get);
         
     app.get('/user/:uuid', IsAuthenticated, require('./user').get);
     
@@ -42,22 +38,8 @@ module.exports = function(app, passport) {
     
     app.get('/upload/rnc', IsAuthenticated, require('./rncupload').get);
     app.post('/upload/rnc/process', IsAuthenticated, require('./rncprocess').post);
-    
 
     app.get( '/snippet/:type', IsAuthenticated, require('./getsnippet').get);
     
-    app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
-
-    //for Jorge's testing purposes
-    app.post('/noop/', function (req, res) {
-      res.send({prop1: 'value 1'});
-    });
-    app.get('/noop/', function (req, res) {
-      res.send({prop1: 'value 1'});
-    });
-
-    app.get('/lens/:type', IsAuthenticated, require('./getlens').get);
-    
-    //app.get('/spa', require('./spa').get);
-    
+    app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);    
 };

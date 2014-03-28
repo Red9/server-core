@@ -34,7 +34,6 @@ exports.getBody = function(req, res, next) {
 
     if (typeof req.param('axes') !== 'undefined') {
         axes = req.param('axes').split(',');
-        console.log('Axes to get: ' + JSON.stringify(axes));
     }
 
     parameters.cache = req.param('cache');

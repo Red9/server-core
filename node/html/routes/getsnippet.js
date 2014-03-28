@@ -34,36 +34,36 @@ var ChangeUnits = function(summary, system) {
 };
 
 var eventTypeList = [
-  {name: "Default"},
-  {name: "Wave: Left"},
-  {name: "Wave: Right"},
-  {name: "Wave"},
-  {name: "Drop In"},
-  {name: "Bottom Turn"},
-  {name: "Snap"},
-  {name: "Snap: Closeout"},
-  {name: "Air Drop"},
-  {name: "Cutback"},
-  {name: "Floater"},
-  {name: "Carve"},
-  {name: "Tail Slide"},
-  {name: "Pump"},
-  {name: "360"},
-  {name: "Reverse"},
-  {name: "Air"},
-  {name: "Paddle for Wave"},
-  {name: "Paddle Out"},
-  {name: "Paddle In"},
-  {name: "Paddle Left"},
-  {name: "Paddle Right"},
-  {name: "Paddle"},
-  {name: "Duck Dive"},
-  {name: "Wipe out"},
-  {name: "Pearling"},
-  {name: "Session"},
-  {name: "Walk"},
-  {name: "Run"},
-  {name: "Stationary"}
+    {name: "Default"},
+    {name: "Wave: Left"},
+    {name: "Wave: Right"},
+    {name: "Wave"},
+    {name: "Drop In"},
+    {name: "Bottom Turn"},
+    {name: "Snap"},
+    {name: "Snap: Closeout"},
+    {name: "Air Drop"},
+    {name: "Cutback"},
+    {name: "Floater"},
+    {name: "Carve"},
+    {name: "Tail Slide"},
+    {name: "Pump"},
+    {name: "360"},
+    {name: "Reverse"},
+    {name: "Air"},
+    {name: "Paddle for Wave"},
+    {name: "Paddle Out"},
+    {name: "Paddle In"},
+    {name: "Paddle Left"},
+    {name: "Paddle Right"},
+    {name: "Paddle"},
+    {name: "Duck Dive"},
+    {name: "Wipe out"},
+    {name: "Pearling"},
+    {name: "Session"},
+    {name: "Walk"},
+    {name: "Run"},
+    {name: "Stationary"}
 ];
 
 
@@ -102,28 +102,6 @@ exports.get = function(req, res, next) {
             EventType: eventTypeList
         };
         res.render('snippets/createeventmodal', parameters);
-    } else if (snippet_type === 'summarystatistics') {
-        if (typeof req.param('dataset') !== 'undefined') {
-            datasetResource.get({id: req.param('dataset')}, function(event) {
-                if (typeof event === 'undefined') {
-                    next();
-                } else {
-                    if (event.summary_statistics === '') {
-                        res.status(204).send('');
-                    } else {
-                        if (typeof units !== "undefined") {
-                            ChangeUnits(event.summary_statistics, units);
-                        }
-
-                        var parameters = {layout: false,
-                            event: event,
-                            measurements: config.measurements
-                        };
-                        res.render('snippets/summarystatistics', parameters);
-                    }
-                }
-            });
-        }
     } else if (snippet_type === "usrmodal") {
         var parameters = {
             layout: false
@@ -131,7 +109,7 @@ exports.get = function(req, res, next) {
 
         res.render('snippets/usrmodal', parameters);
     } else if (snippet_type === "eventtype") {
-      res.json(eventTypeList);
+        res.json(eventTypeList);
     }
     else {
         next();
