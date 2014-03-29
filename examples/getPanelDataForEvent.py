@@ -20,10 +20,13 @@ event = requests.get('http://api.redninesensor.com/event/' + eventId ).json()[0]
 datasetId = event['datasetId']
 event_start_time = event['startTime']
 event_end_time = event['endTime']
+
+dataset = requests.get('http://api.redninesensor.com/dataset/' + datasetId).json()[0]
+headPanelId = dataset['headPanelId']
  
 # Request the panel within the start and end times
-panelUrl = 'http://api.redninesensor.com/dataset/' + datasetId \
-	+ '/panel/?startTime=' + str(event_start_time) \
+panelUrl = 'http://api.redninesensor.com/panel/' + headPanelId \
+	+ '/body/?startTime=' + str(event_start_time) \
 	+ '&endTime=' + str(event_end_time)
 panel = requests.get(panelUrl)
 

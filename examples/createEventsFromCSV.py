@@ -68,12 +68,12 @@ host = 'http://api.redninesensor.com'
  
 # Make the HTTP request, parse it as JSON, and get the first element in the 
 # result array.
-dataset = requests.get(host + '/dataset/' + datasetId ).json()[0]
+dataset = requests.get(host + '/dataset/' + datasetId + '?expand=headPanel').json()[0]
  
 # Access the individual 'title' field in the dataset.
 print('Adding events to dataset "' + dataset['title'] + '"')
  
-datasetStartTime = dataset['startTime']
+datasetStartTime = dataset['headPanel']['startTime']
  
 with open(csvName, 'rU') as f:
 	reader = csv.reader(f)
