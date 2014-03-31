@@ -29,6 +29,8 @@ downloadPanelModal.prototype.resourceDownload = function(event, parameters) {
     var self = this;
     if (parameters.type === 'panel') {
         sandbox.requestTemplate('downloadpanelmodal', function(template) {
+            parameters.resource.currentStartTime = sandbox.focusState.startTime;
+            parameters.resource.currentEndTime = sandbox.focusState.endTime;
             self.myPlace.html(template(parameters.resource));
             self.myPlace.find('.modal').modal('show');
             $.proxy(self.setupForm(), self);
