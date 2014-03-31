@@ -40,7 +40,6 @@ if (cluster.isMaster) {
 
     app.use(logger.logger()); // Middleware to log all requests. Uses logger
     app.use(express.compress());
-
     app.use(express.cookieParser());
     app.use(express.bodyParser());
 
@@ -58,13 +57,14 @@ if (cluster.isMaster) {
 
     // development only
     if ('development' === app.get('env')) {
+        console.log('In development mode (env === development)');
         app.use(express.errorHandler());
     }
 
     requireFromRoot('api/routes')(app); // These are the main site routes
 
     app.use(function(req, res, next) {
-        res.status(404).json({title: "Sorry, api doesn't exist"});
+        res.status(404).json({title: "Sorry, that api route does not exist"});
     });
 
     var server = http.createServer(app);
@@ -72,7 +72,7 @@ if (cluster.isMaster) {
     server.listen(app.get('port'), function() {
         log.info('Express API server listening on port ' + app.get('port'));
     });
-    
-    
+
+
     requireFromRoot('support/resources/usr').loadUsrs();
 }

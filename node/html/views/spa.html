@@ -23,7 +23,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
 <script src="/js/tiles/summarystatistics.js"></script>
 <script src="/js/tiles/resourcedetails.js"></script>
 <script src="/js/tiles/downloadpanelmodal.js"></script>
-
+<script src="/js/tiles/editresourcemodal.js"></script>
 <script src="/js/URI.js"></script>
 
 <script src="/js/sandbox.js"></script>
@@ -61,7 +61,7 @@ Sometimes it loads, sometimes it loads a blank space. Grrr... -->
                 });
 
                 $('#navbar-fixed-bottom-edit-dataset-button').on('click', function(element) {
-                    console.log('click');
+                    sandbox.resourceEdit('dataset', sandbox.focusState.dataset);
                 });
 
                 $('#navbar-fixed-bottom-create-event-button').on('click', function(element) {

@@ -20,8 +20,13 @@ eventList.prototype.setEvents = function(events) {
         self.myPlace.html(template({events: events}));
 
         // Listen for clicks on the checkbox
-        self.myPlace.find('input').on('click', function(event) {
+        self.myPlace.find('input:checkbox').on('click', function(event) {
             console.log('Checkbox clicked. Row Name: ' + $(this).closest('tr').attr('name'));
+        });
+        
+        self.myPlace.find('button[data-name=editevent]').on('click', function(){
+           var id = $(this).closest('tr').attr('name');
+           sandbox.resourceEdit('event', id);
         });
 
         self.myPlace.find('[name=delete-button]').on('click', function() {
@@ -36,7 +41,7 @@ eventList.prototype.setEvents = function(events) {
         });
 
         // Listen for clicks on an event in table
-        self.myPlace.find('tr td:nth-child(n+2)').on('click', function(event) {
+        self.myPlace.find('tr td:nth-child(2), tr td:nth-child(3), tr td:nth-child(4)').on('click', function(event) {
             var id = $(this).closest('tr').attr('name');
             sandbox.resourceFocused('event', id);
         });

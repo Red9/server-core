@@ -14,6 +14,10 @@ var common = requireFromRoot('support/resourcescommon');
  * @type type
  */
 
+
+// TODO(SRLM): Add check to make sure that the files are executable. If not then throw error!
+// TODO(SRLM): make the USRs have static IDs. No need to change them on every server load.
+
 var usrList = [];
 
 var processUsr = function(usrDirectory) {

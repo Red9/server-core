@@ -20,6 +20,9 @@ var sandbox = {
                 class: downloadPanelModal
             },
             {
+                class: editResourceModal
+            },
+            {
                 class: eventList
             },
             {
@@ -194,6 +197,27 @@ var sandbox = {
             success: callback
         });
     },
+    getSchema: function(resourceType, callback) {
+        $.ajax({
+            type: 'GET',
+            url: sandbox.apiUrl + '/' + resourceType + '/describe',
+            dataType: 'json',
+            success: callback
+        });
+    },
+    update: function(resourceType, id, newValues) {
+        console.log('resourceType: ' + resourceType);
+        console.log('id: ' + id);
+        $.ajax({
+            type: 'PUT',
+            url: sandbox.apiUrl + '/' + resourceType + '/' + id,
+            dataType: 'json',
+            data: newValues,
+            success: function() {
+                console.log('Did put successfully.');
+            }
+        });
+    },
     delete: function(resourceType, id) {
         $.ajax({
             type: 'DELETE',
@@ -269,10 +293,6 @@ var sandbox = {
                 });
 
     },
-    set: function(type) {
-
-
-    },
     requestTemplate: function(name, callback) {
         if (typeof sandbox.templates[name] === 'undefined') {
             $.ajax({
@@ -313,6 +333,17 @@ var sandbox = {
     },
     resourceDownload: function(type, id) {
         var eventName = 'totalState.resource-download';
+        sandbox.get(type, {id: id}, function(resourceList) {
+            if (resourceList.length === 1) {
+                sandbox.initiateEvent(eventName, {
+                    type: type,
+                    resource: resourceList[0]
+                });
+            }
+        });
+    },
+    resourceEdit: function(type, id) {
+        var eventName = 'totalState.resource-edit';
         sandbox.get(type, {id: id}, function(resourceList) {
             if (resourceList.length === 1) {
                 sandbox.initiateEvent(eventName, {

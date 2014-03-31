@@ -7,6 +7,7 @@ var event = {
     allowed:[
         'create',
         'search',
+        'describe',
         'get',
         'update',
         'delete'
@@ -21,6 +22,7 @@ var dataset = {
     root: '/dataset/',
     allowed:[
         'search',
+        'describe',
         'get',
         'update',
         'delete'
@@ -32,6 +34,7 @@ var user = {
     root: '/user/',
     allowed:[
         'search',
+        'describe',
         'get',
         'update'
     ]
@@ -43,6 +46,7 @@ var panel = {
     allowed:[
         'create',
         'search',
+        'describe',
         'get',
         'update',
         'delete'

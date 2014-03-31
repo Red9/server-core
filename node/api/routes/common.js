@@ -14,6 +14,7 @@ exports.addRoutesToApp = function(app, route) {
     var pathFunctions = {
         create: notAllowedFunction,
         search: notAllowedFunction,
+        describe: notAllowedFunction,
         get: notAllowedFunction,
         update: notAllowedFunction,
         delete: notAllowedFunction
@@ -27,13 +28,14 @@ exports.addRoutesToApp = function(app, route) {
 
     app.post(route.root, pathFunctions.create);
     app.get(route.root, pathFunctions.search);
+    app.get(route.root + 'describe', pathFunctions.describe);
     app.get(route.root + ':id', pathFunctions.get);
     app.put(route.root + ':id', pathFunctions.update);
     app.delete(route.root + ':id', pathFunctions.delete);
-    
-    if(typeof route.extraRoutes !== 'undefined'){
-        underscore.each(route.extraRoutes, function(newRoute){
-           app[newRoute.method](newRoute.path, newRoute.handler); 
+
+    if (typeof route.extraRoutes !== 'undefined') {
+        underscore.each(route.extraRoutes, function(newRoute) {
+            app[newRoute.method](newRoute.path, newRoute.handler);
         });
     }
 };
@@ -48,6 +50,10 @@ function simplifyOutput(route, resourceArray) {
     return resourceArray;
 }
 
+exports.describe = function(route, req, res, next) {
+    console.log('Describing route: ');
+    res.json(resources[route.resource].resource.schema);
+};
 
 exports.search = function(route, req, res, next) {
     var simpleOutput = false;
