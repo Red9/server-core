@@ -3,6 +3,8 @@ var validator = require('validator');
 var moment = require('moment');
 var async = require('async');
 
+var geolib = require('geolib');
+
 var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
 var log = requireFromRoot('support/logger').log;
 
@@ -35,14 +37,14 @@ exports.CheckConstraints = function(object, constraints) {
 
     var result = true; // Default to true for no constraints.
     underscore.each(constraints, function(constraintValues, constraintPath) {
-        
+
         // Handle "special" constraints:
-        if(constraintPath === 'intersects'){
+        if (constraintPath === 'intersects') {
             result = result && CheckIntersectionConstraint(object, constraintValues);
             return; // Break out of this iteration.
         }
-        
-        
+
+
         if (underscore.isString(constraintValues) === true) {
             constraintValues = constraintValues.split(',');
         }
@@ -70,16 +72,16 @@ exports.CheckConstraints = function(object, constraints) {
 };
 
 
-function GetNestedKey(targetKey, object){
+function GetNestedKey(targetKey, object) {
     var result;
-    for(var key in object){
-        if(targetKey === key){
+    for (var key in object) {
+        if (targetKey === key) {
             result = object[key];
             break;
         }
-        if(underscore.isObject(object[key])){
+        if (underscore.isObject(object[key])) {
             result = GetNestedKey(targetKey, object[key]);
-            if(typeof result !== 'undefined'){
+            if (typeof result !== 'undefined') {
                 return result;
             }
         }
@@ -87,10 +89,85 @@ function GetNestedKey(targetKey, object){
     return result;
 }
 
-function CheckIntersectionConstraint(object, description){
-    var statistics = GetNestedKey('summaryStatistics', object);
-    if(typeof statistics === 'undefined'){
+
+function circleIntersectsRectangle(circle, rectangle) {
+    // Algorithm from this answer: http://stackoverflow.com/a/402010
+
+    circle.x = Math.abs(circle.x - rectangle.x);
+    circle.y = Math.abs(circle.y - rectangle.y);
+
+    if (circle.x > (rectangle.width / 2 + circle.r)) {
         return false;
+    }
+    if (circle.y > (rectangle.height / 2 + circle.r)) {
+        return false;
+    }
+
+    if (circle.x <= (rectangle.width / 2)) {
+        return true;
+    }
+    if (circle.y <= (rectangle.height / 2)) {
+        return true;
+    }
+
+    var cornerDistance_sq = (circle.x - rectangle.width / 2) ^ 2 +
+            (circle.y - rectangle.height / 2) ^ 2;
+
+    return (cornerDistance_sq <= (circle.r ^ 2));
+
+}
+
+/**
+ * 
+ * @param {type} object
+ * @param {type} description
+ * @returns {Boolean} true if passes constraint, false if it fails
+ */
+function CheckIntersectionConstraint(object, description) {
+    var statistics = GetNestedKey('summaryStatistics', object);
+    if (typeof statistics === 'undefined') {
+        return false;
+    } else {
+        try {
+            var boundingBox = {
+                latitude: {
+                    minimum: statistics.instantaneous.gps.latitude.minimum.value,
+                    maximum: statistics.instantaneous.gps.latitude.maximum.value
+                },
+                longitude: {
+                    minimum: statistics.instantaneous.gps.longitude.minimum.value,
+                    maximum: statistics.instantaneous.gps.longitude.maximum.value
+                }
+            };
+
+            var boxCenter = geolib.getCenter([
+                {longitude: boundingBox.longitude.maximum, latitude: boundingBox.latitude.maximum},
+                {longitude: boundingBox.longitude.maximum, latitude: boundingBox.latitude.minimum},
+                {longitude: boundingBox.longitude.minimum, latitude: boundingBox.latitude.maximum},
+                {longitude: boundingBox.longitude.minimum, latitude: boundingBox.latitude.minimum},
+            ]);
+
+            var shape = description.split('(')[0];
+            var parameters = description.replace(/^[^(]*\(/, "") // trim everything before first parenthesis
+                    .replace(/\)[^(]*$/, "") // trim everything after last parenthesis
+                    .split(',');      // split between parenthesis
+
+            parameters = underscore.map(parameters, parseFloat);
+
+            if (shape === 'circle') {
+                var result = geolib.isPointInCircle(
+                        boxCenter, // Box center
+                        {latitude: parameters[0], longitude: parameters[1]}, // Circle center
+                parameters[2]); // Radius
+                return result;
+            }
+
+            return false;
+
+        } catch (e) {
+            return false;
+        }
+
     }
 }
 
@@ -378,7 +455,7 @@ function processResource(parameters, doneCallback) {
     var expand = parameters.expand;
     var constraints = parameters.constraints;
     var result = parameters.result;
-    
+
     var expandFunctions = typeof resourceDescription.get === 'undefined'
             || typeof resourceDescription.get.expandFunctions === 'undefined' ? {} : resourceDescription.get.expandFunctions;
 

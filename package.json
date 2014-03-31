@@ -25,6 +25,7 @@
         "underscore": "latest",
         "validator":"latest",
         "connect-timeout":"latest",
-        "requirejs":"latest"
+        "requirejs":"latest",
+	"geolib":"latest"
     }
 }

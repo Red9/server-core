@@ -23,7 +23,10 @@
                                     </span>
                                     <input name="start_time_input" class="form-control" type="text" placeholder="eg 123456789">
                                 </div>
-                                <p class="help-block">The start time of the dataset to download. Minimum is <b name="minimum_start_time">{{startTime}}</b></p>
+                                <p class="help-block">The start time of the dataset to download. 
+                                    <br/>Minimum is <b name="minimum_start_time">{{startTime}}</b>
+                                    <br/>Current is &nbsp;&nbsp;<b name="current_start_time">{{currentStartTime}}</b>
+                                </p>
                             </div>
                         </div>
 
@@ -37,7 +40,10 @@
                                     </span>
                                     <input name="end_time_input" name="end_time_checkbox" class="form-control" type="text" placeholder="eg 987654321">
                                 </div>
-                                <p class="help-block">The end time of the dataset to download. Maximum is <b name="maximum_end_time">{{endTime}}</b></p>
+                                <p class="help-block">The end time of the dataset to download. 
+                                    <br />Current is &nbsp;&nbsp; <b name="current_end_time">{{currentEndTime}}</b>
+                                    <br />Maximum is <b name="maximum_end_time">{{endTime}}</b>
+                                </p>
                             </div>
                         </div>
 

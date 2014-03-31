@@ -1,5 +1,6 @@
 function panelGraph(myPlace, configuration, doneCallback) {
     var self = this;
+    self.panel = {labels: []};
     self.myPlace = myPlace;
     self.configuration = configuration;
     $(sandbox).on('totalState.resource-focused', $.proxy(this.resourceFocused, this));
@@ -16,29 +17,29 @@ function panelGraph(myPlace, configuration, doneCallback) {
         ];
     }
 
-
-
     sandbox.requestTemplate('panelgraph', function(template) {
         myPlace.html(template({}));
-
         self.setTitle();
         self.constructDygraph(myPlace.find('.row div div'));
-
         self.prepareListeners();
-
         doneCallback();
     });
 }
 
 panelGraph.prototype.prepareListeners = function() {
     var self = this;
-    
+
     this.myPlace.find('[data-name=save-as-image]').on('click', function(event) {
         var imageUrl = Dygraph.Export.asCanvas(self.graph).toDataURL();
         var downloadName = sandbox.focusState.dataset + '_' + sandbox.focusState.startTime
                 + '_' + sandbox.focusState.endTime + '-graph.png';
         $(this).attr('href', imageUrl);
         $(this).attr('download', downloadName);
+    });
+
+    this.myPlace.find('[data-name=toggle-settings]').on('click', function() {
+        self.myPlace.find('[data-name=settings]').toggleClass('hidden');
+        $(this).find('span').toggleClass('glyphicon-cog glyphicon-minus-sign');
     });
 };
 
@@ -274,18 +275,90 @@ panelGraph.prototype.onZoom = function(startTime, endTime) {
     sandbox.resourceFocused('dataset', this.datasetId, Math.round(startTime), Math.round(endTime));
 };
 
+panelGraph.prototype.getVisibility = function() {
+    var self = this;
+    var visibility = _.map(self.panel.labels, function(axis) {
+        return _.indexOf(self.configuration.axes, axis) !== -1;
+    });
+    visibility.shift();  // shift to remove "time" from list
+    return visibility;
+};
+
+panelGraph.prototype.updateVisibility = function() {
+    var visibility = this.getVisibility();
+    this.graph.updateOptions({
+        visibility: visibility
+    });
+};
+
+panelGraph.prototype.updateSettings = function() {
+    var self = this;
+
+    var selectableAxes = _.map(this.getVisibility(), function(visible, index) {
+        return {
+            checked: visible ? 'checked' : '',
+            index: index,
+            name: self.panel.labels[index + 1] // +1 for time
+        };
+    });
+
+
+    var displayableAxes = _.reduce(selectableAxes, function(memo, value, index, list) {
+        var calculatedIndex = Math.floor(index / Math.ceil(list.length / memo.length));
+        memo[calculatedIndex].push(value);
+        return memo;
+    }, [[], [], [], []]);
+
+
+
+    sandbox.requestTemplate('panelgraph.settings', function(settingsTemplate) {
+        self.myPlace.find('[data-name=settings]').html(settingsTemplate({axes: displayableAxes}));
+        self.myPlace.find('[data-name=axis-checkbox]').on('click', function() {
+            var visibilityList = self.graph.visibility();
+            visibilityList[$(this).attr('data-index')] = $(this).prop('checked');
+
+            console.log('VisibilityList: ' + JSON.stringify(visibilityList));
+
+            self.graph.updateOptions({
+                visibility: visibilityList
+            });
+
+        });
+    });
+};
+
+panelGraph.prototype.calculateGraphColors = function() {
+    var undefinedColorIndex = 0;
+    return _.map(_.rest(this.panel.labels), function(axis) {
+        if (_.has(sandbox.definedColorMappings, axis)) {
+            return sandbox.definedColorMappings[axis];
+        } else {
+            var color = sandbox.undefinedColorMappings[undefinedColorIndex];
+            undefinedColorIndex = (undefinedColorIndex + 1) % sandbox.undefinedColorMappings.length;
+            return color;
+        }
+    });
+};
+
 //Update existing graph instance
 panelGraph.prototype.updateDygraph = function(panel) {
     if (typeof this.graph !== 'undefined') {
+        this.panel.labels = panel.labels;
+
+
+
+
 
         var graphCfg = {
             file: panel.values,
             labels: FormatLabels(panel.labels),
-            dateWindow: [panel.startTime, panel.endTime]
+            dateWindow: [panel.startTime, panel.endTime],
+            colors: this.calculateGraphColors()
         };
-
         this.graph.updateOptions(graphCfg);
 
+        this.updateVisibility();
+        this.updateSettings();
     }
 };
 
@@ -297,6 +370,7 @@ panelGraph.prototype.resourceFocused = function(event, parameter) {
             this.datasetId = parameter.resource.datasetId;
         }
 
-        this.updateDygraph(sandbox.trimPanel(parameter.panel, this.configuration.axes));
+        this.updateDygraph(parameter.panel);
+        //this.updateDygraph(sandbox.trimPanel(parameter.panel, this.configuration.axes));
     }
 };

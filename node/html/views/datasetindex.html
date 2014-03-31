@@ -113,10 +113,10 @@
                         More filters <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu pull-right" role="menu">
-                        <li><a href="#" data-name="static.route.path.distance.value" data-template="slider" data-title="Distance" data-units="mi" data-tovalue="mileToMeter">Path distance</a></li>
+                        <!--<li><a href="#" data-name="headPanel.summaryStatistics.static.route.path.distance.value" data-template="slider" data-title="Distance" data-units="mi" data-tovalue="mileToMeter">Path distance</a></li>-->
                         <li class="divider"></li>
-                        <li><a href="#" data-name="instantaneous.acceleration.magnitude.average" data-template="slider" data-title="Instantaneous acceleration" data-max="150" data-units="m<sub>/s<sup>2</sup></sub>">Instantaneous acceleration</a></li>
-                        <li><a href="#" data-name="instantaneous.rotationrate.magnitude.average" data-template="range-input" data-title="Instantaneous rotation" data-units="<sup>rad</sup><sub>/s</sub>">Instantaneous average rotation rate</a></li>
+                        <li><a href="#" data-name="headPanel.summaryStatistics.instantaneous.acceleration.magnitude.average.value" data-template="slider" data-title="Instantaneous acceleration" data-max="150" data-units="m<sub>/s<sup>2</sup></sub>">Instantaneous acceleration</a></li>
+                        <li><a href="#" data-name="headPanel.summaryStatistics.instantaneous.rotationrate.magnitude.average.value" data-template="range-input" data-title="Instantaneous rotation" data-units="<sup>rad</sup><sub>/s</sub>">Instantaneous average rotation rate</a></li>
                     </ul>
                 </div>
             </div>
@@ -221,8 +221,9 @@ $('#distance').on('input', function () {
     site.mapContext.circle.setRadius(radius);
     var targetElement = $('#intersects');
     var values = $('#intersects').val().split(',');
+    // The first value implictly has the shape.
     if (values.length === 3) {
-        targetElement.val('circle(' + values[0] + ',' + values[1] + ',' + radius + ')');
+        targetElement.val(values[0] + ',' + values[1] + ',' + radius + ')');
     }
 });
 $('#datetime, #timespan').change(function() {

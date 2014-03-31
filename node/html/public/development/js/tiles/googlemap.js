@@ -100,9 +100,7 @@ googleMap.prototype.updateWithNewPanel = function(panel) {
                 title: 'Start',
                 icon:'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
             });
-            console.log('startMarker: ' + self.startMarker);
         } else if (index === panel.values.length - 1) {
-            console.log('Creating end marker');
             self.endMarker = new google.maps.Marker({
                 position: point,
                 map:self.map,

@@ -1,20 +1,38 @@
 
 var sandbox = {
+    definedColorMappings: {
+        "gps:altitude": "#FF6347",
+        "gps:speed": "#8B4513",
+        "gps:satellite": "#4B0082",
+        "gps:hdop": "#228B22",
+        "rotationrate:x": "#C71585",
+        "rotationrate:y": "#32CD32",
+        "rotationrate:z": "#4169E1",
+        "magneticfield:x": "#FF4500",
+        "magneticfield:y": "#3CB371",
+        "magneticfield:z": "#191970",
+        "pressure:pressure": "#2E8B57",
+        "pressure:temperature": "#F4A460",
+        "acceleration:x": "#FFA500",
+        "acceleration:y": "#6B8E23",
+        "acceleration:z": "#0000CD"
+    },
+    undefinedColorMappings: [
+        "#DA70D6",
+        "#CD853F",
+        "#B0E0E6",
+        "#9ACD32"
+    ],
     init: function() {
 
         sandbox.setPageTitle('Red9 Sensor');
-
         History.Adapter.bind(window, 'statechange', sandbox.onHistoryChange); // Note: We are using statechange instead of popstate
 
 
         sandbox.templates = {};
         sandbox.modules = [];
-
         sandbox.div = $('#sandboxContentDiv');
-
         sandbox.focusState = undefined;
-
-
         var tiles = [
             {
                 class: downloadPanelModal
@@ -78,39 +96,13 @@ var sandbox = {
                 class: summaryStatistics
             },
             {
-                class: panelGraph,
-                configuration: {
-                    axes: [
-                        'gps:altitude'
-                    ]
-                }
-            },
-            {
-                class: panelGraph,
-                configuration: {
-                    axes: [
-                        'gps:hdop'
-                    ]
-                }
-            },
-            {
-                class: panelGraph,
-                configuration: {
-                    axes: [
-                        'gps:satellite'
-                    ]
-                }
-            },
-            {
                 class: resourceDetails
             }
         ];
-
         async.eachSeries(tiles,
                 function(tile, doneCallback) {
                     var temp = $('<div></div>');
                     sandbox.div.append(temp);
-
                     if (typeof tile.configuration === 'undefined') {
                         tile.configuration = {};
                     }
@@ -121,12 +113,10 @@ var sandbox = {
                 function(err) {
                     sandbox.onHistoryChange();
                 });
-
     },
     splicePanel: function(core, extra) {
         var result = _.omit(core, 'values');
         result.values = [];
-
         var i;
         // Add the dataset first "half"
         for (i = 0; i < extra.values.length
@@ -139,7 +129,6 @@ var sandbox = {
         _.each(core.values, function(value, index) {
             result.values.push(value);
         });
-
         // Find the end of the splice
         for (; i < extra.values.length
                 && extra.values[i][0] <= core.values[core.values.length - 1][0]
@@ -157,7 +146,6 @@ var sandbox = {
         // Add in default of time
         var resultAxes = [panel.labels[0]];
         var indicies = [0];
-
         _.each(axes, function(desiredAxis) {
             var index = _.indexOf(panel.labels, desiredAxis);
             if (index !== -1) {
@@ -165,7 +153,6 @@ var sandbox = {
                 indicies.push(index);
             }
         });
-
         var resultPanel = _.omit(panel, ['labels', 'values']);
         resultPanel.labels = resultAxes;
         resultPanel.values = _.map(panel.values, function(row) {
@@ -175,9 +162,7 @@ var sandbox = {
             });
             return resultRow;
         });
-
         return resultPanel;
-
     },
     get: function(resourceType, constraints, callback, expand) {
         if (typeof expand !== 'undefined') {
@@ -235,7 +220,6 @@ var sandbox = {
             format: 'json',
             cache: 'off'
         };
-
         if (typeof startTime !== 'undefined') {
             panelParameters.startTime = startTime;
         }
@@ -285,13 +269,11 @@ var sandbox = {
             endTime: 1395117770910,
             id: '29b2038c-21cd-41bb-f103-9402f3a895cc'
         };
-
         sandbox.getSplicedPanel('29b2038c-21cd-41bb-f103-9402f3a895cc', 1395117501000, 1395117670910,
                 function(splicedPanel) {
                     console.log("Got panel: " + JSON.stringify(_.omit(splicedPanel, 'values')));
                     console.log('Panel values length: ' + splicedPanel.values.length);
                 });
-
     },
     requestTemplate: function(name, callback) {
         if (typeof sandbox.templates[name] === 'undefined') {
@@ -310,7 +292,6 @@ var sandbox = {
     },
     resourceFocused: function(type, id, startTime, endTime) {
         var uri = URI();
-
         if (typeof type !== 'undefined' && typeof id !== 'undefined') {
             uri.directory(type);
             uri.filename(id);
@@ -328,7 +309,6 @@ var sandbox = {
         }
 
         uri.query(focus);
-
         History.pushState(null, 'Focusing on ' + type + ' ' + id, uri.toString());
     },
     resourceDownload: function(type, id) {
@@ -366,13 +346,11 @@ var sandbox = {
     },
     initiateResourceFocusedEvent: function(resource, id, startTime, endTime) {
         var eventName = 'totalState.resource-focused';
-
         if (resource === 'event') {
             sandbox.get(resource, {id: id}, function(event) {
                 sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
                     startTime = event[0].startTime;
                     endTime = event[0].endTime;
-
                     sandbox.getSplicedPanel(dataset[0].headPanelId, startTime, endTime, true, function(panel) {
                         sandbox.setPageTitle('Event: ' + event[0].type);
                         sandbox.focusState = {
@@ -396,7 +374,6 @@ var sandbox = {
         } else if (resource === 'dataset') {
             sandbox.get(resource, {id: id}, function(dataset) {
                 var cache = typeof startTime === 'undefined' && typeof endTime === 'undefined';
-
                 if (typeof startTime === 'undefined') {
                     startTime = dataset[0].headPanel.startTime;
                 }
@@ -427,18 +404,12 @@ var sandbox = {
         // Bound to StateChange Event
         var State = History.getState(); // Note: We are using History.getState() instead of event.state
         var uri = URI(State.url);
-
         var query = uri.query(true);
-
         var resource = uri.directory().substring(1); // remove leading '/'
         var id = uri.filename();
-
         sandbox.initiateResourceFocusedEvent(resource, id, query['focus.starttime'], query['focus.endtime']);
     }
-
 };
-
 $(document).ready(function() {
     sandbox.init();
-
 });
