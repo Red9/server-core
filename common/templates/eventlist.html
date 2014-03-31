@@ -11,6 +11,7 @@
         <th>Type</th>
         <th>Started</th>
         <th>Duration</th>
+        <th></th>
         </thead>
         <tbody id="result_tbody">
             {{#each events}}
@@ -19,6 +20,7 @@
                 <td>{{type}}</td>
                 <td>{{toDateString startTime}} {{toTimeString startTime}}</td>
                 <td>{{toDurationString startTime endTime}}</td>
+                <td><button data-name="editevent" class="btn btn-default btn-sm pull-right"><span class="glyphicon glyphicon-pencil"></span></button></td>
             </tr>
             {{/each}}
         </tbody>

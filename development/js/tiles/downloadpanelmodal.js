@@ -61,8 +61,7 @@ downloadPanelModal.prototype.setupForm = function() {
         return this.optional(element) || /^\d+$/.test(value);
     }, "A positive non-decimal number please");
 
-    var self;
-    this.myPlace.find('[name=download_panel_form]').validate({
+    this.myPlace.find('form').validate({
         rules: {
             start_time_input: {
                 requiredIfChecked: true,
