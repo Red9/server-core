@@ -179,7 +179,15 @@ var site = {
     $('#container-results').empty();
     var self = this;
     $.get(url, searchParams, function (response) {
-      self.results = response.sort(site.sortBy('createTime', 'desc'));
+      self.results = _.sortBy(response, function(resource){
+          if(_.has(resource, 'createTime') === true){
+              return 0 - resource.createTime;
+          } else if(_.has(resource, 'startTime') === true){
+              return 0 - resource.startTime;
+          } else{
+              return 0;
+          }
+      });
       self.showResults();
     });
   },
