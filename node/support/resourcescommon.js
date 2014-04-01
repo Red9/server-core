@@ -482,39 +482,50 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
             return;
         }
 
-        //TODO(SRLM): Add check: if just a single resource (given by ID) then do a direct search for that.
-
-        var calculationStartTime = new Date();
 
         var result = [];
+        var table = resourceDescription.cassandraTable;
+        var calculationStartTime = new Date();
         var queue = async.queue(processResource, 0);
 
-        var table = resourceDescription.cassandraTable;
-        cassandraDatabase.getAll(table,
-                function(cassandraResource) {
-                    var resource = resourceDescription.mapToResource(cassandraResource);
+        var databaseRowFunction = function(cassandraResource) {
+            var resource = resourceDescription.mapToResource(cassandraResource);
 
-                    var parameters = {
-                        resourceDescription: resourceDescription,
-                        constraints: constraints,
-                        resourceInstance: resource,
-                        expand: expand,
-                        result: result
-                    };
-                    queue.push(parameters);
+            var parameters = {
+                resourceDescription: resourceDescription,
+                constraints: constraints,
+                resourceInstance: resource,
+                expand: expand,
+                result: result
+            };
+            queue.push(parameters);
 
-                },
-                function(err) {
-                    queue.drain = function() {
-                        //log.debug('Resource search (' + table + ') done. Expanded ' + JSON.stringify(expand) + ' and tested ' + underscore.size(constraints) + ' constraints in ' + (new Date() - calculationStartTime) + ' ms');
+        };
+        var databaseDoneFunction = function(err) {
+            queue.drain = function() {
+                //log.debug('Resource search (' + table + ') done. Expanded ' + JSON.stringify(expand) + ' and tested ' + underscore.size(constraints) + ' constraints in ' + (new Date() - calculationStartTime) + ' ms');
 
-                        postFunction(result);
-                        callback(result);
-                    };
+                postFunction(result);
+                callback(result);
+            };
 
-                    // Turn on the queue
-                    queue.concurrency = 5;
-                });
+            // Turn on the queue
+            queue.concurrency = 5;
+        };
+
+        if (underscore.keys(constraints).length === 1
+                && underscore.has(constraints, 'id')) {
+            // Get a single resource
+            cassandraDatabase.getSingle(table, constraints.id, function(cassandraResource) {
+                databaseRowFunction(cassandraResource);
+                databaseDoneFunction();
+            });
+
+        } else {
+            cassandraDatabase.getAll(table,
+                    databaseRowFunction,
+                    databaseDoneFunction);
+        }
     });
 };
 
