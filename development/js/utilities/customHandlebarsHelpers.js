@@ -25,7 +25,12 @@ var customHandlebarsHelpers = {
             result = duration.minutes() + 'm ';
         }
 
-        result += duration.seconds() + '.' + duration.milliseconds() + 's';
+        var msString = '' + duration.milliseconds();
+        while(msString.length < 3){
+            msString = '0' + msString;
+        }
+
+        result += duration.seconds() + '.' + msString + 's';
 
         return result;
 
