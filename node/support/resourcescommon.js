@@ -514,12 +514,20 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
         };
 
         if (underscore.keys(constraints).length === 1
-                && underscore.has(constraints, 'id')) {
+                && underscore.has(constraints, 'id')) { // If we're searching by key do it directly.
             // Get a single resource
-            cassandraDatabase.getSingle(table, constraints.id, function(cassandraResource) {
-                databaseRowFunction(cassandraResource);
-                databaseDoneFunction();
-            });
+            if (validator.isUUID(constraints.id) === true) {
+                cassandraDatabase.getSingle(table, constraints.id, function(cassandraResource) {
+                    if (typeof cassandraResource !== 'undefined') {
+                        databaseRowFunction(cassandraResource);
+                        databaseDoneFunction();
+                    } else { // ID was not a match
+                        callback([]);
+                    }
+                });
+            } else { // UUID is not valid, so we don't have anything.
+                callback([]);
+            }
 
         } else {
             cassandraDatabase.getAll(table,
