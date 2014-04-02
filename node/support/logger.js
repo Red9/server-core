@@ -191,7 +191,9 @@ var CreateHttpColorString = function(parameters) {
     var date = moment().format("MM-DD");
     var time = moment().format("HH:mm:ss.SSS");
 
-    return colorFormatting['grey'][0] + date + " "
+    return colorFormatting['grey'][0] + instanceType + " "
+            + colorFormatting['white'][0] + instanceId + " "
+            + colorFormatting['grey'][0] + date + " "
             + colorFormatting['white'][0] + time + " "
             + colorFormatting['blue'][0] + "<" + parameters["userdisplayname"] + ">"
             + colorFormatting['grey'][0] + ":"

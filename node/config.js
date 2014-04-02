@@ -1,31 +1,35 @@
 var underscore = require('underscore')._;
 
 var requiredInstanceKeys = [
-    'apiPort',
-    'htmlPort',
-    'apiRealm',
-    'htmlRealm',
+    'ports',
+    'realms',
     'tempDirectory',
     'sessionSecret',
     'usrDirectory',
     'statistician_children',
     'release',
     'cassandraHosts',
-    'cassandraKeyspace'
-   
+    'cassandraKeyspace'   
 ];
 
 exports.ProcessCommandLine = function() {
     // Process command line arguments
     var stdio = require('stdio');
     var ops = stdio.getopt({
-        config: {key: 'config', args: 1, description: 'Specify the configuration file'}
+        config: {key: 'config', args: 1, description: 'Specify the configuration file'},
+        type: {key: 'type', args: 1, description: 'Specify the server type (html, api)'}
     });
 
     if (typeof ops.config === 'undefined') {
         console.log('ERROR: must specify a configuration file.');
         process.exit(1);
     }
+    if (typeof ops.type === 'undefined') {
+        console.log('ERROR: must specify a server type');
+        process.exit(1);
+    }
+    
+    exports.serverType = ops.type;    
 
     var instanceconfig = require('./' + ops.config);
     underscore.each(requiredInstanceKeys, function(key) {

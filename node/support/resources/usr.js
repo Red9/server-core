@@ -29,7 +29,7 @@ var processUsr = function(usrDirectory) {
             var package = require('../../' + usrDirectory + '/package.json');
             package.directory = usrDirectory;
             package.id = common.generateUUID();
-            log.debug('Got USR: ' + package.id);
+            //log.debug('Got USR: ' + package.id);
             usrList.push(package);
         }
     });
@@ -45,7 +45,7 @@ function GetUsrFromList(id) {
 function GetCommonUSRParameters() {
     var parameters = [];
     parameters.push('--apiDomain');
-    parameters.push(config.apiRealm);
+    parameters.push(config.realms.api);
     return parameters;
 }
 
@@ -91,7 +91,7 @@ exports.getForm = function(id, marked, callback) {
 exports.loadUsrs = function() {
     var usrDirectory = config.usrDirectory;
 
-    log.debug('USR Directory: ' + usrDirectory);
+    //log.debug('USR Directory: ' + usrDirectory);
     fs.readdir(usrDirectory + '/', function(err, files) {
         underscore.each(files, function(folder, index) {
             fs.stat(usrDirectory + '/' + folder, function(err, stat) {
