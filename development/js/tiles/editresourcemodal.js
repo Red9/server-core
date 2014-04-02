@@ -61,12 +61,20 @@ editResourceModal.prototype.processForm = function() {
         }
     });
 
+    var self = this;
     if (_.isEmpty(newValues) === false) {
         sandbox.update(
                 $('form').attr('data-type'),
                 $('form').attr('data-id'),
-                newValues
-                );
+                newValues,
+                function(err) {
+                    if (typeof err !== 'undefined') {
+                        self.myPlace.find('[data-name=submitWarning]').removeClass('hide').text('Error setting fields: ' + err);
+                    }else{
+                        self.myPlace.find('[data-name=submitSuccess]').removeClass('hide').append('<br/>Successfully set at least 1 field. You may exit now.');
+                    }
+                }
+        );
     }
 
 
