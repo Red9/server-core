@@ -22,7 +22,7 @@ exports.post = function(req, res, next) {
     };
 
     datasetResource.create(newDataset, function(err, datasetList) {
-        
+
         var dataset = datasetList[0];
         var id = dataset.id;
 
@@ -72,6 +72,7 @@ exports.post = function(req, res, next) {
                         endTime: endTime,
                         axes: processingStatistics.columns
                     };
+                    console.log('axes: ' + JSON.stringify(panelUpdate.axes));
 
                     // Integrity check
                     if (startTime !== processingStatistics.datasetStartTime) {
@@ -88,14 +89,17 @@ exports.post = function(req, res, next) {
                     }, true);
 
                     panelResource.update(newPanel.id, panelUpdate, function(err1) {
+                        if (err1) {
+                            log.error('Error updating panel: ' + err1);
+                        }
                         summaryStatisticsResource.calculate(newPanel.id, startTime, endTime, function(statistics) {
                             panelResource.update(newPanel.id, {summaryStatistics: statistics}, function(err) {
                                 if (err) {
                                     log.error('RNC Process dataset summary statistics update unsuccessful: ' + err);
                                 }
-                            },true);
+                            }, true);
                         });
-                    },true);
+                    }, true);
 
                 });
 

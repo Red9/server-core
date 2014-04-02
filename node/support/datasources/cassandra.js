@@ -32,7 +32,10 @@ exports.getSingle = function(type, id, callback) {
         if (err) {
             LogError('databaseCassandra.getSingle', err);
         } else {
-            if (result.rows.length !== 1) {
+            if(result.rows.length === 0){
+                // Nothing wrong, just not found...
+            }
+            else if (result.rows.length > 1) {
                 LogError('databaseCassandra.getSingle', 'Multiple result rows');
             } else {
                 content = ExtractRowToJSON(resources[type].schema, result.rows[0]);

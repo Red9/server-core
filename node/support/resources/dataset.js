@@ -38,7 +38,7 @@ var datasetResource = {
         editable: true
     },
     source: {// TODO(SRLM): Rename this to recorderInformation (or something...)
-        type: 'resource:source',
+        type: 'object',
         includeToCreate: false,
         editable: true
     },

@@ -246,33 +246,6 @@ function GetValueFromPath(source, path) {
     }
 }
 
-
-/**
- * 
- * @param {type} value
- * @param {type} type
- * @returns {Boolean} True if value matches type
- */
-exports.checkType = function(value, type) {
-    if (type === 'timestamp') {
-        return moment(value).isValid();
-    } else if (type === 'string' || type === 'varchar') {
-        return underscore.isString(value);
-    } else if (type === 'uuid') {
-        return validator.isUUID(value);
-    } else if (type === 'resource:summary_statistics') {
-        //TODO(SRLM): Make this more robust
-        return underscore.isObject(value);
-    } else if (type === 'integer') {
-        return underscore.isNumber(value)
-                && validator.isInt(value.toString());
-    } else if (type === 'float') {
-        return underscore.isNumber(value);
-    } else {
-        return false;
-    }
-};
-
 /**
  * Generates a GUID string, according to RFC4122 standards.
  * @returns {String} The generated GUID.
@@ -288,43 +261,105 @@ exports.generateUUID = function() {
     return (_p8() + _p8(true) + _p8(true) + _p8());
 };
 
-
-
-exports.checkNewResourceAgainstSchema = function(resourceSchema, proposedResource) {
-    // Check if we have the correct set of keys
-    var correctKeys = true;
-    underscore.each(resourceSchema, function(value, key) {
-        correctKeys = correctKeys && (key in proposedResource) === value.includeToCreate;
+/** Checks if the proposedResource is a valid instance of resource. Must have
+ * the exact keys, with the exact value types. Extra keys will cause a result
+ * of false, as will values that don't match the schema.
+ *  
+ * @param {type} resource
+ * @param {type} proposedResource
+ * @returns {boolean} true if it is a valid resource, false otherwise
+ */
+function isValidResource(resource, proposedResource) {
+    return underscore.every(proposedResource, function(value, key) {
+        return isValid(resource, key, value);
     });
+}
 
-    if (correctKeys === false) {
-        return "Incorrect keys given.";
-    }
-
-    // Check for the correct value types
-    var correctTypes = true;
-    underscore.each(proposedResource, function(value, key) {
-        correctTypes = correctTypes && exports.checkType(value, resourceSchema[key].type);
-    });
-    if (correctTypes === false) {
-        return "Incorrect types given";
-    }
-};
-
-
+/** Boilerplate function
+ * 
+ * @param {type} resource
+ * @param {type} callback
+ * @returns {undefined}
+ */
 function emptyPre(resource, callback) {
     callback(true);
 }
+/** Boilerplate function
+ * 
+ * @returns {undefined}
+ */
 function emptyPost() {
 }
 
 
+/** Checks whether a particular value is a valid value for the given key in the given resource.
+ * 
+ * @param {type} resource
+ * @param {type} key
+ * @param {type} value
+ * @returns {Boolean} true if it is valid, false if it's not.
+ */
+function isValid(resource, key, value) {
+    var type = resource.schema[key].type;
+    return validateType(type, value);
+}
 
+function validateType(type, value) {
+    if (typeof type === 'undefined') {
+        return false;
+    } else if (type === 'timestamp') {
+        return moment(value).isValid();
+    } else if (type === 'string') {
+        return underscore.isString(value);
+    } else if (type === 'uuid') {
+        return validator.isUUID(value);
+    } else if (type === 'object') {
+        return underscore.isObject(value);
+    } else if (type === 'integer') {
+        return underscore.isNumber(value)
+                && validator.isInt(value.toString());
+    } else if (type === 'float') {
+        return underscore.isNumber(value);
+    } else {
+        type = type.split(':');
+        if (type.length > 1) {
+            if (type[0] === 'string' && type[1] === 'email') { // type string:email
+                return validator.isEmail(value);
+            } else if (type[0] === 'array') {                  // type array:*
+                if (underscore.isArray(value) === false) {
+                    return false;
+                } else {
+                    return underscore.every(value, function(string) {
+                        return validateType(type[1], string);
+                    });
+                }
+            }
+        }
+    }
+    return false; // Default of not valid.
+}
+
+
+
+/** This is a general purpose method that will update a given resource.
+ * 
+ * @param {type} resource
+ * @param {type} id
+ * @param {type} modifiedResource
+ * @param {type} callback (error, modifiedResource)
+ * @param {type} forceEditable
+ * @returns {undefined}
+ */
 exports.updateResource = function(resource, id, modifiedResource, callback, forceEditable) {
     var preFunction = typeof resource.update === 'undefined'
             || typeof resource.update.pre === 'undefined' ? emptyPre : resource.update.pre;
     var postFunction = typeof resource.update === 'undefined'
             || typeof resource.update.post === 'undefined' ? emptyPost : resource.update.post;
+
+    if (validator.isUUID(id) === false) {
+        callback('Given ID "' + id + '" is not a valid UUID.');
+        return;
+    }
 
     //------------------------------------------------------------------
     //TODO(SRLM): Make sure that the resource exists!
@@ -334,23 +369,17 @@ exports.updateResource = function(resource, id, modifiedResource, callback, forc
         if (continueProcessing === false) {
             callback('update.pre failed');
         } else {
-
-            if (typeof id === 'undefined' || validator.isUUID(id) === false) {
-                callback('Must include valid ID');
-                return;
-            }
-
-            underscore.each(modifiedResource, function(value, key) {
-                if (key in resource.schema === false
-                        || (resource.schema[key].editable === false
-                                && forceEditable !== true)
-                        || key === 'id') {
-                    delete modifiedResource[key];
-                }
-            });
-
-            if (modifiedResource.length === 0) {
-                callback('Must include at least one editable item');
+            var lastKey = '';
+            // Remove invalid keys from resource update
+            if (underscore.every(modifiedResource, function(value, key) {
+                lastKey = key;
+                
+                return (forceEditable === true                    // We're forcing editability
+                       || resource.schema[key].editable === true) //   or we can edit anyway
+                       && key !== 'id'                            // No matter what, can't edit id
+                       && isValid(resource, key, value);          // The value is valid
+            }) === false) {
+                callback('Resource update validation failed on key "' + lastKey + '"');
                 return;
             }
 
@@ -405,9 +434,8 @@ exports.createResource = function(resource, newResource, callback) {
         if (continueprocessing === false) {
             callback('create.pre failed.');
         } else {
-            var valid = exports.checkNewResourceAgainstSchema(resource.schema, newResource);
-            if (typeof valid !== 'undefined') {
-                callback('Schema failed: ' + valid);
+            if (isValidResource(resource, newResource) === false) {
+                callback('Given resource is not valid.');
                 return;
             }
 

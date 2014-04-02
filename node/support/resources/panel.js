@@ -41,7 +41,7 @@ var panelResource = {
         editable: false
     },
     summaryStatistics: {
-        type: 'resource:summaryStatistics',
+        type: 'object',
         includeToCreate: false,
         editable: false
     }

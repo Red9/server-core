@@ -107,7 +107,12 @@ exports.init = function() {
             app.set('views', __dirname + '/html/views');
             app.set('view engine', 'html');
             app.engine('html', hbs.__express); // Handlebars templating
-            app.use(express.favicon(path.join(__dirname, 'html/public/common/images/favicon.ico')));
+
+            if (config.release === true) {
+                app.use(express.favicon(path.join(__dirname, 'html/public/common/images/favicon.ico')));
+            } else {
+                app.use(express.favicon(path.join(__dirname, 'html/public/common/images/favicon.localdev.ico')));
+            }
 
             app.use(logger.logger()); // Middleware to log all requests.
             app.use(express.compress());

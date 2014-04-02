@@ -13,7 +13,7 @@ var userResource = {
     },
     //--------------------------
     email: {
-        type: 'string',
+        type: 'string:email',
         includeToCreate: true,
         editable: true
     },

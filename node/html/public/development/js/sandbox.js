@@ -190,7 +190,7 @@ var sandbox = {
             success: callback
         });
     },
-    update: function(resourceType, id, newValues) {
+    update: function(resourceType, id, newValues, callback) {
         console.log('resourceType: ' + resourceType);
         console.log('id: ' + id);
         $.ajax({
@@ -199,7 +199,10 @@ var sandbox = {
             dataType: 'json',
             data: newValues,
             success: function() {
-                console.log('Did put successfully.');
+                callback();
+            },
+            error: function(jqXHR, textStatus, errorThrown){
+                callback(textStatus + '---' + errorThrown + ' --- ' + jqXHR.responseText);
             }
         });
     },

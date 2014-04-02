@@ -159,7 +159,7 @@ exports.update = function(route, req, res, next) {
                 } else {
                     value = parseInt(value);
                 }
-            } else if (keyDescription.type === 'resource:summaryStatistics') {
+            } else if (keyDescription.type === 'object') {
                 try {
                     value = JSON.parse(value);
                 } catch (e) {

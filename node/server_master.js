@@ -44,7 +44,6 @@ if (cluster.isMaster) {
 
     underscore.each(config.ports[config.serverType], function(port) {
         var worker = cluster.fork();
-        console.log('Port: ' + port);
         worker.send({port: port});
         workerPorts[worker.id] = port;
     });

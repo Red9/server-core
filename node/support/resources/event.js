@@ -33,7 +33,7 @@ var eventResource = {
     },
     //-------------------------
     summaryStatistics: {
-        type: 'resource:summaryStatistics',
+        type: 'object',
         includeToCreate: false,
         editable: true
     },
