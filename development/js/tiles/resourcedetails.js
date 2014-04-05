@@ -18,6 +18,7 @@ resourceDetails.prototype.setResource = function(type, resource) {
         sandbox.requestTemplate('datasetdetails', function(template) {
             details.dataset = resource;
             self.myPlace.html(template(details));
+            self.myPlace.find('[data-name=commentsDiv]').commentList(resource.id, type);
         });
     }
 };

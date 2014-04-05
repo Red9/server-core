@@ -6,7 +6,7 @@ var customHandlebarsHelpers = {
     },
     FormatDuration: function(startTime, endTime) {
         if (typeof startTime === 'undefined' || typeof endTime === 'undefined') {
-            return 'unknown';
+            return '0.000s';
         }
 
         var result = '';
@@ -95,6 +95,9 @@ var customHandlebarsHelpers = {
         var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
         return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
     },
+    TimeFromNow: function(time){
+        return moment(time).fromNow();
+    },
     RegisterHelpers: function(hbs) {
         hbs.registerHelper('decimal', customHandlebarsHelpers.NumberToDecimal);
         hbs.registerHelper('epochtime', customHandlebarsHelpers.MillisecondsEpochToTime);
@@ -104,6 +107,7 @@ var customHandlebarsHelpers = {
         hbs.registerHelper('percent', customHandlebarsHelpers.PercentFormater);
         hbs.registerHelper('duration', customHandlebarsHelpers.FormatDuration);
         hbs.registerHelper('bytesToHumanSize', customHandlebarsHelpers.BytesToHumanSize);
+        hbs.registerHelper('timeFromNow', customHandlebarsHelpers.TimeFromNow);
     }
 };
 

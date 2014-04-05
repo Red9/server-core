@@ -1,0 +1,23 @@
+<p><strong>{{commentCount}}</strong> comments</p>
+<div data-name="commentList" class="comments-wrapper"  style="height:300px">
+    {{#each comments}}
+    <div data-commentid="{{id}}" data-starttime="{{startTime}}" data-endtime="{{endTime}}">
+        <div class="pull-left">
+            <a href="/user/{{author.id}}">{{author.displayName}}</a>&nbsp;<abbr title="{{epochdate createTime}} {{epochtime createTime}}" style="border-bottom-width: 0"><span class="text-muted">{{timeFromNow createTime}}</span></abbr>
+            {{#if viewRange}}
+            <a data-name="commentFocus" data-starttime="{{startTime}}" data-endtime="{{endTime}}">view</a>
+            {{/if}}
+        </div>
+        <button data-name="deleteCommentButton" type="button" class="pull-right close" aria-hidden="true">&times;</button>
+        <br/>{{{bodyHtml}}}
+        <hr/>
+    </div>
+    {{/each}}
+</div>
+<br/>
+<textarea data-name="addCommentTextarea"></textarea>
+
+
+
+
+
