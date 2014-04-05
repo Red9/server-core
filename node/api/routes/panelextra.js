@@ -173,16 +173,20 @@ var parseLine = function(line, rows) {
 function updateInsertCompleteFunction(panel) {
     // Now, we need to update the panel description with start and end times
     panelResource.calculatePanelProperties(panel.id, function(properties) {
-        panel.startTime = properties.startTime;
-        panel.endTime = properties.endTime;
-
         var panelId = panel.id;
+        var modifiedPanel = {
+            startTime: properties.startTime,
+            endTime: properties.endTime,
+            axes: panel.axes
+        };
+        
+        
         // Need to update the panel so that summary statistics can get the columns
-        panelResource.update(panelId, panel, function(err1, updatedResource) {
-            summaryStatisticsResource.calculate(panelId, properties.startTime, properties.endTime, function(statistics) {
+        panelResource.update(panelId, modifiedPanel, function(err1, updatedResource) {
+            summaryStatisticsResource.calculate(panelId, modifiedPanel.startTime, modifiedPanel.endTime, function(statistics) {
                 panelResource.update(panelId, {summaryStatistics: statistics}, function(err2, updatedResource) {
                     if (err1 || err2) {
-                        log.error('Error update insert complete function: ' + err1 + " " + err2);
+                        log.error('Error update insert complete function: err1: ' + err1 + ', err2: ' + err2);
                     }
                 }, true);
             });

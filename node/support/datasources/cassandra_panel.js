@@ -107,8 +107,8 @@ function createCacheInsertQuery(id, buckets, startTime, endTime, minmax, time, d
                 hint: 'timestamp'
             },
             {
-                value:minmax,
-                hint:'boolean'
+                value: minmax,
+                hint: 'boolean'
             },
             {
                 value: time,
@@ -229,7 +229,7 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
         }
     ];
     cassandraDatabase.execute(cacheQuery, cacheParameters, function(err, result) {
-        if(err){
+        if (err) {
             log.error('Error getting panel cache: ' + err);
         }
         if (result.rows.length === 0) {
@@ -292,7 +292,7 @@ exports.getPanel = function(panelId, startTime, endTime,
                         hint: 'uuid'
                     },
                     {
-                        value: lastRowTime,
+                        value: lastRowTime+1, // +1 so that we don't get a row twice.
                         hint: 'timestamp'
                     },
                     {
@@ -300,17 +300,12 @@ exports.getPanel = function(panelId, startTime, endTime,
                         hint: 'timestamp'
                     }
                 ];
-                var previousN = -1;
-
+                
+                console.log(lastRowTime + ', Getting new chunk');
                 cassandraDatabase.eachRow(query, parameters,
                         function(n, row) {
-                            // Cassandra error checking: we should be getting these in order.
-                            if (n !== previousN + 1) {
-                                log.error('n(' + n + ') !== previousN(' + previousN + ')');
-                            }
-                            previousN = n;
-                            lastRowTime = row.time;
-                            callbackRow(moment(row.time).valueOf(), row.data, totalRowIndex++);
+                            lastRowTime = moment(row.time).valueOf();
+                            callbackRow(lastRowTime, row.data, totalRowIndex++);
                         },
                         function(err, rowLength) {
                             previousChunkLength = rowLength;

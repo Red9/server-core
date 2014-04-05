@@ -28,7 +28,7 @@ var processUsr = function(usrDirectory) {
             // Annoying!
             var package = require('../../' + usrDirectory + '/package.json');
             package.directory = usrDirectory;
-            package.id = common.generateUUID();
+            //package.id = common.generateUUID();
             //log.debug('Got USR: ' + package.id);
             usrList.push(package);
         }
