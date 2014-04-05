@@ -109,6 +109,7 @@ function deletePost(id) {
 
 
 exports.resource = {
+    name:'panel',
     mapToCassandra: mapToCassandra,
     mapToResource: mapToResource,
     cassandraTable: 'panelProperties',

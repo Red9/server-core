@@ -32,7 +32,7 @@ exports.getSingle = function(type, id, callback) {
         if (err) {
             LogError('databaseCassandra.getSingle', err);
         } else {
-            if(result.rows.length === 0){
+            if (result.rows.length === 0) {
                 // Nothing wrong, just not found...
             }
             else if (result.rows.length > 1) {
@@ -225,7 +225,13 @@ function ExtractRowToJSON(schema, row) {
         var value = row.get(schema[i]['key']);
 
         if (schema[i]['hint'] === 'timestamp') {
-            value = moment(value).valueOf(); // Get Milliseconds
+
+            //console.log('Value is: ' + value + ', Keys=' + Object.keys(value) + ', isNumber=' + underscore.isNumber(value) + ', isString=' + underscore.isString(value) + ', isDate=' + underscore.isDate(value) + ', v.isNumeric=' + validator.isNumeric(value));
+            if (validator.isNumeric(value) === true) {
+                value = parseInt(value);
+            } else {
+                value = moment(value).valueOf(); // Get Milliseconds
+            }
         } else {/*
          try { // Make it a JSON object if it's stringified.
          value = JSON.parse(value);
@@ -338,6 +344,41 @@ var user_schema = [
     }
 ];
 
+var comment_schema = [
+    {
+        key: 'id',
+        hint: 'uuid'
+    },
+    {
+        key: 'create_time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'author',
+        hint: 'uuid'
+    },
+    {
+        key: 'resource_type',
+        hint: 'varchar'
+    },
+    {
+        key: 'resource',
+        hint: 'uuid'
+    },
+    {
+        key: 'body',
+        hint: 'varchar'
+    },
+    {
+        key: 'start_time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'end_time',
+        hint: 'timestamp'
+    }
+];
+
 var raw_data_schema = [
     {
         key: 'id',
@@ -404,5 +445,9 @@ var resources = {
     panelProperties: {
         table: 'raw_data_meta',
         schema: raw_data_meta_schema
+    },
+    comment: {
+        table: 'comment',
+        schema: comment_schema
     }
 };

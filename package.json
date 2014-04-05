@@ -26,6 +26,7 @@
         "validator":"latest",
         "connect-timeout":"latest",
         "requirejs":"latest",
-	"geolib":"latest"
+	"geolib":"latest",
+	"markdown":"latest"
     }
 }

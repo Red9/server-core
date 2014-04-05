@@ -7,7 +7,8 @@ var resources = {
     dataset: requireFromRoot('support/resources/dataset'),
     event: requireFromRoot('support/resources/event'),
     user: requireFromRoot('support/resources/user'),
-    panel: requireFromRoot('support/resources/panel')
+    panel: requireFromRoot('support/resources/panel'),
+    comment: requireFromRoot('support/resources/comment')
 };
 
 underscore.each(resources, function(value, key) {

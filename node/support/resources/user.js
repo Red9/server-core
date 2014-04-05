@@ -65,6 +65,7 @@ function mapToResource(cassandra) {
 }
 
 exports.resource = {
+    name:'user',
     mapToCassandra: mapToCassandra,
     mapToResource: mapToResource,
     cassandraTable: 'user',

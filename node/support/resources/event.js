@@ -150,6 +150,7 @@ var createPost = function(newEvent) {
 };
 
 exports.resource = {
+    name:'event',
     mapToCassandra: mapToCassandra,
     mapToResource: mapToResource,
     cassandraTable: 'event',

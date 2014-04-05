@@ -14,7 +14,7 @@ module.exports = function(app, passport) {
     
     app.get('/summarystatistics/:id', require('./summarystatistics').calculate);
 
-
+    
     // Resources
     var common = requireFromRoot('api/routes/common');
     var resourceRoutes = requireFromRoot('api/routes/resourceroutes');
@@ -22,4 +22,5 @@ module.exports = function(app, passport) {
     common.addRoutesToApp(app, resourceRoutes.event);
     common.addRoutesToApp(app, resourceRoutes.user);
     common.addRoutesToApp(app, resourceRoutes.panel);
+    common.addRoutesToApp(app, resourceRoutes.comment);
 };

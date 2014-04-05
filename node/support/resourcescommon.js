@@ -365,36 +365,42 @@ exports.updateResource = function(resource, id, modifiedResource, callback, forc
     //TODO(SRLM): Make sure that the resource exists!
     //------------------------------------------------------------------
 
-    preFunction({id: id, resource: modifiedResource}, function(continueProcessing) {
-        if (continueProcessing === false) {
-            callback('update.pre failed');
-        } else {
-            var lastKey = '';
-            // Remove invalid keys from resource update
-            if (underscore.every(modifiedResource, function(value, key) {
-                lastKey = key;
-                
-                return (forceEditable === true                    // We're forcing editability
-                       || resource.schema[key].editable === true) //   or we can edit anyway
-                       && key !== 'id'                            // No matter what, can't edit id
-                       && isValid(resource, key, value);          // The value is valid
-            }) === false) {
-                callback('Resource update validation failed on key "' + lastKey + '"');
-                return;
-            }
-
-            var cassandraResource = resource.mapToCassandra(modifiedResource);
-
-            cassandraDatabase.updateSingle(resource.cassandraTable, id, cassandraResource, function(err) {
-                if (err) {
-                    log.debug('Error updating resource: ' + err);
-                    callback('error');
-                } else {
-                    postFunction({id: id, resource: modifiedResource});
-                    callback(undefined, modifiedResource);
-                }
-            });
+    exports.getResource(resource, {id: id}, function(resourceList) {
+        if (resourceList.length !== 1) {
+            callback("resource type '" + resource.name + "' with id='" + id + "' does not exist.");
+            return;
         }
+        preFunction({id: id, resource: modifiedResource}, function(continueProcessing) {
+            if (continueProcessing === false) {
+                callback('update.pre failed');
+            } else {
+                var lastKey = '';
+                // Remove invalid keys from resource update
+                if (underscore.every(modifiedResource, function(value, key) {
+                    lastKey = key;
+
+                    return (forceEditable === true                    // We're forcing editability
+                            || resource.schema[key].editable === true) //   or we can edit anyway
+                            && key !== 'id'                            // No matter what, can't edit id
+                            && isValid(resource, key, value);          // The value is valid
+                }) === false) {
+                    callback('Resource update validation failed on key "' + lastKey + '"');
+                    return;
+                }
+
+                var cassandraResource = resource.mapToCassandra(modifiedResource);
+
+                cassandraDatabase.updateSingle(resource.cassandraTable, id, cassandraResource, function(err) {
+                    if (err) {
+                        log.debug('Error updating resource: ' + err);
+                        callback('error');
+                    } else {
+                        postFunction({id: id, resource: modifiedResource});
+                        callback(undefined, modifiedResource);
+                    }
+                });
+            }
+        });
     });
 };
 

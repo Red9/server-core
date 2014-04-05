@@ -151,6 +151,7 @@ var expandFunctions = {
 
 
 exports.resource = {
+    name:'dataset',
     mapToCassandra: mapToCassandra,
     mapToResource: mapToResource,
     cassandraTable: 'dataset',

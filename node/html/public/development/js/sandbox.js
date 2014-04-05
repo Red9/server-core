@@ -1,5 +1,6 @@
 
 var sandbox = {
+    currentUser: '',
     definedColorMappings: {
         "gps:altitude": "#FF6347",
         "gps:speed": "#8B4513",
@@ -39,6 +40,9 @@ var sandbox = {
             },
             {
                 class: editResourceModal
+            },
+            {
+                class: resourceDetails
             },
             {
                 class: eventList
@@ -94,9 +98,6 @@ var sandbox = {
             },
             {
                 class: summaryStatistics
-            },
-            {
-                class: resourceDetails
             }
         ];
         async.eachSeries(tiles,
@@ -201,8 +202,22 @@ var sandbox = {
             success: function() {
                 callback();
             },
-            error: function(jqXHR, textStatus, errorThrown){
+            error: function(jqXHR, textStatus, errorThrown) {
                 callback(textStatus + '---' + errorThrown + ' --- ' + jqXHR.responseText);
+            }
+        });
+    },
+    create: function(resourceType, newResource, callback) {
+        $.ajax({
+            type: 'POST',
+            url: sandbox.apiUrl + '/' + resourceType + '/',
+            dataType: 'json',
+            data: newResource,
+            success: function(data) {
+                callback(data);
+            },
+            error: function() {
+                console.log('Failed to create resource ' + resourceType);
             }
         });
     },
@@ -400,7 +415,7 @@ var sandbox = {
                                 panel: panel
                             });
                 });
-            }, ['headPanel']);
+            }, ['headPanel', 'owner']);
         }
     },
     onHistoryChange: function() {

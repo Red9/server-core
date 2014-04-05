@@ -199,6 +199,11 @@ googleMap.prototype.updateWithNewPanel = function(panel) {
 
         this.map.fitBounds(bounds);
 
+    }else{
+        console.log('No GPS in this dataset');
+        var point = new google.maps.LatLng(32.149989, -110.835842);
+        this.map.setCenter(point);
+        this.map.setZoom(15);
     }
 
 

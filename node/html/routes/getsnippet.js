@@ -63,7 +63,8 @@ var eventTypeList = [
     {name: "Session"},
     {name: "Walk"},
     {name: "Run"},
-    {name: "Stationary"}
+    {name: "Stationary"},
+    {name: "Dolphin"}
 ];
 
 

@@ -14,6 +14,19 @@ var event = {
     ]
 };
 
+var comment = {
+    resource: 'comment',
+    root: '/comment/',
+    allowed:[
+        'create',
+        'search',
+        'describe',
+        'get',
+        'update',
+        'delete'
+    ]
+};
+
 var dataset = {
     simplifyOutput: [
         'source'
@@ -70,3 +83,4 @@ module.exports.event = event;
 module.exports.dataset = dataset;
 module.exports.user = user;
 module.exports.panel = panel;
+module.exports.comment = comment;

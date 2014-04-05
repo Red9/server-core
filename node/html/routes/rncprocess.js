@@ -72,7 +72,6 @@ exports.post = function(req, res, next) {
                         endTime: endTime,
                         axes: processingStatistics.columns
                     };
-                    console.log('axes: ' + JSON.stringify(panelUpdate.axes));
 
                     // Integrity check
                     if (startTime !== processingStatistics.datasetStartTime) {
