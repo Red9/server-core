@@ -543,8 +543,12 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
                 callback(result);
             };
 
-            // Turn on the queue
-            queue.concurrency = 5;
+            if (queue.length() === 0) {
+                callback([]);
+            } else {
+                // Turn on the queue
+                queue.concurrency = 5;
+            }
         };
 
         if (underscore.keys(constraints).length === 1
