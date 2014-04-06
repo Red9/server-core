@@ -230,9 +230,9 @@ exports.getBucketedPanel = function(panelId, startTime, endTime,
     ];
     cassandraDatabase.execute(cacheQuery, cacheParameters, function(err, result) {
         if (err) {
-            log.error('Error getting panel cache: ' + err);
+            log.error('Error getting panel cache: ' + err + ', ' + err.stack);
         }
-        if (result.rows.length === 0) {
+        if (typeof result.rows === 'undefined' || result.rows.length === 0) {
             // Could not find cache
             var cacheBatch = [];
             internalGetBucketedPanel(panelId, startTime, endTime, buckets, minmax,
@@ -301,7 +301,6 @@ exports.getPanel = function(panelId, startTime, endTime,
                     }
                 ];
                 
-                console.log(lastRowTime + ', Getting new chunk');
                 cassandraDatabase.eachRow(query, parameters,
                         function(n, row) {
                             lastRowTime = moment(row.time).valueOf();
