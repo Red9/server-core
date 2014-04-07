@@ -45,6 +45,9 @@ var sandbox = {
                 class: resourceDetails
             },
             {
+                class:embeddedVideo
+            },
+            {
                 class: eventList
             },
             {
@@ -255,7 +258,7 @@ var sandbox = {
             success: function(panel) {
                 console.log('Got Panel');
                 _.each(panel.values, function(row) {
-                    row[0] = moment(row[0]).toDate();
+                    row[0] = new Date(row[0]);
                 });
                 callback(panel);
             }
