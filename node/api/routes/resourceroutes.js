@@ -27,6 +27,19 @@ var comment = {
     ]
 };
 
+var video = {
+    resource: 'video',
+    root: '/video/',
+    allowed:[
+        'create',
+        'search',
+        'describe',
+        'get',
+        'update',
+        'delete'
+    ]
+};
+
 var dataset = {
     simplifyOutput: [
         'source'
@@ -84,3 +97,4 @@ module.exports.dataset = dataset;
 module.exports.user = user;
 module.exports.panel = panel;
 module.exports.comment = comment;
+module.exports.video = video;

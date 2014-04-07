@@ -119,10 +119,12 @@ exports.create = function(route, req, res, next) {
 
     console.log('newResource: ' + JSON.stringify(newResource));
 
-    if (underscore.some(newResource, function(value) {
+    var lastKey = '';
+    if (underscore.some(newResource, function(value, key) {
+        lastKey = key;
         return typeof value === 'undefined';
     })) {
-        res.status(403).json({message: 'Must include required parameters to create resource.'});
+        res.status(403).json({message: 'Must include required parameters to create resource. Missing key ' + lastKey });
     } else {
         resources[route.resource].create(newResource, function(err, createdResource) {
             if (typeof createdResource === 'undefined') {

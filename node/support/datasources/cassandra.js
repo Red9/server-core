@@ -394,6 +394,33 @@ var raw_data_schema = [
     }
 ];
 
+var video_schema = [
+    {
+        key: 'id',
+        hint: 'uuid'
+    },
+    {
+        key: 'start_time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'create_time',
+        hint: 'timestamp'
+    },
+    {
+        key: 'dataset',
+        hint: 'uuid'
+    },
+    {
+        key: 'host',
+        hint: 'varchar'
+    },
+    {
+        key: 'host_id',
+        hint: 'varchar'
+    }
+];
+
 var raw_data_meta_schema = [
     {
         key: 'id',
@@ -449,5 +476,10 @@ var resources = {
     comment: {
         table: 'comment',
         schema: comment_schema
+    },
+    video: {
+        table: 'video',
+        schema: video_schema
     }
+
 };

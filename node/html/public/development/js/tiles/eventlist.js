@@ -17,7 +17,7 @@ function eventList(myPlace, configuration, doneCallback) {
 eventList.prototype.setEvents = function(events) {
     var self = this;
     sandbox.requestTemplate('eventlist', function(template) {
-        self.myPlace.html(template({events: events}));
+        self.myPlace.html(template({events: _.sortBy(events, function(event){return event.startTime;})}));
 
         // Listen for clicks on the checkbox
         self.myPlace.find('input:checkbox').on('click', function(event) {

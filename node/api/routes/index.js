@@ -23,4 +23,5 @@ module.exports = function(app, passport) {
     common.addRoutesToApp(app, resourceRoutes.user);
     common.addRoutesToApp(app, resourceRoutes.panel);
     common.addRoutesToApp(app, resourceRoutes.comment);
+    common.addRoutesToApp(app, resourceRoutes.video);
 };

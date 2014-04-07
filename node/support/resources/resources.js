@@ -8,7 +8,8 @@ var resources = {
     event: requireFromRoot('support/resources/event'),
     user: requireFromRoot('support/resources/user'),
     panel: requireFromRoot('support/resources/panel'),
-    comment: requireFromRoot('support/resources/comment')
+    comment: requireFromRoot('support/resources/comment'),
+    video: requireFromRoot('support/resources/video')
 };
 
 underscore.each(resources, function(value, key) {
