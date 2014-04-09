@@ -1,33 +1,38 @@
-function summaryStatistics(myPlace, configuration, doneCallback) {
-    this.myPlace = myPlace;
-    $(sandbox).on('totalState.resource-focused', $.proxy(this.resourceFocused, this));
+define(['vendor/jquery', 'sandbox'], function($, sandbox) {
 
-    this.setStatistics('', '', {});
+    function summaryStatistics(myPlace, configuration, doneCallback) {
+        this.myPlace = myPlace;
+        $(sandbox).on('totalState.resource-focused', $.proxy(this.resourceFocused, this));
 
-    doneCallback();
-
-}
-
-summaryStatistics.prototype.setStatistics = function(type, title, statistics) {
-    var self = this;
-    sandbox.requestTemplate('summarystatistics', function(template) {
-        self.myPlace.html(template(
-                {
-                    type: type,
-                    title: title,
-                    summaryStatistics: statistics
-                }
-        ));
-    });
-};
-
-
-summaryStatistics.prototype.resourceFocused = function(event, parameters) {
-    if (parameters.type === 'dataset') {
-        this.setStatistics('dataset', parameters.resource.title, parameters.resource.headPanel.summaryStatistics);
-    } else if (parameters.type === 'event') {
-        this.setStatistics('event', parameters.resource.type, parameters.resource.summaryStatistics);
-    } else {
         this.setStatistics('', '', {});
+
+        doneCallback();
+
     }
-};
+
+    summaryStatistics.prototype.setStatistics = function(type, title, statistics) {
+        var self = this;
+        sandbox.requestTemplate('summarystatistics', function(template) {
+            self.myPlace.html(template(
+                    {
+                        type: type,
+                        title: title,
+                        summaryStatistics: statistics
+                    }
+            ));
+        });
+    };
+
+
+    summaryStatistics.prototype.resourceFocused = function(event, parameters) {
+        if (parameters.type === 'dataset') {
+            this.setStatistics('dataset', parameters.resource.title, parameters.resource.headPanel.summaryStatistics);
+        } else if (parameters.type === 'event') {
+            this.setStatistics('event', parameters.resource.type, parameters.resource.summaryStatistics);
+        } else {
+            this.setStatistics('', '', {});
+        }
+    };
+
+    return summaryStatistics;
+});

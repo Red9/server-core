@@ -24,8 +24,9 @@ THE SOFTWARE.
 
 @license
 */
+define([], function(){
 /* exported Handlebars */
-var Handlebars = (function() {
+return (function() {
 // handlebars/safe-string.js
 var __module4__ = (function() {
   "use strict";
@@ -2744,3 +2745,4 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 
   return __module0__;
 })();
+});

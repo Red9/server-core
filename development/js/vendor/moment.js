@@ -2414,12 +2414,7 @@
         module.exports = moment;
         makeGlobal(true);
     } else if (typeof define === "function" && define.amd) {
-        define("moment", function (require, exports, module) {
-            if (module.config && module.config() && module.config().noGlobal !== true) {
-                // If user provided noGlobal, he is aware of global
-                makeGlobal(module.config().noGlobal === undefined);
-            }
-
+        define([], function (require, exports, module) {
             return moment;
         });
     } else {

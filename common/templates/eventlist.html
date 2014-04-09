@@ -1,8 +1,4 @@
-<link rel="stylesheet" type="text/css" href="/css/jquery.dataTables.css">
-<script src="/js/jquery.dataTables.js"></script>
-
 <h2>Events</h2>
-
 
 <div class="table-responsive">
     <table class="table table-hover table-condensed">
@@ -18,8 +14,8 @@
             <tr name='{{id}}'>
                 <td><input type="checkbox"/></td>
                 <td>{{type}}</td>
-                <td>{{toDateString startTime}} {{toTimeString startTime}}</td>
-                <td>{{toDurationString startTime endTime}}</td>
+                <td>{{epochdate startTime}} {{epochtime startTime}}</td>
+                <td>{{duration startTime endTime}}</td>
                 <td><button data-name="editevent" class="btn btn-default btn-sm pull-right"><span class="glyphicon glyphicon-pencil"></span></button></td>
             </tr>
             {{/each}}

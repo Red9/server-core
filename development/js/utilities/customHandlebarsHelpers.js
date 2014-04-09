@@ -1,4 +1,5 @@
 var customHandlebarsHelpers = {
+    moment: '',
     padNumber: function(n, width, z) {
         z = z || '0';
         n = n + '';
@@ -11,7 +12,7 @@ var customHandlebarsHelpers = {
 
         var result = '';
 
-        var duration = moment.duration(endTime - startTime);
+        var duration = customHandlebarsHelpers.moment.duration(endTime - startTime);
 
         if (duration.years() !== 0) {
             result = duration.years() + 'Y ' + duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
@@ -26,7 +27,7 @@ var customHandlebarsHelpers = {
         }
 
         var msString = '' + duration.milliseconds();
-        while(msString.length < 3){
+        while (msString.length < 3) {
             msString = '0' + msString;
         }
 
@@ -49,14 +50,14 @@ var customHandlebarsHelpers = {
         if (typeof milliseconds === 'undefined') {
             return 'unknown';
         } else {
-            return moment.utc(milliseconds).format("h:mm:ss.SSS a");
+            return customHandlebarsHelpers.moment.utc(milliseconds).format("h:mm:ss.SSS a");
         }
     },
     MillisecondsEpochToDate: function(milliseconds) {
         if (typeof milliseconds === 'undefined') {
             return 'unknown';
         } else {
-            return moment.utc(milliseconds).format("YYYY-MM-DD");
+            return customHandlebarsHelpers.moment.utc(milliseconds).format("YYYY-MM-DD");
         }
     },
     FormatUnits: function(units) {
@@ -95,10 +96,11 @@ var customHandlebarsHelpers = {
         var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
         return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
     },
-    TimeFromNow: function(time){
-        return moment(time).fromNow();
+    TimeFromNow: function(time) {
+        return customHandlebarsHelpers.moment(time).fromNow();
     },
-    RegisterHelpers: function(hbs) {
+    RegisterHelpers: function(hbs, moment) {
+        customHandlebarsHelpers.moment = moment;
         hbs.registerHelper('decimal', customHandlebarsHelpers.NumberToDecimal);
         hbs.registerHelper('epochtime', customHandlebarsHelpers.MillisecondsEpochToTime);
         hbs.registerHelper('epochdate', customHandlebarsHelpers.MillisecondsEpochToDate);
@@ -114,8 +116,9 @@ var customHandlebarsHelpers = {
 if (typeof exports !== 'undefined') {
     // Running in Node.js
     exports.RegisterHelpers = customHandlebarsHelpers.RegisterHelpers;
-    moment = require('moment');
 } else {
     // Running in client
-    customHandlebarsHelpers.RegisterHelpers(Handlebars);
+    define(['vendor/handlebars', 'vendor/moment'], function(Handlebars, moment) {
+        customHandlebarsHelpers.RegisterHelpers(Handlebars, moment);
+    });
 }
