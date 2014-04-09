@@ -59,7 +59,7 @@ exports.init = function() {
 
             // TODO(SRLM): Figure out a better way to share code between client and server
             var hbsHelpers = requireFromRoot('html/public/development/js/utilities/customHandlebarsHelpers');
-            hbsHelpers.RegisterHelpers(hbs);
+            hbsHelpers.RegisterHelpers(hbs, require('moment'));
 
 // Authentication details
             var passport = require('passport');
