@@ -6,36 +6,44 @@
         </div>
     </div>
     <div class="col-md-5">
-        <p><button data-name="addVideoButton" class="btn btn-default"><span class="glyphicon glyphicon-film"></span>&nbsp;Add Video</button></p>
         {{#if videos}}
         <div class="long-list-wrapper" style="height:347px">
             {{#each videos}}
-            <table class="table table-striped table-condensed">
-                <tr>
-                    <th>Host</th>
-                    <td>{{host}} <br/></td>
-                    <td><button data-name="deleteVideoButton" type="button" class="pull-right close" aria-hidden="true">&times;</button></td>
-                </tr>
-                <tr>
-                    <th>Host Id</th>
-                    <td>{{hostId}} <br/></td>
-                    <td rowspan="3"><img src="{{thumbnails.default.url}}" /></td>
-                </tr>
-                <tr>
-                    <th>Start Time</th>
-                    <td>{{epochdate startTime}} {{epochtime startTime}}</td>
-                </tr>
-                <tr>
-                    <th>Host Description</th>
-                    <td>{{description}}</td>
-                </tr>
-                <tr>
-                    <th>Duration</th>
-                    <td>{{duration 0 duration}}</td>
-                    <td></td>
-                </tr>
-            </table>
-            <hr/>
+            <div data-videoid="{{id}}">{{! wrapper for each video}}
+                <div class="pull-left">
+                    <abbr title="{{epochdate createTime}} {{epochtime createTime}}" style="border-bottom-width: 0"><span class="text-muted">{{timeFromNow createTime}}</span></abbr>
+
+                    <a data-name="videofocus">view</a>
+                    &nbsp;|&nbsp;<a data-name="videoedit" data-id="{{id}}">edit</a>
+                </div>
+                <button data-name="deletevideobutton" type="button" class="pull-right close" aria-hidden="true">&times;</button>
+
+                <table class="table table-striped table-condensed">
+                    <tr>
+                        <th>Host</th>
+                        <td>{{host}} <br/></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th>Host Id</th>
+                        <td>{{hostId}} <br/></td>
+                        <td rowspan="3"><img src="{{thumbnails.default.url}}" /></td>
+                    </tr>
+                    <tr>
+                        <th>Start Time</th>
+                        <td>{{epochdate startTime}} {{epochtime startTime}}</td>
+                    </tr>
+                    <tr>
+                        <th>Host Description</th>
+                        <td>{{{description}}}</td>
+                    </tr>
+                    <tr>
+                        <th>Duration</th>
+                        <td>{{duration 0 duration}}</td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
             {{/each}}
         </div>
         {{else}}
@@ -43,5 +51,8 @@
             No videos are defined.
         </div>
         {{/if}}
+        
+        <span class="pull-left" data-name="currentvideotime"></span>
+        <span class="pull-right"><button data-name="addvideobutton" class="btn btn-default"><span class="glyphicon glyphicon-film"></span>&nbsp;Add Video</button></span>
     </div>
 </div>

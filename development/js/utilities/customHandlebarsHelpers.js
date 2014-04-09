@@ -120,5 +120,6 @@ if (typeof exports !== 'undefined') {
     // Running in client
     define(['vendor/handlebars', 'vendor/moment'], function(Handlebars, moment) {
         customHandlebarsHelpers.RegisterHelpers(Handlebars, moment);
+        return customHandlebarsHelpers;
     });
 }

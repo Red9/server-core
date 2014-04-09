@@ -42,10 +42,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                  },*/
                 {
                     class: 'resourcedetails'
-                }, /*
-                 {
-                 class: embeddedVideo
-                 },*/
+                },
+                {
+                    class: 'embeddedvideo'
+                },
                 {
                     class: 'eventlist'
                 },
@@ -110,9 +110,19 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                             tile.configuration = {};
                         }
                         require(['tiles/' + tile.class], function(tileClass) {
-                            sandbox.modules.push(new tileClass(temp, tile.configuration, function() {
-                                doneCallback();
-                            }));
+                            // There may be a bug here: what if the class does it's
+                            // configuration and calls doneCallback() before
+                            // it can be pushed into modules?
+
+                            if (tile.class === 'embeddedvideo') {
+                                sandbox.modules.push(tileClass(temp, tile.configuration, function(){
+                                    doneCallback();
+                                }));
+                            } else {
+                                sandbox.modules.push(new tileClass(temp, tile.configuration, function() {
+                                    doneCallback();
+                                }));
+                            }
                         });
                     },
                     function(err) {
@@ -333,12 +343,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             uri.query(focus);
             History.pushState(null, 'Focusing on ' + type + ' ' + id, uri.toString());
         },
-        
         downloadPanelDisplay: function(id) {
             sandbox.get('panel', {id: id}, function(resourceList) {
                 if (resourceList.length === 1) {
                     sandbox.showModal('downloadpanel', {
-                        resource:resourceList[0]
+                        resource: resourceList[0]
                     });
                 }
             });
@@ -368,6 +377,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
         setPageTitle: function(newTitle) {
             $(document).attr('title', newTitle);
             $('#footer-page-title').text(newTitle);
+        },
+        initiateHoverTimeEvent: function(hovertime) {
+            var eventName = 'totalState.hover-time';
+            sandbox.initiateEvent(eventName, {hovertime: hovertime});
         },
         initiateResourceDeletedEvent: function(resource, id) {
             var eventName = 'totalState.resource-deleted';
@@ -449,6 +462,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             require(['modals/' + type], function(newmodal) {
                 var mymodal = new newmodal($modalDiv, parameters);
             });
+        },
+        truncateStringAtWord: function(string, maximumCharacters) {
+            // Modified from http://stackoverflow.com/a/1199420
+            var tooLong = string.length > maximumCharacters,
+                    s_ = tooLong ? string.substr(0, maximumCharacters - 1) : string;
+            s_ = tooLong ? s_.substr(0, s_.lastIndexOf(' ')) : s_;
+            return  tooLong ? s_ + '&hellip;' : s_;
         }
     };
     return sandbox;

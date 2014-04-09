@@ -74,6 +74,41 @@
                         {{/with}}
                         {{/if}}
 
+
+                        {{#if resourceTypeVideo}}
+                        {{#with video}}
+
+                        {{! If id is defined, that means that we are editing a dataset.}}
+                        {{#if id}}
+                        <input name="id" value="{{id}}" type="hidden"/>
+                        {{/if}}
+                        
+                        {{! include the datasetId. If we are editing the event it will be discarded, but it is needed for creating the event.}}
+                        <input name="dataset" value="{{dataset}}" data-default="{{dataset}}" type="hidden"/>
+
+                        <div class="form-group">
+                            <label for="startTime">Start Time</label>
+                            <input class="form-control" name="startTime" value="{{startTime}}" data-default="{{startTime}}" type="text">
+                            <p class="help-block">The epoch time at which the video starts.</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="host">Host Service</label>
+                            <select class="form-control " name="host" data-default="{{host}}">
+                                {{#each typeList}}<option {{#if selected}}selected="selected"{{/if}}>{{name}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="hostId">Host ID</label>
+                            <input class="form-control" name="hostId" value="{{hostId}}" data-default="{{hostId}}" type="text">
+                            <p class="help-block">The host ID for the video. For YouTube, that's what comes after the v=. For example, https://www.youtube.com/watch?v=<strong>GrsSo-bSB3A</strong> has a host ID of <strong>GrsSo-bSB3A</strong>)</p>
+                        </div>
+
+                        {{/with}}
+                        {{/if}}
+
                         <div class="alert alert-warning hide" data-name="submitwarning"></div>
 
                         <button class="btn btn-large btn-default pull-right" name="submitButton" type="submit">{{resourceActionText}}</button>
