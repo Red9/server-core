@@ -65,7 +65,7 @@ define(['vendor/jquery', 'vendor/underscore', 'sandbox', 'vendor/bootstrap-markd
                             body: area.getContent(),
                             startTime: startTime,
                             endTime: endTime
-                        }, function(data) {
+                        }, function(error, data) {
                             area.setContent('');
                         });
                     }
