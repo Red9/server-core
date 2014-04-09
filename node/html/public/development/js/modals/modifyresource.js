@@ -50,9 +50,7 @@ define(['vendor/jquery', 'vendor/underscore', 'sandbox', 'vendor/jquery.validate
             var id = formValues.id;
             delete formValues.id;
             sandbox.update(resourceType, id, formValues, function(error) {
-                console.log('callback...');
                 if (error) {
-                    console.log('Got error...');
                     $form.find('[data-name=submitwarning]').text(error).removeClass('hide');
                 } else {
                     $(form).parents('.modal').modal('hide');
@@ -61,9 +59,10 @@ define(['vendor/jquery', 'vendor/underscore', 'sandbox', 'vendor/jquery.validate
         } else if (resourceAction === 'create') {
             sandbox.create(resourceType, formValues, function(error) {
                 if (error) {
-                    console.log('Error creating: ' + error);
+                    $form.find('[data-name=submitwarning]').text(error).removeClass('hide');
+                } else {
+                    $(form).parents('.modal').modal('hide');
                 }
-                $(form).parents('.modal').modal('hide');
             });
         } else {
             $(form).parents('.modal').modal('hide');
@@ -116,6 +115,22 @@ define(['vendor/jquery', 'vendor/underscore', 'sandbox', 'vendor/jquery.validate
                     required: create
                 },
                 timezone: {
+                    required: create
+                }
+            },
+            showErrors: showErrors,
+            submitHandler: submitHandler
+        };
+    };
+
+    schemas.video = function(create) {
+        return {
+            rules: {
+                startTime: {
+                    required: create,
+                    min: 0
+                },
+                hostId: {
                     required: create
                 }
             },
@@ -177,6 +192,20 @@ define(['vendor/jquery', 'vendor/underscore', 'sandbox', 'vendor/jquery.validate
                 myPlace.html(template(parameters));
                 myPlace.find('.modal').modal('show');
                 myPlace.find('form').validate(schemas.dataset(amCreating));
+            } else if (configuration.resourceType === 'video') {
+                parameters.video = configuration.resource;
+                parameters.video.typeList = [
+                    {
+                        name: 'YouTube'
+                    }
+                ];
+                parameters.resourceTypeVideo = true;
+
+                myPlace.html(template(parameters));
+                myPlace.find('.modal').modal('show');
+                myPlace.find('form').validate(schemas.video(amCreating));
+            } else {
+                console.log('modify resource dialog does not support resource type ' + configuration.resourceType);
             }
         });
     };

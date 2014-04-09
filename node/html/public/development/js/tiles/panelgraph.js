@@ -264,7 +264,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
                         valueFormatter: DygraphTimeFormatter
                     }
                 },
-                underlayCallback: $.proxy(this.underlayCallback, this)
+                underlayCallback: $.proxy(this.underlayCallback, this),
+                highlightCallback: function(event, x, points, row, seriesName){
+                    sandbox.initiateHoverTimeEvent(x);
+                },
+                unhighlightCallback: function(event){
+                    //console.log('UNHIGHLIGHT');
+                }
             };
 
             this.graph = new Dygraph(graphDiv[0], [[0, 0]], graphCfg);
