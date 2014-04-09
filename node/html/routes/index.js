@@ -39,11 +39,5 @@ module.exports = function(app, passport) {
     app.get('/upload/rnc', IsAuthenticated, require('./rncupload').get);
     app.post('/upload/rnc/process', IsAuthenticated, require('./rncprocess').post);
 
-    app.get( '/snippet/:type', IsAuthenticated, require('./getsnippet').get);
-    
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get); 
-    
-    app.get('/comment', IsAuthenticated, function(req, res, next){
-       res.render('comment'); 
-    });
 };

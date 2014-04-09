@@ -33,7 +33,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
             apiPath: null, //Dynamically set
             searchDataset: '/dataset/',
             searchEvent: '/event/',
-            eventTypes: '/snippet/eventtype',
+            eventTypes: function(){return site.urls.apiPath + '/eventtype/';}, // What a hack!!!
             userList: '/user/'
         },
         getChecked: function() {

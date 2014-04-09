@@ -1,6 +1,10 @@
 define(['vendor/jquery', 'vendor/underscore', 'sandbox', 'vendor/bootstrap-markdown'], function($,_, sandbox) {
 
     var CommentList = function(myPlace, resourceId, resourceType) {
+        if(typeof resourceId === 'undefined' || resourceId === ''){
+            return;
+        }
+        
         this.myPlace = myPlace;
         this.resourceId = resourceId;
         this.resourceType = resourceType;

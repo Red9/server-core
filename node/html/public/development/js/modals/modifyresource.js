@@ -137,7 +137,7 @@ define(['vendor/jquery', 'vendor/underscore', 'sandbox', 'vendor/jquery.validate
             if (configuration.resourceType === 'event') {
                 $.ajax({// This is a hack, and should be moved to the API
                     type: 'GET',
-                    url: '/snippet/eventtype',
+                    url: sandbox.apiUrl + '/eventtype/',
                     dataType: 'json',
                     success: function(eventTypes) {
                         var event = configuration.resource;
