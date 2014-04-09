@@ -29,7 +29,7 @@ define(['vendor/jquery', 'vendor/underscore', 'sandbox'], function($,_, sandbox)
 
             self.myPlace.find('button[data-name=editevent]').on('click', function() {
                 var id = $(this).closest('tr').attr('name');
-                sandbox.resourceEdit('event', id);
+                sandbox.editResourceDisplay('event', id);
             });
 
             self.myPlace.find('[name=delete-button]').on('click', function() {

@@ -1,0 +1,85 @@
+<div class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">{{resourceActionText}} {{resourceTypeText}}</h4>
+            </div>
+            <div class="modal-body">
+                <form data-resourcetype="{{resourceType}}" data-resourceaction="{{resourceAction}}">
+                    <fieldset>
+                        {{#if resourceTypeEvent}}
+                        {{#with event}}
+
+                        {{! If id is defined, that means that we are editing an event.}}
+                        {{#if id}}
+                        <input name="id" value="{{id}}" type="hidden"/>
+                        {{/if}}
+
+                        {{! include the datasetId. If we are editing the event it will be discarded, but it is needed for creating the event.}}
+                        <input name="datasetId" value="{{datasetId}}" data-default="{{datasetId}}" type="hidden"/>
+
+                        <div class="form-group">
+                            <label for="startTime">Start Time</label>
+                            <input class="form-control" name="startTime" value="{{startTime}}" data-default="{{startTime}}" type="text">
+                            <p class="help-block">The epoch time at which the event starts.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="endTime">End Time</label>
+                            <input class="form-control"  value="{{endTime}}" data-default="{{endTime}}" name="endTime" type="text">
+                            <p class="help-block">The epoch time at which the event ends.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="type">Event Type</label>
+                            <select class="form-control " name="type" data-default="{{type}}">
+                                {{#each typeList}}<option {{#if selected}}selected="selected"{{/if}}>{{name}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                        {{/with}}
+                        {{/if}}
+
+
+
+                        {{#if resourceTypeDataset}}
+                        {{#with dataset}}
+
+                        {{! If id is defined, that means that we are editing a dataset.}}
+                        {{#if id}}
+                        <input name="id" value="{{id}}" type="hidden"/>
+                        {{/if}}
+
+
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input class="form-control" name="title" value="{{title}}" data-default="{{title}}" type="text">
+                            <p class="help-block">A short, descriptive title for this dataset.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="timezone">Timezone</label>
+                            <input class="form-control" name="timezone" value="{{timezone}}" data-default="{{timezone}}" type="text">
+                            <p class="help-block">The timezone for this dataset.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="owner">Owner</label>
+                            <input class="form-control" name="owner" value="{{owner}}" data-default="{{owner}}" type="text">
+                            <p class="help-block">The owner of this dataset.</p>
+                        </div>
+
+
+                        {{/with}}
+                        {{/if}}
+
+                        <div class="alert alert-warning hide" data-name="submitwarning"></div>
+
+                        <button class="btn btn-large btn-default pull-right" name="submitButton" type="submit">{{resourceActionText}}</button>
+                    </fieldset>
+                </form>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

@@ -218,10 +218,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                 dataType: 'json',
                 data: newResource,
                 success: function(data) {
-                    callback(data);
+                    callback(undefined, data);
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus + '---' + errorThrown + ' --- ' + jqXHR.responseText);
+                    callback(textStatus + '---' + errorThrown + ' --- ' + jqXHR.responseText);
                 }
             });
         },
@@ -344,14 +344,22 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                 }
             });
         },
-        resourceEdit: function(type, id) {
-            var eventName = 'totalState.resource-edit';
+        createResourceDisplay: function(type, defaults) {
+            sandbox.showModal('modifyresource', {
+                resourceAction: 'create',
+                resourceType: type,
+                resource: defaults
+            });
+        },
+        editResourceDisplay: function(type, id) {
             sandbox.get(type, {id: id}, function(resourceList) {
                 if (resourceList.length === 1) {
-                    sandbox.initiateEvent(eventName, {
-                        type: type,
-                        resource: resourceList[0]
-                    });
+                    sandbox.showModal('modifyresource',
+                            {
+                                resourceAction: 'edit',
+                                resourceType: type,
+                                resource: resourceList[0]
+                            });
                 }
             });
         },

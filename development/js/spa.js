@@ -2,13 +2,13 @@ requirejs.config({
     noGlobal: true,
     baseUrl: "/js",
     paths: {
-        customHandlebarsHelpers:'utilities/customHandlebarsHelpers'
+        customHandlebarsHelpers: 'utilities/customHandlebarsHelpers'
     },
     shim: {
         'jQuery.validate': [
             'vendor/jquery'
         ],
-        customHandlebarsHelpers:[
+        customHandlebarsHelpers: [
             'vendor/handlebars'
         ]
 
@@ -18,7 +18,7 @@ requirejs.config({
 require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], function(sandbox, $, _) {
     console.log('Is sandbox defined? ' + sandbox);
     sandbox.init();
-    
+
     sandbox.apiUrl = $('#page_parameters').data('apiurl');
     sandbox.currentUser = $('#page_parameters').data('currentuser');
     //sandbox.apiUrl = '';
@@ -54,24 +54,15 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
         });
 
         $('#navbar-fixed-bottom-edit-dataset-button').on('click', function(element) {
-            sandbox.resourceEdit('dataset', sandbox.focusState.dataset);
+            sandbox.editResourceDisplay('dataset', sandbox.focusState.dataset);
         });
 
         $('#navbar-fixed-bottom-create-event-button').on('click', function(element) {
-            /*var request_url = '/snippet/createeventmodal'
-                    + '?startTime=' + sandbox.focusState.startTime
-                    + '&endTime=' + sandbox.focusState.endTime
-                    + '&dataset=' + sandbox.focusState.dataset;
-*/
-            sandbox.showModal('createresource', {
-                resourceType:'event',
-               startTime:sandbox.focusState.startTime,
-               endTime:sandbox.focusState.endTime,
-               dataset:sandbox.focusState.dataset
+            sandbox.createResourceDisplay('event', {
+                startTime: sandbox.focusState.startTime,
+                endTime: sandbox.focusState.endTime,
+                datasetId: sandbox.focusState.dataset
             });
-            /*$("#create_event_modal").load(request_url, function() {
-                $("#new_event_modal").modal('show');
-            });*/
         });
 
         $('#navbar-fixed-bottom-zoom-out-button').on('click', function(element) {
