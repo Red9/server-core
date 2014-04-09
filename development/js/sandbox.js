@@ -333,13 +333,12 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             uri.query(focus);
             History.pushState(null, 'Focusing on ' + type + ' ' + id, uri.toString());
         },
-        resourceDownload: function(type, id) {
-            var eventName = 'totalState.resource-download';
-            sandbox.get(type, {id: id}, function(resourceList) {
+        
+        downloadPanelDisplay: function(id) {
+            sandbox.get('panel', {id: id}, function(resourceList) {
                 if (resourceList.length === 1) {
-                    sandbox.initiateEvent(eventName, {
-                        type: type,
-                        resource: resourceList[0]
+                    sandbox.showModal('downloadpanel', {
+                        resource:resourceList[0]
                     });
                 }
             });

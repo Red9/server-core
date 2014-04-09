@@ -43,14 +43,8 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
             return result;
         };
 
-
-
-        $('#navbar-fixed-bottom-run-usr-button').on('click', function(element) {
-            displayUsrModal();
-        });
-
         $('#navbar-fixed-bottom-download-panel-button').on('click', function(element) {
-            sandbox.resourceDownload('panel', sandbox.focusState.panel);
+            sandbox.downloadPanelDisplay(sandbox.focusState.panel);
         });
 
         $('#navbar-fixed-bottom-edit-dataset-button').on('click', function(element) {

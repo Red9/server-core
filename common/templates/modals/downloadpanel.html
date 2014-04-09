@@ -9,10 +9,6 @@
             <div class="modal-body">
                 <form class="form-horizontal">
                     <fieldset>
-
-                        <!-- Form Name -->
-                        <legend>Download Panel</legend>
-
                         <!-- Prepended checkbox -->
                         <div class="form-group">
                             <label class="col-md-3 control-label" for="start_time_input">Start Time</label>
@@ -23,8 +19,8 @@
                                     </span>
                                     <input name="start_time_input" class="form-control" type="text" placeholder="eg 123456789">
                                 </div>
-                                <p class="help-block">The start time of the dataset to download. 
-                                    <br/>Minimum is <b name="minimum_start_time">{{startTime}}</b>
+                                <p class="help-block">
+                                         Minimum is <b name="minimum_start_time">{{startTime}}</b>
                                     <br/>Current is &nbsp;&nbsp;<b name="current_start_time">{{currentStartTime}}</b>
                                 </p>
                             </div>
@@ -40,8 +36,8 @@
                                     </span>
                                     <input name="end_time_input" name="end_time_checkbox" class="form-control" type="text" placeholder="eg 987654321">
                                 </div>
-                                <p class="help-block">The end time of the dataset to download. 
-                                    <br />Current is &nbsp;&nbsp; <b name="current_end_time">{{currentEndTime}}</b>
+                                <p class="help-block">
+                                          Current is &nbsp;&nbsp; <b name="current_end_time">{{currentEndTime}}</b>
                                     <br />Maximum is <b name="maximum_end_time">{{endTime}}</b>
                                 </p>
                             </div>
@@ -105,11 +101,8 @@
                     </fieldset>
                 </form>
 
-                <a href="" target="_blank" data-name="download-perma-link">perma-link</a>
+                <a href="" target="_blank" data-name="download-perma-link" class="hide pull-right">perma-link</a>
 
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
