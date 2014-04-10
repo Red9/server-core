@@ -41,13 +41,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                  class: editResourceModal
                  },*/
                 {
+                    class: 'eventlist'
+                },
+                {
                     class: 'resourcedetails'
                 },
                 {
                     class: 'embeddedvideo'
-                },
-                {
-                    class: 'eventlist'
                 },
                 {
                     class: 'panelgraph',
@@ -267,7 +267,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                 url: sandbox.apiUrl + '/panel/' + id + '/body/?' + $.param(panelParameters),
                 dataType: 'json',
                 success: function(panel) {
-                    console.log('Got Panel');
                     _.each(panel.values, function(row) {
                         row[0] = new Date(row[0]);
                     });
