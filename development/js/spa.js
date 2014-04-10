@@ -16,13 +16,10 @@ requirejs.config({
 });
 
 require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], function(sandbox, $, _) {
-    console.log('Is sandbox defined? ' + sandbox);
     sandbox.init();
 
     sandbox.apiUrl = $('#page_parameters').data('apiurl');
     sandbox.currentUser = $('#page_parameters').data('currentuser');
-    //sandbox.apiUrl = '';
-    //sandbox.currentUser = '{{user.id}}';
 
     var GetUSROperands = function() {
         return {};

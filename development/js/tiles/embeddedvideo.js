@@ -10,12 +10,14 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
         var player;
         var showPlayerTimeTimeout;
         var datasetId;
+        var $videoSyncCheckbox;
 
         function reset() {
             videoList = [];
             playerTimePlace = undefined;
             currentVideoIndex = -1;
             player = undefined;
+            $videoSyncCheckbox = undefined;
             if (typeof showPlayerTimeTimeout !== 'undefined') {
                 clearInterval(showPlayerTimeTimeout);
             }
@@ -92,6 +94,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
                     videos: videoList
                 };
                 myPlace.html(template(parameters));
+                $videoSyncCheckbox = myPlace.find('[data-name=syncvideowithhovercheckbox]');
                 prepareListeners();
 
                 // We have to  test this now (instead of using loadVideoById
@@ -111,18 +114,30 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
                             height: '390',
                             width: '640',
                             videoId: currentVideoId,
-                            playerVars:{
-                              modestbranding:1,
-                              showinfo:0,
-                              controls:1
+                            playerVars: {
+                                modestbranding: 1, // Hide as much YouTube stuff as possible
+                                showinfo: 0, // Don't show extra info at video start
+                                //controls: 2, // Slight performance improvement.
+                                rel: 0 // Don't show related videos
+                                        //TODO: Should specify the "origin" option to prevent cross origin security problems.
                             },
                             events: {
-                                onStateChange: onPlayerStateChange
+                                onStateChange: onPlayerStateChange,
+                                onReady: function() {
+                                    // A little bit of a hack: the first seekTo
+                                    // will cause an unstarted video to play.
+                                    // So the trick is to play then pause the
+                                    // video so that the first seekTo won't
+                                    // cause the video to start playing.
+                                    player.mute();
+                                    player.playVideo();
+                                    player.pauseVideo();
+                                    //player.unMute();
+                                }
                             }
                         }
                 );
 
-                
             });
         }
 
@@ -199,28 +214,34 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
                 reset();
                 datasetId = newDatasetId;
                 sandbox.get('video', {dataset: datasetId}, setVideos);
+            } else { // At least seek the video to match the current time...
+                console.log('Seeking to time ' + sandbox.focusState.startTime);
+                seekTo(sandbox.focusState.startTime);
             }
         }
-        
-        function hoverTime(event, parameters) {
-            
-            if(currentVideoIndex !== -1){
-                console.log(parameters.hovertime);
-                
-                var videoTime = parameters.hovertime - videoList[currentVideoIndex].startTime;
-                if(videoTime > 0){
-                    player.seekTo(videoTime / 1000, true); // seekTo is in seconds, not milliseconds
-                    showPlayerTime();
+
+        function seekTo(milliseconds) {
+            if (currentVideoIndex !== -1) {
+                // seekTo is in seconds, not milliseconds
+                var videoTime = (milliseconds - videoList[currentVideoIndex].startTime) / 1000;
+                if (videoTime < 0) {
+                    videoTime = 0;
                 }
-                
+                player.seekTo(videoTime, true);
+                showPlayerTime(); // Force showing in case we're not playing.
             }
-            //typeof showPlayerTimeTimeout === 'undefined'
+        }
+
+        function hoverTime(event, parameters) {
+            if ($videoSyncCheckbox.prop('checked')) {
+                seekTo(parameters.hovertime);
+            }
         }
 
         reset();
         $(sandbox).on('totalState.resource-focused', resourceFocused);
         $(sandbox).on('totalState.hover-time', hoverTime);
-        setVideos(videoList);
+        setVideos(videoList); // Initial set to empty list.
         doneCallback();
     }
     return embeddedVideo;

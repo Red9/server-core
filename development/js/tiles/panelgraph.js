@@ -215,16 +215,74 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
         canvas.fillStyle = 'rgba(0,0,0,1.0)';
         canvas.fillText(event.type, startTimeX + 2, area.y + area.h - fontPadding);
     };
+    
+    panelGraph.prototype.createVideoRegion = function(canvas, area, dygraph, index, video) {
+        var min_data_x = dygraph.getValue(0, 0);
+        var max_data_x = dygraph.getValue(dygraph.numRows() - 1, 0);
+
+        var startTimeX = dygraph.toDomXCoord(video.startTime);
+        
+
+        var fontHeight = 14;
+        var fontPadding = 4;
+
+        var style = '';
+
+        if (index % 2 === 0) {
+            style = 'rgba(80,70,190,1.0)';
+        } else {
+            style = 'rgba(190,25,80,1.0)';
+        }
+        canvas.fillStyle = style;
+        canvas.strokeStyle = style;
+
+        // Draw rectangle to span event time
+        //canvas.fillRect(startTimeX, area.y + area.h - (fontHeight + fontPadding), endTimeX - startTimeX, fontHeight + fontPadding);
+
+        // Draw background canvas
+        canvas.fillStyle = 'rgba(255,255,255,0.8';
+        canvas.fillRect(startTimeX, area.y + area.h - (fontHeight + fontPadding), canvas.measureText(video.type).width, fontHeight);
+
+
+        // Draw line tickers
+        canvas.lineWidth = 1;
+        
+        canvas.setLineDash([2,5]);
+
+        canvas.beginPath();
+        canvas.moveTo(startTimeX, area.y);
+        canvas.lineTo(startTimeX, area.y + area.h);
+        //canvas.lineTo(startTimeX, area.y +30 - fontHeight * 3 / 2);
+        //canvas.lineTo(startTimeX + fontHeight / 2, area.y  +30- fontHeight * 3 / 2);
+        canvas.stroke();
+        
+        canvas.setLineDash([]);
+
+        // Draw label
+        canvas.font = fontHeight + 'px Arial';
+        canvas.fillStyle = 'rgba(0,0,0,1.0)';
+        canvas.fillText('Video', startTimeX + 2, area.y + area.h - fontPadding);
+    };
 
     panelGraph.prototype.underlayCallback = function(canvas, area, dygraph) {
         var self = this;
-        sandbox.get('event', {datasetId: this.datasetId}, function(events) {
-            var sortedEvents = _.sortBy(events, function(event) {
-                return event.startTime;
-            });
+        sandbox.get('event', {datasetId: self.datasetId}, function(events) {
+            sandbox.get('video', {dataset: self.datasetId}, function(videos) {
+                var sortedEvents = _.sortBy(events, function(event) {
+                    return event.startTime;
+                });
 
-            _.each(sortedEvents, function(event, index) {
-                self.createEventRegion(canvas, area, dygraph, index, event);
+                _.each(sortedEvents, function(event, index) {
+                    self.createEventRegion(canvas, area, dygraph, index, event);
+                });
+                
+                var sortedVideos = _.sortBy(videos, function(video) {
+                    return video.startTime;
+                });
+
+                _.each(sortedVideos, function(video, index) {
+                    self.createVideoRegion(canvas, area, dygraph, index, video);
+                });
             });
         });
     };
@@ -265,10 +323,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
                     }
                 },
                 underlayCallback: $.proxy(this.underlayCallback, this),
-                highlightCallback: function(event, x, points, row, seriesName){
+                highlightCallback: function(event, x, points, row, seriesName) {
                     sandbox.initiateHoverTimeEvent(x);
                 },
-                unhighlightCallback: function(event){
+                unhighlightCallback: function(event) {
                     //console.log('UNHIGHLIGHT');
                 }
             };

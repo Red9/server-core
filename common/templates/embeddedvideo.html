@@ -4,6 +4,7 @@
         <div>
             <div data-name="videoDiv"></div>
         </div>
+        
     </div>
     <div class="col-md-5">
         {{#if videos}}
@@ -52,7 +53,9 @@
         </div>
         {{/if}}
         
-        <span class="pull-left" data-name="currentvideotime"></span>
+        <div class="pull-left">Video time: <span data-name="currentvideotime"></span>
+        <div class="checkbox"><label><input type="checkbox" data-name="syncvideowithhovercheckbox">Sync video with hover</label></div>
+        </div>
         <span class="pull-right"><button data-name="addvideobutton" class="btn btn-default"><span class="glyphicon glyphicon-film"></span>&nbsp;Add Video</button></span>
     </div>
 </div>
