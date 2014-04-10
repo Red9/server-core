@@ -41,10 +41,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                  class: editResourceModal
                  },*/
                 {
-                    class: 'eventlist'
+                    class: 'resourcedetails'
                 },
                 {
-                    class: 'resourcedetails'
+                    class: 'eventlist'
                 },
                 {
                     class: 'embeddedvideo'
@@ -376,6 +376,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
         setPageTitle: function(newTitle) {
             $(document).attr('title', newTitle);
             $('#footer-page-title').text(newTitle);
+        },
+        initiateVideoTimeEvent: function(videoTime){
+          var eventName = 'totalState.video-time';
+          sandbox.initiateEvent(eventName, {videoTime: videoTime});
         },
         initiateHoverTimeEvent: function(hovertime) {
             var eventName = 'totalState.hover-time';
