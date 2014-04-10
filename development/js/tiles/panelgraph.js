@@ -6,6 +6,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
         self.configuration = configuration;
         $(sandbox).on('totalState.resource-focused', $.proxy(this.resourceFocused, this));
 
+        $(sandbox).on('totalState.video-time', $.proxy(this.videoTime, this));
+
         if (typeof self.configuration === 'undefined') {
             self.configuration = {};
         }
@@ -215,13 +217,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
         canvas.fillStyle = 'rgba(0,0,0,1.0)';
         canvas.fillText(event.type, startTimeX + 2, area.y + area.h - fontPadding);
     };
-    
+
     panelGraph.prototype.createVideoRegion = function(canvas, area, dygraph, index, video) {
         var min_data_x = dygraph.getValue(0, 0);
         var max_data_x = dygraph.getValue(dygraph.numRows() - 1, 0);
 
         var startTimeX = dygraph.toDomXCoord(video.startTime);
-        
+
 
         var fontHeight = 14;
         var fontPadding = 4;
@@ -246,8 +248,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
 
         // Draw line tickers
         canvas.lineWidth = 1;
-        
-        canvas.setLineDash([2,5]);
+
+        canvas.setLineDash([2, 5]);
 
         canvas.beginPath();
         canvas.moveTo(startTimeX, area.y);
@@ -255,7 +257,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
         //canvas.lineTo(startTimeX, area.y +30 - fontHeight * 3 / 2);
         //canvas.lineTo(startTimeX + fontHeight / 2, area.y  +30- fontHeight * 3 / 2);
         canvas.stroke();
-        
+
         canvas.setLineDash([]);
 
         // Draw label
@@ -275,7 +277,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
                 _.each(sortedEvents, function(event, index) {
                     self.createEventRegion(canvas, area, dygraph, index, event);
                 });
-                
+
                 var sortedVideos = _.sortBy(videos, function(video) {
                     return video.startTime;
                 });
@@ -439,6 +441,41 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
             //this.updateDygraph(sandbox.trimPanel(parameter.panel, this.configuration.axes));
         }
     };
+    
+    panelGraph.prototype.getFirstVisibleSeries = function(){
+        return this.graph.getLabels()[_.indexOf(this.graph.visibility(), true) + 1];
+    }
+
+    panelGraph.prototype.videoTime = function(event, parameter) {
+        if (typeof this.graph !== 'undefined') {
+
+            var videoTime = parameter.videoTime;
+
+            var extremes = this.graph.xAxisExtremes();
+            var minX = extremes[0];
+            var maxX = extremes[1];
+            
+            var rowCount = this.graph.numRows();
+
+            if (minX < videoTime && videoTime < maxX) {
+                var rowIndex = Math.round((videoTime - minX)/(maxX - minX) * rowCount);
+                
+                var closestTime = this.graph.getValue(rowIndex, 0);
+                
+                console.log('videoTime: ' + videoTime + ', rowIndex: ' + rowIndex + ', closestTime: ' + closestTime);
+                console.log('this.getFirstVisibleSeries(): ' + this.getFirstVisibleSeries());
+                
+                this.graph.setAnnotations([
+                    {
+                        series: this.getFirstVisibleSeries(),
+                        x: closestTime,
+                        shortText: 'V',
+                        attachAtBottom: true
+                    }
+                ]);
+            }
+        }
+    }
 
     return panelGraph;
 });

@@ -1,6 +1,7 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'customHandlebarsHelpers'], function($, _, async, sandbox, chh) {
     // Class variables
     var youtubeApiKey = "AIzaSyBhSTRxw9EXWgZiMCqIYdPKtZuDdaXkCdA";
+    var kPlayerUpdateInterval = 1000;
 
     function embeddedVideo(myPlace, configuration, doneCallback) {
 
@@ -11,6 +12,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
         var showPlayerTimeTimeout;
         var datasetId;
         var $videoSyncCheckbox;
+        var $videoEmitEventCheckbox;
 
         function reset() {
             videoList = [];
@@ -18,6 +20,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
             currentVideoIndex = -1;
             player = undefined;
             $videoSyncCheckbox = undefined;
+            $videoEmitEventCheckbox = undefined;
             if (typeof showPlayerTimeTimeout !== 'undefined') {
                 clearInterval(showPlayerTimeTimeout);
             }
@@ -60,7 +63,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
         function onPlayerStateChange(event) {
             if (event.data === YT.PlayerState.PLAYING) {
                 if (typeof showPlayerTimeTimeout === 'undefined') {
-                    showPlayerTimeTimeout = setInterval(showPlayerTime, 250);
+                    showPlayerTimeTimeout = setInterval(showPlayerTime, kPlayerUpdateInterval);
                 }
             } else if (event.data === YT.PlayerState.ENDED
                     || event.data === YT.PlayerState.PAUSED
@@ -81,6 +84,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
             var playerTime = videoList[currentVideoIndex].startTime + player.getCurrentTime() * 1000;
             //console.log('Player Time: ' + playerTime);
             playerTimePlace.text(chh.MillisecondsEpochToTime(playerTime) + ' (' + playerTime + ')');
+            if($videoEmitEventCheckbox.prop('checked')){
+                sandbox.initiateVideoTimeEvent(playerTime);
+            }
         }
 
         function displayVideos(err, annotatedVideos) {
@@ -95,6 +101,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
                 };
                 myPlace.html(template(parameters));
                 $videoSyncCheckbox = myPlace.find('[data-name=syncvideowithhovercheckbox]');
+                $videoEmitEventCheckbox = myPlace.find('[data-name=emitvideotimeeventscheckbox]');
                 prepareListeners();
 
                 // We have to  test this now (instead of using loadVideoById
