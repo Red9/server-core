@@ -139,6 +139,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                     ; i = i + 1) {
                 result.values.push(extra.values[i]);
             }
+            
+            result.spliceStart = i;
+            result.spliceLength = core.values.length;
 
             // Add in the splice
             _.each(core.values, function(value, index) {
@@ -280,7 +283,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
 
                 if (_.isFunction(startTime) === true // Then not specified at all
                         || (datasetPanel.startTime === startTime && datasetPanel.endTime === endTime)) {
-                    //No splicing necessary
+                    // No splicing necessary
+                    // So set the "splice" to be the entire panel.
+                    datasetPanel.spliceStart = 0;
+                    datasetPanel.spliceLength = datasetPanel.values.length;
                     callback(datasetPanel);
                 } else {
                     sandbox.getPanel(panelId, startTime, endTime, cache, function(corePanel) {
