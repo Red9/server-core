@@ -411,7 +411,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
     panelGraph.prototype.updateDygraph = function(panel) {
         if (typeof this.graph !== 'undefined') {
             this.panel.labels = panel.labels;
-
+            this.panel.spliceStart = panel.spliceStart;
+            this.panel.spliceLength = panel.spliceLength;
 
 
 
@@ -451,19 +452,22 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
 
             var videoTime = parameter.videoTime;
 
-            var extremes = this.graph.xAxisExtremes();
-            var minX = extremes[0];
-            var maxX = extremes[1];
             
-            var rowCount = this.graph.numRows();
+            //console.log('start: '+ this.panel.spliceStart);
+            //console.log('end:' + (this.panel.spliceStart + this.panel.spliceLength - 1));
+
+            var minX = this.graph.getValue(this.panel.spliceStart, 0);
+            var maxX = this.graph.getValue(this.panel.spliceStart + this.panel.spliceLength - 1, 0);
+            
+            var rowCount = this.panel.spliceLength;
 
             if (minX < videoTime && videoTime < maxX) {
-                var rowIndex = Math.round((videoTime - minX)/(maxX - minX) * rowCount);
+                var rowIndex = Math.round((videoTime - minX)/(maxX - minX) * rowCount) + this.panel.spliceStart;
                 
                 var closestTime = this.graph.getValue(rowIndex, 0);
                 
-                console.log('videoTime: ' + videoTime + ', rowIndex: ' + rowIndex + ', closestTime: ' + closestTime);
-                console.log('this.getFirstVisibleSeries(): ' + this.getFirstVisibleSeries());
+                //console.log('videoTime: ' + videoTime + ', rowIndex: ' + rowIndex + ', closestTime: ' + closestTime);
+                //console.log('this.getFirstVisibleSeries(): ' + this.getFirstVisibleSeries());
                 
                 this.graph.setAnnotations([
                     {
