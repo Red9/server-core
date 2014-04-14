@@ -53,14 +53,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                     class: 'panelgraph',
                     configuration: {
                         axes: [
-                            'gps:speed'
-                        ]
-                    }
-                },
-                {
-                    class: 'panelgraph',
-                    configuration: {
-                        axes: [
                             'acceleration:x',
                             'acceleration:y',
                             'acceleration:z'
@@ -84,6 +76,14 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                             'magneticfield:x',
                             'magneticfield:y',
                             'magneticfield:z'
+                        ]
+                    }
+                },
+                {
+                    class: 'panelgraph',
+                    configuration: {
+                        axes: [
+                            'gps:speed'
                         ]
                     }
                 },
@@ -461,7 +461,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             sandbox.initiateResourceFocusedEvent(resource, id, query['focus.starttime'], query['focus.endtime']);
         },
         showModal: function(type, parameters) {
-            // TODO: If modal is already shown, dismiss it first.
+            // If modal is already shown, dismiss it first.
             var $modalDiv = $('#modal_div');
             $modalDiv.find('.modal').each(function() {
                 $(this).modal('hide');

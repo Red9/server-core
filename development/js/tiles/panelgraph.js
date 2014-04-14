@@ -445,7 +445,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
     
     panelGraph.prototype.getFirstVisibleSeries = function(){
         return this.graph.getLabels()[_.indexOf(this.graph.visibility(), true) + 1];
-    }
+    };
 
     panelGraph.prototype.videoTime = function(event, parameter) {
         if (typeof this.graph !== 'undefined') {
@@ -477,9 +477,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox', 'vendo
                         attachAtBottom: true
                     }
                 ]);
+            }else{
+                this.graph.setAnnotations([]);
             }
         }
-    }
+    };
 
     return panelGraph;
 });

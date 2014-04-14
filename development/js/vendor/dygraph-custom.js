@@ -6778,9 +6778,6 @@ Dygraph.Export.drawLegend = function(canvas, dygraph, options) {
     var usedColorCount = 0;
     for (i = 0; i < labels.length; i++) {
         if (labelVisibility[i]) {
-            //TODO Replace the minus sign by a proper dash, although there is a
-            //     problem when the page encoding is different than the encoding 
-            //     of this file (UTF-8).
             var txt = "- " + labels[i];
             ctx.fillStyle = colors[usedColorCount];
             usedColorCount++;
