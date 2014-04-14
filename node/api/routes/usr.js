@@ -52,100 +52,11 @@ exports.getusrform = function(req, res, next) {
             res.json(form);
         }
     });
-
-
-    /*  var temp = {
-     "schema": {
-     "start_time": {
-     "type": "object",
-     "title": "Start Time",
-     "properties": {
-     "selected": {
-     "type": "checkbox",
-     "title": "Apply Start Time"
-     },
-     "date": {
-     "type": "date",
-     "title": "Date"
-     },
-     "hour": {
-     "type": "integer",
-     "title": "hour",
-     "minimum": 1,
-     "maximum": 23,
-     "default": 1
-     },
-     "minute": {
-     "type": "integer",
-     "title": "minute",
-     "minimum": 0,
-     "maximum": 59,
-     "default": 2
-     },
-     "second": {
-     "type": "number",
-     "title": "second",
-     "minimum": 0,
-     "maximum": 59.999,
-     "default": 3.456
-     }
-     }
-     },
-     "end_time": {
-     "type": "object",
-     "title": "End Time",
-     "properties": {
-     "selected": {
-     "type": "checkbox",
-     "title": "Apply End Time"
-     },
-     "date": {
-     "type": "date",
-     "title": "Date"
-     },
-     "hour": {
-     "type": "integer",
-     "title": "hour",
-     "minimum": 1,
-     "maximum": 23,
-     "default": 1
-     },
-     "minute": {
-     "type": "integer",
-     "title": "minute",
-     "minimum": 0,
-     "maximum": 59,
-     "default": 2
-     },
-     "second": {
-     "type": "number",
-     "title": "second",
-     "minimum": 0,
-     "maximum": 59.999,
-     "default": 3.456
-     }
-     }
-     }
-     },
-     "form": [
-     {
-     "type": "help",
-     "helpvalue": "Specify the start time and/or the end time of the dataset. If only one is specified then the dataset is shifted. If both are specified then the dataset is both shifted and stretched (or compressed)."
-     },
-     "start_time",
-     "end_time"
-     ]
-     };
-     
-     res.json(temp);
-     */
 };
 
 exports.operateusr = function(req, res, next) {
     var form = req.body["form"];
     var marked = req.body["marked"];
-
-    //TODO(SRLM): Add a check here to validate the variables from the user.
 
     var parameters = {
         form: form,

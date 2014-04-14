@@ -20,14 +20,9 @@ exports.init = function() {
             //app.set('json spaces', 0); // Output space free JSON
 
             app.use(logger.logger()); // Middleware to log all requests. Uses logger
-            app.use(express.compress());
-            app.use(express.cookieParser());
-            app.use(express.json());
-            app.use(express.urlencoded());
-
-            app.use(express.session({secret: config.sessionSecret, maxAge: 360 * 5}));
-
-            app.use(app.router);
+            app.use(require('compression')());
+            app.use(require('body-parser').json());
+            app.use(require('body-parser').urlencoded());
 
             // Enable CORS: http://enable-cors.org/server_expressjs.html
             app.all('*', function(req, res, next) {
@@ -37,7 +32,7 @@ exports.init = function() {
                 next();
             });
 
-            app.use(express.errorHandler());
+            app.use(require('errorhandler')());
 
             requireFromRoot('api/routes')(app); // These are the main site routes
 

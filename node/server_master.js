@@ -12,7 +12,7 @@ if (cluster.isMaster) {
     logger.init(config.serverType, 'master');
     var log = logger.log; // console.log replacement
 
-    workerPorts = {};
+    var workerPorts = {};
     log.info('Master ' + config.serverType + ' process started. Starting worker processes.');
     log.info("Release Server: " + config.release);
     

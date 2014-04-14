@@ -130,7 +130,6 @@ exports.create = function(route, req, res, next) {
             if (typeof createdResource === 'undefined') {
                 res.status(500).json({message: 'Could not complete request: ' + err});
             } else {
-                // TODO(SRLM): Sometimes an error message is returned instead of event. This should be updated.
                 res.json(createdResource);
             }
         });

@@ -214,8 +214,6 @@ var processLines = function(parameters, callback) {
 
 exports.updateBody = function(req, res, next) {
     // TODO(SRLM): Check to make sure that the uploaded panel is balanced.
-
-    // TODO(SRLM): Match the database: Get the dataset and make sure that temporaryId actually exists
     var id = req.param('id');
 
     panelResource.get({id: id}, function(panelList) {
@@ -228,9 +226,6 @@ exports.updateBody = function(req, res, next) {
             if (req.is('text/*')) {
                 req.setEncoding('utf8');
 
-                // We have to be preparped to end in either spot.
-                // TODO(SRLM): Validate this algorithm for correctness.
-
                 var chunksNotDone = 0;
                 var processingQueue = async.queue(processLines, 1);
 
@@ -238,13 +233,11 @@ exports.updateBody = function(req, res, next) {
                 var previousChunk = '';
                 req.on('data', function(chunk) {
                     chunksNotDone = chunksNotDone + 1;
-                    //log.debug('Queue: chunksNotDone: ' + chunksNotDone);
 
                     if (firstChunk === true) {
                         firstChunk = false;
                         var endOfFirstLine = chunk.indexOf('\n');
                         var firstLine = chunk.substr(0, endOfFirstLine);
-                        //log.debug('First line: ' + firstLine);
 
                         panel.axes = firstLine.split(',');
                         if (panel.axes.shift() !== 'time') {
@@ -264,21 +257,14 @@ exports.updateBody = function(req, res, next) {
                     };
                     processingQueue.push(parameters, function() {
                         chunksNotDone = chunksNotDone - 1;
-                        //log.debug('Dequeue: chunksNotDone: ' + chunksNotDone);
 
                         if (chunksNotDone === 0) {
-                            if (previousChunk !== '') {
-                                //log.debug('Last line: "' + previousChunk + '"');
-                            }
-
                             updateInsertCompleteFunction(panel);
                         }
                     });
                 });
 
                 req.on('end', function() {
-                    //log.debug('End reached. Chunks counter = ' + chunksNotDone);
-
                     // Send the response as soon as we've got the entire upload.
                     res.json({message: 'Read a bunch of lines. Now processing those lines.'});
 

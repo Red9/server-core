@@ -109,14 +109,14 @@ exports.init = function() {
             app.engine('html', hbs.__express); // Handlebars templating
 
             if (config.release === true) {
-                app.use(express.favicon(path.join(__dirname, 'html/public/common/images/favicon.ico')));
+                app.use(require('static-favicon')(path.join(__dirname, 'html/public/common/images/favicon.ico')));
             } else {
-                app.use(express.favicon(path.join(__dirname, 'html/public/common/images/favicon.localdev.ico')));
+                app.use(require('static-favicon')(path.join(__dirname, 'html/public/common/images/favicon.localdev.ico')));
             }
 
             app.use(logger.logger()); // Middleware to log all requests.
-            app.use(express.compress());
-            app.use(express.methodOverride());
+            app.use(require('compression')());
+            app.use(require('method-override')());
 
 
             // Set up static directories.
@@ -132,18 +132,19 @@ exports.init = function() {
             });
 
 
-            app.use(express.cookieParser());
-            app.use(express.bodyParser());
+            app.use(require('cookie-parser')());
+            app.use(require('body-parser')());
 
-            app.use(express.session({secret: config.sessionSecret, maxAge: 360 * 5}));
+            app.use(require('express-session')({secret: config.sessionSecret, maxAge: 360 * 5}));
             app.use(passport.initialize());
             app.use(passport.session());
 
+            console.log('locals: ' + JSON.stringify(app.locals));
 // source: http://stackoverflow.com/questions/16452123/how-to-create-global-variables-accessible-in-all-views-using-express-node-js
-            app.locals(config.pageTemplateDefaults);
-
+            underscore.extend(app.locals, config.pageTemplateDefaults);
+            console.log('locals: ' + JSON.stringify(app.locals));
+            
             app.use(LoadGlobalTemplateParameters);
-            app.use(app.router);
 
             requireFromRoot('html/routes')(app, passport); // These are the main site routes
 

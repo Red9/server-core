@@ -26,11 +26,11 @@ var processUsr = function(usrDirectory) {
             // fs operates relative to where the program is executed, while
             // require operates relative to where this particular file is.
             // Annoying!
-            var package = require('../../' + usrDirectory + '/package.json');
-            package.directory = usrDirectory;
+            var usrPackage = require('../../' + usrDirectory + '/package.json');
+            usrPackage.directory = usrDirectory;
             //package.id = common.generateUUID();
             //log.debug('Got USR: ' + package.id);
-            usrList.push(package);
+            usrList.push(usrPackage);
         }
     });
 };

@@ -1,4 +1,4 @@
-    <form action="{{{post_target}}}" method="post" enctype="multipart/form-data" id="upload_form" class="form-horizontal">
+<form action="{{{post_target}}}" method="post" enctype="multipart/form-data" id="upload_form" class="form-horizontal">
     <fieldset>
 
         <!-- Form Name -->
@@ -48,22 +48,24 @@
 
     </fieldset>
 </form>
-
+<script src="/js/vendor/require.js"></script>
 <script>
+require(['vendor/jquery', 'vendor/jquery.validate'], function($) {
     $(document).ready(function() {
         var validator = $('#upload_form').validate({
-           rules:{
-               file:{
-                   required: true,
-                   extension: "{{{file_extension}}}"
-               }
-           },
-           messages: {
-               file:{
-                   required: "You must provide an {{{file_extension}}} file for upload.",
-                   extension: "Must be an {{{file_extension}}} file (with that extension)."
-               }
-           }
+            rules: {
+                file: {
+                    required: true,
+                    extension: "{{{file_extension}}}"
+                }
+            },
+            messages: {
+                file: {
+                    required: "You must provide an {{{file_extension}}} file for upload.",
+                    extension: "Must be an {{{file_extension}}} file (with that extension)."
+                }
+            }
         });
     });
+});
 </script>

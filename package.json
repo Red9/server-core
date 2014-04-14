@@ -27,6 +27,14 @@
         "connect-timeout":"latest",
         "requirejs":"latest",
 	"geolib":"latest",
-	"markdown":"latest"
+	"markdown":"latest",
+        
+        "body-parser":"latest",
+        "compression":"latest",
+        "errorhandler":"latest",
+        "static-favicon":"latest",
+        "method-override":"latest",
+        "cookie-parser":"latest",
+        "express-session":"latest"
     }
 }

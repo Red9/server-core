@@ -250,8 +250,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment', 'sandbox'], funct
         _.each(panel.values, function(row, index) {
 
             // Only include rows that exist.
-            // TODO(SRLM): It would be better to indicate this somehow (gaps in the
-            // line? Red sections?)
 
             // The panel is spliced, so let's only map the values within the 
             // core range.
