@@ -1,18 +1,22 @@
 exports.ports = {
-    api:[
+    api: [
         8082,
-    8083,
-    8084,
-    8085
+        8083,
+        8084,
+        8085
     ],
-    html:[
+    html: [
         8081
+    ],
+    action: [
+        8086
     ]
 };
 
 exports.realms = {
     html: 'http://redninesensor.com',
-    api: 'http://api.redninesensor.com'
+    api: 'http://api.redninesensor.com',
+    action: 'http://action.redninesensor.com'
 };
 
 exports.tempDirectory = "/tmp/red9_dev_website/";

@@ -45,12 +45,7 @@ exports.init = function() {
     process.on('message', function(message) {
         if (typeof message.port !== 'undefined') {
 
-            //log.info("HTML Node.js worker started.");
-            //log.info("Using realm: " + config.htmlRealm);
-            //log.info("Are we running release server? " + config.release);
-
-
-// Standard modules that we need:
+            // Standard modules that we need:
             var express = require('express');
             var routes = requireFromRoot('html/routes');
             var http = require('http');
@@ -61,7 +56,7 @@ exports.init = function() {
             var hbsHelpers = requireFromRoot('html/public/development/js/utilities/customHandlebarsHelpers');
             hbsHelpers.RegisterHelpers(hbs, require('moment'));
 
-// Authentication details
+            // Authentication details
             var passport = require('passport');
             var GoogleStrategy = require('passport-google').Strategy;
             var authenticate = requireFromRoot('support/authenticate');
@@ -98,10 +93,7 @@ exports.init = function() {
                 next();
             }
 
-
-
-
-// Express and Connect stuff
+            // Express and Connect stuff
             var app = express();
             app.set('port', message.port);
             app.set('views', __dirname + '/html/views');
@@ -140,13 +132,14 @@ exports.init = function() {
             app.use(passport.session());
 
             console.log('locals: ' + JSON.stringify(app.locals));
-// source: http://stackoverflow.com/questions/16452123/how-to-create-global-variables-accessible-in-all-views-using-express-node-js
-            underscore.extend(app.locals, config.pageTemplateDefaults);
-            console.log('locals: ' + JSON.stringify(app.locals));
             
+            // Store some local variables for all rendered templates.
+            underscore.extend(app.locals, config.pageTemplateDefaults);
+
             app.use(LoadGlobalTemplateParameters);
 
-            requireFromRoot('html/routes')(app, passport); // These are the main site routes
+            // These are the main site routes
+            requireFromRoot('html/routes')(app, passport);
 
             app.use(function(req, res, next) {
                 res.status(404).render('404_error', {title: "Sorry, page not found"});

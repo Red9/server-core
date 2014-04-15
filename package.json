@@ -9,7 +9,6 @@
         "express": "latest",
         "node-cassandra-cql": "git://github.com/jorgebay/node-cassandra-cql.git",
         "hbs": "latest",
-        "lazy": "latest",
         "async": "latest",
         "socket.io": "latest",
         "passport": "latest",
@@ -24,10 +23,9 @@
         "cluster": "latest",
         "underscore": "latest",
         "validator":"latest",
-        "connect-timeout":"latest",
         "requirejs":"latest",
-	"geolib":"latest",
-	"markdown":"latest",
+        "geolib":"latest",
+        "markdown":"latest",
         
         "body-parser":"latest",
         "compression":"latest",
@@ -35,6 +33,7 @@
         "static-favicon":"latest",
         "method-override":"latest",
         "cookie-parser":"latest",
-        "express-session":"latest"
+        "express-session":"latest",
+        "busboy":"latest"
     }
 }

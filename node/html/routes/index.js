@@ -37,7 +37,6 @@ module.exports = function(app, passport) {
     app.get('/bluetooth', IsAuthenticated, require('./bluetooth').get);
     
     app.get('/upload/rnc', IsAuthenticated, require('./rncupload').get);
-    app.post('/upload/rnc/process', IsAuthenticated, require('./rncprocess').post);
 
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get); 
 };

@@ -257,7 +257,7 @@ var ExtractHttpAttributes = function(req, res) {
 
     result['method'] = req.method;
     result['originalurl'] = req.originalUrl;
-    result['statuscode'] = res.headerSent ? res.statusCode : null;
+    result['statuscode'] = res._headerSent ? res.statusCode : null;
     result['responsetime'] = (new Date - req._startTime);
     result['responselength'] = len;
     result['referrer'] = req.headers['referer'] || req.headers['referrer'];

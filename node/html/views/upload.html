@@ -1,70 +1,113 @@
-<form action="{{{post_target}}}" method="post" enctype="multipart/form-data" id="upload_form" class="form-horizontal">
-    <fieldset>
 
+
+
+<form data-name="rncuploadform" action="http://action.localdev.redninesensor.com/upload/rnc" method="post" enctype="multipart/form-data" class="form-horizontal">
+    <fieldset>
         <!-- Form Name -->
-        <legend>{{{file_extension}}} Upload</legend>
+        <legend>RNC Upload</legend>
+
+        <input type="hidden" name="owner" value="{{user.id}}"/>
 
         <!-- File Button -->
         <div class="form-group">
-            <label class="col-md-3 control-label" for="file">{{{file_extension}}} File</label>
+            <label class="col-md-3 control-label" for="rnc">RNC File</label>
             <div class="col-md-6">
-                <input id="file" name="file" type="file">
-                <p class="help-block">Select the {{{file_extension}}} file to process.</p>
+                <input name="rnc" type="file">
+                <p class="help-block">Select the RNC file to process.</p>
             </div>
         </div>
 
-        {{#each textinputs}}
+
         <div class="form-group">
-            <label for="{{id}}" class="col-md-3 control-label">{{label}}</label>
+            <label for="title" class="col-md-3 control-label">Title</label>
             <div class="col-md-6"> 
-                <input type="text" class="form-control" name="{{id}}" id="{{id}}" placeholder="{{placeholder}}" /> 
-                <p class="help-block">{{description}}</p>
-            </div>
-        </div>
-        {{/each}}
-
-
-        {{#each textareas}}
-        <div class="form-group">
-            <label for="{{id}}" class="col-md-3 control-label">{{label}}</label>
-            <div class="col-md-6"> 
-                <textarea cols="120" rows="9" name="{{id}}" id="{{id}}" class="form-control">{{default_text}}</textarea>
-                <p class="help-block">{{description}}</p>
+                <input type="text" class="form-control" name="title" placeholder="title" /> 
+                <p class="help-block">Chose a short, descriptive name. If not specified it will default to the filename. You can always edit it later.</p>
             </div>
         </div>
 
-        {{/each}}
-
-
-        <!-- Button -->
         <div class="form-group">
             <label class="col-md-3 control-label" for="submitbutton"></label>
             <div class="col-lg-6">
-                <button id="submitbutton" name="submitbutton" class="col-md-3 btn btn-large btn-default" type="submit" value="Submit">Submit</button>
+                <button name="submitbutton" class="col-md-3 btn btn-large btn-primary" type="submit" value="Submit">Upload</button>
             </div>
         </div>
-        <p>Please press the submit button only once, and be patient while uploading.</p>
-
-
     </fieldset>
 </form>
+
+<div class="hidden">
+    Upload Progress
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" data-name="uploadprogressbar" style="width:0%"></div>
+    </div>
+</div>
+
+
+<p class="hidden bg-success" data-name="uploadsuccess">You've successfully uploaded your RNC, and it's now processing. Your dataset will be found at <a data-name="datasetlink"></a></p>
+<p class="hidden bg-danger" data-name="uploadfailure"></p>
+
 <script src="/js/vendor/require.js"></script>
 <script>
-require(['vendor/jquery', 'vendor/jquery.validate'], function($) {
+require(['vendor/jquery', 'vendor/jquery.validate', 'vendor/jquery.validate.additional-methods'], function($) {
     $(document).ready(function() {
-        var validator = $('#upload_form').validate({
+
+        function progressHandlingFunction(e) {
+            console.log('Got progress');
+            if (e.lengthComputable) {
+                console.log('Progress: ' + e.loaded + ' / ' + e.total);
+                $('[data-name=uploadprogressbar]').css('width', Math.floor((e.loaded / e.total) * 100) + '%');
+            }
+        }
+
+        function submitHandler(form) {
+            var $form = $(form);
+            $form.find('[name=submitbutton]').attr('disabled', 'disabled');
+
+            $('[data-name=uploadprogressbar]').parent().parent().removeClass('hidden');
+
+            var formData = new FormData($form[0]);
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: "POST",
+                xhr: function() { // Custom XMLHttpRequest
+                    var myXhr = $.ajaxSettings.xhr();
+                    if (myXhr.upload) { // Check if upload property exists
+                        myXhr.upload.addEventListener('progress', progressHandlingFunction, false);
+                    }
+                    return myXhr;
+                },
+                data: formData,
+                success: function(response) {
+                    console.log('Success!');
+                    console.log(JSON.stringify(response));
+                    
+                    $('[data-name=uploadsuccess]').removeClass('hidden').find('a').attr('href', '/dataset/' + response.datasetId).text(response.datasetId);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $('[data-name=uploadfailure]').removeClass('hidden').text(textStatus + '---' + errorThrown + ' --- ' + jqXHR.responseText);
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+        }
+
+
+        $('[data-name=rncuploadform]').validate({
             rules: {
                 file: {
                     required: true,
-                    extension: "{{{file_extension}}}"
+                    extension: "RNC"
                 }
             },
             messages: {
                 file: {
-                    required: "You must provide an {{{file_extension}}} file for upload.",
-                    extension: "Must be an {{{file_extension}}} file (with that extension)."
+                    required: "You must provide an RNC file for upload.",
+                    extension: "Must be an RNC file (with that extension)."
                 }
-            }
+            },
+            submitHandler: submitHandler
         });
     });
 });

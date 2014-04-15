@@ -7,24 +7,94 @@ var datasetResource = requireFromRoot('support/resources/dataset');
 var panelResource = requireFromRoot('support/resources/panel');
 var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 
-exports.post = function(req, res, next) {
-    var filename = req.files.file.name.split(".")[0];
 
-    // First, create a new dataset:
-    var title = req.body.title;
-    if (title === "") {
-        title = filename;
+var Busboy = require('busboy');
+var os = require('os');
+var path = require('path');
+var fs = require('fs');
+
+var inspect = require('util').inspect;
+
+var validator = require('validator');
+
+exports.post = function(req, res, next) {
+    if (req.headers['content-length'] === '0') {
+        res.status(403).json({message: 'You must post a valid form. POSTed form is empty.'});
+        return;
+    }
+
+    var busboy = new Busboy({headers: req.headers});
+
+    var upload = {};
+
+    busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+        if (fieldname === 'rnc' && typeof upload.filename === 'undefined') {
+            var saveTo = path.join(os.tmpDir(), path.basename(filename));
+            file.pipe(fs.createWriteStream(saveTo));
+            upload.filepath = saveTo;
+            upload.userFilename = filename;
+        } else {
+            // Wrong file type, discard.
+            file.resume();
+        }
+    });
+
+    busboy.on('field', function(fieldname, value, valueTruncated, keyTruncated) {
+        if(value !== ''){
+            upload[fieldname] = value;
+        }
+    });
+
+    busboy.on('finish', function() {
+        var valid = validateUpload(upload);
+        if (typeof valid === 'undefined') {            
+            processRNC(upload, function(id) {
+                res.json({
+                    message: 'Processing in progress.',
+                    datasetId: id
+                });
+            });
+        } else {
+            res.status(403).json({message: 'Upload failed: ' + valid});
+        }
+    });
+
+    return req.pipe(busboy);
+};
+
+function validateUpload(upload) {
+    if (typeof upload.owner === 'undefined') {
+        return 'Must specify an owner key.';
+    } else if (validator.isUUID(upload.owner) === false) {
+        return 'owner must be a valid UUID.';
+    }
+
+    return undefined;
+}
+
+
+/**
+ * 
+ * @param {type} upload
+ * @param {type} datasetCreatedCallback called with datasetId as it's only parameter.
+ * @returns {undefined}
+ */
+function processRNC(upload, datasetCreatedCallback) {
+
+    if (typeof upload.title === 'undefined') {
+        upload.title = upload.userFilename;
     }
 
     var newDataset = {
-        title: title,
-        owner: req.user.id
+        title: upload.title,
+        owner: upload.owner
     };
 
     datasetResource.create(newDataset, function(err, datasetList) {
-
         var dataset = datasetList[0];
         var id = dataset.id;
+
+        datasetCreatedCallback(id);
 
         panelResource.create({datasetId: id}, function(err, newPanelList) {
             var newPanel = newPanelList[0];
@@ -35,7 +105,7 @@ exports.post = function(req, res, next) {
             parserncParameters.push('--nodeaddress');
             parserncParameters.push('localhost');
             parserncParameters.push('--input');
-            parserncParameters.push(req.files.file.path);
+            parserncParameters.push(upload.filepath);
             parserncParameters.push('--uuid');
             parserncParameters.push(newPanel.id);
 
@@ -43,7 +113,9 @@ exports.post = function(req, res, next) {
             parsernc.stdout.setEncoding('utf8');
             parsernc.stderr.setEncoding('utf8');
 
-            res.render('processupload', {page_title: 'Processing', dataset: dataset});
+            parsernc.stderr.on('data', function(something) {
+                //console.log(something);
+            });
 
             parsernc.on('exit', function(code, signal) {
                 var processingInfo = parsernc.stderr.read();
@@ -57,7 +129,7 @@ exports.post = function(req, res, next) {
                 var datasetUpdate = {
                     source: {
                         scad: processingStatistics,
-                        filename: req.files.file.name
+                        filename: upload.userFilename
                     },
                     headPanelId: newPanel.id
                 };
@@ -107,4 +179,5 @@ exports.post = function(req, res, next) {
 
 
     });
-};
+}
+;

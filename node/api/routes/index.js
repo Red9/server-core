@@ -1,5 +1,5 @@
 function defaultHandler(req, res, next) {
-    res.json({message: 'Welcome home!'});
+    res.json({message: 'API server'});
 }
 
 module.exports = function(app, passport) {
