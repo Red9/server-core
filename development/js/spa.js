@@ -2,7 +2,8 @@ requirejs.config({
     noGlobal: true,
     baseUrl: "/js",
     paths: {
-        customHandlebarsHelpers: 'utilities/customHandlebarsHelpers'
+        customHandlebarsHelpers: 'utilities/customHandlebarsHelpers',
+        socketio: 'http://action.localdev.redninesensor.com/socket.io/socket.io'
     },
     shim: {
         'jQuery.validate': [
@@ -18,6 +19,7 @@ requirejs.config({
 require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], function(sandbox, $, _) {
     sandbox.init();
 
+    sandbox.actionUrl = $('#page_parameters').data('actionurl');
     sandbox.apiUrl = $('#page_parameters').data('apiurl');
     sandbox.currentUser = $('#page_parameters').data('currentuser');
 

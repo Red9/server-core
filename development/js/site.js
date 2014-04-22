@@ -27,7 +27,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
                 ], Boolean).join(', ');
             }
         },
-        searchPageSize: 20,
+        searchPageSize: 2000,
         templates: {},
         urls: {
             apiPath: null, //Dynamically set
