@@ -3,6 +3,7 @@ var validator = require('validator');
 
 var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
 var cassandraPanel = requireFromRoot('support/datasources/cassandra_panel');
+var cassandraPanelProcessor = requireFromRoot('support/datasources/cassandra_panel_processor');
 
 var common = requireFromRoot('support/resourcescommon');
 var datasetResource = requireFromRoot('support/resources/dataset');
@@ -109,7 +110,7 @@ function deletePost(id) {
 
 
 exports.resource = {
-    name:'panel',
+    name: 'panel',
     mapToCassandra: mapToCassandra,
     mapToResource: mapToResource,
     cassandraTable: 'panelProperties',
@@ -167,8 +168,29 @@ exports.addRows = function(panelId, rows, callback) {
     cassandraPanel.addRows(panelId, rows, callback);
 };
 
+
+
+exports.getProcessedPanel = function(parameters, callbackDone) {
+    exports.get({id: parameters.id}, function(panelList) {
+        if (panelList.length === 0) {
+            callbackDone('panelId "' + parameters.id + '" not a valid panel id.');
+            return;
+        }
+        parameters.panel = panelList[0];
+        
+        if(typeof parameters.startTime === 'undefined'){
+            parameters.startTime = parameters.panel.startTime;
+        }
+        if(typeof parameters.endTime === 'undefined'){
+            parameters.endTime = parameters.panel.endTime;
+        }
+        
+        cassandraPanelProcessor.getPanel(parameters, callbackDone);
+    });
+};
+
+
 /** 
- * TODO(SRLM): Add callback axes?
  * @param {type} options
  * @param {type} callbackDataset
  * @param {type} callbackData
@@ -181,9 +203,6 @@ exports.getPanelBody = function(options,
     var panelId = options.id;
     var startTime = options.startTime;
     var endTime = options.endTime;
-    var minmax = options.minmax;
-    var cache = options.cache;
-    var buckets = options.buckets;
     var axes = options.axes;
 
 
@@ -208,19 +227,13 @@ exports.getPanelBody = function(options,
                 return panel.axes.indexOf(axis);
             });
 
-            
-
-
             if (typeof startTime === 'undefined') {
                 startTime = panel.startTime;
             }
             if (typeof endTime === 'undefined') {
                 endTime = panel.endTime;
             }
-            if (underscore.isBoolean(minmax) === false) {
-                minmax = false;
-            }
-            
+
             // If we're getting a subset of the "orginal" panel
             panel.startTime = startTime;
             panel.endTime = endTime;
@@ -238,17 +251,9 @@ exports.getPanelBody = function(options,
                 callbackDone(err);
             };
 
-            if (typeof buckets === 'undefined') {
-                // Get "plain" panel
-                cassandraPanel.getPanel(panelId, startTime, endTime,
-                        valueFunction, databaseDoneFunction);
-            }
-            else { // Get bucketed panel
-                cassandraPanel.getBucketedPanel(panelId, startTime, endTime,
-                        buckets, minmax, cache,
-                        valueFunction, databaseDoneFunction);
-            }
-
+            // Get "plain" panel
+            cassandraPanel.getPanel(panelId, startTime, endTime,
+                    valueFunction, databaseDoneFunction);
         }
     });
 };

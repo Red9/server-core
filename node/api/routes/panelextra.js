@@ -12,12 +12,9 @@ exports.getBody = function(req, res, next) {
         id: req.param('id')
     };
 
-    var buckets = -1;
-    var minmax = false;
     var axes;
     if (validator.isInt(req.param('buckets'))) {
         parameters.buckets = parseInt(req.param('buckets'));
-        buckets = parameters.buckets;
     }
     if (validator.isInt(req.param('startTime'))) {
         parameters.startTime = parseInt(req.param('startTime'));
@@ -26,30 +23,28 @@ exports.getBody = function(req, res, next) {
         parameters.endTime = parseInt(req.param('endTime'));
     }
 
-    // Only have minmax when we have buckets
-    if (typeof req.param('minmax') !== 'undefined' && buckets !== -1) {
-        parameters.minmax = true;
-        minmax = true;
-    }
-
     if (typeof req.param('axes') !== 'undefined') {
         axes = req.param('axes').split(',');
     }
 
-    parameters.cache = req.param('cache');
-
-    var format = 'csv';
     if (req.param('format') === 'json') {
-        format = 'json';
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        panelResource.getProcessedPanel(parameters, function(err, result) {
+            if (err) {
+                console.log('Error: ' + err);
+                res.write('{\n"message":"' + err.replace(/"/g, '\\"') + '"\n}');
+                res.end();
+            } else {
+                res.write(JSON.stringify(result));
+                res.end();
+            }
+        });
+        return;
     }
 
-    if (format === 'csv') {
-        res.writeHead(200, {'Content-Type': 'text/csv'});
-    }
-    else if (format === 'json') {
-        res.writeHead(200, {'Content-Type': 'application/json'});
-        res.write('{\n');
-    }
+    // else format CSV
+    res.writeHead(200, {'Content-Type': 'text/csv'});
+
 
     // Reduce the number of res.write's by using a string to temporarily write
     // the results to, and output after some number of rows.
@@ -60,33 +55,20 @@ exports.getBody = function(req, res, next) {
     panelResource.getPanelBody(parameters,
             function(panelProperties) {
                 var outputAxes = panelProperties.axes;
-                if(typeof axes !== 'undefined'){
+                if (typeof axes !== 'undefined') {
                     outputAxes = underscore.intersection(panelProperties.axes, axes);
-                };
+                }
+                ;
 
                 underscore.each(outputAxes, function(axis) {
                     axesIndicies.push(underscore.indexOf(panelProperties.axes, axis));
                 });
 
-                if (format === 'csv') {
-                    res.write('time');
-                    underscore.each(outputAxes, function(axis) {
-                        res.write(',' + axis);
-                    });
-                    res.write('\n');
-
-                } else if (format === 'json') {
-                    outputAxes.unshift('time');
-                    res.write(
-                            '"labels":' + JSON.stringify(outputAxes) + ','
-                            + '"startTime":' + panelProperties.startTime + ','
-                            + '"endTime":' + panelProperties.endTime + ','
-                            + '"id":"' + panelProperties.id + '",'
-                            + '"buckets":' + buckets + ','
-                            + '"minmax":' + minmax + ','
-                            + '"values":[\n');
-                }
-
+                res.write('time');
+                underscore.each(outputAxes, function(axis) {
+                    res.write(',' + axis);
+                });
+                res.write('\n');
             },
             function(time, allValues, rowIndex) {
                 var values = [];
@@ -98,45 +80,29 @@ exports.getBody = function(req, res, next) {
                     values = allValues;
                 }
 
-                if (format === 'csv') {
-                    resWriteBuffer += time;
 
-                    underscore.each(values, function(value) {
-                        resWriteBuffer += ',';
+                resWriteBuffer += time;
 
-                        if (underscore.isArray(value)) {
-                            // Deal with min/avg/max, if present
-                            underscore.each(value, function(v, index) {
-                                if (index !== 0) {
-                                    resWriteBuffer += ';';
-                                }
-                                resWriteBuffer += v;
-                            });
-                        } else {
-                            resWriteBuffer += value;
-                        }
-                    });
-                    resWriteBuffer += '\n';
+                underscore.each(values, function(value) {
+                    resWriteBuffer += ',';
 
-                    if (rowIndex % 100 === 0) {
-                        res.write(resWriteBuffer);
-                        resWriteBuffer = '';
+                    if (underscore.isArray(value)) {
+                        // Deal with min/avg/max, if present
+                        underscore.each(value, function(v, index) {
+                            if (index !== 0) {
+                                resWriteBuffer += ';';
+                            }
+                            resWriteBuffer += v;
+                        });
+                    } else {
+                        resWriteBuffer += value;
                     }
+                });
+                resWriteBuffer += '\n';
 
-                } else if (format === 'json') {
-
-                    values.unshift(time);
-
-                    if (rowIndex > 0) {
-                        resWriteBuffer += ',\n';
-                    }
-                    resWriteBuffer += JSON.stringify(values);
-
-                    if (rowIndex % 100 === 0) {
-                        res.write(resWriteBuffer);
-                        resWriteBuffer = '';
-                    }
-
+                if (rowIndex % 100 === 0) {
+                    res.write(resWriteBuffer);
+                    resWriteBuffer = '';
                 }
             },
             function(err) {
@@ -145,10 +111,6 @@ exports.getBody = function(req, res, next) {
                 }
 
                 res.write(resWriteBuffer);
-
-                if (format === 'json') {
-                    res.write('\n]\n}');
-                }
 
                 res.end();
             }
@@ -179,8 +141,8 @@ function updateInsertCompleteFunction(panel) {
             endTime: properties.endTime,
             axes: panel.axes
         };
-        
-        
+
+
         // Need to update the panel so that summary statistics can get the columns
         panelResource.update(panelId, modifiedPanel, function(err1, updatedResource) {
             summaryStatisticsResource.calculate(panelId, modifiedPanel.startTime, modifiedPanel.endTime, function(statistics) {
