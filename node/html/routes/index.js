@@ -9,9 +9,9 @@ function IsAuthenticated(req, res, next) {
 
 
 module.exports = function(app, passport) {
-    
+
     app.get('/about', require('./about').get);
-    
+
     app.get('/login', require('./login').get);
     app.get('/logout', require('./logout').get);
 
@@ -27,16 +27,20 @@ module.exports = function(app, passport) {
     // --------------------------------------------
 
     app.get('/', IsAuthenticated, require('./datasetindex').get);
-    
+
     app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
     app.get('/dataset/:id', IsAuthenticated, require('./spa').getDataset);
     app.get('/event/:id', IsAuthenticated, require('./spa').getEvent);
-        
+
     app.get('/user/:uuid', IsAuthenticated, require('./user').get);
-    
+
     app.get('/bluetooth', IsAuthenticated, require('./bluetooth').get);
-    
+
     app.get('/upload/rnc', IsAuthenticated, require('./rncupload').get);
 
-    app.get('/monitor', IsAuthenticated, require('./monitoringtools').get); 
+    app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
+
+    app.get('/actionview', IsAuthenticated, function(req, res, next) {
+        res.render('actionview');
+    });
 };

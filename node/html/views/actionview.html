@@ -1,6 +1,19 @@
+<script src="/js/vendor/require.js"></script>
+<script>
+    require.config({
+        paths: {
+            socketio: 'http://action.localdev.redninesensor.com/socket.io/socket.io'
+        }
+    });
+
+    require(['socketio'], function(io) {
+        var socket = io.connect('action.localdev.redninesensor.com');
+        console.log('socket connected');
+    });
+</script>
 
 <style>
-    
+
     /* Styles for a "console like" appearance */
     #processing_notes {
         color: #DDD;
@@ -32,9 +45,9 @@
     <p>Since processing may take a while (a few seconds up to a few minutes), you can go to your <a href='/dataset'>dataset index</a> to view previously uploaded data. Please refresh that page when you think processing is done.</p>
 
     <p>Otherwise, hang around and watch the processing magic:</p>
-    
+
     <h3>Processing Magic removed.</h3>
-    
+
     <h5>Thanks for your consideration,</h5>
     <h5>The Management</h5>
 </div>

@@ -85,6 +85,7 @@ exports.init = function() {
                     res.locals['user'] = req.user;
                 }
 
+                res.locals['actionUrl'] = config.realms.action;
                 res.locals['apiUrl'] = config.realms.api;
                 if (config.release === false) {
                     res.locals['development'] = true;

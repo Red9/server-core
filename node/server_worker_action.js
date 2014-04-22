@@ -25,11 +25,11 @@ exports.init = function() {
 
             // Enable CORS: http://enable-cors.org/server_expressjs.html
             /*app.all('*', function(req, res, next) {
-                res.header('Access-Control-Allow-Origin', '*');
-                res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-                res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-                next();
-            });*/
+             res.header('Access-Control-Allow-Origin', '*');
+             res.header('Access-Control-Allow-Headers', 'X-Requested-With');
+             res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+             next();
+             });*/
 
 
             // From http://stackoverflow.com/q/11001817
@@ -60,6 +60,11 @@ exports.init = function() {
             server.listen(app.get('port'), function() {
                 log.info('Express ACTION server listening on port ' + app.get('port'));
             });
+
+
+            
+            var io = require('socket.io').listen(server);
+            io.sockets.on('connection', requireFromRoot('action/socketroutes/index').connection);
         }
     });
 };

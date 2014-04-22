@@ -1,6 +1,8 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/history', 'vendor/async', 'vendor/URI', 'customHandlebarsHelpers'], function($, _, Handlebars, History, async, URI) {
     var sandbox = {
         currentUser: '',
+        apiUrl: '',
+        actionUrl: '',
         definedColorMappings: {
             "gps:altitude": "#FF6347",
             "gps:speed": "#8B4513",
@@ -34,12 +36,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             sandbox.div = $('#sandboxContentDiv');
             sandbox.focusState = undefined;
             var tiles = [
-                /* {
-                 class: downloadPanelModal
-                 },
-                 {
-                 class: editResourceModal
-                 },*/
                 {
                     class: 'resourcedetails'
                 },
@@ -114,7 +110,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                             // configuration and calls doneCallback() before
                             // it can be pushed into modules?
 
-                            if (tile.class === 'embeddedvideo') {
+                            if (tile.class === 'embeddedvideo'
+                                    || tile.class === 'actionview') { // Special cases: trasition period
                                 sandbox.modules.push(tileClass(temp, tile.configuration, function(){
                                     doneCallback();
                                 }));
