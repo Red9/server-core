@@ -1,3 +1,5 @@
+"use strict";
+
 var moment = require('moment');
 var underscore = require('underscore')._;
 var async = require('async');
@@ -8,36 +10,13 @@ var config = requireFromRoot('config');
 var cassandraPanel = requireFromRoot('support/datasources/cassandra_panel');
 
 var Bucketer = requireFromRoot('support/datasources/panelprocessors/bucketer');
+var Distribution = requireFromRoot('support/datasources/panelprocessors/distribution');
+var FFT = requireFromRoot('support/datasources/panelprocessors/fft');
 
+var kAccelerationMinimum = -157; // 16 gravities in m/s^2
+var kAccelerationMaximum = 157;
 
-function Distribution(name, valueIndex, minimum, maximum, slots) {
-    var distribution = [];
-    for (var i = 0; i < slots; i++) {
-        distribution.push(0);
-    }
-
-    function add(value) {
-        var index = Math.floor(value[valueIndex] / (maximum - minimum) * slots);
-        distribution[index] += 1;
-    }
-    ;
-
-    function result() {
-        return {
-            name: name,
-            minimum: minimum,
-            maximum: maximum,
-            slots: slots,
-            distribution: distribution
-        };
-    }
-
-    return {
-        add: add,
-        result: result
-    };
-}
-
+var kDistributionSlots = 50;
 
 
 /** If cache is enabled:
@@ -60,14 +39,91 @@ exports.getPanel = function(parameters, callbackDone) {
 
     var bucketer = Bucketer.new(startTime, endTime, buckets);
 
+    var distributions = [];
+    var numberOfSamples = Math.floor((endTime - startTime) / 10); // Hard code 10 milliseconds per sample (100 Hz)
+
+    //var ffts = [];
+    //var fftAxis = 'rotationrate:z';
+    //var fft = FFT.new(fftAxis, underscore.indexOf(panel.axes, fftAxis), numberOfSamples, 100);
+    
+    
+    var fftAxes = [];
+
+    underscore.each(panel.axes, function(axis, index) {
+        if (axis.indexOf('acceleration') > -1
+                || axis.indexOf('rotationrate') > -1
+                || axis.indexOf('magneticfield') > -1
+                || axis.indexOf('speed') > -1) {
+
+            var t = axis.split(':');
+            var axisType = t[0];
+            var axisName = t[1];
+
+            var maximum = panel.summaryStatistics.instantaneous[axisType][axisName].maximum.value;
+            if (maximum > 0) {
+                maximum *= 1.001;
+            } else {
+                maximum *= 0.999;
+            }
+
+            var minimum = panel.summaryStatistics.instantaneous[axisType][axisName].minimum.value;
+            if (minimum > 0) {
+                minimum *= 0.999;
+            } else {
+                minimum *= 1.001;
+            }
+
+
+            if (minimum !== maximum) {
+                // If the minimum and maximum is the same then there is no
+                // distribution. Mostly seen where gps:speed === 0 (no lock).
+                distributions.push(Distribution.new(axis, index,
+                        minimum, maximum, kDistributionSlots));
+                        
+                fftAxes.push({name:axis, index:index});
+
+                //ffts.push(FFT.new(axis, index, numberOfSamples, 100));
+            }
+        }
+    });
+
+    var fft = FFT.new(fftAxes, numberOfSamples, 100);
+
+
+
 
 
     cassandraPanel.getPanel(panelId, startTime, endTime,
             function(rowTime, rowData, n) {
+                underscore.each(distributions, function(distribution) {
+                    distribution.processRow(rowTime, rowData);
+                });
+                
+                
+                //underscore.each(ffts, function(fft){
+                   fft.processRow(rowTime, rowData, n); 
+                //});
+                
+                //console.log('Row: ' + n);
+                //fft.processRow(rowTime, rowData, n);
+
                 bucketer.processRow(rowTime, rowData);
             },
             function(err) {
                 var resultRows = bucketer.processEnd();
+
+                var distributionResults = underscore.reduce(distributions, function(memo, d) {
+                    memo.push(d.processEnd());
+                    return memo;
+                }, []);
+                
+                /*var fftResults = underscore.reduce(ffts, function(memo, f){
+                    memo.push(f.processEnd());
+                    return memo;
+                }, []);*/
+                console.log('B');
+                //var fftResult = fft.processEnd();
+                console.log('C');
 
                 panel.axes.unshift('time');
                 var result = {
@@ -76,7 +132,11 @@ exports.getPanel = function(parameters, callbackDone) {
                     endTime: endTime,
                     id: panelId,
                     buckets: buckets,
-                    values: resultRows
+                    values: resultRows,
+                    distributions: distributionResults,
+                    //fft: fftResults
+                    fft: fft.processEnd()
+                    //  fft: [fftResult]
                 };
 
                 callbackDone(err, result);

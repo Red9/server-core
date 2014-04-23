@@ -36,15 +36,15 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             sandbox.div = $('#sandboxContentDiv');
             sandbox.focusState = undefined;
             var tiles = [
-                {
+                /*{
                     class: 'resourcedetails'
-                },
-                {
+                },*/
+                /*{
                     class: 'eventlist'
                 },
                 {
                     class: 'embeddedvideo'
-                },
+                },*//*
                 {
                     class: 'panelgraph',
                     configuration: {
@@ -52,6 +52,33 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                             'acceleration:x',
                             'acceleration:y',
                             'acceleration:z'
+                        ]
+                    }
+                },
+                {
+                    class: 'paneldistribution',
+                    configuration: {
+                        axes: [
+                            'acceleration:x',
+                            'acceleration:y',
+                            'acceleration:z'
+                        ]
+                    }
+                },*/
+                {
+                    class: 'panelfft',
+                    configuration: {
+                        axes: [
+                            //'acceleration:x',
+                            //'acceleration:y',
+                            //'acceleration:z',
+                            'rotationrate:x',
+                            'rotationrate:y',
+                            'rotationrate:z',
+                            //'magneticfield:x',
+                            //'magneticfield:y',
+                            //'magneticfield:z',
+                            //'gps:speed'
                         ]
                     }
                 },
@@ -66,6 +93,16 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                     }
                 },
                 {
+                    class: 'paneldistribution',
+                    configuration: {
+                        axes: [
+                            'rotationrate:x',
+                            'rotationrate:y',
+                            'rotationrate:z'
+                        ]
+                    }
+                },/*
+                {
                     class: 'panelgraph',
                     configuration: {
                         axes: [
@@ -76,7 +113,25 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                     }
                 },
                 {
+                    class: 'paneldistribution',
+                    configuration: {
+                        axes: [
+                            'magneticfield:x',
+                            'magneticfield:y',
+                            'magneticfield:z'
+                        ]
+                    }
+                },
+                {
                     class: 'panelgraph',
+                    configuration: {
+                        axes: [
+                            'gps:speed'
+                        ]
+                    }
+                },
+                {
+                    class: 'paneldistribution',
                     configuration: {
                         axes: [
                             'gps:speed'
@@ -96,7 +151,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                 },
                 {
                     class: 'summarystatistics'
-                }
+                }*/
             ];
             async.eachSeries(tiles,
                     function(tile, doneCallback) {

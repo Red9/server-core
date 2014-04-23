@@ -1,3 +1,5 @@
+"use strict";
+
 var underscore = require('underscore')._;
 var log = requireFromRoot('support/logger').log;
 

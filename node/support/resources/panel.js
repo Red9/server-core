@@ -170,6 +170,18 @@ exports.addRows = function(panelId, rows, callback) {
 
 
 
+function calculateProcessedPanel(parameters, callbackDone) {
+    cassandraPanelProcessor.getPanel(parameters, function(err, panel) {
+        callbackDone(err, panel);
+        if (typeof err === 'undefined' && parameters.cache === true) {
+            cassandraPanel.putCachedProcessedPanel(parameters.id,
+                    parameters.startTime, parameters.endTime, parameters.buckets,
+                    panel);
+        }
+    });
+}
+
+
 exports.getProcessedPanel = function(parameters, callbackDone) {
     exports.get({id: parameters.id}, function(panelList) {
         if (panelList.length === 0) {
@@ -177,15 +189,25 @@ exports.getProcessedPanel = function(parameters, callbackDone) {
             return;
         }
         parameters.panel = panelList[0];
-        
-        if(typeof parameters.startTime === 'undefined'){
+
+        if (typeof parameters.startTime === 'undefined') {
             parameters.startTime = parameters.panel.startTime;
         }
-        if(typeof parameters.endTime === 'undefined'){
+        if (typeof parameters.endTime === 'undefined') {
             parameters.endTime = parameters.panel.endTime;
         }
-        
-        cassandraPanelProcessor.getPanel(parameters, callbackDone);
+
+        // Check cache
+        cassandraPanel.getCachedProcessedPanel(parameters.id,
+                parameters.startTime, parameters.endTime, parameters.buckets,
+                function(cache) {
+                    if (typeof cache === 'undefined') {
+                        calculateProcessedPanel(parameters, callbackDone);
+                    } else {
+                        // Found cache.
+                        callbackDone(undefined, cache);
+                    }
+                });
     });
 };
 

@@ -1,3 +1,5 @@
+"use strict";
+
 var moment = require('moment');
 var underscore = require('underscore')._;
 var async = require('async');
@@ -26,7 +28,7 @@ exports.getPanel = function(panelId, startTime, endTime,
                         hint: 'uuid'
                     },
                     {
-                        value: lastRowTime+1, // +1 so that we don't get a row twice.
+                        value: lastRowTime + 1, // +1 so that we don't get a row twice.
                         hint: 'timestamp'
                     },
                     {
@@ -34,7 +36,7 @@ exports.getPanel = function(panelId, startTime, endTime,
                         hint: 'timestamp'
                     }
                 ];
-                
+
                 cassandraDatabase.eachRow(query, parameters,
                         function(n, row) {
                             lastRowTime = moment(row.time).valueOf();
@@ -105,6 +107,78 @@ exports.calculatePanelProperties = function(rawDataId, callback) {
                 callback(result);
             });
 };
+
+exports.getCachedProcessedPanel = function(panelId, startTime, endTime, buckets, callback) {
+    var query = 'SELECT * FROM raw_data_cache WHERE id=? AND start_time=? AND end_time=? AND buckets=?';
+
+    var parameters = [
+        {
+            value: panelId,
+            hint: 'uuid'
+        },
+        {
+            value: startTime,
+            hint: 'timestamp'
+        },
+        {
+            value: endTime,
+            hint: 'timestamp'
+        },
+        {
+            value: buckets,
+            hint: 'int'
+        }
+    ];
+
+    cassandraDatabase.execute(query, parameters, function(err, result) {
+        if (err) {
+            log.error('Error getting from cache: ' + err);
+            callback();
+            return;
+        } else if (result.rows.length !== 1) {
+            callback();
+            return;
+        }
+
+        callback(JSON.parse(result.rows[0].payload));
+    });
+
+};
+
+exports.putCachedProcessedPanel = function(panelId, startTime, endTime, buckets, payload) {
+    var query = 'INSERT INTO raw_data_cache (id, start_time, end_time, buckets, payload) VALUES (?,?,?,?,?) USING TTL 86400';
+
+    var parameters = [
+        {
+            value: panelId,
+            hint: 'uuid'
+        },
+        {
+            value: startTime,
+            hint: 'timestamp'
+        },
+        {
+            value: endTime,
+            hint: 'timestamp'
+        },
+        {
+            value: buckets,
+            hint: 'int'
+        },
+        {
+            value: JSON.stringify(payload),
+            hint: 'varchar'
+        }
+        
+    ];
+
+    cassandraDatabase.execute(query, parameters, function(err, result) {
+        if (err) {
+            log.error('Error inserting into cache: ' + err);   
+        }
+    });
+};
+
 
 
 exports.deletePanel = function(panelId, callback) {

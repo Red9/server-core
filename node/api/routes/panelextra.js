@@ -26,6 +26,12 @@ exports.getBody = function(req, res, next) {
     if (typeof req.param('axes') !== 'undefined') {
         axes = req.param('axes').split(',');
     }
+    
+    if(req.param('cache') === 'on'){
+        parameters.cache = true;
+    }else{
+        parameters.cache = false;
+    }
 
     if (req.param('format') === 'json') {
         res.writeHead(200, {'Content-Type': 'application/json'});

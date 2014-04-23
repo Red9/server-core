@@ -18,7 +18,9 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'sandbox'], function($
         
         
         
-        
+        //-------------------------------
+        // TODO: don't we need to call doneCallback? It looks like I left this half done...
+        //-------------------------------
         
         
         //    myPlace.find('.processing_notes').append('<p class="processing_note">Line</p>');
