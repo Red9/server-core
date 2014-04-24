@@ -42,11 +42,6 @@ exports.getPanel = function(parameters, callbackDone) {
     var distributions = [];
     var numberOfSamples = Math.floor((endTime - startTime) / 10); // Hard code 10 milliseconds per sample (100 Hz)
 
-    //var ffts = [];
-    //var fftAxis = 'rotationrate:z';
-    //var fft = FFT.new(fftAxis, underscore.indexOf(panel.axes, fftAxis), numberOfSamples, 100);
-    
-    
     var fftAxes = [];
 
     underscore.each(panel.axes, function(axis, index) {
@@ -79,18 +74,21 @@ exports.getPanel = function(parameters, callbackDone) {
                 // distribution. Mostly seen where gps:speed === 0 (no lock).
                 distributions.push(Distribution.new(axis, index,
                         minimum, maximum, kDistributionSlots));
-                        
-                fftAxes.push({name:axis, index:index});
 
-                //ffts.push(FFT.new(axis, index, numberOfSamples, 100));
+                fftAxes.push({name: axis, index: index});
             }
         }
     });
 
-    var fft = FFT.new(fftAxes, numberOfSamples, 100);
+    //var fft = FFT.new(fftAxes, numberOfSamples, 100);
 
 
-
+    var fftParameters = {
+        axesList: fftAxes,
+        inputLength: numberOfSamples,
+        sampleRate: 100
+    };
+    var fftChild = require('child_process').fork('support/datasources/panelprocessors/fftthread', [JSON.stringify(fftParameters)]);
 
 
     cassandraPanel.getPanel(panelId, startTime, endTime,
@@ -98,48 +96,51 @@ exports.getPanel = function(parameters, callbackDone) {
                 underscore.each(distributions, function(distribution) {
                     distribution.processRow(rowTime, rowData);
                 });
-                
-                
-                //underscore.each(ffts, function(fft){
-                   fft.processRow(rowTime, rowData, n); 
-                //});
-                
-                //console.log('Row: ' + n);
+
                 //fft.processRow(rowTime, rowData, n);
+                fftChild.send({
+                    action: 'processRow',
+                    time: rowTime,
+                    values: rowData,
+                    rowIndex: n
+                });
 
                 bucketer.processRow(rowTime, rowData);
             },
             function(err) {
+
                 var resultRows = bucketer.processEnd();
 
                 var distributionResults = underscore.reduce(distributions, function(memo, d) {
                     memo.push(d.processEnd());
                     return memo;
                 }, []);
-                
-                /*var fftResults = underscore.reduce(ffts, function(memo, f){
-                    memo.push(f.processEnd());
-                    return memo;
-                }, []);*/
+
                 console.log('B');
                 //var fftResult = fft.processEnd();
                 console.log('C');
 
                 panel.axes.unshift('time');
-                var result = {
-                    labels: panel.axes,
-                    startTime: startTime,
-                    endTime: endTime,
-                    id: panelId,
-                    buckets: buckets,
-                    values: resultRows,
-                    distributions: distributionResults,
-                    //fft: fftResults
-                    fft: fft.processEnd()
-                    //  fft: [fftResult]
-                };
 
-                callbackDone(err, result);
+                fftChild.on('message', function(fftData) {
+                    if (underscore.has(fftData, 'columns')) {
+
+                        var result = {
+                            labels: panel.axes,
+                            startTime: startTime,
+                            endTime: endTime,
+                            id: panelId,
+                            buckets: buckets,
+                            values: resultRows,
+                            distributions: distributionResults,
+                            fft: fftData
+                        };
+
+                        callbackDone(err, result);
+                    }
+                });
+
+                fftChild.send({action: 'processEnd'});
             }
     );
 
