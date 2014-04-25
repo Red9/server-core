@@ -12,6 +12,7 @@ var cassandraPanel = requireFromRoot('support/datasources/cassandra_panel');
 var Bucketer = requireFromRoot('support/datasources/panelprocessors/bucketer');
 var Distribution = requireFromRoot('support/datasources/panelprocessors/distribution');
 var FFT = requireFromRoot('support/datasources/panelprocessors/fft');
+var SpectralEntropy = requireFromRoot('support/datasources/panelprocessors/spectralentropy');
 
 var kAccelerationMinimum = -157; // 16 gravities in m/s^2
 var kAccelerationMaximum = 157;
@@ -81,15 +82,7 @@ exports.getPanel = function(parameters, callbackDone) {
     });
 
     //var fft = FFT.new(fftAxes, numberOfSamples, 100);
-
-
-    var fftParameters = {
-        axesList: fftAxes,
-        inputLength: numberOfSamples,
-        sampleRate: 100
-    };
-    var fftChild = require('child_process').fork('support/datasources/panelprocessors/fftthread', [JSON.stringify(fftParameters)]);
-
+    var se = SpectralEntropy.new(fftAxes, 256, 100);
 
     cassandraPanel.getPanel(panelId, startTime, endTime,
             function(rowTime, rowData, n) {
@@ -98,13 +91,8 @@ exports.getPanel = function(parameters, callbackDone) {
                 });
 
                 //fft.processRow(rowTime, rowData, n);
-                fftChild.send({
-                    action: 'processRow',
-                    time: rowTime,
-                    values: rowData,
-                    rowIndex: n
-                });
-
+                se.processRow(rowTime, rowData, n);
+                
                 bucketer.processRow(rowTime, rowData);
             },
             function(err) {
@@ -116,65 +104,20 @@ exports.getPanel = function(parameters, callbackDone) {
                     return memo;
                 }, []);
 
-                console.log('B');
-                //var fftResult = fft.processEnd();
-                console.log('C');
-
                 panel.axes.unshift('time');
 
-                fftChild.on('message', function(fftData) {
-                    if (underscore.has(fftData, 'columns')) {
-
-                        var result = {
-                            labels: panel.axes,
-                            startTime: startTime,
-                            endTime: endTime,
-                            id: panelId,
-                            buckets: buckets,
-                            values: resultRows,
-                            distributions: distributionResults,
-                            fft: fftData
-                        };
-
-                        callbackDone(err, result);
-                    }
-                });
-
-                fftChild.send({action: 'processEnd'});
+                var result = {
+                    labels: panel.axes,
+                    startTime: startTime,
+                    endTime: endTime,
+                    id: panelId,
+                    buckets: buckets,
+                    values: resultRows,
+                    distributions: distributionResults,
+                    //fft: fft.processEnd()
+                    spectralEntropy: se.processEnd()
+                };
+                callbackDone(err, result);
             }
     );
-
 };
-
-
-
-/*
- var cacheQuery = 'SELECT body FROM raw_data_cache WHERE id=? AND buckets=? AND start_time=? AND end_time=?';
- var cacheParameters = [
- {
- value: panelId,
- hint: 'uuid'
- },
- {
- value: buckets,
- hint: 'int'
- },
- {
- value: startTime,
- hint: 'timestamp'
- },
- {
- value: endTime,
- hint: 'timestamp'
- }
- ];
- cassandraDatabase.execute(cacheQuery, cacheParameters, function(err, result) {
- if (err) {
- log.error('Error getting panel cache: ' + err + ', ' + err.stack);
- callbackDone('Error getting panel cache: ' + err + ', ' + err.stack);
- return;
- }
- if (typeof result.rows !== 'undefined' && result.rows.length === 1) {
- callbackDone(undefined, result.rows[0].body);
- return;
- }*/

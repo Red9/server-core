@@ -38,25 +38,15 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             var tiles = [
                 /*{
                     class: 'resourcedetails'
-                },*/
-                /*{
+                },
+                {
                     class: 'eventlist'
                 },
                 {
                     class: 'embeddedvideo'
-                },*//*
-                {
-                    class: 'panelgraph',
-                    configuration: {
-                        axes: [
-                            'acceleration:x',
-                            'acceleration:y',
-                            'acceleration:z'
-                        ]
-                    }
                 },
                 {
-                    class: 'paneldistribution',
+                    class: 'panelgraph',
                     configuration: {
                         axes: [
                             'acceleration:x',
@@ -66,19 +56,46 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                     }
                 },*/
                 {
-                    class: 'panelfft',
+                    class: 'paneldistribution',
                     configuration: {
                         axes: [
-                            //'acceleration:x',
-                            //'acceleration:y',
-                            //'acceleration:z',
+                            'acceleration:x',
+                            'acceleration:y',
+                            'acceleration:z'
+                        ]
+                    }
+                },
+                /*{
+                 class: 'panelfft',
+                 configuration: {
+                 axes: [
+                 //'acceleration:x',
+                 //'acceleration:y',
+                 //'acceleration:z',
+                 'rotationrate:x',
+                 'rotationrate:y',
+                 'rotationrate:z',
+                 //'magneticfield:x',
+                 //'magneticfield:y',
+                 //'magneticfield:z',
+                 //'gps:speed'
+                 ]
+                 }
+                 },*//*
+                {
+                    class: 'panelspectralentropy',
+                    configuration: {
+                        axes: [
+                            'acceleration:x',
+                            'acceleration:y',
+                            'acceleration:z',
                             'rotationrate:x',
                             'rotationrate:y',
                             'rotationrate:z',
-                            //'magneticfield:x',
-                            //'magneticfield:y',
-                            //'magneticfield:z',
-                            //'gps:speed'
+                            'magneticfield:x',
+                            'magneticfield:y',
+                            'magneticfield:z'
+                                    //'gps:speed'
                         ]
                     }
                 },
@@ -101,7 +118,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                             'rotationrate:z'
                         ]
                     }
-                },/*
+                },
                 {
                     class: 'panelgraph',
                     configuration: {
@@ -153,33 +170,44 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                     class: 'summarystatistics'
                 }*/
             ];
-            async.eachSeries(tiles,
-                    function(tile, doneCallback) {
-                        var temp = $('<div></div>');
-                        sandbox.div.append(temp);
-                        if (typeof tile.configuration === 'undefined') {
-                            tile.configuration = {};
-                        }
-                        require(['tiles/' + tile.class], function(tileClass) {
-                            // There may be a bug here: what if the class does it's
-                            // configuration and calls doneCallback() before
-                            // it can be pushed into modules?
+            sandbox.requestTemplate('sandboxtiletemplate', function(template) {
 
-                            if (tile.class === 'embeddedvideo'
-                                    || tile.class === 'actionview') { // Special cases: trasition period
-                                sandbox.modules.push(tileClass(temp, tile.configuration, function(){
-                                    doneCallback();
-                                }));
-                            } else {
-                                sandbox.modules.push(new tileClass(temp, tile.configuration, function() {
-                                    doneCallback();
-                                }));
+                async.eachSeries(tiles,
+                        function(tile, doneCallback) {
+                            var place = $(template({}));
+                            sandbox.div.append(place);
+                            if (typeof tile.configuration === 'undefined') {
+                                tile.configuration = {};
                             }
+                            require(['tiles/' + tile.class], function(tileClass) {
+                                // There may be a bug here: what if the class does it's
+                                // configuration and calls doneCallback() before
+                                // it can be pushed into modules?
+
+                                if (tile.class === 'embeddedvideo'
+                                        || tile.class === 'actionview'
+                                        || tile.class === 'paneldistribution'
+                                        || tile.class === 'panelspectralentropy') { // Special cases: trasition period
+                                    sandbox.modules.push(tileClass(place, tile.configuration, function() {
+                                        doneCallback();
+                                    }));
+                                } else {
+                                    sandbox.modules.push(new tileClass(place, tile.configuration, function() {
+                                        doneCallback();
+                                    }));
+                                }
+                            });
+                        },
+                        function(err) {
+                            sandbox.onHistoryChange();
                         });
-                    },
-                    function(err) {
-                        sandbox.onHistoryChange();
-                    });
+            });
+        },
+        addButtonToBar: function(bar, name, custom, iconName, listener) {
+            bar.append('<a class="btn btn-link btn-lg" data-name="'
+                    + name + '" ' + custom + ' >'
+                    + '<span class="glyphicon ' + iconName + '"></span></a>');
+            bar.find('[data-name=' + name + ']').on('click', listener);
         },
         splicePanel: function(core, extra) {
             var result = _.omit(core, 'values');
@@ -191,7 +219,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                     ; i = i + 1) {
                 result.values.push(extra.values[i]);
             }
-            
+
             result.spliceStart = i;
             result.spliceLength = core.values.length;
 
@@ -435,9 +463,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             $(document).attr('title', newTitle);
             $('#footer-page-title').text(newTitle);
         },
-        initiateVideoTimeEvent: function(videoTime){
-          var eventName = 'totalState.video-time';
-          sandbox.initiateEvent(eventName, {videoTime: videoTime});
+        initiateVideoTimeEvent: function(videoTime) {
+            var eventName = 'totalState.video-time';
+            sandbox.initiateEvent(eventName, {videoTime: videoTime});
         },
         initiateHoverTimeEvent: function(hovertime) {
             var eventName = 'totalState.hover-time';
