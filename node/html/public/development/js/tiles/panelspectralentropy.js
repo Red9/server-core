@@ -1,6 +1,6 @@
-define(['vendor/jquery', 'vendor/underscore', 'vendor/d3', 'sandbox'], function($, _, d3, sandbox) {
+define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
 
-    function panelSpectralEntropy(myPlace, configuration, doneCallback) {
+    function panelSpectralEntropy(sandbox, tile, configuration, doneCallback) {
         if (typeof configuration === 'undefined') {
             configuration = {};
         }
@@ -14,19 +14,29 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3', 'sandbox'], function(
         }
 
         if (typeof configuration.height === 'undefined') {
-            configuration.height = 75;
+            configuration.height = 90;
+        }
+        setPlace();
+
+        function setPlace() {
+            sandbox.requestTemplate('panelspectralentropy', function(template) {
+                tile.place.html(template(
+                        {
+                            // 18 === x axis height, + 8 is extra?
+                            height: 'height: ' + (configuration.axes.length * configuration.height + 26) + 'px;',
+                            axes: configuration.axes
+                        }
+                ));
+            });
         }
 
-        sandbox.requestTemplate('panelspectralentropy', function(template) {
-            myPlace.html(template({}));
-        });
-
-        function createHeatmap(svg, data) {
+        function createHeatmap(svg, xAxisSvg, yAxisSvg, data) {
             // Need to convert the height/width from 123px to 123 (string to int)
             var width = svg.style('width');
             var height = svg.style('height');
             width = parseInt(width.substring(0, width.length - 2));
             height = parseInt(height.substring(0, height.length - 2));
+
 
 
 
@@ -122,50 +132,90 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3', 'sandbox'], function(
                         return zPos;
                     });
 
-
-            //Add a x-axis with labels.
-            var xTimeScale = d3.time.scale().domain([minX, maxX]).range([0, width]);
-            var xAxis = d3.svg.axis().scale(xTimeScale)
-                    .orient("bottom")
-                    .ticks(10)
-                    .tickFormat(d3.time.format('%M:%S'));
-            svg.append("g")
-                    //.attr('transform', 'translate(0,' + (height -1) + ')')
-                    .attr('class', 'heatmapaxis')
-                    .call(xAxis);
-
             //Add a y-axis with label.
-            var yAxis = d3.svg.axis().scale(y).orient("right").ticks(5);
-            svg.append("g")
-                    .attr('transform', 'translate(' + 1 + ',0)')
-                    .attr('class', 'heatmapaxis')
+            var yAxis = d3.svg.axis().scale(y)
+                    .orient("left")
+                    .ticks(3);
+            yAxisSvg.append('g')
+                    .attr('class', 'y_ticks plain')
+                    .attr('transform', 'translate(60,0)')
                     .call(yAxis);
+
+            if (typeof xAxisSvg !== 'undefined') {
+                //Add a x-axis with labels.
+                var xTimeScale = d3.time.scale().domain([minX, maxX]).range([0, width]);
+                var xAxis = d3.svg.axis().scale(xTimeScale)
+                        .orient("bottom")
+                        .ticks(10)
+                        .tickFormat(d3.time.format('%M:%S'));
+                xAxisSvg
+                        //.attr('transform', 'translate(0,' + (height -1) + ')')
+                        .append('g')
+                        .attr('class', 'x_ticks_d3 plain')
+                        //.attr('transform', 'translate(0,-1)')
+                        .call(xAxis);
+            }
+
+
         }
 
         function resourceFocused(event, parameter) {
             if (typeof parameter.panel !== 'undefined') {
-                var graphArea = myPlace.find('[data-name=grapharea]').empty()[0];
-                console.log('Computing heatmaps...');
-                var startTime = new Date().getTime();
-                _.each(configuration.axes, function(axisName) {
+                setPlace();
+
+                _.each(configuration.axes, function(axisName, index) {
+
+                    var graphAreas = tile.place.find('[data-name=grapharea]:eq(' + index + ')');
+
+                    var yAxisPlace = tile.place.find('.rickshaw_red9_y_axis:eq(' + index + ')');
+                    var xAxisPlace = tile.place.find('.rickshaw_red9_x_axis:eq(' + index + ')');
+
+                    var graphWidth = graphAreas.parent().parent().width()
+                            - yAxisPlace.width();
+
+                    var graphHeight = configuration.height;
+
+                    console.log('Width: ' + graphWidth);
+
                     var data = parameter.panel.spectralEntropy[axisName];
                     if (typeof data !== 'undefined') {
-                        var svg = d3.select(graphArea)
+                        var graphSvg = d3.select(graphAreas[0])
                                 .append('svg')
-                                .attr('height', configuration.height);
-                        createHeatmap(svg, data);
+                                .attr('height', graphHeight)
+                                .attr('width', graphWidth);
+                        var xAxisSvg;
+                        if (xAxisPlace.length !== 0) {
+                            xAxisSvg = d3.select(xAxisPlace[0])
+                                    .append('svg')
+                                    .attr('height', xAxisPlace.height())
+                                    .attr('width', graphWidth)
+                                    .attr('class', 'rickshaw_graph x_axis_d3');
+                        }
+                        var yAxisSvg = d3.select(yAxisPlace[0])
+                                .append('svg')
+                                .attr('height', graphHeight)
+                                .attr('width', yAxisPlace.width())
+                                .attr('class', 'rickshaw_graph y_axis');
+
+                        setTimeout(function() {
+                            console.log('Computing heatmaps...');
+                            var startTime = new Date().getTime();
+                            createHeatmap(graphSvg, xAxisSvg, yAxisSvg, data);
+                            console.log('Done computing heatmaps: ' + (new Date().getTime() - startTime) + ' ms');
+                        },
+                                500);
                     }
                 });
-                
-                console.log('Done computing heatmaps: ' + (new Date().getTime() - startTime) + ' ms');
+
+
             }
         }
 
 
 
 
-
-        $(sandbox).on('totalState.resource-focused', resourceFocused);
+        tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' spectral distribution');
+        tile.addListener('totalState.resource-focused', resourceFocused);
         doneCallback();
     }
 

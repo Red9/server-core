@@ -1,5 +1,5 @@
-define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw', 'sandbox'], function($, _, Rickshaw, sandbox) {
-    function panelDistribution(myPlace, configuration, doneCallback) {
+define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw'], function($, _, Rickshaw) {
+    function panelDistribution(sandbox, tile, configuration, doneCallback) {
         var graph;
         var graphData = [];
 
@@ -18,9 +18,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw', 'sandbox'], fun
 
 
         sandbox.requestTemplate('paneldistribution', function(template) {
-            myPlace.html(template({}));
-
-
+            tile.place.html(template({}));
         });
 
         function resourceFocused(event, parameter) {
@@ -51,42 +49,52 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw', 'sandbox'], fun
                 });
 
                 if (typeof graph === 'undefined') {
-                    var graphArea = myPlace.find('[data-name=grapharea]')[0];
+
+                    var graphArea = tile.place.find('[data-name=grapharea]');
+
+                    var yAxisPlace = tile.place.find('.rickshaw_red9_y_axis');
+                    var xAxisPlace = tile.place.find('.rickshaw_red9_x_axis');
+
+                    var graphWidth = graphArea.parent().parent().width()
+                            - yAxisPlace.width();
+
+                    var graphHeight = graphArea.parent().parent().height()
+                            - xAxisPlace.height();
+
+
                     graph = new Rickshaw.Graph({
-                        element: graphArea,
+                        element: graphArea[0],
                         renderer: 'line',
-                        //height: 400,
+                        height: graphHeight,
+                        width: graphWidth,
                         stack: false,
                         series: graphData
                     });
 
                     graph.render();
                     var xAxis = new Rickshaw.Graph.Axis.X({
-                        graph: graph
+                        graph: graph,
+                        orientation: 'bottom',
+                        element: xAxisPlace[0]
                     });
                     xAxis.render();
 
                     var yAxis = new Rickshaw.Graph.Axis.Y({
-                        graph: graph
+                        graph: graph,
+                        orientation: 'left',
+                        element: yAxisPlace[0]
+
                     });
                     yAxis.render();
 
 
-                } else {
-                    graph.render();
-                    console.log('updating distribution');
-                    /*graph.configure({
-                     series: rickshawDistributions
-                     });*/
-                    //graph.series = rickshawDistributions;
                 }
-
-
-
+                graph.render();
             }
         }
 
-        $(sandbox).on('totalState.resource-focused', resourceFocused);
+        tile.addListener('totalState.resource-focused', resourceFocused);
+        tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' Distribution');
         doneCallback();
     }
 

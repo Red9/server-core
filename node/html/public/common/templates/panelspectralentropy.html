@@ -1,4 +1,11 @@
-
-<h2><span>Spectral Gram</span></h2>
-<div data-name="grapharea">
+<div style="{{height}}">
+    {{#each axes}}
+    <div class="rickshaw_red9_chart_container">
+        <div class="rickshaw_red9_y_axis" data-name="yaxis"></div>
+        <div class="rickshaw_red9_chart" data-name="grapharea"></div>
+        {{#if @last}}
+        <div class="rickshaw_red9_x_axis" data-name="xaxis"></div>
+        {{/if}}
+    </div>
+    {{/each}}
 </div>

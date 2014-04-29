@@ -38,10 +38,19 @@ exports.getPanel = function(parameters, callbackDone) {
     var buckets = parameters.buckets;
     var panel = parameters.panel;
 
-    var bucketer = Bucketer.new(startTime, endTime, buckets);
+    var numberOfSamples = Math.floor((endTime - startTime) / 10); // Hard code 10 milliseconds per sample (100 Hz)
+
+    var bucketAxes = [];
+    underscore.each(panel.axes, function(axis, index) {
+        bucketAxes.push({name: axis, index: index});
+    });
+
+    var rowsPerBucket = Math.floor(numberOfSamples / buckets);
+    // Make sure we always have at least one row per bucket.
+    rowsPerBucket = rowsPerBucket === 0 ? 1 : rowsPerBucket;
+    var bucketer = Bucketer.new(bucketAxes, rowsPerBucket);
 
     var distributions = [];
-    var numberOfSamples = Math.floor((endTime - startTime) / 10); // Hard code 10 milliseconds per sample (100 Hz)
 
     var fftAxes = [];
 
@@ -82,7 +91,10 @@ exports.getPanel = function(parameters, callbackDone) {
     });
 
     //var fft = FFT.new(fftAxes, numberOfSamples, 100);
-    var se = SpectralEntropy.new(fftAxes, 256, 100);
+    var se;
+    if (numberOfSamples < 15 * 60 * 100) {
+        se = SpectralEntropy.new(fftAxes, 256, 100);
+    }
 
     cassandraPanel.getPanel(panelId, startTime, endTime,
             function(rowTime, rowData, n) {
@@ -91,31 +103,27 @@ exports.getPanel = function(parameters, callbackDone) {
                 });
 
                 //fft.processRow(rowTime, rowData, n);
-                se.processRow(rowTime, rowData, n);
-                
+                if(typeof se !== 'undefined'){
+                    se.processRow(rowTime, rowData, n);
+                }
                 bucketer.processRow(rowTime, rowData);
             },
             function(err) {
-
-                var resultRows = bucketer.processEnd();
-
                 var distributionResults = underscore.reduce(distributions, function(memo, d) {
                     memo.push(d.processEnd());
                     return memo;
                 }, []);
 
-                panel.axes.unshift('time');
 
                 var result = {
-                    labels: panel.axes,
                     startTime: startTime,
                     endTime: endTime,
                     id: panelId,
                     buckets: buckets,
-                    values: resultRows,
+                    panel: bucketer.processEnd(),
                     distributions: distributionResults,
                     //fft: fft.processEnd()
-                    spectralEntropy: se.processEnd()
+                    spectralEntropy: typeof se !== 'undefined' ? se.processEnd() : {}
                 };
                 callbackDone(err, result);
             }

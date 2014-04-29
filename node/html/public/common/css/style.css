@@ -168,17 +168,31 @@ body {
 }
 
 
-
-/* For the heatmap */
-.heatmapaxis path,
-.heatmapaxis line {
-    fill: none;
-    stroke: black;
-    stroke-width: 2px;
-    shape-rendering: crispEdges;
+/* For the Rickshaw Graphs */
+.rickshaw_red9_chart {
+    position: relative;
+    left: 60px;
 }
-
-.heatmapaxis text {
-    font-family: sans-serif;
-    font-size: 11px;
+.rickshaw_red9_y_axis {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 60px;
+}
+.rickshaw_red9_event_axis {
+    position: relative;
+    left: 60px;
+    height: 20px;
+}
+.rickshaw_red9_x_axis {
+    position: relative;
+    left: 60px;
+    height: 18px;
+}
+.rickshaw_red9_chart_container {
+    float: left;
+    position: relative;
+}
+.rickshaw_red9_event {
+    
 }
