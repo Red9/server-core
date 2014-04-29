@@ -1,38 +1,34 @@
-define(['vendor/jquery', 'sandbox'], function($, sandbox) {
+define(['vendor/jquery'], function($) {
 
-    function summaryStatistics(myPlace, configuration, doneCallback) {
-        this.myPlace = myPlace;
-        $(sandbox).on('totalState.resource-focused', $.proxy(this.resourceFocused, this));
-
-        this.setStatistics('', '', {});
-
+    function summaryStatistics(sandbox, tile, configuration, doneCallback) {
+        tile.addListener('totalState.resource-focused', resourceFocused);
+        tile.setTitle('summary statistics');
+        setStatistics('', '', {});
         doneCallback();
-
-    }
-
-    summaryStatistics.prototype.setStatistics = function(type, title, statistics) {
-        var self = this;
-        sandbox.requestTemplate('summarystatistics', function(template) {
-            self.myPlace.html(template(
-                    {
-                        type: type,
-                        title: title,
-                        summaryStatistics: statistics
-                    }
-            ));
-        });
-    };
+        
 
 
-    summaryStatistics.prototype.resourceFocused = function(event, parameters) {
-        if (parameters.type === 'dataset') {
-            this.setStatistics('dataset', parameters.resource.title, parameters.resource.headPanel.summaryStatistics);
-        } else if (parameters.type === 'event') {
-            this.setStatistics('event', parameters.resource.type, parameters.resource.summaryStatistics);
-        } else {
-            this.setStatistics('', '', {});
+        function setStatistics(type, title, statistics) {
+            sandbox.requestTemplate('summarystatistics', function(template) {
+                tile.place.html(template(
+                        {
+                            type: type,
+                            title: title,
+                            summaryStatistics: statistics
+                        }
+                ));
+            });
         }
-    };
 
+        function resourceFocused(event, parameters) {
+            if (parameters.type === 'dataset') {
+                setStatistics('dataset', parameters.resource.title, parameters.resource.headPanel.summaryStatistics);
+            } else if (parameters.type === 'event') {
+                setStatistics('event', parameters.resource.type, parameters.resource.summaryStatistics);
+            } else {
+                setStatistics('', '', {});
+            }
+        }
+    }
     return summaryStatistics;
 });

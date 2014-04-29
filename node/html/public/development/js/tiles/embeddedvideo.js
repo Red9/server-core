@@ -1,9 +1,9 @@
-define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'customHandlebarsHelpers'], function($, _, async, sandbox, chh) {
+define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsHelpers'], function($, _, async, chh) {
     // Class variables
     var youtubeApiKey = "AIzaSyBhSTRxw9EXWgZiMCqIYdPKtZuDdaXkCdA";
-    var kPlayerUpdateInterval = 1000;
+    var kPlayerUpdateInterval = 100;
 
-    function embeddedVideo(myPlace, configuration, doneCallback) {
+    function embeddedVideo(sandbox, tile, configuration, doneCallback) {
 
         var videoList;
         var playerTimePlace;
@@ -78,7 +78,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
 
         function showPlayerTime() {
             if (typeof playerTimePlace === 'undefined') {
-                playerTimePlace = myPlace.find('[data-name=currentvideotime]')
+                playerTimePlace = tile.place.find('[data-name=currentvideotime]')
             }
 
             var playerTime = videoList[currentVideoIndex].startTime + player.getCurrentTime() * 1000;
@@ -99,9 +99,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
                 var parameters = {
                     videos: videoList
                 };
-                myPlace.html(template(parameters));
-                $videoSyncCheckbox = myPlace.find('[data-name=syncvideowithhovercheckbox]');
-                $videoEmitEventCheckbox = myPlace.find('[data-name=emitvideotimeeventscheckbox]');
+                tile.place.html(template(parameters));
+                $videoSyncCheckbox = tile.place.find('[data-name=syncvideowithhovercheckbox]');
+                $videoEmitEventCheckbox = tile.place.find('[data-name=emitvideotimeeventscheckbox]');
                 prepareListeners();
 
                 // We have to  test this now (instead of using loadVideoById
@@ -116,7 +116,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
                 // We recreate a new player every time, since we have replaced
                 // all of the HTML
                 player = new YT.Player(
-                        myPlace.find('[data-name=videoDiv]')[0],
+                        tile.place.find('[data-name=videoDiv]')[0],
                         {
                             height: '390',
                             width: '640',
@@ -137,8 +137,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
                                     // video so that the first seekTo won't
                                     // cause the video to start playing.
                                     player.mute();
-                                    player.playVideo();
-                                    player.pauseVideo();
+                                    //player.playVideo();
+                                    //player.pauseVideo();
                                     //player.unMute();
                                 }
                             }
@@ -166,14 +166,14 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
         function deleteVideo(videoId) {
             sandbox.delete('video', videoId);
             videoList.splice(getVideoIndex(videoId), 1);
-            var $video = myPlace.find('[data-videoid=' + videoId + ']')
+            var $video = tile.place.find('[data-videoid=' + videoId + ']')
                     .addClass('bg-danger').hide('slow', function() {
                 $video.remove();
             });
         }
 
         function prepareListeners() {
-            myPlace.find('[data-name=addvideobutton]').on('click', function() {
+            tile.place.find('[data-name=addvideobutton]').on('click', function() {
                 var defaults = {
                     startTime: sandbox.focusState.startTime,
                     dataset: sandbox.focusState.dataset
@@ -181,7 +181,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
                 sandbox.createResourceDisplay('video', defaults);
             });
 
-            myPlace.find('.long-list-wrapper')
+            tile.place.find('.long-list-wrapper')
                     .on('click', '[data-name=videofocus]', function() {
                         var videoId = $(this).parents('[data-videoid]').data('videoid');
                         console.log('Video Id: ' + videoId);
@@ -246,9 +246,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'sandbox', 'custom
         }
 
         reset();
-        $(sandbox).on('totalState.resource-focused', resourceFocused);
-        $(sandbox).on('totalState.hover-time', hoverTime);
+        tile.addListener('totalState.resource-focused', resourceFocused);
+        tile.addListener('totalState.hover-time', hoverTime);
         setVideos(videoList); // Initial set to empty list.
+        tile.setTitle('videos');
         doneCallback();
     }
     return embeddedVideo;

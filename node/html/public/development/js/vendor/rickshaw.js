@@ -2031,6 +2031,31 @@ Rickshaw.Graph.Behavior.Series.Toggle = function(args) {
 	this.updateBehaviour = function () { this._addBehavior() };
 
 };
+
+Rickshaw.namespace('Rickshaw.Graph.Marker');
+
+Rickshaw.Graph.Marker = Rickshaw.Class.create({
+    initialize: function(args){
+        this.graph = args.graph;
+        
+        var element = this.element = document.createElement('div');
+        element.className = 'marker';
+
+	this.graph.element.appendChild(element);
+        this.hide();
+    },
+    setTime: function(newTime){
+        this.element.style.left = this.graph.x(newTime) + 'px';
+    },
+    show: function(){
+        this.element.classList.remove('inactive');
+    },
+    hide: function(){
+        this.element.classList.add('inactive');
+    }
+});
+
+
 Rickshaw.namespace('Rickshaw.Graph.HoverDetail');
 
 Rickshaw.Graph.HoverDetail = Rickshaw.Class.create({
@@ -2174,12 +2199,12 @@ Rickshaw.Graph.HoverDetail = Rickshaw.Class.create({
 		}
 	},
 
-	show: function() {
+	show: function(x,y) {
 		this.visible = true;
 		this.element.classList.remove('inactive');
 
 		if (typeof this.onShow == 'function') {
-			this.onShow();
+			this.onShow(x,y);
 		}
 	},
 
@@ -2236,7 +2261,7 @@ Rickshaw.Graph.HoverDetail = Rickshaw.Class.create({
 			el.classList.add('left');
 		});
 
-		this.show();
+		this.show(point.value.x, point.value.y);
 
 		// If left-alignment results in any error, try right-alignment.
 		var leftAlignError = this._calcLayoutError(alignables);

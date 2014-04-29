@@ -32,25 +32,25 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             "#9ACD32"
         ],
         tiles: [
-            /*{
-             class: 'resourcedetails'
-             },
-             {
-             class: 'eventlist'
-             },
-             {
-             class: 'embeddedvideo'
-             },*//*
-              {
-              class: 'panelspectralentropy',
-              configuration: {
-              axes: [
-              'acceleration:x',
-              'acceleration:y',
-              'acceleration:z',
-              ]
-              }
-              },*/
+            {
+                class: 'resourcedetails'
+            },
+            {
+                class: 'eventlist'
+            },
+            {
+                class: 'embeddedvideo'
+            },
+            {
+                class: 'panelspectralentropy',
+                configuration: {
+                    axes: [
+                        'acceleration:x',
+                        'acceleration:y',
+                        'acceleration:z'
+                    ]
+                }
+            },
             {
                 class: 'panelgraph',
                 configuration: {
@@ -60,115 +60,115 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
                         'acceleration:z'
                     ]
                 }
-            }, /*
-             {
-             class: 'paneldistribution',
-             configuration: {
-             axes: [
-             'acceleration:x',
-             'acceleration:y',
-             'acceleration:z'
-             ]
-             }
-             },
-             {
-             class: 'panelspectralentropy',
-             configuration: {
-             axes: [
-             'rotationrate:x',
-             'rotationrate:y',
-             'rotationrate:z',
-             ]
-             }
-             },
-             {
-             class: 'panelgraph',
-             configuration: {
-             axes: [
-             'rotationrate:x',
-             'rotationrate:y',
-             'rotationrate:z'
-             ]
-             }
-             },
-             {
-             class: 'paneldistribution',
-             configuration: {
-             axes: [
-             'rotationrate:x',
-             'rotationrate:y',
-             'rotationrate:z'
-             ]
-             }
-             },
-             {
-             class: 'panelspectralentropy',
-             configuration: {
-             axes: [
-             'magneticfield:x',
-             'magneticfield:y',
-             'magneticfield:z'
-             ]
-             }
-             },
-             {
-             class: 'panelgraph',
-             configuration: {
-             axes: [
-             'magneticfield:x',
-             'magneticfield:y',
-             'magneticfield:z'
-             ]
-             }
-             },
-             {
-             class: 'paneldistribution',
-             configuration: {
-             axes: [
-             'magneticfield:x',
-             'magneticfield:y',
-             'magneticfield:z'
-             ]
-             }
-             },
-             {
-             class: 'panelgraph',
-             configuration: {
-             axes: [
-             'gps:speed'
-             ]
-             }
-             },
-             {
-             class: 'panelspectralentropy',
-             configuration: {
-             axes: [
-             'gps:speed'
-             ]
-             }
-             },
-             {
-             class: 'paneldistribution',
-             configuration: {
-             axes: [
-             'gps:speed'
-             ]
-             }
-             },
-             {
-             class: 'panelgraph',
-             configuration: {
-             axes: [
-             'pressure:pressure'
-             ]
-             }
-             }, /*
-             {
-             class: 'googlemap'
-             },
-             {
-             class: 'summarystatistics'
-             }*/
+            },
+            {
+                class: 'paneldistribution',
+                configuration: {
+                    axes: [
+                        'acceleration:x',
+                        'acceleration:y',
+                        'acceleration:z'
+                    ]
+                }
+            },
+            {
+                class: 'panelspectralentropy',
+                configuration: {
+                    axes: [
+                        'rotationrate:x',
+                        'rotationrate:y',
+                        'rotationrate:z'
+                    ]
+                }
+            },
+            {
+                class: 'panelgraph',
+                configuration: {
+                    axes: [
+                        'rotationrate:x',
+                        'rotationrate:y',
+                        'rotationrate:z'
+                    ]
+                }
+            },
+            {
+                class: 'paneldistribution',
+                configuration: {
+                    axes: [
+                        'rotationrate:x',
+                        'rotationrate:y',
+                        'rotationrate:z'
+                    ]
+                }
+            },
+            {
+                class: 'panelspectralentropy',
+                configuration: {
+                    axes: [
+                        'magneticfield:x',
+                        'magneticfield:y',
+                        'magneticfield:z'
+                    ]
+                }
+            },
+            {
+                class: 'panelgraph',
+                configuration: {
+                    axes: [
+                        'magneticfield:x',
+                        'magneticfield:y',
+                        'magneticfield:z'
+                    ]
+                }
+            },
+            {
+                class: 'paneldistribution',
+                configuration: {
+                    axes: [
+                        'magneticfield:x',
+                        'magneticfield:y',
+                        'magneticfield:z'
+                    ]
+                }
+            },
+            {
+                class: 'panelgraph',
+                configuration: {
+                    axes: [
+                        'gps:speed'
+                    ]
+                }
+            },
+            {
+                class: 'panelspectralentropy',
+                configuration: {
+                    axes: [
+                        'gps:speed'
+                    ]
+                }
+            },
+            {
+                class: 'paneldistribution',
+                configuration: {
+                    axes: [
+                        'gps:speed'
+                    ]
+                }
+            },
+            {
+                class: 'panelgraph',
+                configuration: {
+                    axes: [
+                        'pressure:pressure'
+                    ]
+                }
+            },
+            {
+                class: 'googlemap'
+            },
+            {
+                class: 'summarystatistics'
+            }
         ],
         templates: {},
         modules: [],
@@ -438,7 +438,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
                                 maxEndTime: dataset[0].headPanel.endTime,
                                 startTime: startTime,
                                 endTime: endTime,
-                                event: event[0].id
+                                event: event[0].id,
+                                panelBody: panel
                             };
                             sandbox.initiateEvent(eventName,
                                     {
@@ -467,7 +468,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
                             minStartTime: dataset[0].headPanel.startTime,
                             maxEndTime: dataset[0].headPanel.endTime,
                             startTime: parseInt(startTime), // Need to parse, since we don't know where it came from...
-                            endTime: parseInt(endTime)
+                            endTime: parseInt(endTime),
+                            panelBody: panel
                         };
                         sandbox.initiateEvent(eventName,
                                 {
