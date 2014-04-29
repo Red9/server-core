@@ -94,7 +94,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw'], function($, _,
         }
 
         tile.addListener('totalState.resource-focused', resourceFocused);
-        tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' Distribution');
+        tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' distribution');
         doneCallback();
     }
 

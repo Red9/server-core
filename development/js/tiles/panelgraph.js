@@ -5,6 +5,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
         var graph;
         var rangeSelector;
         var graphData = [];
+        var marker;
 
         tile.addListener('totalState.resource-focused', resourceFocused);
         tile.addListener('totalState.video-time', videoTime);
@@ -98,10 +99,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                         .style('fill', function(event, index) {
 
                             var fills = [
-                                '#363636',
-                                '#7D7D7D',
-                                '#7D7D7D',
-                                '#363636'
+                                '#fc8d59',
+                                '#91bfdb',
+                                '#91bfdb',
+                                '#fc8d59'
                             ];
                             
                             /*var fills = [
@@ -123,7 +124,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                             return index % 2 ? (height/2) - 2 : height - 2;
                         })
                         .attr('font-size', '10px')
-                        .attr('fill', 'white')
+                        .attr('fill', '#ffffbf')
                         .text(function(event) {
                             return event.type;
                         });
@@ -208,8 +209,21 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     graph: graph,
                     xFormatter: function(x) {
                         return new Date(x).toUTCString();
+                    },
+                    onShow: function(x,y){
+                        //console.log('hover: ' + x + ', ' + y);
+                        sandbox.initiateHoverTimeEvent(x);
+                    },
+                    onHide: function(){
+                        console.log('Not hovering...');
                     }
                 });
+                
+                marker = new Rickshaw.Graph.Marker({
+                   graph:graph 
+                });
+                
+                
 
                 rangeSelector = new Rickshaw.Graph.RangeSelector({
                     graph: graph,
@@ -242,7 +256,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
         }
 
         function videoTime(event, parameter) {
-
+            marker.setTime(parameter.videoTime);
         }
 
     }
