@@ -1,8 +1,13 @@
-define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/history', 'vendor/async', 'vendor/URI', 'customHandlebarsHelpers'], function($, _, Handlebars, History, async, URI) {
+define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
+    'vendor/history', 'vendor/async', 'vendor/URI',
+    'tileframe',
+    'customHandlebarsHelpers'
+], function($, _, Handlebars, History, async, URI, tileFrame) {
     var sandbox = {
         currentUser: '',
         apiUrl: '',
         actionUrl: '',
+        historyChanging: false,
         definedColorMappings: {
             "gps:altitude": "#FF6347",
             "gps:speed": "#8B4513",
@@ -26,219 +31,197 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             "#B0E0E6",
             "#9ACD32"
         ],
+        tiles: [
+            /*{
+             class: 'resourcedetails'
+             },
+             {
+             class: 'eventlist'
+             },
+             {
+             class: 'embeddedvideo'
+             },*//*
+              {
+              class: 'panelspectralentropy',
+              configuration: {
+              axes: [
+              'acceleration:x',
+              'acceleration:y',
+              'acceleration:z',
+              ]
+              }
+              },*/
+            {
+                class: 'panelgraph',
+                configuration: {
+                    axes: [
+                        'acceleration:x',
+                        'acceleration:y',
+                        'acceleration:z'
+                    ]
+                }
+            }, /*
+             {
+             class: 'paneldistribution',
+             configuration: {
+             axes: [
+             'acceleration:x',
+             'acceleration:y',
+             'acceleration:z'
+             ]
+             }
+             },
+             {
+             class: 'panelspectralentropy',
+             configuration: {
+             axes: [
+             'rotationrate:x',
+             'rotationrate:y',
+             'rotationrate:z',
+             ]
+             }
+             },
+             {
+             class: 'panelgraph',
+             configuration: {
+             axes: [
+             'rotationrate:x',
+             'rotationrate:y',
+             'rotationrate:z'
+             ]
+             }
+             },
+             {
+             class: 'paneldistribution',
+             configuration: {
+             axes: [
+             'rotationrate:x',
+             'rotationrate:y',
+             'rotationrate:z'
+             ]
+             }
+             },
+             {
+             class: 'panelspectralentropy',
+             configuration: {
+             axes: [
+             'magneticfield:x',
+             'magneticfield:y',
+             'magneticfield:z'
+             ]
+             }
+             },
+             {
+             class: 'panelgraph',
+             configuration: {
+             axes: [
+             'magneticfield:x',
+             'magneticfield:y',
+             'magneticfield:z'
+             ]
+             }
+             },
+             {
+             class: 'paneldistribution',
+             configuration: {
+             axes: [
+             'magneticfield:x',
+             'magneticfield:y',
+             'magneticfield:z'
+             ]
+             }
+             },
+             {
+             class: 'panelgraph',
+             configuration: {
+             axes: [
+             'gps:speed'
+             ]
+             }
+             },
+             {
+             class: 'panelspectralentropy',
+             configuration: {
+             axes: [
+             'gps:speed'
+             ]
+             }
+             },
+             {
+             class: 'paneldistribution',
+             configuration: {
+             axes: [
+             'gps:speed'
+             ]
+             }
+             },
+             {
+             class: 'panelgraph',
+             configuration: {
+             axes: [
+             'pressure:pressure'
+             ]
+             }
+             }, /*
+             {
+             class: 'googlemap'
+             },
+             {
+             class: 'summarystatistics'
+             }*/
+        ],
+        templates: {},
+        modules: [],
+        tileTemplate: '',
         init: function() {
             sandbox.setPageTitle('Red9 Sensor');
             History.Adapter.bind(window, 'statechange', sandbox.onHistoryChange); // Note: We are using statechange instead of popstate
 
-
-            sandbox.templates = {};
-            sandbox.modules = [];
             sandbox.div = $('#sandboxContentDiv');
             sandbox.focusState = undefined;
-            var tiles = [
-                /*{
-                    class: 'resourcedetails'
-                },
-                {
-                    class: 'eventlist'
-                },
-                {
-                    class: 'embeddedvideo'
-                },
-                {
-                    class: 'panelgraph',
-                    configuration: {
-                        axes: [
-                            'acceleration:x',
-                            'acceleration:y',
-                            'acceleration:z'
-                        ]
-                    }
-                },*/
-                {
-                    class: 'paneldistribution',
-                    configuration: {
-                        axes: [
-                            'acceleration:x',
-                            'acceleration:y',
-                            'acceleration:z'
-                        ]
-                    }
-                },
-                /*{
-                 class: 'panelfft',
-                 configuration: {
-                 axes: [
-                 //'acceleration:x',
-                 //'acceleration:y',
-                 //'acceleration:z',
-                 'rotationrate:x',
-                 'rotationrate:y',
-                 'rotationrate:z',
-                 //'magneticfield:x',
-                 //'magneticfield:y',
-                 //'magneticfield:z',
-                 //'gps:speed'
-                 ]
-                 }
-                 },*//*
-                {
-                    class: 'panelspectralentropy',
-                    configuration: {
-                        axes: [
-                            'acceleration:x',
-                            'acceleration:y',
-                            'acceleration:z',
-                            'rotationrate:x',
-                            'rotationrate:y',
-                            'rotationrate:z',
-                            'magneticfield:x',
-                            'magneticfield:y',
-                            'magneticfield:z'
-                                    //'gps:speed'
-                        ]
-                    }
-                },
-                {
-                    class: 'panelgraph',
-                    configuration: {
-                        axes: [
-                            'rotationrate:x',
-                            'rotationrate:y',
-                            'rotationrate:z'
-                        ]
-                    }
-                },
-                {
-                    class: 'paneldistribution',
-                    configuration: {
-                        axes: [
-                            'rotationrate:x',
-                            'rotationrate:y',
-                            'rotationrate:z'
-                        ]
-                    }
-                },
-                {
-                    class: 'panelgraph',
-                    configuration: {
-                        axes: [
-                            'magneticfield:x',
-                            'magneticfield:y',
-                            'magneticfield:z'
-                        ]
-                    }
-                },
-                {
-                    class: 'paneldistribution',
-                    configuration: {
-                        axes: [
-                            'magneticfield:x',
-                            'magneticfield:y',
-                            'magneticfield:z'
-                        ]
-                    }
-                },
-                {
-                    class: 'panelgraph',
-                    configuration: {
-                        axes: [
-                            'gps:speed'
-                        ]
-                    }
-                },
-                {
-                    class: 'paneldistribution',
-                    configuration: {
-                        axes: [
-                            'gps:speed'
-                        ]
-                    }
-                },
-                {
-                    class: 'panelgraph',
-                    configuration: {
-                        axes: [
-                            'pressure:pressure'
-                        ]
-                    }
-                },
-                {
-                    class: 'googlemap'
-                },
-                {
-                    class: 'summarystatistics'
-                }*/
-            ];
+
             sandbox.requestTemplate('sandboxtiletemplate', function(template) {
-
-                async.eachSeries(tiles,
-                        function(tile, doneCallback) {
-                            var place = $(template({}));
-                            sandbox.div.append(place);
-                            if (typeof tile.configuration === 'undefined') {
-                                tile.configuration = {};
-                            }
-                            require(['tiles/' + tile.class], function(tileClass) {
-                                // There may be a bug here: what if the class does it's
-                                // configuration and calls doneCallback() before
-                                // it can be pushed into modules?
-
-                                if (tile.class === 'embeddedvideo'
-                                        || tile.class === 'actionview'
-                                        || tile.class === 'paneldistribution'
-                                        || tile.class === 'panelspectralentropy') { // Special cases: trasition period
-                                    sandbox.modules.push(tileClass(place, tile.configuration, function() {
-                                        doneCallback();
-                                    }));
-                                } else {
-                                    sandbox.modules.push(new tileClass(place, tile.configuration, function() {
-                                        doneCallback();
-                                    }));
-                                }
-                            });
-                        },
+                sandbox.tileTemplate = template;
+                async.eachSeries(sandbox.tiles, sandbox.createTile,
                         function(err) {
+                            // First time, so force a history "change"
                             sandbox.onHistoryChange();
                         });
             });
         },
-        addButtonToBar: function(bar, name, custom, iconName, listener) {
-            bar.append('<a class="btn btn-link btn-lg" data-name="'
-                    + name + '" ' + custom + ' >'
-                    + '<span class="glyphicon ' + iconName + '"></span></a>');
-            bar.find('[data-name=' + name + ']').on('click', listener);
+        createTile: function(tile, doneCallback) {
+            tileFrame(sandbox, tile, sandbox.tileTemplate, doneCallback);
         },
-        splicePanel: function(core, extra) {
-            var result = _.omit(core, 'values');
-            result.values = [];
-            var i;
-            // Add the dataset first "half"
-            for (i = 0; i < extra.values.length
-                    && extra.values[i][0] < core.values[0][0]
-                    ; i = i + 1) {
-                result.values.push(extra.values[i]);
-            }
+        createHumanAxesString: function(axesList) {
+            var axes = {};
+            _.each(axesList, function(axis) {
+                var t = axis.split(':');
+                var type = t[0];
+                var direction = t[1];
 
-            result.spliceStart = i;
-            result.spliceLength = core.values.length;
-
-            // Add in the splice
-            _.each(core.values, function(value, index) {
-                result.values.push(value);
+                if (_.has(axes, type) === false) {
+                    axes[type] = [];
+                }
+                axes[type].push(direction);
             });
-            // Find the end of the splice
-            for (; i < extra.values.length
-                    && extra.values[i][0] <= core.values[core.values.length - 1][0]
-                    ; i = i + 1) {
-            }
 
-            // Finish the dataset second "half"
-            for (; i < extra.values.length; i = i + 1) {
-                result.values.push(extra.values[i]);
-            }
 
-            return result;
+            var axisIndex = 0;
+            return _.reduce(axes, function(memo, axisValues, axisName) {
+                if (axisIndex > 0) {
+                    memo += ' and ';
+                }
+                memo += axisName + ' ';
+                _.each(axisValues, function(v, i) {
+                    if (i > 0) {
+                        memo += ',';
+                    }
+                    memo += v;
+                });
+                axisIndex++;
+                return memo;
+            }, '');
+
         },
         trimPanel: function(panel, axes) {
             // Add in default of time
@@ -330,7 +313,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
         },
         getPanel: function(id, startTime, endTime, cache, callback) {
             var panelParameters = {
-                minmax: true,
                 buckets: 1000,
                 format: 'json',
                 cache: 'off'
@@ -356,41 +338,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                     callback(panel);
                 }
             });
-        },
-        getSplicedPanel: function(panelId, startTime, endTime, cache, callback) {
-            //var callback = arguments[arguments.length - 1];
-            sandbox.getPanel(panelId, undefined, undefined, true, function(datasetPanel) {
-
-                if (_.isFunction(startTime) === true // Then not specified at all
-                        || (datasetPanel.startTime === startTime && datasetPanel.endTime === endTime)) {
-                    // No splicing necessary
-                    // So set the "splice" to be the entire panel.
-                    datasetPanel.spliceStart = 0;
-                    datasetPanel.spliceLength = datasetPanel.values.length;
-                    callback(datasetPanel);
-                } else {
-                    sandbox.getPanel(panelId, startTime, endTime, cache, function(corePanel) {
-                        var finalPanel = sandbox.splicePanel(corePanel, datasetPanel);
-                        callback(finalPanel);
-                    });
-                }
-
-            });
-        },
-        testPanelStuff: function() {
-            // 1395117401000
-            // 1395117770910
-
-            var constraints = {
-                startTime: 1395117401000,
-                endTime: 1395117770910,
-                id: '29b2038c-21cd-41bb-f103-9402f3a895cc'
-            };
-            sandbox.getSplicedPanel('29b2038c-21cd-41bb-f103-9402f3a895cc', 1395117501000, 1395117670910,
-                    function(splicedPanel) {
-                        console.log("Got panel: " + JSON.stringify(_.omit(splicedPanel, 'values')));
-                        console.log('Panel values length: ' + splicedPanel.values.length);
-                    });
         },
         requestTemplate: function(name, callback) {
             if (typeof sandbox.templates[name] === 'undefined') {
@@ -426,7 +373,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             }
 
             uri.query(focus);
-            History.pushState(null, 'Focusing on ' + type + ' ' + id, uri.toString());
+            sandbox.pushHistoryState(null, 'Focusing on ' + type + ' ' + id, uri.toString());
         },
         downloadPanelDisplay: function(id) {
             sandbox.get('panel', {id: id}, function(resourceList) {
@@ -475,14 +422,14 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
             var eventName = 'totalState.resource-deleted';
             sandbox.initiateEvent(eventName, {type: resource, id: id});
         },
-        initiateResourceFocusedEvent: function(resource, id, startTime, endTime) {
+        initiateResourceFocusedEvent: function(resource, id, startTime, endTime, callbackDone) {
             var eventName = 'totalState.resource-focused';
             if (resource === 'event') {
                 sandbox.get(resource, {id: id}, function(event) {
                     sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
                         startTime = event[0].startTime;
                         endTime = event[0].endTime;
-                        sandbox.getSplicedPanel(dataset[0].headPanelId, startTime, endTime, true, function(panel) {
+                        sandbox.getPanel(dataset[0].headPanelId, startTime, endTime, true, function(panel) {
                             sandbox.setPageTitle('Event: ' + event[0].type);
                             sandbox.focusState = {
                                 dataset: dataset[0].id,
@@ -499,6 +446,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                                         resource: event[0],
                                         panel: panel
                                     });
+                            callbackDone();
                         });
                     }, ['headPanel']);
                 });
@@ -511,7 +459,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                     if (typeof endTime === 'undefined') {
                         endTime = dataset[0].headPanel.endTime;
                     }
-                    sandbox.getSplicedPanel(dataset[0].headPanel.id, startTime, endTime, cache, function(panel) {
+                    sandbox.getPanel(dataset[0].headPanel.id, startTime, endTime, cache, function(panel) {
                         sandbox.setPageTitle(dataset[0].title);
                         sandbox.focusState = {
                             dataset: dataset[0].id,
@@ -527,18 +475,31 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/histo
                                     resource: dataset[0],
                                     panel: panel
                                 });
+                        callbackDone();
                     });
                 }, ['headPanel', 'owner']);
             }
         },
+        pushHistoryState: function(stateObj, title, url) {
+            if (sandbox.historyChanging !== 'true') {
+                History.pushState(stateObj, title, url);
+            }
+        },
         onHistoryChange: function() {
+            sandbox.historyChanging = true;
+            var $progressBar = $('#pageloaderspinner');
+            $progressBar.show('fast').toggleClass('active');
             // Bound to StateChange Event
             var State = History.getState(); // Note: We are using History.getState() instead of event.state
             var uri = URI(State.url);
             var query = uri.query(true);
             var resource = uri.directory().substring(1); // remove leading '/'
             var id = uri.filename();
-            sandbox.initiateResourceFocusedEvent(resource, id, query['focus.starttime'], query['focus.endtime']);
+            sandbox.initiateResourceFocusedEvent(resource, id, query['focus.starttime'], query['focus.endtime'],
+                    function() {
+                        $progressBar.hide('fast').toggleClass('active');
+                        sandbox.historyChanging = false;
+                    });
         },
         showModal: function(type, parameters) {
             // If modal is already shown, dismiss it first.

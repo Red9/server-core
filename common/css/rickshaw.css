@@ -221,7 +221,7 @@
 }
 .rickshaw_graph .y_ticks .tick line,
 .rickshaw_graph .x_ticks_d3 .tick {
-	stroke: rgba(0, 0, 0, 0.16);
+	stroke: none;
 	stroke-width: 2px;
 	shape-rendering: crisp-edges;
 	pointer-events: none;
@@ -352,4 +352,22 @@
 .rickshaw_legend li:active {
 	background: rgba(255, 255, 255, 0.2);
 	border-radius: 3px;
+}
+/* rangeSelector */
+
+.rickshaw_range_selector{
+    outline:1px solid #eee;
+    background: rgba(255,255,255,0.3);
+    position:absolute;
+    top:0;
+    z-index:1;
+    cursor:pointer;
+    pointer-events:none;
+}
+
+.rickshaw_graph:active,
+.rickshaw_graph:focus,
+.rickshaw_graph *:active,
+.rickshaw_graph *:focus{
+    cursor:crosshair !important;
 }

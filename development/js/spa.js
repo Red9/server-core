@@ -57,21 +57,8 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
                 datasetId: sandbox.focusState.dataset
             });
         });
-
-        $('#navbar-fixed-bottom-zoom-out-button').on('click', function(element) {
-            var zoom = calculateZoom('out',
-                    sandbox.focusState.minStartTime,
-                    sandbox.focusState.maxEndTime,
-                    sandbox.focusState.startTime,
-                    sandbox.focusState.endTime
-                    );
-            sandbox.resourceFocused('dataset', sandbox.focusState.dataset, zoom.startTime, zoom.endTime);
-        });
-        $('#navbar-fixed-bottom-zoom-out-full-button').on('click', function(element) {
-            sandbox.resourceFocused('dataset', sandbox.focusState.dataset);
-        });
-        $('#navbar-fixed-bottom-zoom-in-button').on('click', function(element) {
-            var zoom = calculateZoom('in',
+        $('[data-name=navbar-fixed-bottom-zoom-button]').on('click', function(){
+            var zoom = calculateZoom($(this).data('direction'),
                     sandbox.focusState.minStartTime,
                     sandbox.focusState.maxEndTime,
                     sandbox.focusState.startTime,
@@ -86,8 +73,8 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
 
     function calculateZoom(zoomDirection, datasetStartTime, datasetEndTime, currentStartTime, currentEndTime) {
         var result = {};
-        var zoomOutTime = currentEndTime - currentStartTime;
-        var zoomInTime = Math.floor(zoomOutTime / 3);
+        var currentDuration = currentEndTime - currentStartTime;
+        var zoomInTime = Math.floor(currentDuration / 3);
 
         if (_.isString(currentStartTime)) {
             console.log('currentStartTime is string...');
@@ -97,9 +84,29 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
             console.log('zoomInTime is string...');
         }
 
-        console.log('zoomInTime: ' + zoomInTime);
+        if(zoomDirection === 'outfull'){
+            return {};
+        }else if(zoomDirection === 'left'){
+            if (typeof currentStartTime === 'undefined' || typeof currentEndTime === 'undefined') {
+                // Zoom left and don't know where from
+                return {};
+            }
 
-        if (zoomDirection === 'in') {
+            result = {
+                startTime: currentStartTime - zoomInTime,
+                endTime: currentEndTime - zoomInTime
+            };
+        }else if(zoomDirection === 'right'){
+            if (typeof currentStartTime === 'undefined' || typeof currentEndTime === 'undefined') {
+                // Zoom right and don't know where from
+                return {};
+            }
+
+            result = {
+                startTime: currentStartTime + zoomInTime,
+                endTime: currentEndTime + zoomInTime
+            };
+        }else if (zoomDirection === 'in') {
             if (typeof currentStartTime === 'undefined' || typeof currentEndTime === 'undefined') {
                 // Zoom in and don't know where from
                 return {};
@@ -118,8 +125,8 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
             }
 
             result = {
-                startTime: currentStartTime - zoomOutTime,
-                endTime: currentEndTime + zoomOutTime
+                startTime: currentStartTime - currentDuration,
+                endTime: currentEndTime + currentDuration
             };
         }
 
