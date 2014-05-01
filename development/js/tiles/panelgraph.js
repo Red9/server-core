@@ -22,12 +22,99 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
             ];
         }
 
-        tile.setTitle(sandbox.createHumanAxesString(configuration.axes));
+        updateTitle();
 
         sandbox.requestTemplate('panelgraph', function(template) {
             tile.place.html(template({}));
+            tile.addToBar('settings', '', 'glyphicon-cog', toggleSettings);
             doneCallback();
         });
+        
+        function updateTitle(){
+            tile.setTitle(sandbox.createHumanAxesString(configuration.axes));
+        }
+
+        function toggleSettings() {
+            tile.place.find('[data-name=settings]').toggleClass('hidden');
+        }
+
+        function populateSettings() {
+
+            var selectableAxes = _.map(
+                    _.omit(sandbox.focusState.panelBody.panel, 'time'),
+                    function(data, axis) {
+                        return{
+                            axis: axis,
+                            checked: _.indexOf(configuration.axes, axis) !== -1
+                                    ? 'checked' : ''
+                        };
+                    });
+
+
+            var displayableAxes = _.reduce(selectableAxes, function(memo, value, index, list) {
+                var calculatedIndex = Math.floor(index / Math.ceil(list.length / memo.length));
+                memo[calculatedIndex].push(value);
+                return memo;
+            }, [[], [], [], []]);
+
+            console.log('displayabelAxes: ' + JSON.stringify(displayableAxes));
+
+            sandbox.requestTemplate('panelgraph.settings', function(settingsTemplate) {
+                var html = $(settingsTemplate({axes: displayableAxes}));
+                html.find('[data-name=axis-checkbox]').on('click', function() {
+                    var axis = $(this).attr('name');
+                    console.log('axis: ' + axis);
+                    toggleAxis(axis);
+
+                });
+                tile.place.find('[data-name=settings]').html(html);
+            });
+        }
+
+        function toggleAxis(newAxis) {
+            var index = _.indexOf(configuration.axes, newAxis);
+            if (index === -1 && _.has(sandbox.focusState.panelBody.panel, newAxis)) {
+                configuration.axes.push(newAxis);
+                addGraphDataAxis(newAxis);
+                graph.render();
+            } else if (index !== -1) {
+                configuration.axes.splice(index, 1);
+
+                var graphDataIndex = -1;
+                _.each(graphData, function(data, index) {
+                    if (data.axis === newAxis) {
+                        graphDataIndex = index;
+                    }
+                });
+                if (graphDataIndex !== -1) {
+                    graphData.splice(graphDataIndex, 1);
+                    graph.render();
+                }
+            }
+            updateTitle();
+        }
+
+        function addGraphDataAxis(axis) {
+            var panel = sandbox.focusState.panelBody.panel;
+
+            if (_.has(panel, axis) === true) {
+                var data = [];
+                _.each(panel[axis], function(axisValue, index) {
+                    data.push({
+                        x: panel.time[index],
+                        y: axisValue
+                    });
+
+                });
+                graphData.push({
+                    axis: axis,
+                    data: data,
+                    color: sandbox.definedColorMappings[axis],
+                    name: axis.split(':')[1],
+                    strokeWidth: 1
+                });
+            }
+        }
 
         function drawEvents(eventAxisPlace, xScale, width, height) {
             eventAxisPlace.empty();
@@ -82,8 +169,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                             if (x < 0) { // Start of event off left edge
                                 x = 0;
                             }
-                            
-                            if(x > xEnd){
+
+                            if (x > xEnd) {
                                 console.log('Error: x > xEnd...: ' + x + ', ' + xEnd);
                             }
 
@@ -104,24 +191,16 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                                 '#91bfdb',
                                 '#fc8d59'
                             ];
-                            
-                            /*var fills = [
-                                '#BF4930', // Red
-                                '#1D7471', // Teal
-                                '#1D7471',
-                                '#BF4930'
-                            ];*/
-                            
                             return fills[index % 4];
                         })
-                        .attr('height', height/2);
+                        .attr('height', height / 2);
 
                 svgEvents.append('svg:text')
                         .attr('x', function(event) {
                             return xScale(event.startTime) + 2;
                         })
                         .attr('y', function(event, index) {
-                            return index % 2 ? (height/2) - 2 : height - 2;
+                            return index % 2 ? (height / 2) - 2 : height - 2;
                         })
                         .attr('font-size', '10px')
                         .attr('fill', '#ffffbf')
@@ -133,35 +212,18 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
         }
 
         function resourceFocused(event, parameter) {
-            console.log('Resource focused...');
             if (typeof parameter.panel !== 'undefined') {
-                console.log('Got panel. ' + parameter.panel.panel.time.length);
+                populateSettings();
+
                 while (graphData.length > 0) {
                     graphData.pop();
                 }
-                _.each(parameter.panel.panel, function(values, columnName) {
-
-                    if (_.indexOf(configuration.axes, columnName) !== -1) {
-                        var data = [];
-                        _.each(values, function(value, index) {
-                            data.push({
-                                x: parameter.panel.panel.time[index],
-                                y: value
-                            });
-
-                        });
-                        graphData.push({
-                            data: data,
-                            color: sandbox.definedColorMappings[columnName],
-                            name: columnName.split(':')[1],
-                            strokeWidth: 1
-                        });
-                    }
+                _.each(configuration.axes, function(axis) {
+                    addGraphDataAxis(axis);
                 });
             }
             var graphArea = tile.place.find('[data-name=grapharea]');
-            graphArea[0].setAttribute("style",
-                    "margin-right:0px");
+            graphArea[0].setAttribute("style", "margin-right:0px");
 
             var yAxisPlace = tile.place.find('.rickshaw_red9_y_axis');
             var xAxisPlace = tile.place.find('.rickshaw_red9_x_axis');
@@ -212,32 +274,27 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     xFormatter: function(x) {
                         return new Date(x).toUTCString();
                     },
-                    onShow: function(x,y){
-                        //console.log('hover: ' + x + ', ' + y);
+                    onShow: function(x, y) {
                         sandbox.initiateHoverTimeEvent(x);
                     },
-                    onHide: function(){
+                    onHide: function() {
                         console.log('Not hovering...');
                     }
                 });
-                
+
                 marker = new Rickshaw.Graph.Marker({
-                   graph:graph 
+                    graph: graph
                 });
-                
-                
 
                 rangeSelector = new Rickshaw.Graph.RangeSelector({
                     graph: graph,
                     onZoom: function(e) {
                         var startTime = Math.floor(e.position.xMin);
                         var endTime = Math.floor(e.position.xMax);
-                        console.log('Zoom!: ' + startTime + ', ' + endTime);
                         sandbox.resourceFocused('dataset', sandbox.focusState.dataset, startTime, endTime);
 
                     },
                     onZoomOut: function() {
-                        console.log('onZoom out');
                         sandbox.resourceFocused('dataset', sandbox.focusState.dataset);
                     }
                 });
@@ -246,15 +303,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
 
             var panelStartTime = parameter.panel.panel.time[0];
             var panelEndTime = parameter.panel.panel.time[parameter.panel.panel.time.length - 1];
-            //console.log('Zoom to: ' + panelStartTime + ', ' + panelEndTime);
-            //rangeSelector.zoomTo(panelStartTime, panelEndTime, false);
 
             graph.render();
 
             var xAxisScale = d3.scale.linear()
                     .range([0, xAxisWidth])
                     .domain([panelStartTime, panelEndTime]);
-            drawEvents(eventAxisPlace, xAxisScale, xAxisWidth, eventAxisPlace.height())
+            drawEvents(eventAxisPlace, xAxisScale, xAxisWidth, eventAxisPlace.height());
         }
 
         function videoTime(event, parameter) {
