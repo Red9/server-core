@@ -2,8 +2,8 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
     function eventList(sandbox, tile, configuration, doneCallback) {
         var datasetId;
         tile.setTitle('events');
-        tile.addListener('totalState.resource-focused', resourceFocused);
-        tile.addListener('totalState.resource-deleted', resourceDeleted);
+        tile.addListener('totalState-resource-focused', resourceFocused);
+        tile.addListener('totalState-resource-deleted', resourceDeleted);
 
         setEvents([]);
 

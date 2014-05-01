@@ -17,11 +17,11 @@ requirejs.config({
 });
 
 require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], function(sandbox, $, _) {
-    sandbox.init();
-
     sandbox.actionUrl = $('#page_parameters').data('actionurl');
     sandbox.apiUrl = $('#page_parameters').data('apiurl');
     sandbox.currentUser = $('#page_parameters').data('currentuser');
+    
+    sandbox.init();
 
     var GetUSROperands = function() {
         return {};
@@ -42,6 +42,10 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
             return result;
         };
 
+        $('#navbar-fixed-bottom-edit-layout-button').on('click', function(element) {
+            sandbox.showModal('layouteditor', {});
+        });
+
         $('#navbar-fixed-bottom-download-panel-button').on('click', function(element) {
             sandbox.downloadPanelDisplay(sandbox.focusState.panel);
         });
@@ -57,7 +61,7 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
                 datasetId: sandbox.focusState.dataset
             });
         });
-        $('[data-name=navbar-fixed-bottom-zoom-button]').on('click', function(){
+        $('[data-name=navbar-fixed-bottom-zoom-button]').on('click', function() {
             var zoom = calculateZoom($(this).data('direction'),
                     sandbox.focusState.minStartTime,
                     sandbox.focusState.maxEndTime,
@@ -84,9 +88,9 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
             console.log('zoomInTime is string...');
         }
 
-        if(zoomDirection === 'outfull'){
+        if (zoomDirection === 'outfull') {
             return {};
-        }else if(zoomDirection === 'left'){
+        } else if (zoomDirection === 'left') {
             if (typeof currentStartTime === 'undefined' || typeof currentEndTime === 'undefined') {
                 // Zoom left and don't know where from
                 return {};
@@ -96,7 +100,7 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
                 startTime: currentStartTime - zoomInTime,
                 endTime: currentEndTime - zoomInTime
             };
-        }else if(zoomDirection === 'right'){
+        } else if (zoomDirection === 'right') {
             if (typeof currentStartTime === 'undefined' || typeof currentEndTime === 'undefined') {
                 // Zoom right and don't know where from
                 return {};
@@ -106,7 +110,7 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
                 startTime: currentStartTime + zoomInTime,
                 endTime: currentEndTime + zoomInTime
             };
-        }else if (zoomDirection === 'in') {
+        } else if (zoomDirection === 'in') {
             if (typeof currentStartTime === 'undefined' || typeof currentEndTime === 'undefined') {
                 // Zoom in and don't know where from
                 return {};

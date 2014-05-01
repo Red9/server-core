@@ -7,8 +7,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
         var graphData = [];
         var marker;
 
-        tile.addListener('totalState.resource-focused', resourceFocused);
-        tile.addListener('totalState.video-time', videoTime);
+        tile.addListener('totalState-resource-focused', resourceFocused);
+        tile.addListener('totalState-video-time', videoTime);
 
         if (typeof configuration === 'undefined') {
             configuration = {};
@@ -133,7 +133,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
         }
 
         function resourceFocused(event, parameter) {
+            console.log('Resource focused...');
             if (typeof parameter.panel !== 'undefined') {
+                console.log('Got panel. ' + parameter.panel.panel.time.length);
                 while (graphData.length > 0) {
                     graphData.pop();
                 }

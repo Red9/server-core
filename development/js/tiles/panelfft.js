@@ -94,7 +94,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw', 'sandbox'], fun
 
 
 
-        $(sandbox).on('totalState.resource-focused', resourceFocused);
+        $(sandbox).on('totalState-resource-focused', resourceFocused);
         doneCallback();
     }
 

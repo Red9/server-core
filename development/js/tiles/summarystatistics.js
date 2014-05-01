@@ -1,7 +1,7 @@
 define(['vendor/jquery'], function($) {
 
     function summaryStatistics(sandbox, tile, configuration, doneCallback) {
-        tile.addListener('totalState.resource-focused', resourceFocused);
+        tile.addListener('totalState-resource-focused', resourceFocused);
         tile.setTitle('summary statistics');
         setStatistics('', '', {});
         doneCallback();

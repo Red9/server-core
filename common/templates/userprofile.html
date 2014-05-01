@@ -1,0 +1,20 @@
+<h1><small>Your Profile</small></h1>
+<h1>{{user.displayName}}</h1>
+<h4>{{user.givenName}} {{user.familyName}}</h4>
+<h4>{{user.email}}</h4>
+<h4>{{user.id}}</h4>
+
+<h3>Preferred Layouts <small>You should set them the same!</small></h3>
+
+{{#each layouts}}
+<div class="form-group">
+    <label for="{{url}}">{{url}}</label>
+    <select class="form-control" name="{{url}}" data-name="layout">
+        {{#each options}}
+        <option {{#if selected}}selected="selected"{{/if}} 
+            value="{{id}}" title="{{description}}">{{title}}</option>
+        {{/each}}
+    </select>
+</div>
+
+{{/each}}
