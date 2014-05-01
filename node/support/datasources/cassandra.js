@@ -341,6 +341,10 @@ var user_schema = [
     {
         key: 'last',
         hint: 'varchar'
+    },
+    {
+        key: 'preferred_layout',
+        hint: 'varchar'
     }
 ];
 
@@ -421,6 +425,29 @@ var video_schema = [
     }
 ];
 
+var layout_schema = [
+    {
+        key: 'id',
+        hint: 'uuid'
+    },
+    {
+        key: 'title',
+        hint: 'varchar'
+    },
+    {
+        key: 'description',
+        hint: 'varchar'
+    },
+    {
+        key: 'layout',
+        hint: 'varchar'
+    },
+    {
+        key: 'for',
+        hint: 'varchar'
+    }
+];
+
 var raw_data_meta_schema = [
     {
         key: 'id',
@@ -480,6 +507,9 @@ var resources = {
     video: {
         table: 'video',
         schema: video_schema
+    },
+    layout: {
+        table: 'layout',
+        schema: layout_schema
     }
-
 };

@@ -9,7 +9,8 @@ var resources = {
     user: requireFromRoot('support/resources/user'),
     panel: requireFromRoot('support/resources/panel'),
     comment: requireFromRoot('support/resources/comment'),
-    video: requireFromRoot('support/resources/video')
+    video: requireFromRoot('support/resources/video'),
+    layout: requireFromRoot('support/resources/layout')
 };
 
 underscore.each(resources, function(value, key) {

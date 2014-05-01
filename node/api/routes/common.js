@@ -25,10 +25,9 @@ exports.addRoutesToApp = function(app, route) {
             exports[action](route, req, res, next);
         };
     });
-
     app.post(route.root, pathFunctions.create);
     app.get(route.root, pathFunctions.search);
-    app.get(route.root + 'describe', pathFunctions.describe);
+    app.get(route.root + 'describe', pathFunctions.describe); // Describe schema
     app.get(route.root + ':id', pathFunctions.get);
     app.put(route.root + ':id', pathFunctions.update);
     app.delete(route.root + ':id', pathFunctions.delete);
@@ -112,6 +111,12 @@ exports.create = function(route, req, res, next) {
             var value = req.param(key);
             if (description.type === 'timestamp') {
                 value = parseInt(value);
+            } else if (description.type === 'object' && typeof value !== 'object') {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    // Leave value as is.
+                }
             }
             newResource[key] = value;
         }
@@ -124,7 +129,7 @@ exports.create = function(route, req, res, next) {
         lastKey = key;
         return typeof value === 'undefined';
     })) {
-        res.status(403).json({message: 'Must include required parameters to create resource. Missing key ' + lastKey });
+        res.status(403).json({message: 'Must include required parameters to create resource. Missing key ' + lastKey});
     } else {
         resources[route.resource].create(newResource, function(err, createdResource) {
             if (typeof createdResource === 'undefined') {
@@ -145,7 +150,9 @@ exports.update = function(route, req, res, next) {
 
     // Check for the various keys in the upload. Save whataver ones we find.
     underscore.each(resources[route.resource].resource.schema, function(keyDescription, key) {
+        console.log('Testing key ' + key);
         if (typeof req.param(key) !== 'undefined') {
+            console.log('Key ' + key + ' is not undefined. Key description type: ' + keyDescription.type);
             var value = req.param(key);
 
             // Lazy validation: if we know what type it is, we check to make
@@ -160,11 +167,13 @@ exports.update = function(route, req, res, next) {
                 } else {
                     value = parseInt(value);
                 }
-            } else if (keyDescription.type === 'object') {
+            } else if (keyDescription.type === 'object' && typeof value !== 'object') {
+                // Add the typeof test so that we only try to parse values that
+                // are not already objects.
                 try {
                     value = JSON.parse(value);
                 } catch (e) {
-                    return; // Can't parse the summary statistics.
+                    return; // Can't parse the object...
                 }
             }
             updatedResource[key] = value;

@@ -291,6 +291,9 @@ function emptyPre(resource, callback) {
 function emptyPost() {
 }
 
+function emptyFlush() {
+}
+
 
 /** Checks whether a particular value is a valid value for the given key in the given resource.
  * 
@@ -434,7 +437,8 @@ exports.createResource = function(resource, newResource, callback) {
             || typeof resource.create.pre === 'undefined' ? emptyPre : resource.create.pre;
     var postFunction = typeof resource.create === 'undefined'
             || typeof resource.create.post === 'undefined' ? emptyPost : resource.create.post;
-
+    var flushFunction = typeof resource.create === 'undefined'
+            || typeof resource.create.flush === 'undefined' ? emptyFlush : resource.create.flush;
 
     preFunction(newResource, function(continueprocessing) {
         if (continueprocessing === false) {
@@ -445,7 +449,7 @@ exports.createResource = function(resource, newResource, callback) {
                 return;
             }
 
-            resource.create.flush(newResource);
+            flushFunction(newResource);
             var cassandraResource = resource.mapToCassandra(newResource);
 
             var table = resource.cassandraTable;

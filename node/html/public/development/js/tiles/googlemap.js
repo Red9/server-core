@@ -253,9 +253,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
         }
 
 
-        tile.addListener('totalState.resource-focused', resourceFocused);
-        tile.addListener('totalState.video-time', videoTime);
-        tile.addListener('totalState.hover-time', hoverTime);
+        tile.addListener('totalState-resource-focused', resourceFocused);
+        tile.addListener('totalState-video-time', videoTime);
+        tile.addListener('totalState-hover-time', hoverTime);
         tile.setTitle('map');
 
         sandbox.requestTemplate('googlemap', function(template) {

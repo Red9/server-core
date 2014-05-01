@@ -215,7 +215,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
 
 
         tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' spectral distribution');
-        tile.addListener('totalState.resource-focused', resourceFocused);
+        tile.addListener('totalState-resource-focused', resourceFocused);
         doneCallback();
     }
 

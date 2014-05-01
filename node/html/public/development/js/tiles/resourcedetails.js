@@ -1,7 +1,7 @@
 define(['vendor/jquery', 'utilities/commentList'], function($) {
     function resourceDetails(sandbox, tile, configuration, doneCallback) {
         tile.setTitle('details');
-        tile.addListener('totalState.resource-focused', resourceFocused);
+        tile.addListener('totalState-resource-focused', resourceFocused);
         setResource('dataset', {});
 
         doneCallback();

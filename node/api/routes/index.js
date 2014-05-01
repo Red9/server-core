@@ -2,7 +2,22 @@ function defaultHandler(req, res, next) {
     res.json({message: 'API server'});
 }
 
+
+
+function optionsHandler(req, res, next) {
+    // The headers are already written for all CORS. We just need to send off
+    // the options request.
+    res.end();
+}
+
 module.exports = function(app, passport) {
+
+    app.options('/*', optionsHandler);
+
+
+
+
+
     // --------------------------------------------
     // Authentication Barrier
     // --------------------------------------------
@@ -24,6 +39,7 @@ module.exports = function(app, passport) {
     common.addRoutesToApp(app, resourceRoutes.panel);
     common.addRoutesToApp(app, resourceRoutes.comment);
     common.addRoutesToApp(app, resourceRoutes.video);
+    common.addRoutesToApp(app, resourceRoutes.layout);
 
     // A hack for now:
     app.get('/eventtype/', function(req, res, next) {

@@ -1,8 +1,4 @@
 var underscore = require('underscore')._;
-
-var log = requireFromRoot('support/logger').log;
-var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
-
 var common = requireFromRoot('support/resourcescommon');
 
 var userResource = {
@@ -31,6 +27,11 @@ var userResource = {
         type: 'string',
         includeToCreate: true,
         editable: true
+    },
+    preferredLayout: {
+        type: 'object',
+        includeToCreate: false,
+        editable: true
     }
 };
 
@@ -42,6 +43,7 @@ function mapToCassandra(resource) {
     cassandra.display_name = resource.displayName;
     cassandra.first = resource.givenName;
     cassandra.last = resource.familyName;
+    cassandra.preferred_layout = JSON.stringify(resource.preferredLayout);
 
     underscore.each(cassandra, function(value, key) {
         if (typeof value === 'undefined') {
@@ -61,15 +63,29 @@ function mapToResource(cassandra) {
     resource.givenName = cassandra.first;
     resource.familyName = cassandra.last;
 
+    try {
+        resource.preferredLayout = cassandra.preferred_layout === null ? {} :
+                JSON.parse(cassandra.preferred_layout);
+    } catch (e) {
+        resource.preferredLayout = {};
+    }
+
     return resource;
 }
 
+var createFlush = function(newUser) {
+    newUser.id = common.generateUUID();
+};
+
 exports.resource = {
-    name:'user',
+    name: 'user',
     mapToCassandra: mapToCassandra,
     mapToResource: mapToResource,
     cassandraTable: 'user',
-    schema: userResource
+    schema: userResource,
+    create: {
+        flush: createFlush
+    }
 };
 
 

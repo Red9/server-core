@@ -62,7 +62,7 @@ define(['vendor/jquery', 'vendor/underscore', 'sandbox', 'vendor/bootstrap-markd
 
 
                         sandbox.create('comment', {
-                            author: sandbox.currentUser,
+                            author: sandbox.currentUser.id,
                             resourceType: self.resourceType,
                             resource: self.resourceId,
                             body: area.getContent(),

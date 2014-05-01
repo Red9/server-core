@@ -246,8 +246,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         }
 
         reset();
-        tile.addListener('totalState.resource-focused', resourceFocused);
-        tile.addListener('totalState.hover-time', hoverTime);
+        tile.addListener('totalState-resource-focused', resourceFocused);
+        tile.addListener('totalState-hover-time', hoverTime);
         setVideos(videoList); // Initial set to empty list.
         tile.setTitle('videos');
         doneCallback();

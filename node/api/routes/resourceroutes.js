@@ -40,6 +40,19 @@ var video = {
     ]
 };
 
+var layout = {
+    resource: 'layout',
+    root: '/layout/',
+    allowed:[
+        'create',
+        'search',
+        'describe',
+        'get',
+        'update',
+        'delete'
+    ]
+};
+
 var dataset = {
     simplifyOutput: [
         'source'
@@ -98,3 +111,4 @@ module.exports.user = user;
 module.exports.panel = panel;
 module.exports.comment = comment;
 module.exports.video = video;
+module.exports.layout = layout;

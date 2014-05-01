@@ -3,7 +3,69 @@
  */
 
 define(['vendor/jquery', 'vendor/underscore'], function($, _) {
-    function tileFrame(sandbox, tile, tileTemplate, createdCallback) {
+    function tileFrame(sandbox, id, homeDiv, frameType,
+            tileClass, tileConfiguration, createdCallback) {
+
+        var place, titlePlace, tilePlace, barPlace;
+
+        console.log('typeof sandbox: ' + typeof sandbox);
+        sandbox.requestTemplate('tileframe.' + frameType, function(template) {
+            place = $(template({}));
+            homeDiv.append(place);
+            
+            console.log('homeDiv.length: ' + homeDiv.length);
+
+            titlePlace = place.find('[data-name=rowtitle]');
+            barPlace = place.find('[data-name=buttonbar]');
+            tilePlace = place.find('[data-name=tileplace]');
+
+            place.find('[data-name=togglevisible]').on('click', function() {
+                // Not always there (modals...), but if it is we'll respond.
+                console.log('Clicked!');
+                $(this).find('span').toggleClass('glyphicon-resize-small glyphicon-resize-full');
+                tilePlace.toggle('fast');
+            });
+
+            if (frameType === 'modal') {
+                place.filter('.modal').on('hidden.bs.modal', function(e) {
+                    destructor(true); 
+                }).modal('show');
+
+
+            }
+
+            var tileDefinition = {
+                setTitle: setTitle,
+                addToBar: addToBar,
+                destructor: destructor,
+                addListener: addListener,
+                place: tilePlace
+            };
+
+            var tileResult;
+
+            if (typeof tileConfiguration === 'undefined') {
+                tileConfiguration = {};
+            }
+
+            require(['tiles/' + tileClass], function(tileConstructor) {
+                // There may be a bug here: what if the class does it's
+                // configuration and calls doneCallback() before
+                // it can be pushed into modules?
+                // Update: before it can be assigned?
+
+                tileResult = tileConstructor(sandbox, tileDefinition, tileConfiguration, function() {
+                    createdCallback();
+                });
+            });
+
+
+        });
+
+
+        return {
+            destructor: destructor
+        };
 
 
         function addToBar(name, custom, iconName, listener) {
@@ -13,62 +75,25 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
             barPlace.find('[data-name=' + name + ']').on('click', listener);
         }
 
-
-        function destructor() {
-
-        }
-
         function setTitle(newTitle) {
             titlePlace.html(newTitle);
         }
 
         function addListener(event, listener) {
-            $(sandbox).on(event, listener);
+            $(sandbox).on(event + '.' + id, listener);
         }
 
-
-        var place = $(tileTemplate({}));
-        sandbox.div.append(place);
-
-        var titlePlace = place.find('[data-name=rowtitle]');
-        var barPlace = place.find('[data-name=buttonbar]');
-        var tilePlace = place.find('[data-name=tileplace]');
-
-        place.find('[data-name=togglevisible]').on('click', function() {
-            console.log('Clicked!');
-            $(this).find('span').toggleClass('glyphicon-resize-small glyphicon-resize-full');
-            tilePlace.toggle('fast');
-        });
-
-
-        var tileDefinition = {
-            setTitle: setTitle,
-            addToBar: addToBar,
-            destructor: destructor,
-            addListener: addListener,
-            place: tilePlace
-        };
-
-        var tileResult;
-
-        if (typeof tile.configuration === 'undefined') {
-            tile.configuration = {};
+        function destructor(alreadyHidden) {
+            console.log('Calling destructor...');
+            $(sandbox).off('.' + id);
+            if (frameType === 'modal' && alreadyHidden !== true) {
+                place.filter('.modal').on('hidden.bs.modal', function() {
+                    place.remove();
+                }).modal('hide'); // If modal, will hide it.
+            } else {
+                place.remove();
+            }
         }
-
-        require(['tiles/' + tile.class], function(tileClass) {
-            // There may be a bug here: what if the class does it's
-            // configuration and calls doneCallback() before
-            // it can be pushed into modules?
-            // Update: before it can be assigned?
-
-            tileResult = tileClass(sandbox, tileDefinition, tile.configuration, function() {
-                createdCallback();
-            });
-        });
-
-        return {
-            destructor: destructor
-        };
     }
 
     return tileFrame;

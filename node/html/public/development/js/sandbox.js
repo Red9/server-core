@@ -31,166 +31,58 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             "#B0E0E6",
             "#9ACD32"
         ],
-        tiles: [
-            {
-                class: 'resourcedetails'
-            },
-            {
-                class: 'eventlist'
-            },
-            {
-                class: 'embeddedvideo'
-            },
-            {
-                class: 'panelspectralentropy',
-                configuration: {
-                    axes: [
-                        'acceleration:x',
-                        'acceleration:y',
-                        'acceleration:z'
-                    ]
-                }
-            },
-            {
-                class: 'panelgraph',
-                configuration: {
-                    axes: [
-                        'acceleration:x',
-                        'acceleration:y',
-                        'acceleration:z'
-                    ]
-                }
-            },
-            {
-                class: 'paneldistribution',
-                configuration: {
-                    axes: [
-                        'acceleration:x',
-                        'acceleration:y',
-                        'acceleration:z'
-                    ]
-                }
-            },
-            {
-                class: 'panelspectralentropy',
-                configuration: {
-                    axes: [
-                        'rotationrate:x',
-                        'rotationrate:y',
-                        'rotationrate:z'
-                    ]
-                }
-            },
-            {
-                class: 'panelgraph',
-                configuration: {
-                    axes: [
-                        'rotationrate:x',
-                        'rotationrate:y',
-                        'rotationrate:z'
-                    ]
-                }
-            },
-            {
-                class: 'paneldistribution',
-                configuration: {
-                    axes: [
-                        'rotationrate:x',
-                        'rotationrate:y',
-                        'rotationrate:z'
-                    ]
-                }
-            },
-            {
-                class: 'panelspectralentropy',
-                configuration: {
-                    axes: [
-                        'magneticfield:x',
-                        'magneticfield:y',
-                        'magneticfield:z'
-                    ]
-                }
-            },
-            {
-                class: 'panelgraph',
-                configuration: {
-                    axes: [
-                        'magneticfield:x',
-                        'magneticfield:y',
-                        'magneticfield:z'
-                    ]
-                }
-            },
-            {
-                class: 'paneldistribution',
-                configuration: {
-                    axes: [
-                        'magneticfield:x',
-                        'magneticfield:y',
-                        'magneticfield:z'
-                    ]
-                }
-            },
-            {
-                class: 'panelgraph',
-                configuration: {
-                    axes: [
-                        'gps:speed'
-                    ]
-                }
-            },
-            {
-                class: 'panelspectralentropy',
-                configuration: {
-                    axes: [
-                        'gps:speed'
-                    ]
-                }
-            },
-            {
-                class: 'paneldistribution',
-                configuration: {
-                    axes: [
-                        'gps:speed'
-                    ]
-                }
-            },
-            {
-                class: 'panelgraph',
-                configuration: {
-                    axes: [
-                        'pressure:pressure'
-                    ]
-                }
-            },
-            {
-                class: 'googlemap'
-            },
-            {
-                class: 'summarystatistics'
-            }
-        ],
+        //tileLayout: [], // For testing...
         templates: {},
         modules: [],
         tileTemplate: '',
+        tileId: 0,
         init: function() {
             sandbox.setPageTitle('Red9 Sensor');
             History.Adapter.bind(window, 'statechange', sandbox.onHistoryChange); // Note: We are using statechange instead of popstate
 
             sandbox.div = $('#sandboxContentDiv');
-            sandbox.focusState = undefined;
 
-            sandbox.requestTemplate('sandboxtiletemplate', function(template) {
-                sandbox.tileTemplate = template;
-                async.eachSeries(sandbox.tiles, sandbox.createTile,
-                        function(err) {
-                            // First time, so force a history "change"
-                            sandbox.onHistoryChange();
-                        });
+            sandbox.get('user', {id: sandbox.currentUser}, function(users) {
+                if(users.length !== 1){
+                    alert('Error: incorrect user ID "' + sandbox.currentUser + '". Page failure.');
+                    return;
+                }
+                
+                sandbox.currentUser = users[0];
+                
+                var normalizedPath = sandbox.getCurrentHistory().normalizedPath;
+                
+                var preferredLayoutId = sandbox.currentUser.preferredLayout[normalizedPath];
+                
+                if(typeof preferredLayoutId === 'undefined'){
+                    alert('Warning: please set your preferred layout. See your user profile page.');
+                    return;
+                }
+                
+                
+                sandbox.get('layout', {id: preferredLayoutId},
+                function(layouts) {
+                    if (layouts.length === 0) {
+                        alert('Error: no layouts! Page failure.');
+                        return;
+                    }
+                    var finalLayout = layouts[0].layout;
+                    //console.log('layouts[0].layout: ' + JSON.stringify(layouts[0].layout));
+                    //var finalLayout = sandbox.tileLayout;
+                    async.eachSeries(finalLayout, sandbox.createFlatTile,
+                            function(err) {
+                                // First time, so force a history "change"
+                                console.log('Forcing history change...');
+                                sandbox.onHistoryChange();
+                            });
+                });
             });
+
+
         },
-        createTile: function(tile, doneCallback) {
-            tileFrame(sandbox, tile, sandbox.tileTemplate, doneCallback);
+        createFlatTile: function(tile, doneCallback) {
+            tileFrame(sandbox, sandbox.tileId++, sandbox.div, 'flat',
+                    tile.class, tile.configuration, doneCallback);
         },
         createHumanAxesString: function(axesList) {
             var axes = {};
@@ -411,19 +303,19 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             $('#footer-page-title').text(newTitle);
         },
         initiateVideoTimeEvent: function(videoTime) {
-            var eventName = 'totalState.video-time';
+            var eventName = 'totalState-video-time';
             sandbox.initiateEvent(eventName, {videoTime: videoTime});
         },
         initiateHoverTimeEvent: function(hovertime) {
-            var eventName = 'totalState.hover-time';
+            var eventName = 'totalState-hover-time';
             sandbox.initiateEvent(eventName, {hovertime: hovertime});
         },
         initiateResourceDeletedEvent: function(resource, id) {
-            var eventName = 'totalState.resource-deleted';
+            var eventName = 'totalState-resource-deleted';
             sandbox.initiateEvent(eventName, {type: resource, id: id});
         },
         initiateResourceFocusedEvent: function(resource, id, startTime, endTime, callbackDone) {
-            var eventName = 'totalState.resource-focused';
+            var eventName = 'totalState-resource-focused';
             if (resource === 'event') {
                 sandbox.get(resource, {id: id}, function(event) {
                     sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
@@ -487,33 +379,48 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
                 History.pushState(stateObj, title, url);
             }
         },
+        getCurrentHistory: function(){
+            var State = History.getState(); // Note: We are using History.getState() instead of event.state
+            var uri = URI(State.url);
+            
+            var uuidMatch = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g;
+
+            return {
+                url: State.url,
+                path: uri.path(),
+                normalizedPath: uri.path().replace(uuidMatch, ':id'),
+                query: uri.query(true),
+                resource: uri.directory(),
+                id:uri.filename()
+            };
+        },
         onHistoryChange: function() {
             sandbox.historyChanging = true;
             var $progressBar = $('#pageloaderspinner');
             $progressBar.show('fast').toggleClass('active');
             // Bound to StateChange Event
-            var State = History.getState(); // Note: We are using History.getState() instead of event.state
-            var uri = URI(State.url);
-            var query = uri.query(true);
-            var resource = uri.directory().substring(1); // remove leading '/'
-            var id = uri.filename();
-            sandbox.initiateResourceFocusedEvent(resource, id, query['focus.starttime'], query['focus.endtime'],
+            
+            var state = sandbox.getCurrentHistory();
+
+            sandbox.initiateResourceFocusedEvent(state.resource.substring(1), // remove leading '/'
+             state.id, 
+             state.query['focus.starttime'], state.query['focus.endtime'],
                     function() {
                         $progressBar.hide('fast').toggleClass('active');
                         sandbox.historyChanging = false;
                     });
         },
+        currentModal: undefined,
         showModal: function(type, parameters) {
             // If modal is already shown, dismiss it first.
-            var $modalDiv = $('#modal_div');
-            $modalDiv.find('.modal').each(function() {
-                $(this).modal('hide');
-            });
-            $modalDiv.empty();
+            if (typeof sandbox.currentModal !== 'undefined') {
+                sandbox.currentModal.destructor();
+            }
 
-            require(['modals/' + type], function(newmodal) {
-                var mymodal = new newmodal($modalDiv, parameters);
+            sandbox.currentModal = tileFrame(sandbox, sandbox.tileId++,
+                    $('#modal_div'), 'modal', type, parameters, function() {
             });
+
         },
         truncateStringAtWord: function(string, maximumCharacters) {
             // Modified from http://stackoverflow.com/a/1199420
