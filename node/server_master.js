@@ -8,26 +8,29 @@ var logger = requireFromRoot('support/logger');
 
 if (cluster.isMaster) {
     // Logging setup
-    
+
     logger.init(config.serverType, 'master');
     var log = logger.log; // console.log replacement
 
     var workerPorts = {};
     log.info('Master ' + config.serverType + ' process started. Starting worker processes.');
     log.info("Release Server: " + config.release);
-    
-    
-    
+
+
+
     if (config.release === true && config.serverType === 'html') {
         // Only use nodetime on the deployed server
         require('nodetime').profile(config.nodetimeProfile);
-        
+
         // Only optimize static JS resources on the deployed server.
         var requirejs = require('requirejs');
         log.info('Beginning Static File Optimization.');
         requirejs.optimize({
             appDir: 'html/public/development/js',
-            dir: 'html/public/release/js'
+            dir: 'html/public/release/js',
+            uglify: {
+                except: ["$super"] // Don't modify the "$super" text, needed to make Rickshaw pass optimization.
+            }
         },
         function(err) {
             if (err) {
@@ -38,9 +41,9 @@ if (cluster.isMaster) {
             }
         });
     }
-    
-    
-    
+
+
+
 
     underscore.each(config.ports[config.serverType], function(port) {
         var worker = cluster.fork();
@@ -49,7 +52,7 @@ if (cluster.isMaster) {
     });
 
     cluster.on('exit', function(worker) {
-        log.error('Worker ' + config.serverType + ' '  + worker.id + ' died!');
+        log.error('Worker ' + config.serverType + ' ' + worker.id + ' died!');
 
         var workerPort = workerPorts[worker.id];
         delete workerPorts[worker.id];
