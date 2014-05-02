@@ -72,7 +72,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                         formValues[key] = value;
 
                     });
-                    
+
             formValues.layout = JSON.parse(formValues.layout);
             formValues.for = JSON.parse(formValues.for);
 
@@ -80,7 +80,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 // Editing layout
                 var id = formValues.id;
                 delete formValues.id;
-                
+
                 console.log('formValues: ' + JSON.stringify(formValues));
 
                 sandbox.update('layout', id, formValues, function(error) {
@@ -108,11 +108,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 tile.place.find('form').validate(schema(true));
             });
         }
-        
-        tile.addListener('totalState-resource-deleted', function(event, parameter){
-           if(parameter.type === 'layout'){
-              tile.place.find("select option[value='" + parameter.id + "']").remove();
-           } 
+
+        tile.addListener('totalState-resource-deleted', function(event, parameter) {
+            if (parameter.type === 'layout') {
+                tile.place.find("select option[value='" + parameter.id + "']").remove();
+            }
         });
 
         sandbox.requestTemplate('layouteditor', function(layoutTemplate) {
@@ -126,30 +126,32 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
 
                 tile.place.find('button').on('click', function() {
                     var $this = $(this);
-
-                    var id = tile.place.find('select option:selected').val();
-                    var layout = _.find(layouts, function(l) {
-                        return l.id === id;
-                    });
-
-                    layout.layout = JSON.stringify(layout.layout, null, '    ');
-                    layout.for = JSON.stringify(layout.for, null, '    ');
-                    if($this.data('name') === 'delete'){
-                        sandbox.delete('layout', id);
-                        return;
-                    }
-                    
-                    if ($this.data('name') === 'edit') {
-                        // leave as is.
-                        tile.setTitle('Edit layout "'
-                                + sandbox.truncateStringAtWord(layout.title, 40) + '"');
-                    } else if ($this.data('name') === 'copy') {
-                        tile.setTitle('Copy layout "'
-                                + sandbox.truncateStringAtWord(layout.title, 40) + '"');
-                        delete layout.id;
-                    } else if ($this.data('name') === 'create') {
+                    var layout;
+                    if ($this.data('name') === 'create') {
                         tile.setTitle('Create new layout');
                         layout = {};
+                    } else {
+                        var id = tile.place.find('select option:selected').val();
+                        layout = _.find(layouts, function(l) {
+                            return l.id === id;
+                        });
+
+                        layout.layout = JSON.stringify(layout.layout, null, '    ');
+                        layout.for = JSON.stringify(layout.for, null, '    ');
+                        if ($this.data('name') === 'delete') {
+                            sandbox.delete('layout', id);
+                            return;
+                        }
+
+                        if ($this.data('name') === 'edit') {
+                            // leave as is.
+                            tile.setTitle('Edit layout "'
+                                    + sandbox.truncateStringAtWord(layout.title, 40) + '"');
+                        } else if ($this.data('name') === 'copy') {
+                            tile.setTitle('Copy layout "'
+                                    + sandbox.truncateStringAtWord(layout.title, 40) + '"');
+                            delete layout.id;
+                        }
                     }
 
                     createForm(layout);
