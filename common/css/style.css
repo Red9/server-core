@@ -196,17 +196,3 @@ body {
 .rickshaw_red9_event {
     
 }
-
-.rickshaw_graph .marker {
-	pointer-events: none;
-	position: absolute;
-	top: 0;
-	z-index: 2;
-	background: rgba(200,0,0,0.5);
-	bottom: 0;
-	width: 3px;
-	transition: opacity 0.25s linear;
-	-moz-transition: opacity 0.25s linear;
-	-o-transition: opacity 0.25s linear;
-	-webkit-transition: opacity 0.25s linear;
-}

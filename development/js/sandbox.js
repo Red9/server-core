@@ -72,7 +72,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
                     async.eachSeries(finalLayout, sandbox.createFlatTile,
                             function(err) {
                                 // First time, so force a history "change"
-                                console.log('Forcing history change...');
                                 sandbox.onHistoryChange();
                             });
                 });
@@ -306,9 +305,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             var eventName = 'totalState-video-time';
             sandbox.initiateEvent(eventName, {videoTime: videoTime});
         },
-        initiateHoverTimeEvent: function(hovertime) {
+        initiateHoverTimeEvent: function(hoverTime) {
             var eventName = 'totalState-hover-time';
-            sandbox.initiateEvent(eventName, {hovertime: hovertime});
+            sandbox.initiateEvent(eventName, {hoverTime: hoverTime});
         },
         initiateResourceDeletedEvent: function(resource, id) {
             var eventName = 'totalState-resource-deleted';

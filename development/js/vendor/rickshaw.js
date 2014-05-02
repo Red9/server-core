@@ -2031,31 +2031,6 @@ Rickshaw.Graph.Behavior.Series.Toggle = function(args) {
 	this.updateBehaviour = function () { this._addBehavior() };
 
 };
-
-Rickshaw.namespace('Rickshaw.Graph.Marker');
-
-Rickshaw.Graph.Marker = Rickshaw.Class.create({
-    initialize: function(args){
-        this.graph = args.graph;
-        
-        var element = this.element = document.createElement('div');
-        element.className = 'marker';
-
-	this.graph.element.appendChild(element);
-        this.hide();
-    },
-    setTime: function(newTime){
-        this.element.style.left = this.graph.x(newTime) + 'px';
-    },
-    show: function(){
-        this.element.classList.remove('inactive');
-    },
-    hide: function(){
-        this.element.classList.add('inactive');
-    }
-});
-
-
 Rickshaw.namespace('Rickshaw.Graph.HoverDetail');
 
 Rickshaw.Graph.HoverDetail = Rickshaw.Class.create({
@@ -2199,12 +2174,12 @@ Rickshaw.Graph.HoverDetail = Rickshaw.Class.create({
 		}
 	},
 
-	show: function(x,y) {
+	show: function(x, y) {
 		this.visible = true;
 		this.element.classList.remove('inactive');
 
-		if (typeof this.onShow == 'function') {
-			this.onShow(x,y);
+		if (typeof this.onShow === 'function') {
+			this.onShow(x, y);
 		}
 	},
 
@@ -2434,6 +2409,28 @@ Rickshaw.Graph.Legend = Rickshaw.Class.create( {
 	}
 } );
 
+Rickshaw.namespace('Rickshaw.Graph.Marker');
+
+Rickshaw.Graph.Marker = Rickshaw.Class.create({
+    initialize: function(args){
+        this.graph = args.graph;
+        
+        var element = this.element = document.createElement('div');
+        element.className = 'marker';
+
+        this.graph.element.appendChild(element);
+        this.hide();
+    },
+    setX: function(newX){
+        this.element.style.left = this.graph.x(newX) + 'px';
+    },
+    show: function(){
+        this.element.classList.remove('inactive');
+    },
+    hide: function(){
+        this.element.classList.add('inactive');
+    }
+});
 Rickshaw.namespace('Rickshaw.Graph.RangeSelector');
 Rickshaw.Graph.RangeSelector = Rickshaw.Class.create({
     initialize: function (args) {
@@ -2448,12 +2445,6 @@ Rickshaw.Graph.RangeSelector = Rickshaw.Class.create({
             parent = this.parent = graph.element.getElementsByTagName('svg')[0],
             tDomain = this.tDomain = [];
 
-        /*for (var i=0; i < graph.stackedData.length; i+=1) {
-            for (var j=0; j < graph.stackedData[i].length; j+=1) {
-                tDomain.push(graph.stackedData[i][j].x);
-            }
-        }*/
-
         this.build(start, end);
     },
     build: function (start, end) {
@@ -2462,8 +2453,8 @@ Rickshaw.Graph.RangeSelector = Rickshaw.Class.create({
             position = this.position,
             selectionBox = this.selectionBox ,
             selectionControl = this.selectionControl,
-            parent = this.parent;
-            //tDomain = this.tDomain;
+            parent = this.parent,
+            tDomain = this.tDomain;
 
         selectionBox.setAttribute('class', 'rickshaw_range_selector');
         graph.element.appendChild(selectionBox);
@@ -2554,13 +2545,6 @@ Rickshaw.Graph.RangeSelector = Rickshaw.Class.create({
             self.clearSelection();
             finishDrawing(e);
         }, false);
-
-        //graph.window.xMin = position.xMin;
-        //graph.window.xMax = position.xMax;
-
-        /*graph.onUpdate(function () {
-            this.update(position.xMin, position.xMax);
-        }.bind(this));*/
     },
     clearSelection: function () {
         var selectionBox = this.selectionBox,
@@ -2607,37 +2591,23 @@ Rickshaw.Graph.RangeSelector = Rickshaw.Class.create({
         if (starting === ending) {
             return;
         } else {
-            //graph.window.xMin = starting;
-            //graph.window.xMax = ending;
-
-            if (graph.window.xMin === null) {
-                position.xMin = graph.dataDomain()[0];
-            }
-
-            if (graph.window.xMax === null) {
-                position.xMax = graph.dataDomain()[1];
-            }
-
             position.xMin = graph.window.xMin;
             position.xMax = graph.window.xMax;
         }
         return position;
     },
     zoomTo: function (start, end, callOnZoom) {
-        //var graph = this.graph,
-        var position = this.position;
-        var e = {
-            type: 'zoomToCall'
-        };
+        var position = this.position,
+            e = {
+                type: 'zoomToCall'
+            };
         position.xMin = start;
         position.xMax = end;
         e.position = position;
         if(callOnZoom !== false){
             this.onZoom(e);
         }
-        //graph.update(start, end);
         this.clearSelection();
-        //graph.update(start, end);
     }
 });
 

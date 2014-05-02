@@ -241,7 +241,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
         function hoverTime(event, parameters) {
             if ($videoSyncCheckbox.prop('checked')) {
-                seekTo(parameters.hovertime);
+                seekTo(parameters.hoverTime);
             }
         }
 
