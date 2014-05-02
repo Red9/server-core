@@ -101,7 +101,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
             var h = (height / yCount) + 1;
 
             var timeIndex = 0;
-            var previousTime = data[0][0];
+            var previousTime = data[0][0]; // TODO: One of the [0]'s is erroring for Mica, on a full dataset.
 
             var heatMap = svg.selectAll(".heatmap")
                     .data(data)
