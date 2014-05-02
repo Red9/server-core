@@ -40,7 +40,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
             }
         }
         function hoverTime(event, parameter) {
-            showMarker(hoverMarker, parameter.hovertime);
+            showMarker(hoverMarker, parameter.hoverTime);
         }
 
         function videoTime(event, parameter) {

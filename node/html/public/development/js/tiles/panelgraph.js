@@ -5,10 +5,12 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
         var graph;
         var rangeSelector;
         var graphData = [];
-        var marker;
+        var videoMarker;
+        var hoverMarker;
 
         tile.addListener('totalState-resource-focused', resourceFocused);
         tile.addListener('totalState-video-time', videoTime);
+        tile.addListener('totalState-hover-time', hoverTime);
 
         if (typeof configuration === 'undefined') {
             configuration = {};
@@ -22,6 +24,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
             ];
         }
 
+        if (typeof configuration.showMarkers === 'undefined') {
+            configuration.showMarkers = true;
+        }
+
         updateTitle();
 
         sandbox.requestTemplate('panelgraph', function(template) {
@@ -29,8 +35,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
             tile.addToBar('settings', '', 'glyphicon-cog', toggleSettings);
             doneCallback();
         });
-        
-        function updateTitle(){
+
+        function updateTitle() {
             tile.setTitle(sandbox.createHumanAxesString(configuration.axes));
         }
 
@@ -57,16 +63,29 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                 return memo;
             }, [[], [], [], []]);
 
-            console.log('displayabelAxes: ' + JSON.stringify(displayableAxes));
-
             sandbox.requestTemplate('panelgraph.settings', function(settingsTemplate) {
-                var html = $(settingsTemplate({axes: displayableAxes}));
+                var settingsOptions = {
+                    axes: displayableAxes
+                };
+                if(configuration.showMarkers === true){
+                    settingsOptions.showMarkersChecked = true;
+                }
+                var html = $(settingsTemplate(settingsOptions));
                 html.find('[data-name=axis-checkbox]').on('click', function() {
                     var axis = $(this).attr('name');
                     console.log('axis: ' + axis);
                     toggleAxis(axis);
 
                 });
+                html.find('[data-name=showmarkerscheckbox]').on('click', function() {
+
+                    configuration.showMarkers = this.checked;
+                    if (this.checked === false) {
+                        videoMarker.hide();
+                        hoverMarker.hide();
+                    }
+                });
+
                 tile.place.find('[data-name=settings]').html(html);
             });
         }
@@ -124,8 +143,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
 
             sandbox.get('event', {datasetId: sandbox.focusState.dataset},
             function(events) {
-                var sortedEvents = _.sortBy(events, function(event) {
+                var sortedEvents = _.filter(_.sortBy(events, function(event) {
                     return event.startTime;
+                }), function(event) {
+                    return event.type.toLowerCase() !== 'default'
+                            && event.type.toLowerCase() !== 'sync';
                 });
 
                 function eventClickHandler(event) {
@@ -185,14 +207,17 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
 
                         .style('fill', function(event, index) {
 
-                            var fills = [
-                                '#fc8d59',
-                                '#91bfdb',
-                                '#91bfdb',
-                                '#fc8d59'
+                            var strokes = [
+                                '#377eb8',
+                                '#4daf4a',
+                                '#4daf4a',
+                                '#377eb8'
                             ];
-                            return fills[index % 4];
+                            return strokes[index % 4];
                         })
+                        .style('fill-opacity', '0.5')
+                        //.style('stroke-opacity', '0.5')
+                        //.style('stroke-width', '2')
                         .attr('height', height / 2);
 
                 svgEvents.append('svg:text')
@@ -203,7 +228,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                             return index % 2 ? (height / 2) - 2 : height - 2;
                         })
                         .attr('font-size', '10px')
-                        .attr('fill', '#ffffbf')
+                        .attr('fill', '#000000')
                         .text(function(event) {
                             return event.type;
                         });
@@ -282,9 +307,15 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     }
                 });
 
-                marker = new Rickshaw.Graph.Marker({
+                videoMarker = new Rickshaw.Graph.Marker({
                     graph: graph
                 });
+                videoMarker.hide();
+
+                hoverMarker = new Rickshaw.Graph.Marker({
+                    graph: graph
+                });
+                hoverMarker.hide();
 
                 rangeSelector = new Rickshaw.Graph.RangeSelector({
                     graph: graph,
@@ -313,7 +344,21 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
         }
 
         function videoTime(event, parameter) {
-            marker.setTime(parameter.videoTime);
+            if (configuration.showMarkers === true) {
+                videoMarker.show();
+                videoMarker.setX(parameter.videoTime);
+            } else {
+                videoMarker.hide();
+            }
+        }
+
+        function hoverTime(event, parameter) {
+            if (configuration.showMarkers === true) {
+                hoverMarker.show();
+                hoverMarker.setX(parameter.hoverTime);
+            } else {
+                hoverMarker.hide();
+            }
         }
 
     }

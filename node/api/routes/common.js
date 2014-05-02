@@ -50,7 +50,6 @@ function simplifyOutput(route, resourceArray) {
 }
 
 exports.describe = function(route, req, res, next) {
-    console.log('Describing route: ');
     res.json(resources[route.resource].resource.schema);
 };
 
@@ -122,8 +121,6 @@ exports.create = function(route, req, res, next) {
         }
     });
 
-    console.log('newResource: ' + JSON.stringify(newResource));
-
     var lastKey = '';
     if (underscore.some(newResource, function(value, key) {
         lastKey = key;
@@ -150,9 +147,7 @@ exports.update = function(route, req, res, next) {
 
     // Check for the various keys in the upload. Save whataver ones we find.
     underscore.each(resources[route.resource].resource.schema, function(keyDescription, key) {
-        console.log('Testing key ' + key);
         if (typeof req.param(key) !== 'undefined') {
-            console.log('Key ' + key + ' is not undefined. Key description type: ' + keyDescription.type);
             var value = req.param(key);
 
             // Lazy validation: if we know what type it is, we check to make

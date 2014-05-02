@@ -37,7 +37,6 @@ exports.getBody = function(req, res, next) {
         res.writeHead(200, {'Content-Type': 'application/json'});
         panelResource.getProcessedPanel(parameters, function(err, result) {
             if (err) {
-                console.log('Error: ' + err);
                 res.write('{\n"message":"' + err.replace(/"/g, '\\"') + '"\n}');
                 res.end();
             } else {
@@ -174,7 +173,7 @@ var processLines = function(parameters, callback) {
 
     panelResource.addRows(id, rows, function(err) {
         if (err) {
-            console.log('Insert rows error: ' + err);
+            log.error('Insert rows error: ' + err);
         }
         callback();
     });
