@@ -35,8 +35,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
 
 
         function resourceFocused(event, parameter) {
-            if (typeof parameter.panel !== 'undefined') {
-                updateWithNewPanel(parameter.panel);
+            if (typeof sandbox.focusState.panel !== 'undefined') {
+                updateWithNewPanel(sandbox.focusState.panel);
             }
         }
         function hoverTime(event, parameter) {
@@ -48,7 +48,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
         }
 
         function showMarker(marker, time) {
-            var panel = sandbox.focusState.panelBody.panel;
+            var panel = sandbox.focusState.panel.panel;
             for (var i = 1; i < panel.time.length; i++) {
                 if (panel.time[i - 1] <= time
                         && time <= panel.time[i]) {

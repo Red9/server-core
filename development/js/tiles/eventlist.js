@@ -54,12 +54,12 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
             }
         }
 
-        function resourceFocused(event, parameters) {
+        function resourceFocused(event, parameter) {
             var newDatasetId = '';
-            if (parameters.type === 'dataset') {
-                newDatasetId = parameters.resource.id;
-            } else if (parameters.type === 'event') {
-                newDatasetId = parameters.resource.datasetId;
+            if (parameter.type === 'dataset') {
+                newDatasetId = sandbox.focusState.dataset.id;
+            } else if (parameter.type === 'event') {
+                newDatasetId = sandbox.focusState.event.datasetId;
             }
 
             if (typeof datasetId === 'undefined'

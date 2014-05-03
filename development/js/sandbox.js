@@ -16,16 +16,15 @@ define(['vendor/jquery', 'vendor/handlebars',
         actionUrl: '',
         tileId: 0,
         focusState: {
-            dataset: '', // ID
-            panel: '',
-            event: '',
+            dataset: undefined, // ID
+            event: undefined,
             minStartTime: -1,
             maxEndTime: -1,
             startTime: -1,
             endTime: -1,
-            panelBody: {}
+            panel: undefined
         },
-        init: function() {
+        buildSandbox: function() {
             sandboxHistory(sandbox);
             sandboxUtilities(sandbox);
             sandboxConvenience(sandbox);
@@ -36,6 +35,13 @@ define(['vendor/jquery', 'vendor/handlebars',
             sandbox.apiUrl = $('#page_parameters').data('apiurl');
             sandbox.currentUser = $('#page_parameters').data('currentuser');
 
+            sandbox.built = true;
+
+        },
+        init: function() {
+            if (sandbox.built !== 'true') {
+                sandbox.buildSandbox();
+            }
 
             sandbox.setPageTitle('Red9 Sensor');
 

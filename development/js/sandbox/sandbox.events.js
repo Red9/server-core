@@ -1,5 +1,5 @@
-define(['vendor/jquery'
-], function($) {
+define(['vendor/jquery', 'vendor/underscore'
+], function($,_) {
     function sandboxEvents(sandbox) {
         function initiateEvent(eventName, parameters) {
             $(sandbox).trigger(eventName, parameters);
@@ -16,37 +16,44 @@ define(['vendor/jquery'
             var eventName = 'totalState-resource-deleted';
             initiateEvent(eventName, {type: resource, id: id});
         };
-        sandbox.initiateResourceFocusedEvent = function(resource, id, startTime, endTime, callbackDone) {
+        sandbox.initiateResourceFocusedEvent = function(type, id, startTime, endTime, callbackDone) {
             var eventName = 'totalState-resource-focused';
-            if (resource === 'event') {
-                sandbox.get(resource, {id: id}, function(event) {
+            if (type === 'event') {
+                sandbox.get(type, {id: id}, function(event) {
                     sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
                         startTime = event[0].startTime;
                         endTime = event[0].endTime;
                         sandbox.getPanel(dataset[0].headPanelId, startTime, endTime, true, function(panel) {
                             sandbox.setPageTitle('Event: ' + event[0].type);
 
-                            sandbox.focusState.dataset = dataset[0].id;
-                            sandbox.focusState.panel = dataset[0].headPanel.id;
+                            sandbox.focusState.dataset = undefined;
                             sandbox.focusState.minStartTime = dataset[0].headPanel.startTime;
                             sandbox.focusState.maxEndTime = dataset[0].headPanel.endTime;
                             sandbox.focusState.startTime = startTime;
                             sandbox.focusState.endTime = endTime;
-                            sandbox.focusState.event = event[0].id;
-                            sandbox.focusState.panelBody = panel;
+                            sandbox.focusState.event = event[0];
+                            sandbox.focusState.panel = panel;
 
                             initiateEvent(eventName,
                                     {
-                                        type: resource,
-                                        resource: event[0],
+                                        type: type,
                                         panel: panel
                                     });
                             callbackDone();
                         });
                     }, ['headPanel']);
                 });
-            } else if (resource === 'dataset') {
-                sandbox.get(resource, {id: id}, function(dataset) {
+            } else if (type === 'dataset') {
+                sandbox.get(type, {id: id}, function(dataset) {
+                    if (typeof dataset[0].headPanel === 'undefined'
+                            || _.keys(dataset[0].headPanel.summaryStatistics).length === 0) {
+                        // For the case when the the dataset has just been
+                        // uploaded, and processing is not done yet.
+                        setTimeout(function() {
+                            sandbox.initiateResourceFocusedEvent(type, id, startTime, endTime, callbackDone);
+                        }, 1000);
+                        return;
+                    }
                     var cache = typeof startTime === 'undefined' && typeof endTime === 'undefined';
                     if (typeof startTime === 'undefined') {
                         startTime = dataset[0].headPanel.startTime;
@@ -57,18 +64,17 @@ define(['vendor/jquery'
                     sandbox.getPanel(dataset[0].headPanel.id, startTime, endTime, cache, function(panel) {
                         sandbox.setPageTitle(dataset[0].title);
 
-                        sandbox.focusState.dataset = dataset[0].id;
-                        sandbox.focusState.panel = dataset[0].headPanel.id;
+                        sandbox.focusState.dataset = dataset[0];
                         sandbox.focusState.minStartTime = dataset[0].headPanel.startTime;
                         sandbox.focusState.maxEndTime = dataset[0].headPanel.endTime;
                         sandbox.focusState.startTime = startTime;
                         sandbox.focusState.endTime = endTime;
-                        sandbox.focusState.panelBody = panel;
+                        sandbox.focusState.panel = panel;
+                        sandbox.focusState.event = undefined;
 
                         initiateEvent(eventName,
                                 {
-                                    type: resource,
-                                    resource: dataset[0],
+                                    type: type,
                                     panel: panel
                                 });
                         callbackDone();

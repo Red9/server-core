@@ -1,7 +1,7 @@
 <h4>For {{type}} '{{title}}'</h4>
 <div class="row">
     {{#each summaryStatistics.instantaneous}}
-    <div class="col-sm-6">
+    <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading"><strong>{{@key}}</strong></div>
 
@@ -40,7 +40,7 @@
 
     {{#if summaryStatistics.static.route}}
     {{#with summaryStatistics.static.route}}
-    <div class="col-sm-6">
+    <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading"><strong>gps path</strong></div>
             <table class="table table-condensed">
@@ -71,7 +71,7 @@
 
     {{#if summaryStatistics.static.time}}
     {{#with summaryStatistics.static.time}}
-    <div class="col-sm-6">
+    <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading"><strong>time</strong></div>
             <table class="table table-condensed">
@@ -104,7 +104,7 @@
 
     {{#if summaryStatistics.static.gps}}
     {{#with summaryStatistics.static.gps}}
-    <div class="col-sm-6">
+    <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading"><strong>gps static</strong></div>
             <table class="table table-condensed">
@@ -128,7 +128,7 @@
 
     {{#if summaryStatistics.static.panelStructure}}
     {{#with summaryStatistics.static.panelStructure}}
-    <div class="col-sm-6">
+    <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading"><strong>panel structure</strong></div>
             <table class="table table-condensed">
@@ -154,7 +154,7 @@
 
     {{#if summaryStatistics.static.freeFall}}
     {{#with summaryStatistics.static.freeFall}}
-    <div class="col-sm-6">
+    <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading"><strong>free fall</strong></div>
             <table class="table table-condensed">
