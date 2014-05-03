@@ -287,18 +287,6 @@
                 });
             });
         });
-
-        var usrModalInstance;
-        var GetUSROperands = function() {
-
-            var checked = site.getChecked();
-            console.log('Result type: ' + $('#resultType').attr('value'));
-
-            var result = {
-                datasets: checked
-            };
-            return result;
-        };
     });
 
 </script>
@@ -317,7 +305,7 @@
     <th>
     <div class="btn-toolbar" role="toolbar"><div class="btn-group">
     <button class="btn btn-md btn-default" onclick="site.deleteChecked('\{{type.string}}')"><span class="glyphicon glyphicon-trash"></span></button>
-    <button class="btn btn-md btn-default" onclick="site.usrChecked('\{{type.string}}')"><span class="glyphicon glyphicon-tasks"></span></button>
+    <!--<button class="btn btn-md btn-default" onclick="site.usrChecked('\{{type.string}}')"><span class="glyphicon glyphicon-tasks"></span></button>-->
     </div></div>
     </th>
     <th>Owner</th>

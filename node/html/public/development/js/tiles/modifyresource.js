@@ -207,7 +207,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 }
             });
         }
-        ;
     }
     return modifyResource;
 });
