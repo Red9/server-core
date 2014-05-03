@@ -13,17 +13,17 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
      * 
      * 
      */
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
     function googleMap(sandbox, tile, configuration, doneCallback) {
 
         var map;
@@ -180,14 +180,17 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
                 strokeWeight: 2
             }));
         }
-
-        function updateWithNewPanel(panel) {
+        function clearMapFeatures() {
             if (typeof mapFeatures !== 'undefined') {
                 _.each(mapFeatures, function(feature) {
                     feature.setMap(null);
                 });
             }
             mapFeatures = [];
+        }
+
+        function updateWithNewPanel(panel) {
+            clearMapFeatures();
 
             var pathGroups = createPathGroups(panel);
 
@@ -272,6 +275,29 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
 
             doneCallback();
         });
+
+        function destructor() {
+            clearMapFeatures();
+            tile.destructor();
+
+            $
+                    = _
+                    = moment
+                    = sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = map
+                    = mapFeatures
+                    = videoMarker
+                    = hoverMarker
+                    = null;
+
+        }
+
+        return {
+            destructor: destructor
+        };
 
     }
 

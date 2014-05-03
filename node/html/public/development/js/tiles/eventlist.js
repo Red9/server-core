@@ -68,6 +68,24 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
                 sandbox.get('event', {datasetId: datasetId}, setEvents);
             }
         }
+
+        function destructor() {
+            setEvents([]);
+            tile.destructor();
+            $
+                    = _
+                    = sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = datasetId
+                    = null;
+
+        }
+
+        return {
+            destructor: destructor
+        };
     }
 
     return eventList;

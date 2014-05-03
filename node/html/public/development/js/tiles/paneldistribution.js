@@ -20,12 +20,16 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw'], function($, _,
         sandbox.requestTemplate('paneldistribution', function(template) {
             tile.place.html(template({}));
         });
+        
+        function clearGraphData() {
+            while (graphData.length > 0) {
+                graphData.pop();
+            }
+        }
 
         function resourceFocused(event, parameter) {
             if (typeof sandbox.focusState.panel !== 'undefined') {
-                while (graphData.length > 0) { // Clear array
-                    graphData.pop();
-                }
+                clearGraphData();
                 _.each(sandbox.focusState.panel.distributions, function(distribution) {
                     if (_.indexOf(configuration.axes, distribution.name) !== -1) {
                         // Our configuration says that we want this axis
@@ -96,6 +100,29 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw'], function($, _,
         tile.addListener('totalState-resource-focused', resourceFocused);
         tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' distribution');
         doneCallback();
+
+        function destructor() {
+            clearGraphData();
+            graph.render();
+            tile.destructor();
+
+
+            $
+                    = _
+                    = Rickshaw
+                    = sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = graph
+                    = graphData 
+                    = null;
+
+        }
+
+        return {
+            destructor: destructor
+        };
     }
 
 
