@@ -255,6 +255,37 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         setVideos(videoList); // Initial set to empty list.
         tile.setTitle('videos');
         doneCallback();
+
+
+        function destructor() {
+            reset();
+            tile.destructor();
+            
+            $
+                    = _
+                    = async
+                    = chh
+                    = youtubeApiKey
+                    = kPlayerUpdateInterval
+                    = sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = videoList
+                    = playerTimePlace
+                    = currentVideoIndex
+                    = player
+                    = showPlayerTimeTimeout
+                    = datasetId
+                    = $videoSyncCheckbox
+                    = $videoEmitEventCheckbox
+                    = null;
+        }
+
+        return {
+            destructor: destructor
+        };
+
     }
     return embeddedVideo;
 

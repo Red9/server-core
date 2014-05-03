@@ -1,4 +1,4 @@
-define(['vendor/jquery', 'vendor/handlebars',
+define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
     'vendor/async',
     'tileframe',
     'customHandlebarsHelpers',
@@ -7,7 +7,7 @@ define(['vendor/jquery', 'vendor/handlebars',
     'sandbox/sandbox.convenience',
     'sandbox/sandbox.database',
     'sandbox/sandbox.events'
-], function($, Handlebars, async, tileFrame, chh,
+], function($, _, Handlebars, async, tileFrame, chh,
         sandboxHistory, sandboxUtilities, sandboxConvenience,
         sandboxDatabase, sandboxEvents) {
     var sandbox = {
@@ -80,9 +80,26 @@ define(['vendor/jquery', 'vendor/handlebars',
 
 
         },
+        tiles: [],
         createFlatTile: function(tile, doneCallback) {
-            tileFrame(sandbox, sandbox.tileId++, sandbox.div, 'flat',
-                    tile.class, tile.configuration, doneCallback);
+            sandbox.tiles.push(tileFrame(sandbox, sandbox.tileId++, sandbox.div, 'flat',
+                    tile.class, tile.configuration, doneCallback));
+        },
+        clearTiles: function() {
+            _.each(sandbox.tiles, function(tile) {
+                tile.destructor();
+            });
+            sandbox.tiles = [];
+            sandbox.focusState = {
+                dataset: undefined, // ID
+                event: undefined,
+                minStartTime: -1,
+                maxEndTime: -1,
+                startTime: -1,
+                endTime: -1,
+                panel: undefined
+            };
+
         },
         currentModal: undefined,
         showModal: function(type, parameters) {

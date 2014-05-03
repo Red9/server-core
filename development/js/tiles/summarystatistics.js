@@ -42,6 +42,20 @@ define(['vendor/jquery'], function($) {
         function resourceFocused(event, parameter) {
             setStatisticsFocus(parameter.type);
         }
+
+        function destructor() {
+            $
+                    = sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = null;
+        }
+
+        return {
+            destructor: destructor
+        };
+
     }
     return summaryStatistics;
 });

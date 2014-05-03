@@ -236,13 +236,17 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
             });
         }
 
+        function clearGraphData() {
+            while (graphData.length > 0) {
+                graphData.pop();
+            }
+        }
+
         function resourceFocused(event, parameter) {
             if (typeof parameter.panel !== 'undefined') {
                 populateSettings();
 
-                while (graphData.length > 0) {
-                    graphData.pop();
-                }
+                clearGraphData();
                 _.each(configuration.axes, function(axis) {
                     addGraphDataAxis(axis);
                 });
@@ -361,6 +365,33 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                 hoverMarker.hide();
             }
         }
+
+        function destructor() {
+            clearGraphData();
+            graph.render();
+
+            tile.destructor();
+
+            $
+                    = _
+                    = moment
+                    = Rickshaw
+                    = d3
+                    = sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = graph
+                    = rangeSelector
+                    = graphData
+                    = videoMarker
+                    = hoverMarker
+                    = null;
+        }
+
+        return {
+            destructor: destructor
+        };
 
     }
 

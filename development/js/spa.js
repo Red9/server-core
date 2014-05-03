@@ -24,6 +24,12 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
         $('#fixedBottomBarDiv').html(template({}));
         sandbox.init();
 
+
+        $('#navbar-fixed-bottom-delete-layout-button').on('click', function(element) {
+            //sandbox.showModal('layouteditor', {});
+            sandbox.clearTiles();
+        });
+        
         $('#navbar-fixed-bottom-edit-layout-button').on('click', function(element) {
             sandbox.showModal('layouteditor', {});
         });

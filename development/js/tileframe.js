@@ -7,6 +7,7 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
             tileClass, tileConfiguration, createdCallback) {
 
         var place, titlePlace, tilePlace, barPlace;
+        var tileResult;
 
         sandbox.requestTemplate('tileframe.' + frameType, function(template) {
             place = $(template({}));
@@ -24,7 +25,7 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
 
             if (frameType === 'modal') {
                 place.filter('.modal').on('hidden.bs.modal', function(e) {
-                    destructor(true); 
+                    destructor(true);
                 }).modal('show');
 
 
@@ -38,7 +39,7 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
                 place: tilePlace
             };
 
-            var tileResult;
+
 
             if (typeof tileConfiguration === 'undefined') {
                 tileConfiguration = {};
@@ -60,7 +61,7 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
 
 
         return {
-            destructor: destructor
+            destructor: topDownDestructor
         };
 
 
@@ -79,16 +80,39 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
             $(sandbox).on(event + '.' + id, listener);
         }
 
+        function topDownDestructor() {
+            if (typeof tileResult !== 'undefined'
+                    && typeof tileResult.destructor === 'function') {
+                tileResult.destructor();
+            } else {
+                destructor();
+            }
+        }
         function destructor(alreadyHidden) {
-            console.log('Calling destructor...');
+            //console.log('Calling destructor...');
             $(sandbox).off('.' + id);
             if (frameType === 'modal' && alreadyHidden !== true) {
                 place.filter('.modal').on('hidden.bs.modal', function() {
                     place.remove();
                 }).modal('hide'); // If modal, will hide it.
             } else {
+                place.unbind();
+                place.empty();
                 place.remove();
             }
+            sandbox
+                    = id
+                    = homeDiv
+                    = frameType
+                    = tileClass
+                    = tileConfiguration
+                    = createdCallback
+                    = tileResult
+                    = place
+                    = titlePlace
+                    = tilePlace
+                    = barPlace
+                    = undefined;
         }
     }
 

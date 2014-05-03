@@ -32,6 +32,21 @@ define(['vendor/jquery', 'utilities/commentList'], function($) {
 
             }
         }
+        
+        function destructor() {
+            tile.place.html('<div></div>');
+            tile.destructor();
+            $
+                    = sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = null;
+        }
+
+        return {
+            destructor: destructor
+        };
     }
 
     return resourceDetails;
