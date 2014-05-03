@@ -47,7 +47,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
         function populateSettings() {
 
             var selectableAxes = _.map(
-                    _.omit(sandbox.focusState.panelBody.panel, 'time'),
+                    _.omit(sandbox.focusState.panel.panel, 'time'),
                     function(data, axis) {
                         return{
                             axis: axis,
@@ -67,7 +67,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                 var settingsOptions = {
                     axes: displayableAxes
                 };
-                if(configuration.showMarkers === true){
+                if (configuration.showMarkers === true) {
                     settingsOptions.showMarkersChecked = true;
                 }
                 var html = $(settingsTemplate(settingsOptions));
@@ -92,7 +92,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
 
         function toggleAxis(newAxis) {
             var index = _.indexOf(configuration.axes, newAxis);
-            if (index === -1 && _.has(sandbox.focusState.panelBody.panel, newAxis)) {
+            if (index === -1 && _.has(sandbox.focusState.panel.panel, newAxis)) {
                 configuration.axes.push(newAxis);
                 addGraphDataAxis(newAxis);
                 graph.render();
@@ -114,7 +114,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
         }
 
         function addGraphDataAxis(axis) {
-            var panel = sandbox.focusState.panelBody.panel;
+            var panel = sandbox.focusState.panel.panel;
 
             if (_.has(panel, axis) === true) {
                 var data = [];
@@ -141,7 +141,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     .attr('width', width)
                     .attr('height', height);
 
-            sandbox.get('event', {datasetId: sandbox.focusState.dataset},
+            sandbox.get('event', {datasetId: sandbox.focusState.dataset.id},
             function(events) {
                 var sortedEvents = _.filter(_.sortBy(events, function(event) {
                     return event.startTime;
@@ -322,18 +322,19 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     onZoom: function(e) {
                         var startTime = Math.floor(e.position.xMin);
                         var endTime = Math.floor(e.position.xMax);
-                        sandbox.resourceFocused('dataset', sandbox.focusState.dataset, startTime, endTime);
+                        sandbox.resourceFocused('dataset', sandbox.focusState.dataset.id, startTime, endTime);
 
                     },
                     onZoomOut: function() {
-                        sandbox.resourceFocused('dataset', sandbox.focusState.dataset);
+                        sandbox.resourceFocused('dataset', sandbox.focusState.dataset.id);
                     }
                 });
 
             }
 
             var panelStartTime = parameter.panel.panel.time[0];
-            var panelEndTime = parameter.panel.panel.time[parameter.panel.panel.time.length - 1];
+            var panelEndTime = parameter.panel.panel.time
+                    [parameter.panel.panel.time.length - 1];
 
             graph.render();
 

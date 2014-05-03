@@ -176,7 +176,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             tile.place.find('[data-name=addvideobutton]').on('click', function() {
                 var defaults = {
                     startTime: sandbox.focusState.startTime,
-                    dataset: sandbox.focusState.dataset
+                    dataset: sandbox.focusState.dataset.id
                 };
                 sandbox.showModal('modifyresource', {
                     resourceAction: 'create',
@@ -191,7 +191,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                         console.log('Video Id: ' + videoId);
                         currentVideoIndex = getVideoIndex(videoId);
                         console.log('currentVideoIndex: ' + currentVideoIndex);
-                        sandbox.resourceFocused('dataset', sandbox.focusState.dataset, videoList[currentVideoIndex].startTime, videoList[currentVideoIndex].endTime);
+                        sandbox.resourceFocused('dataset', sandbox.focusState.dataset.id, videoList[currentVideoIndex].startTime, videoList[currentVideoIndex].endTime);
                         player.loadVideoById(videoList[currentVideoIndex].hostId);
                     })
                     .on('click', '[data-name=deletevideobutton]', function() {
@@ -211,12 +211,12 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
 
 
-        function resourceFocused(event, parameters) {
+        function resourceFocused(event, parameter) {
             var newDatasetId = '';
-            if (parameters.type === 'dataset') {
-                newDatasetId = parameters.resource.id;
-            } else if (parameters.type === 'event') {
-                newDatasetId = parameters.resource.datasetId;
+            if (parameter.type === 'dataset') {
+                newDatasetId = sandbox.focusState.dataset.id;
+            } else if (parameter.type === 'event') {
+                newDatasetId = sandbox.focusState.event.datasetId;
             }
 
             // Only update video list when there's a new dataset.

@@ -10,13 +10,15 @@
             $(document).ready(function() {
                 var myPlace = $('#userProfileArea');
 
-                sandbox.actionUrl = $('#page_parameters').data('actionurl');
-                sandbox.apiUrl = $('#page_parameters').data('apiurl');
-                sandbox.currentUser = $('#page_parameters').data('currentuser');
+                //sandbox.actionUrl = $('#page_parameters').data('actionurl');
+                //sandbox.apiUrl = $('#page_parameters').data('apiurl');
+                //sandbox.currentUser = $('#page_parameters').data('currentuser');
 
-                var currentUserId = $('#page_parameters').data('currentuser');
+                //var currentUserId = $('#page_parameters').data('currentuser');
+                
+                sandbox.buildSandbox();
 
-                sandbox.get('user', {id: currentUserId}, function(users) {
+                sandbox.get('user', {id: sandbox.currentUser}, function(users) {
                     if (users.length !== 1) {
                         return;
                     }

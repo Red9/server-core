@@ -22,11 +22,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw'], function($, _,
         });
 
         function resourceFocused(event, parameter) {
-            if (typeof parameter.panel !== 'undefined') {
+            if (typeof sandbox.focusState.panel !== 'undefined') {
                 while (graphData.length > 0) { // Clear array
                     graphData.pop();
                 }
-                _.each(parameter.panel.distributions, function(distribution) {
+                _.each(sandbox.focusState.panel.distributions, function(distribution) {
                     if (_.indexOf(configuration.axes, distribution.name) !== -1) {
                         // Our configuration says that we want this axis
                         var data = _.reduce(distribution.distribution, function(result, value, index) {

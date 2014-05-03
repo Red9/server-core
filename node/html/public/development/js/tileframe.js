@@ -8,12 +8,9 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
 
         var place, titlePlace, tilePlace, barPlace;
 
-        console.log('typeof sandbox: ' + typeof sandbox);
         sandbox.requestTemplate('tileframe.' + frameType, function(template) {
             place = $(template({}));
             homeDiv.append(place);
-            
-            console.log('homeDiv.length: ' + homeDiv.length);
 
             titlePlace = place.find('[data-name=rowtitle]');
             barPlace = place.find('[data-name=buttonbar]');
@@ -21,7 +18,6 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
 
             place.find('[data-name=togglevisible]').on('click', function() {
                 // Not always there (modals...), but if it is we'll respond.
-                console.log('Clicked!');
                 $(this).find('span').toggleClass('glyphicon-resize-small glyphicon-resize-full');
                 tilePlace.toggle('fast');
             });

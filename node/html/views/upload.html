@@ -43,12 +43,15 @@
 </div>
 
 
-<p class="hidden bg-success" data-name="uploadsuccess">You've successfully uploaded your RNC, and it's now processing. Your dataset will be found at <a data-name="datasetlink"></a></p>
+<div class="hidden bg-success" data-name="uploadsuccess">
+    <p>You've successfully uploaded your RNC, and it's now processing. Your dataset will be found at <a data-name="datasetlink"></a></p>
+    <p>This page will automatically be redirected when processing is done.</p>
+</div>
 <p class="hidden bg-danger" data-name="uploadfailure"></p>
 
 <script src="/js/vendor/require.js"></script>
 <script>
-require(['vendor/jquery', 'vendor/jquery.validate', 'vendor/jquery.validate.additional-methods'], function($) {
+require(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate', 'vendor/jquery.validate.additional-methods'], function($, _) {
     $(document).ready(function() {
 
         function progressHandlingFunction(e) {
@@ -57,6 +60,30 @@ require(['vendor/jquery', 'vendor/jquery.validate', 'vendor/jquery.validate.addi
                 console.log('Progress: ' + e.loaded + ' / ' + e.total);
                 $('[data-name=uploadprogressbar]').css('width', Math.floor((e.loaded / e.total) * 100) + '%');
             }
+        }
+
+        function redirectToUrl(id, url) {
+            $.ajax({
+                type: 'GET',
+                url: '{{apiUrl}}/dataset/' + id + '?expand=headPanel',
+                dataType: 'json',
+                success: function(dataset) {
+                    if (typeof dataset[0].headPanel === 'undefined'
+                            || _.keys(dataset[0].headPanel.summaryStatistics).length === 0) {
+                        // For the case when the the dataset has just been
+                        // uploaded, and processing is not done yet.
+                        setTimeout(function() {
+                            redirectToUrl(id, url);
+                        }, 1000);
+                        return;
+                    } else {
+                        window.location.replace(url);
+                    }
+                }
+
+
+            });
+
         }
 
         function submitHandler(form) {
@@ -79,10 +106,15 @@ require(['vendor/jquery', 'vendor/jquery.validate', 'vendor/jquery.validate.addi
                 },
                 data: formData,
                 success: function(response) {
-                    console.log('Success!');
-                    console.log(JSON.stringify(response));
-                    
-                    $('[data-name=uploadsuccess]').removeClass('hidden').find('a').attr('href', '/dataset/' + response.datasetId).text(response.datasetId);
+                    var id = response.datasetId;
+                    var url = '/dataset/' + id;
+
+                    $('[data-name=uploadsuccess]')
+                            .removeClass('hidden')
+                            .find('a')
+                            .attr('href', url)
+                            .text(id);
+                    redirectToUrl(id, url);
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     $('[data-name=uploadfailure]').removeClass('hidden').text(textStatus + '---' + errorThrown + ' --- ' + jqXHR.responseText);

@@ -135,7 +135,7 @@ define(['vendor/jquery', 'vendor/jquery.validate'], function($) {
 
 
 
-            var url = sandbox.apiUrl + '/panel/' + sandbox.focusState.panel + '/body/?' + $.param(parameters);
+            var url = sandbox.apiUrl + '/panel/' + configuration.resource.id + '/body/?' + $.param(parameters);
 
             var win = window.open(url, '_blank');
             win.focus();

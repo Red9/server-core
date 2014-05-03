@@ -11,6 +11,7 @@ var cassandraClient = require('node-cassandra-cql').Client;
 var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
 
 
+// Get the CSV panel version (no bucketing)
 exports.getPanel = function(panelId, startTime, endTime,
         callbackRow, callbackDone) {
     var chunkLimit = 5000; // 5000 seems to be a little bit faster than 1000

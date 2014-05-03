@@ -190,6 +190,12 @@ exports.getProcessedPanel = function(parameters, callbackDone) {
         }
         parameters.panel = panelList[0];
 
+        if (typeof parameters.panel.summaryStatistics === 'undefined'
+                || underscore.keys(parameters.panel.summaryStatistics).length === 0) {
+            callbackDone('panelId "' + parameters.id + '" does not have summary statistics. Summary statistics required.');
+            return;
+        }
+
         if (typeof parameters.startTime === 'undefined') {
             parameters.startTime = parameters.panel.startTime;
         }

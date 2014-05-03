@@ -160,7 +160,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
         }
 
         function resourceFocused(event, parameter) {
-            if (typeof parameter.panel !== 'undefined') {
+            if (typeof sandbox.focusState.panel !== 'undefined') {
                 setPlace();
 
                 _.each(configuration.axes, function(axisName, index) {
@@ -175,9 +175,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
 
                     var graphHeight = configuration.height;
 
-                    console.log('Width: ' + graphWidth);
-
-                    var data = parameter.panel.spectralEntropy[axisName];
+                    var data = sandbox.focusState.panel.spectralEntropy[axisName];
                     if (typeof data !== 'undefined') {
                         var graphSvg = d3.select(graphAreas[0])
                                 .append('svg')
@@ -198,7 +196,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
                                 .attr('class', 'rickshaw_graph y_axis');
 
                         setTimeout(function() {
-                            console.log('Computing heatmaps...');
                             var startTime = new Date().getTime();
                             createHeatmap(graphSvg, xAxisSvg, yAxisSvg, data);
                             console.log('Done computing heatmaps: ' + (new Date().getTime() - startTime) + ' ms');

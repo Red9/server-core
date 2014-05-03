@@ -21,10 +21,10 @@ define(['vendor/jquery', 'utilities/commentList'], function($) {
             }
         }
 
-        function resourceFocused(event, parameters) {
-            if (parameters.type === 'dataset') {
-                setResource('dataset', parameters.resource);
-            } else if (parameters.type === 'event') {
+        function resourceFocused(event, parameter) {
+            if (parameter.type === 'dataset') {
+                setResource('dataset', sandbox.focusState.dataset);
+            } else if (parameter.type === 'event') {
                 // TODO(SRLM): Check to make sure that the event is still in the same
                 // dataset. If it's not then we probably need to remove the details or 
                 // update them. This could be an issue for when we allow changing events

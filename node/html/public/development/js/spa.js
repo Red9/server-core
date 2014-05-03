@@ -17,17 +17,23 @@ requirejs.config({
 });
 
 require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], function(sandbox, $, _) {
-    sandbox.init();
+    
+    sandbox.buildSandbox();
+    sandbox.requestTemplate('spa.bottombar.panel', function(template){
 
-    $(document).ready(function() {
-
+        $('#fixedBottomBarDiv').html(template({}));
+        sandbox.init();
 
         $('#navbar-fixed-bottom-edit-layout-button').on('click', function(element) {
             sandbox.showModal('layouteditor', {});
         });
+        
+        $('#navbar-fixed-bottom-view-summary-statistics-button').on('click', function(element) {
+            sandbox.showModal('summarystatistics', {});
+        });
 
         $('#navbar-fixed-bottom-download-panel-button').on('click', function(element) {
-            var id = sandbox.focusState.panel;
+            var id = sandbox.focusState.panel.id;
             sandbox.get('panel', {id: id}, function(resourceList) {
                 if (resourceList.length === 1) {
                     sandbox.showModal('downloadpanel', {
@@ -38,7 +44,7 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
         });
 
         $('#navbar-fixed-bottom-edit-dataset-button').on('click', function(element) {
-            sandbox.displayEditResourceDialog('dataset', sandbox.focusState.dataset);
+            sandbox.displayEditResourceDialog('dataset', sandbox.focusState.dataset.id);
         });
 
         $('#navbar-fixed-bottom-create-event-button').on('click', function(element) {
@@ -48,7 +54,7 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
                 resource: {//defaults
                     startTime: sandbox.focusState.startTime,
                     endTime: sandbox.focusState.endTime,
-                    datasetId: sandbox.focusState.dataset
+                    datasetId: sandbox.focusState.dataset.id
                 }
             });
 
@@ -60,7 +66,7 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
                     sandbox.focusState.startTime,
                     sandbox.focusState.endTime
                     );
-            sandbox.resourceFocused('dataset', sandbox.focusState.dataset,
+            sandbox.resourceFocused('dataset', sandbox.focusState.dataset.id,
                     zoom.startTime, zoom.endTime);
         });
     });

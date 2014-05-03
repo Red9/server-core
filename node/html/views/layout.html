@@ -63,57 +63,9 @@
         </div>
         <br />
         <br />
-
-
-        {{#if spa}}
-        <!--TODO(SRLM): This is a bit of a hack. Get this out of layout and into it's own place.-->
-        <br />
-        <br />
-        <br />
-        <br />
-        <nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
-            <div class="row">
-                <div class="col-sm-4">
-                    <div class="pull-left">
-                        <button id="navbar-fixed-bottom-edit-layout-button" type="button" class="btn btn-default btn-md" title="edit layouts"><span class="glyphicon glyphicon-text-width"></span></button>
-                        <button id="navbar-fixed-bottom-download-panel-button" type="button" class="btn btn-default btn-md" title="download panel"><span class="glyphicon glyphicon-cloud-download"></span></button>
-                        <button id="navbar-fixed-bottom-edit-dataset-button" type="button" class="btn btn-default btn-md" title="edit dataset"><span class="glyphicon glyphicon-pencil"></span></button>
-                        <button id="navbar-fixed-bottom-create-event-button" type="button" class="btn btn-default btn-md" title="create event"><span class="glyphicon glyphicon-bookmark"></span></button>
-                        
-<!--             <select class="form-control">
-  <option>1</option>
-  <option>2</option>
-  <option>3</option>
-  <option>4</option>
-  <option>5</option>
-</select>-->
-                    </div>
-                    <div>
-                        <div class="progress progress-striped" id="pageloaderspinner" style="display:none; margin-top:7px; width:100px">
-                            <div class="progress-bar" role="progressbar" style="width:100%;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-4">
-                    <h4 class="text-center"><span id="footer-page-title">Dataset</span></h4>
-                </div>
-                <div class="col-sm-4">
-                    <div class="pull-right">
-                        <div class="btn-group">                            
-                            <button data-name="navbar-fixed-bottom-zoom-button" data-direction="left" type="button" class="btn btn-default btn-md" title="pan left"><span class="glyphicon glyphicon-chevron-left"></span></button>
-                            <button data-name="navbar-fixed-bottom-zoom-button" data-direction="right" type="button" class="btn btn-default btn-md" title="pan right"><span class="glyphicon glyphicon-chevron-right"></span></button>
-                        </div>
-                        <div class="btn-group">                            
-                            <button data-name="navbar-fixed-bottom-zoom-button" data-direction="out" type="button" class="btn btn-default btn-md" title="zoom out"><span class="glyphicon glyphicon-zoom-out"></span></button>
-                            <button data-name="navbar-fixed-bottom-zoom-button" data-direction="outfull" type="button" class="btn btn-default btn-md" title="zoom out full"><span class="glyphicon glyphicon-fullscreen"></span></button>
-                            <button data-name="navbar-fixed-bottom-zoom-button" data-direction="in" type="button" class="btn btn-default btn-md" title="zoom in"><span class="glyphicon glyphicon-zoom-in"></span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-        {{else}}
+        
+        <div id="fixedBottomBarDiv"></div>
+        
         <div class="navbar">
             <div class="navbar-inner">
                 <div class="width-constraint clearfix">
@@ -123,7 +75,7 @@
                 </div>
             </div>
         </div>
-        {{/if}}
+        
 
     </body>
 </html>

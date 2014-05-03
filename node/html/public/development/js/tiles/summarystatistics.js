@@ -3,10 +3,29 @@ define(['vendor/jquery'], function($) {
     function summaryStatistics(sandbox, tile, configuration, doneCallback) {
         tile.addListener('totalState-resource-focused', resourceFocused);
         tile.setTitle('summary statistics');
-        setStatistics('', '', {});
+        if (typeof sandbox.focusState.dataset !== 'undefined') {
+            setStatisticsFocus('dataset');
+        } else if (typeof sandbox.focusState.event !== 'undefined') {
+            setStatisticsFocus('event');
+        } else {
+            setStatisticsFocus('');
+        }
         doneCallback();
-        
 
+
+        function setStatisticsFocus(type) {
+            if (type === 'dataset') {
+                setStatistics('dataset',
+                        sandbox.focusState.dataset.title,
+                        sandbox.focusState.dataset.headPanel.summaryStatistics);
+            } else if (type === 'event') {
+                setStatistics('event',
+                        sandbox.focusState.event.type,
+                        sandbox.focusState.event.summaryStatistics);
+            } else {
+                setStatistics('<undefined>', '<undefined>', {});
+            }
+        }
 
         function setStatistics(type, title, statistics) {
             sandbox.requestTemplate('summarystatistics', function(template) {
@@ -20,14 +39,8 @@ define(['vendor/jquery'], function($) {
             });
         }
 
-        function resourceFocused(event, parameters) {
-            if (parameters.type === 'dataset') {
-                setStatistics('dataset', parameters.resource.title, parameters.resource.headPanel.summaryStatistics);
-            } else if (parameters.type === 'event') {
-                setStatistics('event', parameters.resource.type, parameters.resource.summaryStatistics);
-            } else {
-                setStatistics('', '', {});
-            }
+        function resourceFocused(event, parameter) {
+            setStatisticsFocus(parameter.type);
         }
     }
     return summaryStatistics;
