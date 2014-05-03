@@ -128,7 +128,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                 graphData.push({
                     axis: axis,
                     data: data,
-                    color: sandbox.definedColorMappings[axis],
+                    color: sandbox.colorMap(axis),
                     name: axis.split(':')[1],
                     strokeWidth: 1
                 });

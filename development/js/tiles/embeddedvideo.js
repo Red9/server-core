@@ -84,7 +84,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             var playerTime = videoList[currentVideoIndex].startTime + player.getCurrentTime() * 1000;
             //console.log('Player Time: ' + playerTime);
             playerTimePlace.text(chh.MillisecondsEpochToTime(playerTime) + ' (' + playerTime + ')');
-            if($videoEmitEventCheckbox.prop('checked')){
+            if ($videoEmitEventCheckbox.prop('checked')) {
                 sandbox.initiateVideoTimeEvent(playerTime);
             }
         }
@@ -178,7 +178,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     startTime: sandbox.focusState.startTime,
                     dataset: sandbox.focusState.dataset
                 };
-                sandbox.createResourceDisplay('video', defaults);
+                sandbox.showModal('modifyresource', {
+                    resourceAction: 'create',
+                    resourceType: 'video',
+                    resource: defaults
+                });
             });
 
             tile.place.find('.long-list-wrapper')
@@ -201,7 +205,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     .on('click', '[data-name=videoedit]', function() {
                         var videoId = $(this).data('id');
 
-                        sandbox.editResourceDisplay('video', videoId);
+                        sandbox.displayEditResourceDialog('video', videoId);
                     });
         }
 

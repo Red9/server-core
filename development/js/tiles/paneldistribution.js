@@ -43,7 +43,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw'], function($, _,
 
                         graphData.push({
                             data: data,
-                            color: sandbox.definedColorMappings[distribution.name]
+                            color: sandbox.colorMap(distribution.name)
                         });
                     }
                 });

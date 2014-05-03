@@ -22,7 +22,7 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
 
                 tile.place.find('button[data-name=editevent]').on('click', function() {
                     var id = $(this).closest('tr').attr('name');
-                    sandbox.editResourceDisplay('event', id);
+                    sandbox.displayEditResourceDialog('event', id);
                 });
 
                 tile.place.find('[name=delete-button]').on('click', function() {

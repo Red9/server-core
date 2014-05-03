@@ -49,7 +49,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw', 'sandbox'], fun
                         });
                         graphData.push({
                             data: data,
-                            color: sandbox.definedColorMappings[axisName]
+                            color: sandbox.colorMap(axisName)
                         });
                     }
                 });
