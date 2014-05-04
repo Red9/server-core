@@ -89,7 +89,8 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
             }
         }
         function destructor(alreadyHidden) {
-            //console.log('Calling destructor...');
+            // TODO: the proper order of events might not be followed for 
+            // modals. Need to figure that out.
             $(sandbox).off('.' + id);
             if (frameType === 'modal' && alreadyHidden !== true) {
                 place.filter('.modal').on('hidden.bs.modal', function() {

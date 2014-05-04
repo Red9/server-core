@@ -7,8 +7,7 @@
         exports.RegisterHelpers = customHandlebarsHelpers;
     } else if (typeof define === 'function' && define.amd) {
         define(['vendor/handlebars', 'vendor/moment'], function(Handlebars, moment) {
-            customHandlebarsHelpers(Handlebars, moment);
-            return;
+            return customHandlebarsHelpers(Handlebars, moment);
         });
     } else {
         //makeGlobal();
@@ -109,6 +108,10 @@
         Handlebars.registerHelper('duration', formatDuration);
         Handlebars.registerHelper('bytesToHumanSize', bytesToHumanSize);
         Handlebars.registerHelper('timeFromNow', timeFromNow);
+
+        return {
+            millisecondsEpochToTime: millisecondsEpochToTime
+        };
 
     }
 }).call(this);

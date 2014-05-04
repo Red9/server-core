@@ -23,14 +23,8 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
 
         $('#fixedBottomBarDiv').html(template({}));
         sandbox.init();
-
-
-        $('#navbar-fixed-bottom-delete-layout-button').on('click', function(element) {
-            //sandbox.showModal('layouteditor', {});
-            sandbox.clearTiles();
-        });
         
-        $('#navbar-fixed-bottom-edit-layout-button').on('click', function(element) {
+        $('#navbar-fixed-bottom-layout-button').on('click', function(element) {
             sandbox.showModal('layouteditor', {});
         });
         
@@ -50,7 +44,7 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
         });
 
         $('#navbar-fixed-bottom-edit-dataset-button').on('click', function(element) {
-            sandbox.displayEditResourceDialog('dataset', sandbox.focusState.dataset.id);
+            sandbox.displayEditResourceDialog('dataset', sandbox.getCurrentDataset());
         });
 
         $('#navbar-fixed-bottom-create-event-button').on('click', function(element) {
@@ -60,7 +54,7 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
                 resource: {//defaults
                     startTime: sandbox.focusState.startTime,
                     endTime: sandbox.focusState.endTime,
-                    datasetId: sandbox.focusState.dataset.id
+                    datasetId: sandbox.getCurrentDataset()
                 }
             });
 
@@ -72,7 +66,7 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
                     sandbox.focusState.startTime,
                     sandbox.focusState.endTime
                     );
-            sandbox.resourceFocused('dataset', sandbox.focusState.dataset.id,
+            sandbox.resourceFocused('dataset', sandbox.getCurrentDataset(),
                     zoom.startTime, zoom.endTime);
         });
     });

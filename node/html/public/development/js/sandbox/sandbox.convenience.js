@@ -14,7 +14,15 @@ define([], function() {
             });
         };
 
-       
+        sandbox.getCurrentDataset = function() {
+            if (typeof sandbox.focusState.dataset !== 'undefined') {
+                return sandbox.focusState.dataset.id;
+            } else if (typeof sandbox.focusState.event !== 'undefined') {
+                return sandbox.focusState.event.datasetId;
+            }
+        };
+
+
     }
     return sandboxConvenience;
 });

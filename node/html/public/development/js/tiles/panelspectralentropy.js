@@ -31,6 +31,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
         }
 
         function createHeatmap(svg, xAxisSvg, yAxisSvg, data) {
+            
+            if(data.length === 0){
+                return;
+            }
+            
             // Need to convert the height/width from 123px to 123 (string to int)
             var width = svg.style('width');
             var height = svg.style('height');
@@ -99,6 +104,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
             var yCount = data.length / xCount;
             var w = width / xCount;
             var h = (height / yCount) + 1;
+            
+            console.log('width: ' + width + ', xCount: ' + xCount);
 
             var timeIndex = 0;
             var previousTime = data[0][0]; // TODO: One of the [0]'s is erroring for Mica, on a full dataset.

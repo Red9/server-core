@@ -83,7 +83,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
             var playerTime = videoList[currentVideoIndex].startTime + player.getCurrentTime() * 1000;
             //console.log('Player Time: ' + playerTime);
-            playerTimePlace.text(chh.MillisecondsEpochToTime(playerTime) + ' (' + playerTime + ')');
+            playerTimePlace.text(chh.millisecondsEpochToTime(playerTime) + ' (' + playerTime + ')');
             if ($videoEmitEventCheckbox.prop('checked')) {
                 sandbox.initiateVideoTimeEvent(playerTime);
             }
@@ -176,7 +176,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             tile.place.find('[data-name=addvideobutton]').on('click', function() {
                 var defaults = {
                     startTime: sandbox.focusState.startTime,
-                    dataset: sandbox.focusState.dataset.id
+                    dataset: sandbox.getCurrentDataset()
                 };
                 sandbox.showModal('modifyresource', {
                     resourceAction: 'create',
@@ -191,7 +191,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                         console.log('Video Id: ' + videoId);
                         currentVideoIndex = getVideoIndex(videoId);
                         console.log('currentVideoIndex: ' + currentVideoIndex);
-                        sandbox.resourceFocused('dataset', sandbox.focusState.dataset.id, videoList[currentVideoIndex].startTime, videoList[currentVideoIndex].endTime);
+                        sandbox.resourceFocused('dataset', sandbox.getCurrentDataset(), videoList[currentVideoIndex].startTime, videoList[currentVideoIndex].endTime);
                         player.loadVideoById(videoList[currentVideoIndex].hostId);
                     })
                     .on('click', '[data-name=deletevideobutton]', function() {
@@ -214,7 +214,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         function resourceFocused(event, parameter) {
             var newDatasetId = '';
             if (parameter.type === 'dataset') {
-                newDatasetId = sandbox.focusState.dataset.id;
+                newDatasetId = sandbox.getCurrentDataset();
             } else if (parameter.type === 'event') {
                 newDatasetId = sandbox.focusState.event.datasetId;
             }

@@ -295,7 +295,7 @@
 <div id="container-results"></div>
 <script type="text/x-handlebars-template" id="tmpl-results">
     \{{#if items.length }}
-    <p class="text-right text-muted">\{{paging.totalResults}} results found</p>
+    <p class="text-right text-muted">\{{items.length}} results found</p>
     <div id="resultType" value="\{{type.string}}"></div>
     <div class="panel panel-default results">
     \{{#if type.dataset }}
@@ -322,9 +322,9 @@
     <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
     <td><a href="/user/\{{owner.id}}">\{{owner.displayName}}</a></td>
     <td onclick="window.location.assign('/dataset/\{{id}}');">\{{title}} \{{type}}</td>
-    <td>\{{toDateString headPanel.startTime}} \{{toTimeString headPanel.startTime}}</td>
+    <td>\{{toDateString headPanel.startTime}}</td>
     <td>\{{toDurationString headPanel.startTime headPanel.endTime}}</td>
-    <td>\{{toDateString createTime}} \{{toTimeString createTime}}</td>
+    <td>\{{toDateString createTime}} </td>
     </tr>
     \{{/each}}
     </tbody>
