@@ -57,7 +57,7 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
         function resourceFocused(event, parameter) {
             var newDatasetId = '';
             if (parameter.type === 'dataset') {
-                newDatasetId = sandbox.focusState.dataset.id;
+                newDatasetId = sandbox.getCurrentDataset();
             } else if (parameter.type === 'event') {
                 newDatasetId = sandbox.focusState.event.datasetId;
             }

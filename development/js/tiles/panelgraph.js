@@ -141,7 +141,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     .attr('width', width)
                     .attr('height', height);
 
-            sandbox.get('event', {datasetId: sandbox.focusState.dataset.id},
+            var datasetId = sandbox.getCurrentDataset();
+            sandbox.get('event', {datasetId: datasetId},
             function(events) {
                 var sortedEvents = _.filter(_.sortBy(events, function(event) {
                     return event.startTime;
@@ -259,12 +260,12 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
             var eventAxisPlace = tile.place.find('.rickshaw_red9_event_axis');
 
             var graphWidth = graphArea.parent().parent().width()
-                    - yAxisPlace.width();
+                    - yAxisPlace.width() - 30; // 30: bootstrap padding
 
             var graphHeight = graphArea.parent().parent().height()
                     - xAxisPlace.height() - eventAxisPlace.height();
 
-            var xAxisWidth = graphWidth;// + yAxisPlace.width() - 10;
+            var xAxisWidth = graphWidth + yAxisPlace.width();
 
             if (typeof graph === 'undefined') {
                 //var graphArea = graphArea[0];
@@ -326,11 +327,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     onZoom: function(e) {
                         var startTime = Math.floor(e.position.xMin);
                         var endTime = Math.floor(e.position.xMax);
-                        sandbox.resourceFocused('dataset', sandbox.focusState.dataset.id, startTime, endTime);
+                        sandbox.resourceFocused('dataset', sandbox.getCurrentDataset(), startTime, endTime);
 
                     },
                     onZoomOut: function() {
-                        sandbox.resourceFocused('dataset', sandbox.focusState.dataset.id);
+                        sandbox.resourceFocused('dataset', sandbox.getCurrentDataset());
                     }
                 });
 

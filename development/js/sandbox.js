@@ -11,7 +11,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
         sandboxHistory, sandboxUtilities, sandboxConvenience,
         sandboxDatabase, sandboxEvents) {
     var sandbox = {
-        currentUser: '',
+        currentUser: '', // User object
         apiUrl: '',
         actionUrl: '',
         tileId: 0,
@@ -81,9 +81,36 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
 
         },
         tiles: [],
-        createFlatTile: function(tile, doneCallback) {
-            sandbox.tiles.push(tileFrame(sandbox, sandbox.tileId++, sandbox.div, 'flat',
-                    tile.class, tile.configuration, doneCallback));
+        createFlatTile: function(tile, doneCallback, myDiv) {
+            if(typeof myDiv === 'undefined'){
+                myDiv = sandbox.div;
+            }
+
+            if (_.isArray(tile) === true) {
+                if(tile.length > 4){
+                    alert('ERROR: Too many tiles!');
+                }
+                var columns = 12 / tile.length;
+                
+                var place = $('<div class="row"></div>');
+                myDiv.append(place);
+                async.eachSeries(tile, function(t, dc){
+                    
+                    var tp = $('<div class="col-md-' + columns + '"></div>');
+                    place.append(tp);
+                    sandbox.createFlatTile(t, dc, tp);
+                    
+                }, function(){
+                    doneCallback();
+                });
+                
+                
+                
+                        
+            } else {
+                sandbox.tiles.push(tileFrame(sandbox, sandbox.tileId++, myDiv, 'flat',
+                        tile.class, tile.configuration, doneCallback));
+            }
         },
         clearTiles: function() {
             _.each(sandbox.tiles, function(tile) {

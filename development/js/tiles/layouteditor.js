@@ -127,6 +127,23 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 tile.place.find('button').on('click', function() {
                     var $this = $(this);
                     var layout;
+
+
+                    if ($this.data('name') === 'apply') {
+                        var pl = sandbox.currentUser.preferredLayout;
+                        var id = tile.place.find('select option:selected').val();
+                        pl['/event/:id'] = id;
+                        pl['/dataset/:id'] = id;
+                        pl['/video/:id'] = id;
+
+                        sandbox.update('user', sandbox.currentUser.id, {preferredLayout: pl},
+                        function(err) {
+                            console.log('Error: ' + err);
+                            window.location.reload();
+                        });
+                        return;
+                    }
+
                     if ($this.data('name') === 'create') {
                         tile.setTitle('Create new layout');
                         layout = {};
