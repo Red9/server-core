@@ -7,7 +7,7 @@
     </div>
     <div class="col-md-5">
         {{#if videos}}
-        <div class="long-list-wrapper" style="height:347px">
+        <div class="long-list-wrapper" style="height:247px">
             {{#each videos}}
             <div data-videoid="{{id}}">{{! wrapper for each video}}
                 <div class="pull-left">
@@ -55,6 +55,10 @@
         <div class="pull-left">Video time: <span data-name="currentvideotime"></span>
             <div class="checkbox"><label><input type="checkbox" data-name="syncvideowithhovercheckbox">Sync video with hover</label></div>
             <div class="checkbox"><label><input type="checkbox" data-name="emitvideotimeeventscheckbox" checked>Update graphs with video marker</label></div>
+            Playback:
+            <select data-name="playbackspeedselect" class="form-control">
+                <option value="1">none</option>
+            </select>
         </div>
         <span class="pull-right"><button data-name="addvideobutton" class="btn btn-default"><span class="glyphicon glyphicon-film"></span>&nbsp;Add Video</button></span>
     </div>

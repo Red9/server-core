@@ -13,6 +13,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         var datasetId;
         var $videoSyncCheckbox;
         var $videoEmitEventCheckbox;
+        var $videoSpeedSelect;
 
         function reset() {
             videoList = [];
@@ -21,6 +22,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             player = undefined;
             $videoSyncCheckbox = undefined;
             $videoEmitEventCheckbox = undefined;
+            $videoSpeedSelect = undefined;
             if (typeof showPlayerTimeTimeout !== 'undefined') {
                 clearInterval(showPlayerTimeTimeout);
             }
@@ -102,6 +104,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                 tile.place.html(template(parameters));
                 $videoSyncCheckbox = tile.place.find('[data-name=syncvideowithhovercheckbox]');
                 $videoEmitEventCheckbox = tile.place.find('[data-name=emitvideotimeeventscheckbox]');
+                $videoSpeedSelect = tile.place.find('[data-name=playbackspeedselect]');
                 prepareListeners();
 
                 // We have to  test this now (instead of using loadVideoById
@@ -130,17 +133,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                             },
                             events: {
                                 onStateChange: onPlayerStateChange,
-                                onReady: function() {
-                                    // A little bit of a hack: the first seekTo
-                                    // will cause an unstarted video to play.
-                                    // So the trick is to play then pause the
-                                    // video so that the first seekTo won't
-                                    // cause the video to start playing.
-                                    player.mute();
-                                    //player.playVideo();
-                                    //player.pauseVideo();
-                                    //player.unMute();
-                                }
+                                onReady: onYTPlayerReady
                             }
                         }
                 );
@@ -148,6 +141,33 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             });
         }
 
+        function onYTPlayerReady() {
+            // A little bit of a hack: the first seekTo
+            // will cause an unstarted video to play.
+            // So the trick is to play then pause the
+            // video so that the first seekTo won't
+            // cause the video to start playing.
+            player.mute();
+            //player.playVideo();
+            //player.pauseVideo();
+            //player.unMute();
+
+
+
+
+            // Prepare the speed settings selector
+            $videoSpeedSelect.find('option').remove();
+            $.each(player.getAvailablePlaybackRates(), function(key, value) {
+                var option = $('<option></option>')
+                        .attr('value', value)
+                        .text(value + 'x');
+                if(value === 1){
+                    option.attr('selected', 'selected');
+                }
+                $videoSpeedSelect.append(option);
+            });
+
+        }
 
         function setVideos(videos) {
             async.map(videos, annotateVideoWithHostInformation, displayVideos);
@@ -203,6 +223,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                         var videoId = $(this).data('id');
                         sandbox.displayEditResourceDialog('video', videoId);
                     });
+            $videoSpeedSelect.change(function(e) {
+                player.setPlaybackRate($(this).find('option:selected').val());
+            });
+
         }
 
         function resourceFocused(event, parameter) {
@@ -253,7 +277,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         function destructor() {
             reset();
             tile.destructor();
-            
+
             $
                     = _
                     = async
@@ -272,6 +296,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     = datasetId
                     = $videoSyncCheckbox
                     = $videoEmitEventCheckbox
+                    = $videoSpeedSelect
                     = null;
         }
 
