@@ -1,71 +1,69 @@
-define(['vendor/jquery', 'vendor/underscore'], function($, _) {
+define(['vendor/jquery', 'vendor/underscore', 'utilities/eventtimeline'
+], function($, _, eventTimeline) {
     function eventList(sandbox, tile, configuration, doneCallback) {
-        var datasetId;
-        tile.setTitle('events');
-        tile.addListener('totalState-resource-focused', resourceFocused);
-        tile.addListener('totalState-resource-deleted', resourceDeleted);
+        var timeline;
 
-        setEvents([]);
 
-        doneCallback();
+
+        initialize(doneCallback);
+
+
+
+        function initialize(callback) {
+            tile.setTitle('events');
+            tile.addListener('totalState-resource-focused', resourceFocused);
+            tile.addListener('totalState-resource-deleted', resourceDeleted);
+            
+            tile.addToBar('delete-events', '', 'glyphicon-trash', deleteSelected);
+
+            sandbox.requestTemplate('eventlist', function(template) {
+                tile.place.html(template({}));
+
+                timeline = eventTimeline(
+                        tile.place.find('[data-name=timeline]'),
+                        {
+                            hoverTime: hoverTimeUpdate,
+                            eventClicked: eventClicked
+                        });
+                setEvents([]);
+                callback();
+            });
+        }
+        
+        function deleteSelected(){
+            //console.log(timeline.getSelected());
+            sandbox.delete('event', timeline.getSelected());
+        }
+
+        function eventClicked(id) {
+            sandbox.initiateResourceFocusedEvent('event', id);
+        }
+        function hoverTimeUpdate(time) {
+            sandbox.initiateHoverTimeEvent(time);
+        }
 
         function setEvents(events) {
-            sandbox.requestTemplate('eventlist', function(template) {
-                tile.place.html(template({events: _.sortBy(events, function(event) {
-                        return event.startTime;
-                    })}));
-
-                // Listen for clicks on the checkbox
-                tile.place.find('input:checkbox').on('click', function(event) {
-                    console.log('Checkbox clicked. Row Name: ' + $(this).closest('tr').attr('name'));
-                });
-
-                tile.place.find('button[data-name=editevent]').on('click', function() {
-                    var id = $(this).closest('tr').attr('name');
-                    sandbox.displayEditResourceDialog('event', id);
-                });
-
-                tile.place.find('[name=delete-button]').on('click', function() {
-                    console.log('Delete button clicked.');
-
-                    tile.place.find('tbody tr td input:checked').each(function(index, element) {
-                        var id = $(element).closest('tr').attr('name');
-                        sandbox.delete('event', id);
-                    });
-
-
-                });
-
-                // Listen for clicks on an event in table
-                tile.place.find('tr td:nth-child(2), tr td:nth-child(3), tr td:nth-child(4)')
-                        .on('click', function(event) {
-                            var id = $(this).closest('tr').attr('name');
-                            sandbox.resourceFocused('event', id);
-                        });
-            });
+            timeline.set(events,
+                    sandbox.focusState.startTime,
+                    sandbox.focusState.endTime);
         }
 
         function resourceDeleted(event, parameters) {
             if (parameters.type === 'event') {
-                console.log('Removing rows from table...');
-                tile.place.find('tr[name=' + parameters.id + ']').each(function(index, row) {
-                    $(row).addClass('danger').hide('slow');
-                });
+                sandbox.get('event', {datasetId: sandbox.getCurrentDataset()}, setEvents);
             }
         }
 
         function resourceFocused(event, parameter) {
-            var newDatasetId = '';
+            var newDatasetId;
             if (parameter.type === 'dataset') {
                 newDatasetId = sandbox.getCurrentDataset();
             } else if (parameter.type === 'event') {
                 newDatasetId = sandbox.focusState.event.datasetId;
             }
 
-            if (typeof datasetId === 'undefined'
-                    || datasetId !== newDatasetId) {
-                datasetId = newDatasetId;
-                sandbox.get('event', {datasetId: datasetId}, setEvents);
+            if (typeof newDatasetId !== 'undefined') {
+                sandbox.get('event', {datasetId: newDatasetId}, setEvents);
             }
         }
 
@@ -78,7 +76,6 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
                     = tile
                     = configuration
                     = doneCallback
-                    = datasetId
                     = null;
 
         }
