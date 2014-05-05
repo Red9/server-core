@@ -78,19 +78,17 @@ define(['vendor/underscore'], function(_) {
         };
 
 
-        sandbox.calculateZoom = function(zoomDirection, datasetStartTime,
-                datasetEndTime, currentStartTime, currentEndTime) {
+        sandbox.calculateZoom = function(zoomDirection) {
+
+        
+            var datasetStartTime = sandbox.focusState.minStartTime;
+            var datasetEndTime = sandbox.focusState.maxEndTime;
+            var currentStartTime = sandbox.focusState.startTime;
+            var currentEndTime = sandbox.focusState.endTime;
+
             var result = {};
             var currentDuration = currentEndTime - currentStartTime;
             var zoomInTime = Math.floor(currentDuration / 3);
-
-            if (_.isString(currentStartTime)) {
-                console.log('currentStartTime is string...');
-            }
-
-            if (_.isString(zoomInTime)) {
-                console.log('zoomInTime is string...');
-            }
 
             if (zoomDirection === 'outfull') {
                 return {};

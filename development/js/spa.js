@@ -60,13 +60,8 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
 
         });
         $('[data-name=navbar-fixed-bottom-zoom-button]').on('click', function() {
-            var zoom = sandbox.calculateZoom($(this).data('direction'),
-                    sandbox.focusState.minStartTime,
-                    sandbox.focusState.maxEndTime,
-                    sandbox.focusState.startTime,
-                    sandbox.focusState.endTime
-                    );
-            sandbox.resourceFocused('dataset', sandbox.getCurrentDataset(),
+            var zoom = sandbox.calculateZoom($(this).data('direction'));
+            sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset(),
                     zoom.startTime, zoom.endTime);
         });
     });

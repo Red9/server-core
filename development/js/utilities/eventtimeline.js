@@ -2,8 +2,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
 ], function($, _, d3) {
     function eventTimeline($place, configuration) {
         var graphSvg;
-        var graphWidth;
-        var graphHeight;
+        var graphWidth = $place.width() - 30; // 30 for bootstrap padding
+        var graphHeight = 200; // Make an initial guess.
+        var xScaleHeight = 20;
         var xScale;
         var yScale;
         var eventLabels;
@@ -24,24 +25,85 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
         function initialize() {
             // Create a SVG in $place
 
-            graphWidth = $place.width() - 30; // 30 for bootstrap padding
-            graphHeight = 200;
-
             graphSvg = d3.select($place[0])
                     .append('svg')
                     .attr('height', graphHeight)
                     .attr('width', graphWidth)
-                    .on('mousemove', mouseMove);
-            
+                    .on('mousemove', mouseMove)
+                    .on('contextmenu', emptyRightClick)
+                    .on('drag', dragmove);
+
             xScale = d3.time.scale()
                     .range([leftPadding, graphWidth])
                     .domain([0, 1]);
             xAxis = d3.svg.axis().scale(xScale);
 
+            var xScaleY = (graphHeight - xScaleHeight);
             graphSvg.append('g')
-                    .attr('transform', 'translate(0,120)')
+                    .attr('transform', 'translate(0,' + xScaleY + ')')
                     .attr('class', 'event-timeline-axis')
                     .call(xAxis);
+
+            graphSvg.append('svg:line')
+                    .attr('x1', 200)
+                    .attr('y1', 0)
+                    .attr('x2', 200)
+                    .attr('y2', 10)
+                    .attr('class', 'hovermarker inactive');
+            
+            graphSvg.append('svg:line')
+                    .attr('x1', 200)
+                    .attr('y1', 0)
+                    .attr('x2', 200)
+                    .attr('y2', 10)
+                    .attr('class', 'videomarker inactive');
+
+        }
+        
+        function dragmove(d){
+            console.log('d3.event.x: ' + d3.event.x);
+        }
+
+        function setHoverMarker(time) {
+            var x = xScale(time);
+            graphSvg.selectAll('.hovermarker')
+                    .attr('x1', x)
+                    .attr('x2', x)
+                    .classed('active', true)
+                    .classed('inactive', false);
+
+
+        }
+        function clearHoverMarker() {
+            graphSvg.selectAll('.hovermarker')
+                    .classed('active', false)
+                    .classed('inactive', true);
+        }
+        
+        function setVideoMarker(time) {
+            var x = xScale(time);
+            graphSvg.selectAll('.videomarker')
+                    .attr('x1', x)
+                    .attr('x2', x)
+                    .classed('active', true)
+                    .classed('inactive', false);
+
+
+        }
+        function clearVideoMarker() {
+            graphSvg.selectAll('.videomarker')
+                    .classed('active', false)
+                    .classed('inactive', true);
+        }
+        
+
+        function emptyRightClick() {
+            //stop showing browser menu
+            d3.event.preventDefault();
+
+            if (typeof configuration.emptyRightClick === 'function') {
+                configuration.emptyRightClick();
+            }
         }
 
         function mouseMove() {
@@ -83,7 +145,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
 
 
         function set(events, startTime, endTime) {
-            console.log('Setting. ' + startTime + ', ' + endTime);
 
             // Sort the events so that it's a nice "cascade"
             events = _.sortBy(events, function(event) {
@@ -107,7 +168,19 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
             });
 
             xScale.domain([startTime, endTime]);
+
+            var xScaleY = eventLabels.length * rowHeight;
+            graphHeight = xScaleY + xScaleHeight;
+            graphSvg.attr('height', graphHeight);
+
+            graphSvg.selectAll('.hovermarker')
+                    .attr('y2', xScaleY);
+            graphSvg.selectAll('.videomarker')
+                    .attr('y2', xScaleY);
+            
+
             graphSvg.select('.event-timeline-axis')
+                    .attr('transform', 'translate(0,' + xScaleY + ')')
                     .call(xAxis);
 
             var svgEvents = graphSvg.selectAll('.event-timeline-markers')
@@ -164,6 +237,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                         var setTo = !d3.select(this).classed('event-timeline-markers-select');
                         d3.select(this).classed('event-timeline-markers-select', setTo);
 
+                        d3.event.stopPropagation();
+
                         //stop showing browser menu
                         d3.event.preventDefault();
                     });
@@ -201,27 +276,25 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                     });
 
             svgEventLabels.exit().remove();
-
-
-
         }
-        
-        function getSelected(){
+
+        function getSelected() {
             var idList = [];
-            graphSvg.selectAll('.event-timeline-markers-select').each(function(event){
+            graphSvg.selectAll('.event-timeline-markers-select').each(function(event) {
                 idList.push(event.id);
             });
-            
+
             return idList;
         }
-        
-        
 
         return {
             set: set,
-            getSelected: getSelected
+            getSelected: getSelected,
+            setHoverMarker: setHoverMarker,
+            clearHoverMarker: clearHoverMarker,
+            setVideoMarker: setVideoMarker,
+            clearVideoMarker: clearVideoMarker
         };
-
     }
 
     return eventTimeline;
