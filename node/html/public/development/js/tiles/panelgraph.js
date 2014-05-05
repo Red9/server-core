@@ -135,108 +135,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
             }
         }
 
-        function drawEvents(eventAxisPlace, xScale, width, height) {
-            eventAxisPlace.empty();
-            var svg = d3.select(eventAxisPlace[0]).append('svg')
-                    .attr('width', width)
-                    .attr('height', height);
-
-            var datasetId = sandbox.getCurrentDataset();
-            sandbox.get('event', {datasetId: datasetId},
-            function(events) {
-                var sortedEvents = _.filter(_.sortBy(events, function(event) {
-                    return event.startTime;
-                }), function(event) {
-                    return event.type.toLowerCase() !== 'default'
-                            && event.type.toLowerCase() !== 'sync';
-                });
-
-                function eventClickHandler(event) {
-                    console.log('clicked: ' + event.type);
-                    sandbox.resourceFocused('event', event.id);
-                }
-
-                function mouseoverHandler(event) {
-                    //console.log('Mousing over ' + event.type);
-                }
-
-                function mouseoutHandler(event) {
-                    //console.log('Mousing out  ' + event.type);
-                }
-
-                var svgEvents = svg.selectAll('.rickshaw_red9_event')
-                        .data(sortedEvents).enter().append('g')
-                        .on('click', eventClickHandler)
-                        .on('mouseover', mouseoverHandler)
-                        .on('mouseout', mouseoutHandler);
-
-                svgEvents.append('svg:rect')
-                        .attr('y', function(event, index) {
-                            return index % 2 ? 0 : 10;
-                        })
-                        .each(function(event) {
-                            var x = xScale(event.startTime);
-                            var xEnd = xScale(event.endTime);
-
-
-                            if ((x > width && xEnd > width)
-                                    || (x < 0 && xEnd < 0)) {
-                                // Do nothing. Off edge of graph.
-                                return;
-                            }
-
-                            if (xEnd > width) { // End of event off right edge.
-                                xEnd = width;
-                            }
-
-                            if (x < 0) { // Start of event off left edge
-                                x = 0;
-                            }
-
-                            if (x > xEnd) {
-                                console.log('Error: x > xEnd...: ' + x + ', ' + xEnd);
-                            }
-
-                            var eWidth = xEnd - x;
-
-                            d3.select(this).attr({
-                                x: x,
-                                width: eWidth
-                            });
-
-                        })
-
-                        .style('fill', function(event, index) {
-
-                            var strokes = [
-                                '#377eb8',
-                                '#4daf4a',
-                                '#4daf4a',
-                                '#377eb8'
-                            ];
-                            return strokes[index % 4];
-                        })
-                        .style('fill-opacity', '0.5')
-                        //.style('stroke-opacity', '0.5')
-                        //.style('stroke-width', '2')
-                        .attr('height', height / 2);
-
-                svgEvents.append('svg:text')
-                        .attr('x', function(event) {
-                            return xScale(event.startTime) + 2;
-                        })
-                        .attr('y', function(event, index) {
-                            return index % 2 ? (height / 2) - 2 : height - 2;
-                        })
-                        .attr('font-size', '10px')
-                        .attr('fill', '#000000')
-                        .text(function(event) {
-                            return event.type;
-                        });
-
-            });
-        }
-
         function clearGraphData() {
             while (graphData.length > 0) {
                 graphData.pop();
@@ -256,16 +154,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
             graphArea[0].setAttribute("style", "margin-right:0px");
 
             var yAxisPlace = tile.place.find('.rickshaw_red9_y_axis');
-            var xAxisPlace = tile.place.find('.rickshaw_red9_x_axis');
-            var eventAxisPlace = tile.place.find('.rickshaw_red9_event_axis');
 
             var graphWidth = graphArea.parent().parent().width()
                     - yAxisPlace.width() - 30; // 30: bootstrap padding
 
-            var graphHeight = graphArea.parent().parent().height()
-                    - xAxisPlace.height() - eventAxisPlace.height();
-
-            var xAxisWidth = graphWidth + yAxisPlace.width();
+            var graphHeight = graphArea.parent().parent().height();
 
             if (typeof graph === 'undefined') {
                 //var graphArea = graphArea[0];
@@ -281,17 +174,12 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     series: graphData
                 });
 
-                var xAxis = new Rickshaw.Graph.Axis.X({
+                var xAxis = new Rickshaw.Graph.Axis.Time({
                     graph: graph,
                     orientation: 'bottom',
-                    tickFormat: function(x) {
-                        return moment(x).format('m:ss.SSS');
-                    },
-                    element: xAxisPlace[0]
+                    timeFixture: (new Rickshaw.Fixtures.Time.Millisecond()),
                 });
-                // This is a bit of a hack. I have no idea why the x Axis got so
-                // big, but we need to trim it down.
-                xAxisPlace.find('svg').attr('width', xAxisWidth);
+
 
                 var yAxis = new Rickshaw.Graph.Axis.Y({
                     graph: graph,
@@ -327,11 +215,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     onZoom: function(e) {
                         var startTime = Math.floor(e.position.xMin);
                         var endTime = Math.floor(e.position.xMax);
-                        sandbox.resourceFocused('dataset', sandbox.getCurrentDataset(), startTime, endTime);
+                        sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset(), startTime, endTime);
 
                     },
                     onZoomOut: function() {
-                        sandbox.resourceFocused('dataset', sandbox.getCurrentDataset());
+                        sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset());
                     }
                 });
 
@@ -342,11 +230,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     [parameter.panel.panel.time.length - 1];
 
             graph.render();
-
-            var xAxisScale = d3.scale.linear()
-                    .range([0, xAxisWidth])
-                    .domain([panelStartTime, panelEndTime]);
-            drawEvents(eventAxisPlace, xAxisScale, xAxisWidth, eventAxisPlace.height());
         }
 
         function videoTime(event, parameter) {

@@ -1,20 +1,25 @@
-define(['vendor/jquery', 'vendor/underscore', 'utilities/eventtimeline'
+define(['vendor/jquery', 'vendor/underscore',
+    'utilities/eventtimeline'
 ], function($, _, eventTimeline) {
     function eventList(sandbox, tile, configuration, doneCallback) {
         var timeline;
 
-
-
         initialize(doneCallback);
-
-
 
         function initialize(callback) {
             tile.setTitle('events');
             tile.addListener('totalState-resource-focused', resourceFocused);
-            tile.addListener('totalState-resource-deleted', resourceDeleted);
-            
-            tile.addToBar('delete-events', '', 'glyphicon-trash', deleteSelected);
+            tile.addListener('totalState-resource-deleted', resourceChanged);
+            tile.addListener('totalState-resource-created', resourceChanged);
+            tile.addListener('totalState-hover-time', hoverTime);
+            tile.addListener('totalState-video-time', videoTime);
+
+            tile.addToBar('deleteevents', '', 'glyphicon-trash', deleteSelected);
+            tile.addToBar('editevent', '', 'glyphicon-pencil', editSelected);
+
+            if (typeof configuration.showMarkers === 'undefined') {
+                configuration.showMarkers = true;
+            }
 
             sandbox.requestTemplate('eventlist', function(template) {
                 tile.place.html(template({}));
@@ -23,15 +28,24 @@ define(['vendor/jquery', 'vendor/underscore', 'utilities/eventtimeline'
                         tile.place.find('[data-name=timeline]'),
                         {
                             hoverTime: hoverTimeUpdate,
-                            eventClicked: eventClicked
+                            eventClicked: eventClicked,
+                            emptyRightClick: emptyRightClick
                         });
                 setEvents([]);
                 callback();
             });
         }
         
-        function deleteSelected(){
-            //console.log(timeline.getSelected());
+        function editSelected(){
+            var selected = timeline.getSelected();
+            if(selected.length > 1){
+                alert('Sorry, you can only edit one event at a time.');
+            }else if(selected.length === 1){
+                sandbox.displayEditResourceDialog('event', selected[0]);
+            }
+        }
+
+        function deleteSelected() {
             sandbox.delete('event', timeline.getSelected());
         }
 
@@ -42,13 +56,17 @@ define(['vendor/jquery', 'vendor/underscore', 'utilities/eventtimeline'
             sandbox.initiateHoverTimeEvent(time);
         }
 
+        function emptyRightClick() {
+            sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset());
+        }
+
         function setEvents(events) {
             timeline.set(events,
                     sandbox.focusState.startTime,
                     sandbox.focusState.endTime);
         }
 
-        function resourceDeleted(event, parameters) {
+        function resourceChanged(event, parameters) {
             if (parameters.type === 'event') {
                 sandbox.get('event', {datasetId: sandbox.getCurrentDataset()}, setEvents);
             }
@@ -66,6 +84,23 @@ define(['vendor/jquery', 'vendor/underscore', 'utilities/eventtimeline'
                 sandbox.get('event', {datasetId: newDatasetId}, setEvents);
             }
         }
+
+        function videoTime(event, parameter) {
+            if (configuration.showMarkers === true) {
+                timeline.setVideoMarker(parameter.videoTime);
+            } else {
+                timeline.clearVideoMarker();
+            }
+        }
+
+        function hoverTime(event, parameter) {
+            if (configuration.showMarkers === true) {
+                timeline.setHoverMarker(parameter.hoverTime);
+            } else {
+                timeline.clearHoverMarker();
+            }
+        }
+
 
         function destructor() {
             setEvents([]);

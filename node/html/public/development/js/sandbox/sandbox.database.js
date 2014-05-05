@@ -52,6 +52,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async'
                 data: newResource,
                 success: function(data) {
                     callback(undefined, data);
+                    sandbox.initiateResourceCreatedEvent(resourceType, data);
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     callback(textStatus + '---' + errorThrown + ' --- ' + jqXHR.responseText);

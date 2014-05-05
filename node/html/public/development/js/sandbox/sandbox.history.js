@@ -1,6 +1,6 @@
-define(['vendor/jquery', 'vendor/history',
+define(['vendor/jquery', 'vendor/underscore', 'vendor/history',
     'vendor/URI'
-], function($, History, URI) {
+], function($, _,History, URI) {
     function sandboxHistory(sandbox) {
         var historyChanging = false;
 
@@ -32,15 +32,24 @@ define(['vendor/jquery', 'vendor/history',
 
             var state = getCurrentHistory();
 
-            sandbox.initiateResourceFocusedEvent(state.resource.substring(1), // remove leading '/'
+            var startTime = parseInt(state.query['focus.starttime']);
+            startTime = _.isNaN(startTime) ? undefined : startTime;
+            
+            var endTime = parseInt(state.query['focus.endtime']);
+            endTime = _.isNaN(endTime) ? undefined : endTime;
+            
+            sandbox.internalResourceFocusedEvent(state.resource.substring(1), // remove leading '/'
                     state.id,
-                    state.query['focus.starttime'], state.query['focus.endtime'],
+                    startTime,
+                    endTime,
                     function() {
                         $progressBar.hide('fast').toggleClass('active');
                         historyChanging = false;
                     });
         }
 
+
+        // PRIVATE: should only be used by internal Sandbox methods.
         function resourceFocused(type, id, startTime, endTime) {
             var uri = URI();
             if (typeof type !== 'undefined' && typeof id !== 'undefined') {

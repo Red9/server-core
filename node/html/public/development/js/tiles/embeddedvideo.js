@@ -188,10 +188,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             tile.place.find('.long-list-wrapper')
                     .on('click', '[data-name=videofocus]', function() {
                         var videoId = $(this).parents('[data-videoid]').data('videoid');
-                        console.log('Video Id: ' + videoId);
                         currentVideoIndex = getVideoIndex(videoId);
-                        console.log('currentVideoIndex: ' + currentVideoIndex);
-                        sandbox.resourceFocused('dataset', sandbox.getCurrentDataset(), videoList[currentVideoIndex].startTime, videoList[currentVideoIndex].endTime);
+                        sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset(), videoList[currentVideoIndex].startTime, videoList[currentVideoIndex].endTime);
                         player.loadVideoById(videoList[currentVideoIndex].hostId);
                     })
                     .on('click', '[data-name=deletevideobutton]', function() {
@@ -200,16 +198,12 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
                         deleteVideo(videoId);
 
-
                     })
                     .on('click', '[data-name=videoedit]', function() {
                         var videoId = $(this).data('id');
-
                         sandbox.displayEditResourceDialog('video', videoId);
                     });
         }
-
-
 
         function resourceFocused(event, parameter) {
             var newDatasetId = '';
@@ -226,7 +220,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                 datasetId = newDatasetId;
                 sandbox.get('video', {dataset: datasetId}, setVideos);
             } else { // At least seek the video to match the current time...
-                console.log('Seeking to time ' + sandbox.focusState.startTime);
                 seekTo(sandbox.focusState.startTime);
             }
         }

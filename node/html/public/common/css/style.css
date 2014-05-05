@@ -179,35 +179,49 @@ body {
     bottom: 0;
     width: 60px;
 }
-.rickshaw_red9_event_axis {
-    position: relative;
-    left: 60px;
-    height: 20px;
-}
-.rickshaw_red9_x_axis {
-    position: relative;
-    left: 60px;
-    height: 18px;
-}
 .rickshaw_red9_chart_container {
     float: left;
     position: relative;
 }
-.rickshaw_red9_event {
 
+
+
+/* For the Rickshaw Markers */
+.videomarker,
+.hovermarker {
+        stroke-width: 3px;
+        stroke: #FF0000;
+
+	transition: opacity 0.25s linear;
+	-moz-transition: opacity 0.25s linear;
+	-o-transition: opacity 0.25s linear;
+	-webkit-transition: opacity 0.25s linear;
+}
+.videomarker.inactive,
+.hovermarker.inactive {
+	opacity: 0;
+}
+.videomarker.active,
+.hovermarker.active {
+	opacity: 0.5;
 }
 
 
+/*
+Event Timeline
+*/
 .event-timeline-axis path,
 .event-timeline-axis line {
     fill: none;
     stroke: black;
     shape-rendering: crispEdges;
+    opacity: 0.2;
 }
 
 .event-timeline-axis text {
     font-family: sans-serif;
     font-size: 11px;
+    opacity: 0.5;
 }
 
 .event-timeline-markers {

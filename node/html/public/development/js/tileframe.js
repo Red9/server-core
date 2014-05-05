@@ -91,17 +91,9 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
         function destructor(alreadyHidden) {
             // TODO: the proper order of events might not be followed for 
             // modals. Need to figure that out.
-            $(sandbox).off('.' + id);
-            if (frameType === 'modal' && alreadyHidden !== true) {
-                place.filter('.modal').on('hidden.bs.modal', function() {
-                    place.remove();
-                }).modal('hide'); // If modal, will hide it.
-            } else {
-                place.unbind();
-                place.empty();
-                place.remove();
-            }
-            sandbox
+            
+            function clearAll(){
+                sandbox
                     = id
                     = homeDiv
                     = frameType
@@ -114,6 +106,21 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
                     = tilePlace
                     = barPlace
                     = undefined;
+            }
+            
+            $(sandbox).off('.' + id);
+            if (frameType === 'modal' && alreadyHidden !== true) {
+                place.filter('.modal').on('hidden.bs.modal', function() {
+                    //place.remove();
+                    clearAll();
+                }).modal('hide'); // If modal, will hide it.
+            } else {
+                place.unbind();
+                place.empty();
+                place.remove();
+                clearAll();
+            }
+            
         }
     }
 

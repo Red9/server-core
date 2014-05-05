@@ -1,9 +1,6 @@
 define(['vendor/jquery', 'vendor/underscore'
 ], function($, _) {
     function sandboxEvents(sandbox) {
-        function initiateEvent(eventName, parameters) {
-            $(sandbox).trigger(eventName, parameters);
-        }
         sandbox.initiateVideoTimeEvent = function(videoTime) {
             var eventName = 'totalState-video-time';
             initiateEvent(eventName, {videoTime: videoTime});
@@ -12,11 +9,33 @@ define(['vendor/jquery', 'vendor/underscore'
             var eventName = 'totalState-hover-time';
             initiateEvent(eventName, {hoverTime: hoverTime});
         };
-        sandbox.initiateResourceDeletedEvent = function(resource, id) {
+        sandbox.initiateResourceDeletedEvent = function(type, id) {
             var eventName = 'totalState-resource-deleted';
-            initiateEvent(eventName, {type: resource, id: id});
+            initiateEvent(eventName, {type: type, id: id});
         };
-        sandbox.initiateResourceFocusedEvent = function(type, id, startTime, endTime, callbackDone) {
+        
+        sandbox.initiateResourceCreatedEvent = function(type, resource) {
+            var eventName = 'totalState-resource-created';
+            initiateEvent(eventName, {type: type, resource: resource});
+        };
+        
+        sandbox.initiateResourceFocusedEvent = function(type, id, startTime, endTime){
+            sandbox.resourceFocused(type, id, startTime, endTime);
+        };
+        
+        
+        
+        
+        
+        
+        //----------------------------------------------------------------------
+        // PRIVATE
+        //----------------------------------------------------------------------
+        function initiateEvent(eventName, parameters) {
+            $(sandbox).trigger(eventName, parameters);
+        }
+        
+        sandbox.internalResourceFocusedEvent = function(type, id, startTime, endTime, callbackDone) {
             var eventName = 'totalState-resource-focused';
             
             // Fill callback done with a sensible default if the caller doesn't care.
