@@ -1,5 +1,5 @@
-define(['vendor/jquery', 'vendor/underscore'
-], function($, _) {
+define(['vendor/jquery', 'vendor/underscore', 'vendor/async'
+], function($, _, async) {
 
     function sandboxDatabase(sandbox) {
         sandbox.get = function(resourceType, constraints, callback, expand) {
@@ -58,15 +58,50 @@ define(['vendor/jquery', 'vendor/underscore'
                 }
             });
         };
-        sandbox.delete = function(resourceType, id) {
+
+
+        function deleteIndividual(resourceType, id, callback) {
             $.ajax({
                 type: 'DELETE',
                 url: sandbox.apiUrl + '/' + resourceType + '/' + id,
                 dataType: 'json',
                 success: function() {
-                    sandbox.initiateResourceDeletedEvent(resourceType, id);
+                    callback();
+                },
+                error: function() {
+                    callback('error');
                 }
             });
+        }
+
+        /** Deletes the resource, and initiates a resource-deleted event
+         * when complete.
+         * 
+         * @param {type} resourceType The type, such as 'dataset' or 'event'.
+         * @param {type} id A single ID, or array of IDs.
+         */
+        sandbox.delete = function(resourceType, id) {
+            if (_.isArray(id) === false) {
+                deleteIndividual(resourceType, id, function() {
+                    sandbox.initiateResourceDeletedEvent(resourceType, id);
+                });
+            } else {
+                if (id.length > 0) { // Best not do anything for empty arrays
+                    async.reduce(id, [],
+                            function(memo, i, callback) {
+                                deleteIndividual('event', i, function(err) {
+                                    if (typeof err === 'undefined') {
+                                        memo.push(i);
+                                    }
+                                    callback(null, memo);
+                                });
+                            },
+                            function(err, result) {
+                                sandbox.initiateResourceDeletedEvent(resourceType, result);
+                            });
+                }
+            }
+
         };
         sandbox.getPanel = function(id, startTime, endTime, cache, callback) {
             var panelParameters = {

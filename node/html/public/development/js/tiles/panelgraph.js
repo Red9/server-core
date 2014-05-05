@@ -308,7 +308,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                         sandbox.initiateHoverTimeEvent(x);
                     },
                     onHide: function() {
-                        console.log('Not hovering...');
+                        //console.log'Not hovering...');
                     }
                 });
 
