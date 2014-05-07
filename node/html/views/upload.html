@@ -1,7 +1,7 @@
 
 
 
-<form data-name="rncuploadform" action="http://action.localdev.redninesensor.com/upload/rnc" method="post" enctype="multipart/form-data" class="form-horizontal">
+<form data-name="rncuploadform" action="{{actionUrl}}" method="post" enctype="multipart/form-data" class="form-horizontal">
     <fieldset>
         <!-- Form Name -->
         <legend>RNC Upload</legend>
@@ -68,8 +68,10 @@ require(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate', 'vendor
                 url: '{{apiUrl}}/dataset/' + id + '?expand=headPanel',
                 dataType: 'json',
                 success: function(dataset) {
-                    if (typeof dataset[0].headPanel === 'undefined'
-                            || _.keys(dataset[0].headPanel.summaryStatistics).length === 0) {
+                    if (dataset.length !== 1
+                            || typeof dataset[0].headPanel === 'undefined'
+                            || _.keys(dataset[0].headPanel.summaryStatistics).length === 0
+                            ) {
                         // For the case when the the dataset has just been
                         // uploaded, and processing is not done yet.
                         setTimeout(function() {
