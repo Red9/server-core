@@ -94,20 +94,20 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
             
             function clearAll(){
                 sandbox
-                    = id
-                    = homeDiv
-                    = frameType
-                    = tileClass
-                    = tileConfiguration
-                    = createdCallback
-                    = tileResult
-                    = place
-                    = titlePlace
-                    = tilePlace
-                    = barPlace
-                    = undefined;
+                        = id
+                        = homeDiv
+                        = frameType
+                        = tileClass
+                        = tileConfiguration
+                        = createdCallback
+                        = tileResult
+                        = place
+                        = titlePlace
+                        = tilePlace
+                        = barPlace
+                        = undefined;
             }
-            
+
             $(sandbox).off('.' + id);
             if (frameType === 'modal' && alreadyHidden !== true) {
                 place.filter('.modal').on('hidden.bs.modal', function() {
@@ -115,12 +115,14 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
                     clearAll();
                 }).modal('hide'); // If modal, will hide it.
             } else {
-                place.unbind();
-                place.empty();
-                place.remove();
+                if (typeof place !== 'undefined') {
+                    place.unbind();
+                    place.empty();
+                    place.remove();
+                }
                 clearAll();
             }
-            
+
         }
     }
 
