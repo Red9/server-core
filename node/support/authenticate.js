@@ -52,7 +52,8 @@ exports.ProcessLoginRequest = function(identifier, profile, callback) {
                     displayName: profile.displayName,
                     email: profile.emails[0].value,
                     givenName: profile.name.givenName,
-                    familyName: profile.name.familyName
+                    familyName: profile.name.familyName,
+                    preferredLayout: {}
                 };
 
                 userResource.create(newUser, function(err, createdUserList) {
