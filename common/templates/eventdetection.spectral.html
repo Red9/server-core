@@ -1,0 +1,55 @@
+<form class="form-horizontal">
+    <fieldset>
+
+        <input type="hidden" name="type" value="spectral"/>
+        <input type="hidden" name="datasetId" value="{{datasetId}}"/>
+        
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="eventType">Select generated event type</label>
+            <div class="col-md-4">
+                <select name="eventType" class="form-control">
+                    {{#each eventTypes}}
+                    <option value="{{name}}">{{name}}</option>
+                    {{/each}}
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="axis">Axis</label>
+            <div class="col-md-4">
+                <select name="axis" class="form-control">
+                    {{#each axis}}
+                    <option value="{{name}}">{{name}}</option>
+                    {{/each}}
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="windowSize">Window Size</label>  
+            <div class="col-md-4">
+                <input name="windowSize" type="number" class="form-control" min="16" value="256">
+                <span class="help-block">Choose the number of samples for a window</span>  
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="threshold">Threshold</label>  
+            <div class="col-md-4">
+                <input name="threshold" type="number" class="form-control" min="0" value="0.8">
+                <span class="help-block">Choose the threshold above which an event will be considered</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="overlapStep">Overlap Step</label>  
+            <div class="col-md-4">
+                <input name="overlapStep" type="number" class="form-control" min="0" max="100" value="50">%
+                <span class="help-block">Choose the percentage of overlap</span>  
+            </div>
+        </div>
+
+        <button class="btn btn-large btn-default pull-right" name="submitButton" type="submit">Run Spectral Detection</button>
+    </fieldset>
+</form>
