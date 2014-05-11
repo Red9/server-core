@@ -20,18 +20,10 @@ exports.init = function() {
 
             app.use(logger.logger()); // Middleware to log all requests. Uses logger
             app.use(require('compression')());
-            //app.use(require('body-parser').json());
-            //app.use(require('body-parser').urlencoded());
+            app.use(require('body-parser').json());
+            app.use(require('body-parser').urlencoded());
 
             // Enable CORS: http://enable-cors.org/server_expressjs.html
-            /*app.all('*', function(req, res, next) {
-             res.header('Access-Control-Allow-Origin', '*');
-             res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-             res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-             next();
-             });*/
-
-
             // From http://stackoverflow.com/q/11001817
             app.use(function(req, res, next) {
                 res.header('Access-Control-Allow-Origin', '*');

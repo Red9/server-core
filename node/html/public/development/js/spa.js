@@ -28,6 +28,10 @@ require(['sandbox', 'vendor/jquery', 'vendor/underscore', 'vendor/bootstrap'], f
             sandbox.showModal('layouteditor', {});
         });
         
+        $('#navbar-fixed-bottom-event-detection-button').on('click', function(element){
+           sandbox.showModal('eventdetection', {}); 
+        });
+        
         $('#navbar-fixed-bottom-view-summary-statistics-button').on('click', function(element) {
             sandbox.showModal('summarystatistics', {});
         });

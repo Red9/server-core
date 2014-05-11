@@ -3,27 +3,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
         showForm(tile.place, configuration);
         doneCallback();
 
-
-
-        function showErrors(errorMap, errorList) {
-            // Taken from http://icanmakethiswork.blogspot.com/2013/08/using-bootstrap-tooltips-to-display.html
-            // Clean up any tooltips for valid elements
-            $.each(this.validElements(), function(index, element) {
-                var $element = $(element);
-                $element.parent().removeClass("has-error");
-                $element.data("title", "") // Clear the title - there is no error associated anymore
-                        .tooltip("destroy");
-            });
-            // Create new tooltips for invalid elements
-            $.each(errorList, function(index, error) {
-                var $element = $(error.element);
-                $element.parent().addClass("has-error");
-                $element.tooltip("destroy") // Destroy any pre-existing tooltip so we can repopulate with new tooltip content
-                        .data("title", error.message)
-                        .tooltip(); // Create a new tooltip based on the error messsage we just set in the title
-            });
-        }
-
         function submitHandler(form) {
             var $form = $(form);
 
@@ -69,11 +48,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 tile.destructor();
                 console.log('Unknown resource action ' + resourceAction);
             }
-
-            console.log('Do ' + resourceAction + ' with type ' + resourceType + ' and formValues: ' + JSON.stringify(formValues));
+            //console.log('Do ' + resourceAction + ' with type ' + resourceType + ' and formValues: ' + JSON.stringify(formValues));
         }
-
-
 
         var schemas = {};
         schemas.event = function(create) {
@@ -101,7 +77,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                         min: "Time must be greater than start time"
                     }
                 },
-                showErrors: showErrors,
+                showErrors: sandbox.showJqueryValidateErrors,
                 submitHandler: submitHandler
             };
         };
@@ -119,7 +95,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                         required: create
                     }
                 },
-                showErrors: showErrors,
+                showErrors: sandbox.showJqueryValidateErrors,
                 submitHandler: submitHandler
             };
         };
@@ -135,7 +111,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                         required: create
                     }
                 },
-                showErrors: showErrors,
+                showErrors: sandbox.showJqueryValidateErrors,
                 submitHandler: submitHandler
             };
         };

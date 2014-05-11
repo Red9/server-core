@@ -221,7 +221,7 @@ exports.getProcessedPanel = function(parameters, callbackDone) {
 /** 
  * @param {type} options
  * @param {type} callbackDataset
- * @param {type} callbackData
+ * @param {type} callbackData Called once for each row
  * @param {type} callbackDone
  * @returns {undefined}
  */

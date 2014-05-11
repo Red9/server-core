@@ -4,8 +4,7 @@ function defaultHandler(req, res, next) {
 
 module.exports = function(app) {
     app.get('/', defaultHandler);
-    
-    
+
     app.post('/upload/rnc', require('./rncprocess').post);
-    
+    app.post('/find/event/:type', require('./findevent').post);
 };

@@ -6,10 +6,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
     'sandbox/sandbox.utilities',
     'sandbox/sandbox.convenience',
     'sandbox/sandbox.database',
-    'sandbox/sandbox.events'
+    'sandbox/sandbox.events',
+    'sandbox/sandbox.action'
 ], function($, _, Handlebars, async, tileFrame, chh,
         sandboxHistory, sandboxUtilities, sandboxConvenience,
-        sandboxDatabase, sandboxEvents) {
+        sandboxDatabase, sandboxEvents, sandboxAction) {
     var sandbox = {
         currentUser: '', // User object
         apiUrl: '',
@@ -30,6 +31,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             sandboxConvenience(sandbox);
             sandboxDatabase(sandbox);
             sandboxEvents(sandbox);
+            sandboxAction(sandbox);
 
             sandbox.actionUrl = $('#page_parameters').data('actionurl');
             sandbox.apiUrl = $('#page_parameters').data('apiurl');
