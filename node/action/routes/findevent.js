@@ -11,10 +11,11 @@ exports.post = function(req, res, next) {
         findEvent.spectral({
             eventType: req.param('eventType'),
             axis: req.param('axis'),
-            threshold: req.param('threshold'),
-            windowSize: req.param('windowSize'),
-            overlapStep: req.param('overlapStep'),
-            datasetId: req.param('datasetId')
+            threshold: parseFloat(req.param('threshold')),
+            windowSize: parseFloat(req.param('windowSize')),
+            overlapStep: parseFloat(req.param('overlapStep')),
+            datasetId: req.param('datasetId'),
+            thresholdDirection: req.param('thresholdDirection')
         });
     } else {
         next();

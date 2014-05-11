@@ -52,8 +52,6 @@ exports.random = function(datasetId, eventType, quantity) {
 
 
 exports.spectral = function(options) {
-    //console.log('Got options: ' + JSON.stringify(options));
-
     var datasetId = options.datasetId;
 
     datasetResource.get({id: datasetId}, function(datasetList) {
@@ -63,16 +61,19 @@ exports.spectral = function(options) {
         }
         var dataset = datasetList[0];
 
+        var start = new Date().getTime();
         var script = spawn('Rscript', ['spectralWave.r'], {cwd: 'bin/hmm/'});
         script.stdout.setEncoding('utf8');
         script.stderr.setEncoding('utf8');
         script.stdin.setEncoding('utf8');
 
         script.stderr.on('data', function(something) {
-            console.log('M: ' + something);
+            console.log('M: ' + something.trim());
         });
 
         script.on('exit', function(code, signal) {
+            console.log('Execution time: ' + ((new Date().getTime()) - start));
+
             var processingInfo = script.stderr.read();
             var events = JSON.parse(script.stdout.read());
 
@@ -81,44 +82,42 @@ exports.spectral = function(options) {
             }
 
             console.log('Events: ' + JSON.stringify(events));
+
+            _.each(events, function(event) {
+
+                event.type = options.eventType;
+                event.datasetId = options.datasetId;
+
+                eventResource.create(event, function(err) {
+                    if (err) {
+                        log.error('Could not create event: ' + err);
+                    }
+                });
+            });
+
         });
 
-        var writeQueue = async.queue(function(task, callback) {
-            script.stdin.write(task + '\n');
-            //console.log('Running from stack...');
-            callback();
-        }, 1);
-
-        writeQueue.push(JSON.stringify(options));
+        script.stdin.write(JSON.stringify(options) + '\n');
+        var axisIndex = -1;
 
         panelResource.getPanelBody({
             id: dataset.headPanelId
         }, function(panel) {
-            var output = 'time';
+            axisIndex = _.reduce(panel.axes, function(memo, column, index) {
+                if (column === options.axis) {
+                    return index;
+                } else {
+                    return memo;
+                }
+            });
 
-            output = _.reduce(panel.axes, function(memo, column) {
-                memo += ',' + column;
-                return memo;
-            }, output);
-
-            //console.log('Output: ' + output);
-            //script.stdin.write(output);
-            writeQueue.push(output);
-
+            
+            script.stdin.write('time,dataaxis\n');
         }, function(time, data, index) {
-            var output = time;
-
-            output = _.reduce(data, function(memo, column) {
-                memo += ',' + column;
-                return memo;
-            }, output);
-
-            //script.stdin.write(output);
-            writeQueue.push(output);
-
+            var output = time + ',' + data[axisIndex];
+            script.stdin.write(output + '\n');
         }, function(err) {
-            //script.stdin.write('\n\n');
-            writeQueue.push('\n');
+            script.stdin.write('\n\n');
         });
 
 
