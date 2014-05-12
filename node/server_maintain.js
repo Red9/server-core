@@ -17,8 +17,31 @@ var log = logger.log; // console.log replacement
 log.info("Maintain Node.js process started.");
 //----------------------------------------------------------------------
 //MoveDatasetPanelMetaToPanelList();
-createRawDataMetaTable();
+//createRawDataMetaTable();
+updateEventsWithSource();
 //----------------------------------------------------------------------
+
+
+function updateEventsWithSource() {
+    var eventResource = requireFromRoot('support/resources/event');
+
+    var defaultSource = {
+        type: 'manual',
+        creationTime: (new Date()).getTime(), // Overwritten in pre
+        algorithm: 'manual',
+        parameters: {}
+    };
+
+    eventResource.get({}, function(events) {
+        underscore.each(events, function(event) {
+            eventResource.update(event.id, {source: defaultSource}, function() {
+                console.log('Updated ' + event.id);
+            });
+        });
+    });
+
+}
+
 
 function createRawDataMetaTable() {
     var panelResource = requireFromRoot('support/resources/panel');

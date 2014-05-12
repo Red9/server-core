@@ -318,6 +318,10 @@ var event_schema = [
     {
         key: 'summary_statistics',
         hint: 'varchar'
+    },
+    {
+        key: 'source',
+        hint: 'varchar'
     }
 ];
 

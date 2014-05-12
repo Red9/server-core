@@ -1,3 +1,4 @@
+var async = require('async');
 var spawn = require('child_process').spawn;
 var underscore = require('underscore')._;
 
@@ -7,15 +8,32 @@ var config = requireFromRoot('config');
 var panelResource = requireFromRoot('support/resources/panel');
 
 
+var queue = async.queue(function(task, callback) {
+    calculate(task.panelId, task.startTime, task.endTime, function(summaryStatistics) {
+        callback();
+        task.callback(summaryStatistics);
+    });
+}, 4);
+
+exports.calculate = function(panelId, startTime, endTime, callback) {
+    queue.push({
+        panelId: panelId,
+        startTime: startTime,
+        endTime: endTime,
+        callback: callback
+    });
+};
+
+
 /**
  * 
- * @param {uuid} datasetId
+ * @param {uuid} panelId
  * @param {int} startTime note: pass undefined or explicit null if you want to default to panel startTime
  * @param {int} endTime note: pass undefined or explicit null if you want to default to panel endTime
  * @param {function} callback (statistics)
  * @returns {undefined}
  */
-exports.calculate = function(panelId, startTime, endTime, callback) {
+function calculate(panelId, startTime, endTime, callback) {
 
     var calculationStartTime = new Date();
 
@@ -25,14 +43,14 @@ exports.calculate = function(panelId, startTime, endTime, callback) {
             callback({});
         } else {
             var panel = panelList[0];
-            
-            if(typeof startTime === 'undefined' || startTime === null){
+
+            if (typeof startTime === 'undefined' || startTime === null) {
                 startTime = panel.startTime;
             }
-            if(typeof endTime === 'undefined' || endTime === null){
+            if (typeof endTime === 'undefined' || endTime === null) {
                 endTime = panel.endTime;
             }
-            
+
             var axes = panel.axes;
 
             var axesString = '';
@@ -64,6 +82,8 @@ exports.calculate = function(panelId, startTime, endTime, callback) {
             log.info("Starting statistics for panel " + panelId);
 
             statistician.on('exit', function(code, signal) {
+                log.info("Statistics done (" + (new Date() - calculationStartTime) + "ms) Code: " + code);
+
                 statistician.stdout.setEncoding("utf8");
                 statistician.stderr.setEncoding("utf8");
                 var stdout = statistician.stdout.read();
@@ -71,7 +91,6 @@ exports.calculate = function(panelId, startTime, endTime, callback) {
 
                 var result = {};
 
-                log.debug("Statistics done (" + (new Date() - calculationStartTime) + "ms) Code: " + code);
                 if (code !== 0) {
                     log.error("Error log: " + stderr);
                 } else {
@@ -85,4 +104,5 @@ exports.calculate = function(panelId, startTime, endTime, callback) {
             });
         }
     });
-};
+}
+;

@@ -10,6 +10,13 @@ var common = requireFromRoot('support/resourcescommon');
 var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 var datasetResource = requireFromRoot('support/resources/dataset');
 
+var defaultSource = {
+    type: 'manual',
+    creationTime: '', // Overwritten in pre
+    algorithm: 'manual',
+    parameters: {}
+};
+
 var eventResource = {
     startTime: {
         type: 'timestamp',
@@ -32,6 +39,11 @@ var eventResource = {
         editable: true
     },
     //-------------------------
+    source: {
+        type: 'object',
+        includeToCreate: false,
+        editable: true
+    },
     summaryStatistics: {
         type: 'object',
         includeToCreate: false,
@@ -51,7 +63,7 @@ function mapToCassandra(resource) {
     cassandra.dataset = resource.datasetId;
     cassandra.summary_statistics = JSON.stringify(resource.summaryStatistics);
     cassandra.type = resource.type;
-
+    cassandra.source = JSON.stringify(resource.source);
 
     if (typeof resource.startTime !== 'undefined') {
         cassandra.start_time = moment(resource.startTime).toDate();
@@ -84,6 +96,13 @@ function mapToResource(cassandra) {
         // Catch if it is undefined.
         resource.summaryStatistics = {};
     }
+
+    try {
+        resource.source = JSON.parse(cassandra.source);
+    } catch (e) {
+        resource.source = {};
+    }
+
     resource.type = cassandra.type;
 
     return resource;
@@ -131,12 +150,22 @@ exports.get = function(constraints, callback, expand) {
     common.getResource(exports.resource, constraints, callback, expand);
 };
 
-var createFlush = function(newEvent) {
+function createFlush(newEvent) {
     newEvent.id = common.generateUUID();
     newEvent.summaryStatistics = {};
-};
+}
 
-var createPost = function(newEvent) {
+function createPre(newEvent, callback) {
+    if (typeof newEvent.source === 'undefined') {
+        newEvent.source = defaultSource;
+    }
+
+    newEvent.source.creationTime = (new Date()).getTime();
+
+    callback(true);
+}
+
+function createPost(newEvent) {
     datasetResource.get({id: newEvent.datasetId}, function(datasetList) {
         var dataset = datasetList[0];
         summaryStatisticsResource.calculate(dataset.headPanelId, newEvent.startTime, newEvent.endTime, function(statistics) {
@@ -147,15 +176,16 @@ var createPost = function(newEvent) {
             });
         });
     });
-};
+}
 
 exports.resource = {
-    name:'event',
+    name: 'event',
     mapToCassandra: mapToCassandra,
     mapToResource: mapToResource,
     cassandraTable: 'event',
     schema: eventResource,
     create: {
+        pre: createPre,
         flush: createFlush,
         post: createPost
     }
