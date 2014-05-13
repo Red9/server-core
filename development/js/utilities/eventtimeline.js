@@ -7,7 +7,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
         var xScaleHeight = 20;
         var xScale;
         var yScale;
-        var eventLabels;
         var xAxis;
 
         // Constants
@@ -30,6 +29,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                     .attr('height', graphHeight)
                     .attr('width', graphWidth)
                     .on('mousemove', mouseMove)
+                    .on('mouseout', mouseOut)
                     .on('contextmenu', emptyRightClick)
                     .on('drag', dragmove);
 
@@ -106,6 +106,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
             }
         }
 
+        function mouseOut() {
+            highlightRow(-1);
+        }
+
         function mouseMove() {
             highlightRow(d3.mouse(this)[1]);
 
@@ -118,48 +122,52 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
             }
         }
 
-        function toType(y) {
-            return _.reduce(yScale, function(memo, minY, type) {
+        function toRowKey(y) {
+            return _.reduce(yScale, function(memo, minY, rowKey) {
                 if (typeof memo !== 'undefined') {
                     return memo;
                 } else if (minY <= y && y < minY + markerHeight) {
-                    return type;
+                    return rowKey;
                 }
             }, undefined);
         }
 
         function highlightRow(y) {
             // Get the event type from y
-            var highlightType = toType(y);
+            var rowKey = toRowKey(y);
 
             graphSvg.selectAll('.event-timeline-types')
                     .classed('event-timeline-types-highlight', function(type) {
-                        return type === highlightType;
+                        return type === rowKey;
                     });
 
             graphSvg.selectAll('.event-timeline-markers')
                     .classed('event-timeline-markers-highlight', function(event) {
-                        return event.type === highlightType;
+                        return calculateRowKey(event) === rowKey;
                     });
         }
 
+        function calculateRowKey(event) {
+            return event.type + event.source.type;
+        }
 
         function set(events, startTime, endTime) {
-
-            // Sort the events so that it's a nice "cascade"
-            events = _.sortBy(events, function(event) {
-                return event.startTime;
+            // Get all event labels
+            var eventLabels = {};
+            var rowKeys = [];
+            _.each(events, function(event) {
+                var key = calculateRowKey(event);
+                eventLabels[key] = event.type
+                        + (event.source.type === 'auto' ? '*' : '');
+                rowKeys.push(key);
             });
 
-            // Get all event labels
-            eventLabels = _.uniq(_.pluck(events, 'type'));
+            rowKeys = _.uniq(rowKeys).sort();
 
-            yScale = _.reduce(eventLabels, function(memo, label) {
-                if (_.has(memo, label) === false) {
-                    memo[label] = _.size(memo) * rowHeight;
-                }
-                return memo;
-            }, {});
+            yScale = {};
+            _.each(rowKeys, function(key, index) {
+                yScale[key] = index * rowHeight;
+            });
 
             // Get rid of events outside the current window
             var viewableEvents = _.reject(events, function(event) {
@@ -169,7 +177,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
 
             xScale.domain([startTime, endTime]);
 
-            var xScaleY = eventLabels.length * rowHeight;
+            var xScaleY = rowKeys.length * rowHeight;
             graphHeight = xScaleY + xScaleHeight;
             graphSvg.attr('height', graphHeight);
 
@@ -194,7 +202,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
 
             svgEvents
                     .attr('y', function(event) {
-                        return yScale[event.type];
+                        return yScale[calculateRowKey(event)];
                     })
                     .attr('height', markerHeight)
                     .each(function(event) {
@@ -250,7 +258,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
 
 
             var svgEventLabels = graphSvg.selectAll('.event-timeline-types')
-                    .data(eventLabels, function(label) {
+                    .data(rowKeys, function(label) {
                         return label;
                     });
 
@@ -262,20 +270,28 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
 
             svgEventLabels
                     .attr('x', 0)
-                    .attr('y', function(eventLabel) {
+                    .attr('y', function(rowKey) {
                         // Get the CSS font size, remove the "px", and convert
                         // it to an int.
                         var fontSize = parseInt(d3.select(this).style('font-size').slice(0, -2));
-                        return yScale[eventLabel] + fontSize;
+                        return yScale[rowKey] + fontSize;
                     })
-                    .text(function(eventLabel) {
-                        return eventLabel;
+                    .text(function(rowKey) {
+                        return eventLabels[rowKey];
                     })
-                    .on('contextmenu', function(type) {
-                        console.log('row type: ' + type);
+                    .on('contextmenu', function(rowKey) {
+                        console.log('row type: ' + rowKey);
 
                         //stop showing browser menu
                         d3.event.preventDefault();
+                    })
+                    .on('click', function(rowKey) {
+                        graphSvg.selectAll('.event-timeline-markers')
+                                .each(function(event) {
+                                    if (calculateRowKey(event) === rowKey) {
+                                        d3.select(this).classed('event-timeline-markers-select', true);
+                                    }
+                                });
                     });
 
             svgEventLabels.exit().remove();
