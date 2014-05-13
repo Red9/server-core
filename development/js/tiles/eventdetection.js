@@ -6,8 +6,6 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
         function initialize() {
             sandbox.requestTemplate('eventdetection', function(template) {
                 tile.place.html(template({}));
-
-
                 tile.place.find('[data-name=optionslist]').on('click', 'button', optionClicked);
             });
         }

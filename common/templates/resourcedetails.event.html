@@ -1,0 +1,44 @@
+<div class="row">
+    <div class="col-md-12">    
+        <h4>{{type}} Summary</h4>
+
+        <table class="table table-condensed">
+            <tr>
+                <th>Event Type</th>
+                <td>{{event.type}}</td>
+            </tr>
+            <tr>
+                <th>Created</th>
+                <td>{{epochdate event.source.createTime}}&nbsp;&nbsp;&nbsp;{{epochtime event.source.createTime}}</td>
+            </tr>
+            <tr>
+                <th>Start Time</th>
+                <td>{{epochdate event.startTime}}&nbsp;&nbsp;&nbsp;{{epochtime event.startTime}}</td>
+            </tr>
+            <tr>
+                <th>Duration</th>
+                <td>{{duration event.startTime event.endTime}}</td>
+            </tr>
+            <tr>
+                <th>Number of Rows</th>
+                <td>{{{event.summaryStatistics.static.panelStructure.rowCount.value}}}</td>
+            </tr>
+            <tr>
+                <th>GPS On Time</th>
+                <td>{{{duration 0 event.summaryStatistics.static.gps.timeon.value}}} on ({{{percent event.summaryStatistics.static.gps.timeon.value dataset.headPanel.static.gps.timeoff.value}}})</td>
+            </tr>
+            <tr>
+                <th>Source</th>
+                <td>{{event.source.type}}: {{event.source.algorithm}}
+                    <ul>
+                        {{#each event.source.parameters}}
+                        <li>{{@key}}: {{this}}</li>
+                        {{/each}}
+                    </ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+

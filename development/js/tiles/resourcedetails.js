@@ -1,38 +1,41 @@
 define(['vendor/jquery', 'utilities/commentList'], function($) {
     function resourceDetails(sandbox, tile, configuration, doneCallback) {
-        tile.setTitle('details');
-        tile.addListener('totalState-resource-focused', resourceFocused);
-        setResource('dataset', {});
+        init();
 
-        doneCallback();
-        
-        function setResource(type, resource) {
+        function init() {
+            tile.setTitle('details');
 
-            var details = {
-                apiUrl: sandbox.apiUrl
-            };
-
-            if (type === 'dataset') {
-                sandbox.requestTemplate('datasetdetails', function(template) {
-                    details.dataset = resource;
-                    tile.place.html(template(details));
-                    tile.place.find('[data-name=commentsDiv]').commentList(resource.id, type);
-                });
+            if (typeof configuration.type !== 'undefined'
+                    && configuration.id !== 'undefined') {
+                setResource(configuration.type, configuration.id);
+            } else {
+                tile.addListener('totalState-resource-focused', resourceFocused);
+                // Default to what's currently visible
+                setResource('dataset', sandbox.getCurrentDataset());
             }
+            doneCallback();
+        }
+
+        function setResource(type, id) {
+            var expand = type === 'dataset' ? ['headPanel', 'owner'] : undefined;
+            sandbox.get(type, {id: id}, function(resourceList) {
+                var resource = resourceList.length === 0 ? {} : resourceList[0];
+                sandbox.requestTemplate('resourcedetails.' + type, function(template) {
+                    var parameters = {
+                        apiUrl: sandbox.apiUrl,
+                        type: type.charAt(0).toUpperCase() + type.slice(1)
+                    };
+                    parameters[type] = resource;
+
+                    tile.place.html(template(parameters));
+                });
+            }, expand);
         }
 
         function resourceFocused(event, parameter) {
-            if (parameter.type === 'dataset') {
-                setResource('dataset', sandbox.focusState.dataset);
-            } else if (parameter.type === 'event') {
-                // TODO(SRLM): Check to make sure that the event is still in the same
-                // dataset. If it's not then we probably need to remove the details or 
-                // update them. This could be an issue for when we allow changing events
-                // and go to a "new page".
-
-            }
+            setResource(parameter.type, parameter.id);
         }
-        
+
         function destructor() {
             tile.place.html('<div></div>');
             tile.destructor();
