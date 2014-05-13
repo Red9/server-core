@@ -1,4 +1,4 @@
-define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], function($, _) {
+define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validate'], function($, _, io) {
     function eventDetection(sandbox, tile, configuration, doneCallback) {
         initialize();
 
@@ -43,6 +43,20 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
             }
         };
 
+        function setToConsole() {
+            sandbox.requestTemplate('eventdetection.console', function(template) {
+                tile.place.html(template({}));
+
+                var $area = tile.place.find('.processing_notes');
+                var socket = io.connect(sandbox.actionUrl);
+
+                socket.on('update', function(update) {
+                    $area.append('<p class="processing_note">' + update + '</p>');
+                    $area[0].scrollTop = $area[0].scrollHeight;
+                });
+            });
+        }
+
         function submitHandler(form) {
             var $form = $(form);
 
@@ -72,6 +86,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
             }
 
             sandbox.action.findEvent(type, formValues);
+
+            setToConsole();
         }
 
 
@@ -104,6 +120,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
 
         function optionClicked() {
             var type = $(this).data('name');
+
+            if (type === 'console') {
+                setToConsole();
+                return;
+            }
 
             sandbox.requestTemplate('eventdetection.' + type, function(template) {
                 sandbox.get('eventtype', {}, function(eventTypes) {
