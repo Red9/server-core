@@ -12,7 +12,7 @@ var datasetResource = requireFromRoot('support/resources/dataset');
 
 var defaultSource = {
     type: 'manual',
-    creationTime: '', // Overwritten in pre
+    createTime: '', // Overwritten in pre
     algorithm: 'manual',
     parameters: {}
 };
@@ -160,7 +160,7 @@ function createPre(newEvent, callback) {
         newEvent.source = defaultSource;
     }
 
-    newEvent.source.creationTime = (new Date()).getTime();
+    newEvent.source.createTime = (new Date()).getTime();
 
     callback(true);
 }

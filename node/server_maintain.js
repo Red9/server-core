@@ -18,9 +18,28 @@ log.info("Maintain Node.js process started.");
 //----------------------------------------------------------------------
 //MoveDatasetPanelMetaToPanelList();
 //createRawDataMetaTable();
-updateEventsWithSource();
+//updateEventsWithSource();
+updateSourceToCreateTimeKey();
 //----------------------------------------------------------------------
 
+
+function updateSourceToCreateTimeKey() {
+    var eventResource = requireFromRoot('support/resources/event');
+    eventResource.get({}, function(events) {
+        underscore.each(events, function(event, index) {
+            var source = event.source;
+            source.createTime = source.creationTime;
+            delete source.creationTime;
+            eventResource.update(event.id, {source: source}, function() {
+                if (index === event.length - 1) {
+                    console.log('All done.');
+                }
+            });
+        });
+
+    });
+
+}
 
 function updateEventsWithSource() {
     var eventResource = requireFromRoot('support/resources/event');

@@ -253,6 +253,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                         //stop showing browser menu
                         d3.event.preventDefault();
                     });
+
             svgEvents.exit().remove();
 
 
@@ -306,9 +307,15 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
             return idList;
         }
 
+        function clearSelected() {
+            graphSvg.selectAll('.event-timeline-markers-select')
+                    .classed('event-timeline-markers-select', false);
+        }
+
         return {
             set: set,
             getSelected: getSelected,
+            clearSelected: clearSelected,
             setHoverMarker: setHoverMarker,
             clearHoverMarker: clearHoverMarker,
             setVideoMarker: setVideoMarker,

@@ -13,37 +13,37 @@ define(['vendor/jquery', 'vendor/underscore'
             var eventName = 'totalState-resource-deleted';
             initiateEvent(eventName, {type: type, id: id});
         };
-        
+
         sandbox.initiateResourceCreatedEvent = function(type, resource) {
             var eventName = 'totalState-resource-created';
             initiateEvent(eventName, {type: type, resource: resource});
         };
-        
-        sandbox.initiateResourceFocusedEvent = function(type, id, startTime, endTime){
+
+        sandbox.initiateResourceFocusedEvent = function(type, id, startTime, endTime) {
             sandbox.resourceFocused(type, id, startTime, endTime);
         };
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         //----------------------------------------------------------------------
         // PRIVATE
         //----------------------------------------------------------------------
         function initiateEvent(eventName, parameters) {
             $(sandbox).trigger(eventName, parameters);
         }
-        
+
         sandbox.internalResourceFocusedEvent = function(type, id, startTime, endTime, callbackDone) {
             var eventName = 'totalState-resource-focused';
-            
+
             // Fill callback done with a sensible default if the caller doesn't care.
             if (typeof callbackDone !== 'function') {
                 callbackDone = function() {
                 };
             }
-            
+
             if (type === 'event') {
                 sandbox.get(type, {id: id}, function(event) {
                     sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
@@ -63,6 +63,7 @@ define(['vendor/jquery', 'vendor/underscore'
                             initiateEvent(eventName,
                                     {
                                         type: type,
+                                        id: id,
                                         panel: panel
                                     });
                             callbackDone();
@@ -101,6 +102,7 @@ define(['vendor/jquery', 'vendor/underscore'
                         initiateEvent(eventName,
                                 {
                                     type: type,
+                                    id: id,
                                     panel: panel
                                 });
                         callbackDone();

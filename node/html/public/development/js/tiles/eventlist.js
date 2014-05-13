@@ -16,6 +16,7 @@ define(['vendor/jquery', 'vendor/underscore',
 
             tile.addToBar('deleteevents', '', 'glyphicon-trash', deleteSelected);
             tile.addToBar('editevent', '', 'glyphicon-pencil', editSelected);
+            tile.addToBar('eventdetails', '', 'glyphicon-dashboard', detailsSelected);
 
             if (typeof configuration.showMarkers === 'undefined') {
                 configuration.showMarkers = true;
@@ -35,13 +36,27 @@ define(['vendor/jquery', 'vendor/underscore',
                 callback();
             });
         }
-        
-        function editSelected(){
+
+        function editSelected() {
             var selected = timeline.getSelected();
-            if(selected.length > 1){
+            if (selected.length > 1) {
                 alert('Sorry, you can only edit one event at a time.');
-            }else if(selected.length === 1){
+            } else if (selected.length === 1) {
                 sandbox.displayEditResourceDialog('event', selected[0]);
+                timeline.clearSelected();
+            }
+        }
+
+        function detailsSelected() {
+            var selected = timeline.getSelected();
+            if (selected.length > 1) {
+                alert('Sorry, you can only view details for one event at a time.');
+            } else if (selected.length === 1) {
+                sandbox.showModal('resourcedetails', {
+                    type: 'event',
+                    id: selected[0]
+                });
+                timeline.clearSelected();
             }
         }
 
