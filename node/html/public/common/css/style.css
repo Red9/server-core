@@ -254,3 +254,24 @@ Event Timeline
 .event-timeline-types-highlight {
     opacity: 1;
 }
+
+
+
+/* Styles for a "console like" appearance */
+.processing_notes {
+    color: #DDD;
+    background: #222;
+    padding: 4px 6px;
+    border: 2px #222 solid;
+    font-family: Consolas, sans-serif;
+    font-size: 13px;
+    max-height: 300px;
+    min-height: 300px;
+    overflow: auto;
+    padding: 0;
+    font-family: monospace;
+}
+.processing_notes .processing_note {
+    margin: 0;
+    padding: 0px 10px;
+}

@@ -8,6 +8,7 @@ var datasetResource = requireFromRoot('support/resources/dataset');
 var eventResource = requireFromRoot('support/resources/event');
 var panelResource = requireFromRoot('support/resources/panel');
 
+var sockets = requireFromRoot('action/socketroutes/socketmanager');
 
 // Returns a random integer between min and max
 // Using Math.round() will give you a non-uniform distribution!
@@ -17,6 +18,7 @@ function getRandomInt(min, max) {
 }
 
 exports.random = function(datasetId, eventType, quantity) {
+    var broadcastId = 'random' + getRandomInt(0, 999);
 
     var minimumDuration = 1000;
     var maximumDuration = 20000;
@@ -56,11 +58,15 @@ exports.random = function(datasetId, eventType, quantity) {
                 }
             });
         }
+
+        sockets.broadcastStatus(broadcastId, '--- Randomly found ' + quantity + ' events ---');
+
     }, ['headPanel']);
 };
 
 
 exports.spectral = function(options) {
+    var broadcastId = 'spectral' + getRandomInt(0, 999);
     var datasetId = options.datasetId;
 
     datasetResource.get({id: datasetId}, function(datasetList) {
@@ -76,21 +82,36 @@ exports.spectral = function(options) {
         script.stderr.setEncoding('utf8');
         script.stdin.setEncoding('utf8');
 
+        var updateBuffer = '';
         script.stderr.on('data', function(something) {
-            console.log('M: ' + something.trim());
+            updateBuffer += something;
+
+            while (updateBuffer.split('\n', 2).length > 1) {
+                var t = updateBuffer.split('\n');
+                updateBuffer = t[1];
+                sockets.broadcastStatus(broadcastId, t[0]);
+            }
         });
 
         script.on('exit', function(code, signal) {
-            console.log('Execution time: ' + ((new Date().getTime()) - start));
+            if (updateBuffer !== '') {
+                sockets.broadcastStatus(broadcastId, updateBuffer);
+            }
+            var executionSeconds = ((new Date().getTime()) - start) / 1000;
+            sockets.broadcastStatus(broadcastId, 'Execution time: ' + executionSeconds + ' seconds');
 
             var processingInfo = script.stderr.read();
             var events = JSON.parse(script.stdout.read());
 
             if (code !== 0) {
-                log.error('Non zero code! ' + code + ': ' + processingInfo);
+                var errorMessage = 'Non zero code! ' + code + ': ' + processingInfo;
+                log.error(errorMessage);
+                sockets.broadcastStatus(broadcastId, errorMessage);
+                return;
             }
 
-            console.log('Events: ' + JSON.stringify(events));
+            sockets.broadcastStatus(broadcastId, '--- Found ' + events.length + ' events ---');
+            sockets.broadcastStatus(broadcastId, 'Calculating summary statistics for detected events.');
 
             _.each(events, function(event) {
 

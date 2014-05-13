@@ -55,8 +55,8 @@ exports.init = function() {
 
 
             
-            var io = require('socket.io').listen(server);
-            io.sockets.on('connection', requireFromRoot('action/socketroutes/index').connection);
+            requireFromRoot('action/socketroutes/socketmanager').start(server);
+            
         }
     });
 };
