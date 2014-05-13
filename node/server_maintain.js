@@ -31,7 +31,7 @@ function updateSourceToCreateTimeKey() {
             source.createTime = source.creationTime;
             delete source.creationTime;
             eventResource.update(event.id, {source: source}, function() {
-                if (index === event.length - 1) {
+                if (index === events.length - 1) {
                     console.log('All done.');
                 }
             });

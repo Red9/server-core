@@ -237,11 +237,17 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
 
                 map.fitBounds(bounds);
 
+                // Show if there is gps data
+                tile.setVisible(true);
+
             } else {
                 console.log('No GPS in this dataset');
                 var point = new google.maps.LatLng(32.149989, -110.835842);
                 map.setCenter(point);
                 map.setZoom(15);
+
+                // Hide if there's no gps data
+                tile.setVisible(false);
             }
         }
 

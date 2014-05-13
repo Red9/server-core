@@ -125,6 +125,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                             width: '640',
                             videoId: currentVideoId,
                             playerVars: {
+                                //html5: 1,
                                 modestbranding: 1, // Hide as much YouTube stuff as possible
                                 showinfo: 0, // Don't show extra info at video start
                                 //controls: 2, // Slight performance improvement.
@@ -138,6 +139,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                         }
                 );
 
+                // Hide if there's no videos
+                tile.setVisible(videoList.length !== 0);
             });
         }
 
@@ -161,7 +164,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                 var option = $('<option></option>')
                         .attr('value', value)
                         .text(value + 'x');
-                if(value === 1){
+                if (value === 1) {
                     option.attr('selected', 'selected');
                 }
                 $videoSpeedSelect.append(option);
@@ -249,6 +252,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         }
 
         function seekTo(milliseconds) {
+            console.log('Seeking to ' + milliseconds);
             if (currentVideoIndex !== -1) {
                 // seekTo is in seconds, not milliseconds
                 var videoTime = (milliseconds - videoList[currentVideoIndex].startTime) / 1000;
@@ -261,7 +265,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         }
 
         function hoverTime(event, parameters) {
-            if ($videoSyncCheckbox.prop('checked')) {
+            if (typeof $videoSyncCheckbox !== 'undefined'
+                    && $videoSyncCheckbox.prop('checked')) {
                 seekTo(parameters.hoverTime);
             }
         }

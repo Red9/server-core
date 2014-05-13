@@ -17,11 +17,7 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
             barPlace = place.find('[data-name=buttonbar]');
             tilePlace = place.find('[data-name=tileplace]');
 
-            place.find('[data-name=togglevisible]').on('click', function() {
-                // Not always there (modals...), but if it is we'll respond.
-                $(this).find('span').toggleClass('glyphicon-resize-small glyphicon-resize-full');
-                tilePlace.toggle('fast');
-            });
+            place.find('[data-name=togglevisible]').on('click', toggleVisible);
 
             if (frameType === 'modal') {
                 place.filter('.modal').on('hidden.bs.modal', function(e) {
@@ -36,6 +32,7 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
                 addToBar: addToBar,
                 destructor: destructor,
                 addListener: addListener,
+                setVisible: setVisible,
                 place: tilePlace
             };
 
@@ -64,6 +61,18 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
             destructor: topDownDestructor
         };
 
+        function setVisible(newState) {
+            if (tilePlace.is(':visible') !== newState) {
+                toggleVisible();
+            }
+        }
+
+        function toggleVisible() {
+            // Not always there (modals...), but if it is we'll respond.
+            place.find('[data-name=togglevisible]').find('span').toggleClass('glyphicon-resize-small glyphicon-resize-full');
+            tilePlace.toggle('fast');
+        }
+
 
         function addToBar(name, custom, iconName, listener) {
             barPlace.append('<a class="btn btn-link btn-lg" data-name="'
@@ -91,8 +100,8 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
         function destructor(alreadyHidden) {
             // TODO: the proper order of events might not be followed for 
             // modals. Need to figure that out.
-            
-            function clearAll(){
+
+            function clearAll() {
                 sandbox
                         = id
                         = homeDiv
