@@ -50,7 +50,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                     .attr('x2', 200)
                     .attr('y2', 10)
                     .attr('class', 'hovermarker inactive');
-            
+
             graphSvg.append('svg:line')
                     .attr('x1', 200)
                     .attr('y1', 0)
@@ -59,8 +59,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                     .attr('class', 'videomarker inactive');
 
         }
-        
-        function dragmove(d){
+
+        function dragmove(d) {
             console.log('d3.event.x: ' + d3.event.x);
         }
 
@@ -79,7 +79,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                     .classed('active', false)
                     .classed('inactive', true);
         }
-        
+
         function setVideoMarker(time) {
             var x = xScale(time);
             graphSvg.selectAll('.videomarker')
@@ -95,7 +95,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                     .classed('active', false)
                     .classed('inactive', true);
         }
-        
+
 
         function emptyRightClick() {
             //stop showing browser menu
@@ -177,7 +177,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                     .attr('y2', xScaleY);
             graphSvg.selectAll('.videomarker')
                     .attr('y2', xScaleY);
-            
+
 
             graphSvg.select('.event-timeline-axis')
                     .attr('transform', 'translate(0,' + xScaleY + ')')
@@ -227,6 +227,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'
                             x: x,
                             width: eWidth
                         });
+                    })
+                    .classed('event-timeline-markers-source-auto', function(event) {
+                        return event.source.type === 'auto';
                     })
                     .on('click', function(event) {
                         if (typeof configuration.eventClicked === 'function') {

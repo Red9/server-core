@@ -38,7 +38,16 @@ exports.random = function(datasetId, eventType, quantity) {
                 datasetId: datasetId,
                 type: eventType,
                 startTime: startTime,
-                endTime: startTime + duration
+                endTime: startTime + duration,
+                source: {
+                    type: 'auto',
+                    algorithm: 'random',
+                    parameters: {
+                        quantity: quantity,
+                        minimumDuration: minimumDuration,
+                        maximumDuration: maximumDuration
+                    }
+                }
             };
 
             eventResource.create(event, function(err) {
@@ -87,6 +96,11 @@ exports.spectral = function(options) {
 
                 event.type = options.eventType;
                 event.datasetId = options.datasetId;
+                event.source = {
+                    type: 'auto',
+                    algorithm: 'spectralThreshold',
+                    parameters: options
+                };
 
                 eventResource.create(event, function(err) {
                     if (err) {
@@ -111,7 +125,7 @@ exports.spectral = function(options) {
                 }
             });
 
-            
+
             script.stdin.write('time,dataaxis\n');
         }, function(time, data, index) {
             var output = time + ',' + data[axisIndex];
