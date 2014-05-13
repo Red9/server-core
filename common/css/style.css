@@ -189,21 +189,21 @@ body {
 /* For the Rickshaw Markers */
 .videomarker,
 .hovermarker {
-        stroke-width: 3px;
-        stroke: #FF0000;
+    stroke-width: 3px;
+    stroke: #FF0000;
 
-	transition: opacity 0.25s linear;
-	-moz-transition: opacity 0.25s linear;
-	-o-transition: opacity 0.25s linear;
-	-webkit-transition: opacity 0.25s linear;
+    transition: opacity 0.25s linear;
+    -moz-transition: opacity 0.25s linear;
+    -o-transition: opacity 0.25s linear;
+    -webkit-transition: opacity 0.25s linear;
 }
 .videomarker.inactive,
 .hovermarker.inactive {
-	opacity: 0;
+    opacity: 0;
 }
 .videomarker.active,
 .hovermarker.active {
-	opacity: 0.5;
+    opacity: 0.5;
 }
 
 
@@ -227,6 +227,10 @@ Event Timeline
 .event-timeline-markers {
     fill: #377eb8;
     opacity: 0.5;
+}
+
+.event-timeline-markers-source-auto {
+    fill: #b87137;
 }
 
 .event-timeline-markers-highlight {
