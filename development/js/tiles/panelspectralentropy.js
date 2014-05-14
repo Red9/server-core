@@ -1,22 +1,30 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
 
     function panelSpectralEntropy(sandbox, tile, configuration, doneCallback) {
-        if (typeof configuration === 'undefined') {
-            configuration = {};
-        }
 
-        if (typeof configuration.axes === 'undefined') {
-            configuration.axes = [
-                'acceleration:x',
-                'acceleration:y',
-                'acceleration:z'
-            ];
-        }
+        function init() {
+            if (typeof configuration === 'undefined') {
+                configuration = {};
+            }
 
-        if (typeof configuration.height === 'undefined') {
-            configuration.height = 90;
+            if (typeof configuration.axes === 'undefined') {
+                configuration.axes = [
+                    'acceleration:x',
+                    'acceleration:y',
+                    'acceleration:z'
+                ];
+            }
+
+            if (typeof configuration.height === 'undefined') {
+                configuration.height = 90;
+            }
+            setPlace();
+
+            tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' spectral distribution');
+            tile.addListener('totalState-resource-focused', resourceFocused);
+            doneCallback();
+
         }
-        setPlace();
 
         function setPlace() {
             sandbox.requestTemplate('panelspectralentropy', function(template) {
@@ -31,11 +39,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
         }
 
         function createHeatmap(svg, xAxisSvg, yAxisSvg, data) {
-            
-            if(data.length === 0){
+
+            if (data.length === 0) {
                 return;
             }
-            
+
             // Need to convert the height/width from 123px to 123 (string to int)
             var width = svg.style('width');
             var height = svg.style('height');
@@ -104,7 +112,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
             var yCount = data.length / xCount;
             var w = width / xCount;
             var h = (height / yCount) + 1;
-            
+
             console.log('width: ' + width + ', xCount: ' + xCount);
 
             var timeIndex = 0;
@@ -210,31 +218,18 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
                                 500);
                     }
                 });
-
-
             }
         }
 
-
-
-
-        tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' spectral distribution');
-        tile.addListener('totalState-resource-focused', resourceFocused);
-        doneCallback();
-
         function destructor() {
-            tile.destructor();
-            $
-                    = _
-                    = d3
-                    = sandbox
+            sandbox
                     = tile
                     = configuration
                     = doneCallback
                     = null;
-
         }
 
+        init();
         return {
             destructor: destructor
         };

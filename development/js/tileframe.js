@@ -58,7 +58,7 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
 
 
         return {
-            destructor: topDownDestructor
+            destructor: destructor
         };
 
         function setVisible(newState) {
@@ -89,49 +89,35 @@ define(['vendor/jquery', 'vendor/underscore'], function($, _) {
             $(sandbox).on(event + '.' + id, listener);
         }
 
-        function topDownDestructor() {
-            if (typeof tileResult !== 'undefined'
-                    && typeof tileResult.destructor === 'function') {
-                tileResult.destructor();
-            } else {
-                destructor();
+        function destructor() {
+            if (typeof sandbox === 'undefined') {
+                // Use sandbox as a proxy for determining if destruction
+                // has already occurred.
+                return;
             }
-        }
-        function destructor(alreadyHidden) {
-            // TODO: the proper order of events might not be followed for 
-            // modals. Need to figure that out.
+            console.log('tileframe Destructor');
 
-            function clearAll() {
-                sandbox
-                        = id
-                        = homeDiv
-                        = frameType
-                        = tileClass
-                        = tileConfiguration
-                        = createdCallback
-                        = tileResult
-                        = place
-                        = titlePlace
-                        = tilePlace
-                        = barPlace
-                        = undefined;
-            }
+            tileResult.destructor();
 
             $(sandbox).off('.' + id);
-            if (frameType === 'modal' && alreadyHidden !== true) {
-                place.filter('.modal').on('hidden.bs.modal', function() {
-                    //place.remove();
-                    clearAll();
-                }).modal('hide'); // If modal, will hide it.
-            } else {
-                if (typeof place !== 'undefined') {
-                    place.unbind();
-                    place.empty();
-                    place.remove();
-                }
-                clearAll();
-            }
+            place.filter('.modal').modal('hide'); // If modal, will hide it.
+            place.unbind();
+            place.empty();
+            place.remove();
 
+            sandbox
+                    = id
+                    = homeDiv
+                    = frameType
+                    = tileClass
+                    = tileConfiguration
+                    = createdCallback
+                    = tileResult
+                    = place
+                    = titlePlace
+                    = tilePlace
+                    = barPlace
+                    = undefined;
         }
     }
 

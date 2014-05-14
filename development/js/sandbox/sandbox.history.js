@@ -27,7 +27,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/history',
         function onHistoryChange() {
             historyChanging = true;
             var $progressBar = $('#pageloaderspinner');
-            $progressBar.show('fast').toggleClass('active');
+            $progressBar.show('fast').addClass('active');
             // Bound to StateChange Event
 
             var state = getCurrentHistory();
@@ -43,7 +43,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/history',
                     startTime,
                     endTime,
                     function() {
-                        $progressBar.hide('fast').toggleClass('active');
+                        $progressBar.hide('fast').removeClass('active');
                         historyChanging = false;
                     });
         }

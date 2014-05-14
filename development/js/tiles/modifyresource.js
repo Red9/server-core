@@ -1,7 +1,76 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], function($, _) {
     function modifyResource(sandbox, tile, configuration, doneCallback) {
-        showForm(tile.place, configuration);
-        doneCallback();
+        var schemas;
+
+        function init() {
+            schemas = {};
+            schemas.event = function(create) {
+                return {
+                    rules: {
+                        startTime: {
+                            required: create,
+                            min: 0
+                        },
+                        // The minimum for end_time should be at least start time + 1, 
+                        // but I don't know how to do that
+                        endTime: {
+                            required: create,
+                            min: 0
+                        }
+                        //type: required implicitly by being a select box. 
+                    },
+                    messages: {
+                        startTime: {
+                            required: "Please enter a start time",
+                            min: "Time must be greater than 0"
+                        },
+                        endTime: {
+                            required: "Please enter an end time",
+                            min: "Time must be greater than start time"
+                        }
+                    },
+                    showErrors: sandbox.showJqueryValidateErrors,
+                    submitHandler: submitHandler
+                };
+            };
+
+            schemas.dataset = function(create) {
+                return {
+                    rules: {
+                        title: {
+                            required: create
+                        },
+                        owner: {
+                            required: create
+                        },
+                        timezone: {
+                            required: create
+                        }
+                    },
+                    showErrors: sandbox.showJqueryValidateErrors,
+                    submitHandler: submitHandler
+                };
+            };
+
+            schemas.video = function(create) {
+                return {
+                    rules: {
+                        startTime: {
+                            required: create,
+                            min: 0
+                        },
+                        hostId: {
+                            required: create
+                        }
+                    },
+                    showErrors: sandbox.showJqueryValidateErrors,
+                    submitHandler: submitHandler
+                };
+            };
+
+            showForm(tile.place, configuration);
+            doneCallback();
+        }
 
         function submitHandler(form) {
             var $form = $(form);
@@ -50,71 +119,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
             }
             //console.log('Do ' + resourceAction + ' with type ' + resourceType + ' and formValues: ' + JSON.stringify(formValues));
         }
-
-        var schemas = {};
-        schemas.event = function(create) {
-            return {
-                rules: {
-                    startTime: {
-                        required: create,
-                        min: 0
-                    },
-                    // The minimum for end_time should be at least start time + 1, 
-                    // but I don't know how to do that
-                    endTime: {
-                        required: create,
-                        min: 0
-                    }
-                    //type: required implicitly by being a select box. 
-                },
-                messages: {
-                    startTime: {
-                        required: "Please enter a start time",
-                        min: "Time must be greater than 0"
-                    },
-                    endTime: {
-                        required: "Please enter an end time",
-                        min: "Time must be greater than start time"
-                    }
-                },
-                showErrors: sandbox.showJqueryValidateErrors,
-                submitHandler: submitHandler
-            };
-        };
-
-        schemas.dataset = function(create) {
-            return {
-                rules: {
-                    title: {
-                        required: create
-                    },
-                    owner: {
-                        required: create
-                    },
-                    timezone: {
-                        required: create
-                    }
-                },
-                showErrors: sandbox.showJqueryValidateErrors,
-                submitHandler: submitHandler
-            };
-        };
-
-        schemas.video = function(create) {
-            return {
-                rules: {
-                    startTime: {
-                        required: create,
-                        min: 0
-                    },
-                    hostId: {
-                        required: create
-                    }
-                },
-                showErrors: sandbox.showJqueryValidateErrors,
-                submitHandler: submitHandler
-            };
-        };
 
         function showForm(place, configuration) {
             var parameters = {
@@ -183,6 +187,20 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 }
             });
         }
+
+        function destructor() {
+            sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = schemas
+                    = null;
+        }
+
+        init();
+        return {
+            destructor: destructor
+        };
     }
     return modifyResource;
 });

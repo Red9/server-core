@@ -1,17 +1,18 @@
 define(['vendor/jquery'], function($) {
 
     function summaryStatistics(sandbox, tile, configuration, doneCallback) {
-        tile.addListener('totalState-resource-focused', resourceFocused);
-        tile.setTitle('summary statistics');
-        if (typeof sandbox.focusState.dataset !== 'undefined') {
-            setStatisticsFocus('dataset');
-        } else if (typeof sandbox.focusState.event !== 'undefined') {
-            setStatisticsFocus('event');
-        } else {
-            setStatisticsFocus('');
+        function init() {
+            tile.addListener('totalState-resource-focused', resourceFocused);
+            tile.setTitle('summary statistics');
+            if (typeof sandbox.focusState.dataset !== 'undefined') {
+                setStatisticsFocus('dataset');
+            } else if (typeof sandbox.focusState.event !== 'undefined') {
+                setStatisticsFocus('event');
+            } else {
+                setStatisticsFocus('');
+            }
+            doneCallback();
         }
-        doneCallback();
-
 
         function setStatisticsFocus(type) {
             if (type === 'dataset') {
@@ -44,14 +45,14 @@ define(['vendor/jquery'], function($) {
         }
 
         function destructor() {
-            $
-                    = sandbox
+            sandbox
                     = tile
                     = configuration
                     = doneCallback
                     = null;
         }
 
+        init();
         return {
             destructor: destructor
         };

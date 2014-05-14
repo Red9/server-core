@@ -1,26 +1,31 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw'], function($, _, Rickshaw) {
     function panelDistribution(sandbox, tile, configuration, doneCallback) {
         var graph;
-        var graphData = [];
+        var graphData;
 
+        function init() {
+            graphData = [];
+            if (typeof configuration === 'undefined') {
+                configuration = {};
+            }
 
-        if (typeof configuration === 'undefined') {
-            configuration = {};
+            if (typeof configuration.axes === 'undefined') {
+                configuration.axes = [
+                    'acceleration:x',
+                    'acceleration:y',
+                    'acceleration:z'
+                ];
+            }
+
+            sandbox.requestTemplate('paneldistribution', function(template) {
+                tile.place.html(template({}));
+            });
+
+            tile.addListener('totalState-resource-focused', resourceFocused);
+            tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' distribution');
+            doneCallback();
         }
 
-        if (typeof configuration.axes === 'undefined') {
-            configuration.axes = [
-                'acceleration:x',
-                'acceleration:y',
-                'acceleration:z'
-            ];
-        }
-
-
-        sandbox.requestTemplate('paneldistribution', function(template) {
-            tile.place.html(template({}));
-        });
-        
         function clearGraphData() {
             while (graphData.length > 0) {
                 graphData.pop();
@@ -97,29 +102,23 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/rickshaw'], function($, _,
             }
         }
 
-        tile.addListener('totalState-resource-focused', resourceFocused);
-        tile.setTitle(sandbox.createHumanAxesString(configuration.axes) + ' distribution');
-        doneCallback();
+
 
         function destructor() {
             clearGraphData();
             graph.render();
-            tile.destructor();
 
-
-            $
-                    = _
-                    = Rickshaw
-                    = sandbox
+            sandbox
                     = tile
                     = configuration
                     = doneCallback
                     = graph
-                    = graphData 
+                    = graphData
                     = null;
 
         }
 
+        init();
         return {
             destructor: destructor
         };

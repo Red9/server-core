@@ -1,28 +1,42 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, moment) {
     /**
-     * 
-     * 
-     * 
      * List of Google Map Icons:
      * http://www.lass.it/Web/viewer.aspx?id=4
      * http://ex-ample.blogspot.com/2011/08/all-url-of-markers-used-by-google-maps.html
      * https://sites.google.com/site/gmapsdevelopment/
-     * 
-     * 
-     * 
-     * 
-     * 
      */
 
     function googleMap(sandbox, tile, configuration, doneCallback) {
 
         var map;
-        var mapFeatures = [];
+        var mapFeatures;
         var videoMarker;
         var hoverMarker;
 
+        function init() {
+            mapFeatures = [];
+            tile.addListener('totalState-resource-focused', resourceFocused);
+            tile.addListener('totalState-video-time', videoTime);
+            tile.addListener('totalState-hover-time', hoverTime);
+            tile.setTitle('map');
+
+            sandbox.requestTemplate('googlemap', function(template) {
+                tile.place.html(template({}));
+
+                var mapOptions = {
+                    zoom: 3,
+                    center: new google.maps.LatLng(42.228147, -103.541772),
+                    mapTypeId: google.maps.MapTypeId.SATELLITE,
+                    scrollwheel: false
+                };
+
+                map = new google.maps.Map(
+                        $('.google-map-canvas', tile.place)[0], mapOptions);
 
 
+                doneCallback();
+            });
+        }
 
         function resourceFocused(event, parameter) {
             if (typeof sandbox.focusState.panel !== 'undefined') {
@@ -69,7 +83,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
             }
 
             _.each(panel.panel.time, function(time, rowIndex) {
-
                 var latitude = panel.panel['gps:latitude'][rowIndex];
                 var longitude = panel.panel['gps:longitude'][rowIndex];
 
@@ -160,7 +173,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
 
 
         function createMissingSegmentFromPoints(start, finish) {
-
             mapFeatures.push(new google.maps.Polyline({
                 map: map,
                 path: [start, finish],
@@ -170,6 +182,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
                 strokeWeight: 2
             }));
         }
+
         function clearMapFeatures() {
             if (typeof mapFeatures !== 'undefined') {
                 _.each(mapFeatures, function(feature) {
@@ -241,7 +254,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
                 tile.setVisible(true);
 
             } else {
-                console.log('No GPS in this dataset');
                 var point = new google.maps.LatLng(32.149989, -110.835842);
                 map.setCenter(point);
                 map.setZoom(15);
@@ -251,36 +263,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
             }
         }
 
-
-        tile.addListener('totalState-resource-focused', resourceFocused);
-        tile.addListener('totalState-video-time', videoTime);
-        tile.addListener('totalState-hover-time', hoverTime);
-        tile.setTitle('map');
-
-        sandbox.requestTemplate('googlemap', function(template) {
-            tile.place.html(template({}));
-
-            var mapOptions = {
-                zoom: 3,
-                center: new google.maps.LatLng(42.228147, -103.541772),
-                mapTypeId: google.maps.MapTypeId.SATELLITE,
-                scrollwheel: false
-            };
-
-            map = new google.maps.Map($('.google-map-canvas', tile.place)[0], mapOptions);
-
-
-            doneCallback();
-        });
-
         function destructor() {
             clearMapFeatures();
-            tile.destructor();
-
-            $
-                    = _
-                    = moment
-                    = sandbox
+            sandbox
                     = tile
                     = configuration
                     = doneCallback
@@ -292,6 +277,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment'], function($, _, m
 
         }
 
+        init();
         return {
             destructor: destructor
         };

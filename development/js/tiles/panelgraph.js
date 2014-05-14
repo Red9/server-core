@@ -4,37 +4,40 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
     function panelGraph(sandbox, tile, configuration, doneCallback) {
         var graph;
         var rangeSelector;
-        var graphData = [];
+        var graphData;
         var videoMarker;
         var hoverMarker;
 
-        tile.addListener('totalState-resource-focused', resourceFocused);
-        tile.addListener('totalState-video-time', videoTime);
-        tile.addListener('totalState-hover-time', hoverTime);
+        function init() {
+            graphData = [];
+            tile.addListener('totalState-resource-focused', resourceFocused);
+            tile.addListener('totalState-video-time', videoTime);
+            tile.addListener('totalState-hover-time', hoverTime);
 
-        if (typeof configuration === 'undefined') {
-            configuration = {};
+            if (typeof configuration === 'undefined') {
+                configuration = {};
+            }
+
+            if (typeof configuration.axes === 'undefined') {
+                configuration.axes = [
+                    'acceleration:x',
+                    'acceleration:y',
+                    'acceleration:z'
+                ];
+            }
+
+            if (typeof configuration.showMarkers === 'undefined') {
+                configuration.showMarkers = true;
+            }
+
+            updateTitle();
+
+            sandbox.requestTemplate('panelgraph', function(template) {
+                tile.place.html(template({}));
+                tile.addToBar('settings', '', 'glyphicon-cog', toggleSettings);
+                doneCallback();
+            });
         }
-
-        if (typeof configuration.axes === 'undefined') {
-            configuration.axes = [
-                'acceleration:x',
-                'acceleration:y',
-                'acceleration:z'
-            ];
-        }
-
-        if (typeof configuration.showMarkers === 'undefined') {
-            configuration.showMarkers = true;
-        }
-
-        updateTitle();
-
-        sandbox.requestTemplate('panelgraph', function(template) {
-            tile.place.html(template({}));
-            tile.addToBar('settings', '', 'glyphicon-cog', toggleSettings);
-            doneCallback();
-        });
 
         function updateTitle() {
             tile.setTitle(sandbox.createHumanAxesString(configuration.axes));
@@ -254,14 +257,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
             clearGraphData();
             graph.render();
 
-            tile.destructor();
-
-            $
-                    = _
-                    = moment
-                    = Rickshaw
-                    = d3
-                    = sandbox
+            sandbox
                     = tile
                     = configuration
                     = doneCallback
@@ -273,6 +269,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     = null;
         }
 
+        init();
         return {
             destructor: destructor
         };

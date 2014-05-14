@@ -3,7 +3,7 @@ requirejs.config({
     baseUrl: "/js",
     paths: {
         customHandlebarsHelpers: 'utilities/customHandlebarsHelpers',
-        socketio: 'http://action.localdev.redninesensor.com/socket.io/socket.io'
+        socketio: 'http://action.redninesensor.com/socket.io/socket.io' // Hack: should use localdev for local, regular for remote.
     },
     shim: {
         'jQuery.validate': [
