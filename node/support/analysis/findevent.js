@@ -93,6 +93,9 @@ exports.spectral = function(options) {
             }
         });
 
+        // clone so we have an "original" copy for our source storage.
+        var storedOptions = _.clone(options);
+
         script.on('exit', function(code, signal) {
             if (updateBuffer !== '') {
                 sockets.broadcastStatus(broadcastId, updateBuffer);
@@ -120,7 +123,7 @@ exports.spectral = function(options) {
                 event.source = {
                     type: 'auto',
                     algorithm: 'spectralThreshold',
-                    parameters: options
+                    parameters: storedOptions
                 };
 
                 eventResource.create(event, function(err) {
@@ -131,8 +134,7 @@ exports.spectral = function(options) {
             });
 
         });
-
-        script.stdin.write(JSON.stringify(options) + '\n');
+        
         var axisIndex = -1;
 
         panelResource.getPanelBody({
@@ -146,6 +148,8 @@ exports.spectral = function(options) {
                 }
             });
 
+            options.rowCount = panel.rowCount;
+            script.stdin.write(JSON.stringify(options) + '\n');
 
             script.stdin.write('time,dataaxis\n');
         }, function(time, data, index) {
