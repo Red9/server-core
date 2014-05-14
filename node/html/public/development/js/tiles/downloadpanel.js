@@ -1,9 +1,10 @@
 define(['vendor/jquery', 'vendor/jquery.validate'], function($) {
 
     function downloadPanelModal(sandbox, tile, configuration, doneCallback) {
-        resourceDownload(configuration);
-        doneCallback();
-
+        function init() {
+            resourceDownload(configuration);
+            doneCallback();
+        }
 
         function setupColumnCheckboxHandling(tilePlace) {
             tilePlace.find('[data-name=column_checkbox_selection_group] a').each(function(index, element) {
@@ -145,6 +146,20 @@ define(['vendor/jquery', 'vendor/jquery.validate'], function($) {
             tile.place.find('[data-name=download-perma-link]').attr('href', url).removeClass('hide');
 
         }
+
+        function destructor() {
+            sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = null;
+
+        }
+
+        init();
+        return {
+            destructor: destructor
+        };
     }
     return downloadPanelModal;
 });

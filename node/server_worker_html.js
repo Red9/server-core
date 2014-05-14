@@ -121,7 +121,11 @@ exports.init = function() {
                     path = resource.sourcePath.development;
                 }
 
-                app.use(resource.rootUrl, express.static(__dirname + path));
+                app.use(resource.rootUrl, function(req, res, next){
+                    // Add flag to response, indicating static resource.
+                    res.staticResource = true;
+                    express.static(__dirname + path)(req, res, next);
+                });
             });
 
 

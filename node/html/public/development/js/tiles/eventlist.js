@@ -4,9 +4,7 @@ define(['vendor/jquery', 'vendor/underscore',
     function eventList(sandbox, tile, configuration, doneCallback) {
         var timeline;
 
-        initialize(doneCallback);
-
-        function initialize(callback) {
+        function init() {
             tile.setTitle('events');
             tile.addListener('totalState-resource-focused', resourceFocused);
             tile.addListener('totalState-resource-deleted', resourceChanged);
@@ -33,7 +31,7 @@ define(['vendor/jquery', 'vendor/underscore',
                             emptyRightClick: emptyRightClick
                         });
                 setEvents([]);
-                callback();
+                doneCallback();
             });
         }
 
@@ -119,17 +117,16 @@ define(['vendor/jquery', 'vendor/underscore',
 
         function destructor() {
             setEvents([]);
-            tile.destructor();
-            $
-                    = _
-                    = sandbox
+            sandbox
                     = tile
                     = configuration
                     = doneCallback
+                    = timeline
                     = null;
 
         }
 
+        init();
         return {
             destructor: destructor
         };

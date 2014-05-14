@@ -1,21 +1,23 @@
 define(['vendor/jquery', 'utilities/commentList'], function($) {
     function comments(sandbox, tile, configuration, doneCallback) {
-        tile.setTitle('Comments');
-        setResource('dataset', sandbox.getCurrentDataset());
+        function init() {
+            tile.setTitle('Comments');
+            setResource('dataset', sandbox.getCurrentDataset());
+        }
 
         function setResource(type, id) {
             tile.place.html($('<div></div>').commentList(id, type));
         }
 
         function destructor() {
-            $
-                    = sandbox
+            sandbox
                     = tile
                     = configuration
                     = doneCallback
                     = null;
         }
 
+        init();
         return {
             destructor: destructor
         };

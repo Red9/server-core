@@ -15,6 +15,15 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         var $videoEmitEventCheckbox;
         var $videoSpeedSelect;
 
+        function init() {
+            reset();
+            tile.addListener('totalState-resource-focused', resourceFocused);
+            tile.addListener('totalState-hover-time', hoverTime);
+            setVideos(videoList); // Initial set to empty list.
+            tile.setTitle('videos');
+            doneCallback();
+        }
+
         function reset() {
             videoList = [];
             playerTimePlace = undefined;
@@ -125,7 +134,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                             width: '640',
                             videoId: currentVideoId,
                             playerVars: {
-                                //html5: 1,
+                                html5: 1, // Force HTML5.
                                 modestbranding: 1, // Hide as much YouTube stuff as possible
                                 showinfo: 0, // Don't show extra info at video start
                                 //controls: 2, // Slight performance improvement.
@@ -271,23 +280,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             }
         }
 
-        reset();
-        tile.addListener('totalState-resource-focused', resourceFocused);
-        tile.addListener('totalState-hover-time', hoverTime);
-        setVideos(videoList); // Initial set to empty list.
-        tile.setTitle('videos');
-        doneCallback();
-
-
         function destructor() {
             reset();
-            tile.destructor();
 
-            $
-                    = _
-                    = async
-                    = chh
-                    = youtubeApiKey
+            youtubeApiKey
                     = kPlayerUpdateInterval
                     = sandbox
                     = tile
@@ -305,6 +301,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     = null;
         }
 
+        init();
         return {
             destructor: destructor
         };

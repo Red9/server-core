@@ -147,10 +147,11 @@ exports.logger = function() {
         var logRequest = function() {
             res.removeListener('finish', logRequest);
             res.removeListener('close', logRequest);
-
             var attributes = ExtractHttpAttributes(req, res);
 
-            if (attributes["statuscode"] !== 304) {
+            // Make sure not log common events that aren't meaningful.
+            if (attributes["statuscode"] !== 304
+                    && res.staticResource !== true) {
                 log_color.info(CreateHttpColorString(attributes));
                 if (config.release === true) {
                     log_standard.info(CreateHttpPlainString(attributes));

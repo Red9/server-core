@@ -1,18 +1,90 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], function($, _) {
     function layoutEditor(sandbox, tile, configuration, doneCallback) {
+        function init() {
+            $.validator.addMethod("json", function(value, element) {
+                if (this.optional(element) === true
+                        && value === '') {
+                    return true;
+                }
+                try {
+                    JSON.parse(value);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }, "Must be valid JSON");
 
-        $.validator.addMethod("json", function(value, element) {
-            if (this.optional(element) === true
-                    && value === '') {
-                return true;
-            }
-            try {
-                JSON.parse(value);
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }, "Must be valid JSON");
+            tile.addListener('totalState-resource-deleted',
+                    function(event, parameter) {
+                        if (parameter.type === 'layout') {
+                            tile.place.find(
+                                    "select option[value='" + parameter.id + "']"
+                                    ).remove();
+                        }
+                    });
+
+            sandbox.requestTemplate('layouteditor', function(layoutTemplate) {
+                sandbox.get('layout', {}, function(layouts) {
+
+                    tile.place.html(layoutTemplate({
+                        existingLayouts: layouts
+                    }));
+
+                    tile.setTitle('Layouts');
+
+                    tile.place.find('button').on('click', function() {
+                        var $this = $(this);
+                        var layout;
+
+
+                        if ($this.data('name') === 'apply') {
+                            var pl = sandbox.currentUser.preferredLayout;
+                            var id = tile.place.find('select option:selected').val();
+                            pl['/event/:id'] = id;
+                            pl['/dataset/:id'] = id;
+                            pl['/video/:id'] = id;
+
+                            sandbox.update('user',
+                                    sandbox.currentUser.id,
+                                    {preferredLayout: pl},
+                            function(err) {
+                                console.log('Error: ' + err);
+                                window.location.reload();
+                            });
+                            return;
+                        }
+
+                        if ($this.data('name') === 'create') {
+                            tile.setTitle('Create new layout');
+                            layout = {};
+                        } else {
+                            var id = tile.place.find('select option:selected').val();
+                            layout = _.find(layouts, function(l) {
+                                return l.id === id;
+                            });
+
+                            layout.layout = JSON.stringify(layout.layout, null, '    ');
+                            layout.for = JSON.stringify(layout.for, null, '    ');
+                            if ($this.data('name') === 'delete') {
+                                sandbox.delete('layout', id);
+                                return;
+                            }
+
+                            if ($this.data('name') === 'edit') {
+                                // leave as is.
+                                tile.setTitle('Edit layout "'
+                                        + sandbox.truncateStringAtWord(layout.title, 40) + '"');
+                            } else if ($this.data('name') === 'copy') {
+                                tile.setTitle('Copy layout "'
+                                        + sandbox.truncateStringAtWord(layout.title, 40) + '"');
+                                delete layout.id;
+                            }
+                        }
+                        createForm(layout);
+                    });
+                });
+            });
+        }
 
         function schema(create) {
             return {
@@ -90,77 +162,20 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
             });
         }
 
-        tile.addListener('totalState-resource-deleted', function(event, parameter) {
-            if (parameter.type === 'layout') {
-                tile.place.find("select option[value='" + parameter.id + "']").remove();
-            }
-        });
-
-        sandbox.requestTemplate('layouteditor', function(layoutTemplate) {
-            sandbox.get('layout', {}, function(layouts) {
-
-                tile.place.html(layoutTemplate({
-                    existingLayouts: layouts
-                }));
-
-                tile.setTitle('Layouts');
-
-                tile.place.find('button').on('click', function() {
-                    var $this = $(this);
-                    var layout;
 
 
-                    if ($this.data('name') === 'apply') {
-                        var pl = sandbox.currentUser.preferredLayout;
-                        var id = tile.place.find('select option:selected').val();
-                        pl['/event/:id'] = id;
-                        pl['/dataset/:id'] = id;
-                        pl['/video/:id'] = id;
+        function destructor() {
+            sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = null;
+        }
 
-                        sandbox.update('user', sandbox.currentUser.id, {preferredLayout: pl},
-                        function(err) {
-                            console.log('Error: ' + err);
-                            window.location.reload();
-                        });
-                        return;
-                    }
-
-                    if ($this.data('name') === 'create') {
-                        tile.setTitle('Create new layout');
-                        layout = {};
-                    } else {
-                        var id = tile.place.find('select option:selected').val();
-                        layout = _.find(layouts, function(l) {
-                            return l.id === id;
-                        });
-
-                        layout.layout = JSON.stringify(layout.layout, null, '    ');
-                        layout.for = JSON.stringify(layout.for, null, '    ');
-                        if ($this.data('name') === 'delete') {
-                            sandbox.delete('layout', id);
-                            return;
-                        }
-
-                        if ($this.data('name') === 'edit') {
-                            // leave as is.
-                            tile.setTitle('Edit layout "'
-                                    + sandbox.truncateStringAtWord(layout.title, 40) + '"');
-                        } else if ($this.data('name') === 'copy') {
-                            tile.setTitle('Copy layout "'
-                                    + sandbox.truncateStringAtWord(layout.title, 40) + '"');
-                            delete layout.id;
-                        }
-                    }
-
-                    createForm(layout);
-                });
-
-
-
-            });
-
-
-        });
+        init();
+        return {
+            destructor: destructor
+        };
     }
     return layoutEditor;
 });

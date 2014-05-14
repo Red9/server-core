@@ -1,52 +1,73 @@
 define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validate'], function($, _, io) {
     function eventDetection(sandbox, tile, configuration, doneCallback) {
-        initialize();
+        var socket;
+        var schema;
 
+        var preconfiguredOptions = {
+            wave: {
+                eventType: "Wave",
+                axis: "acceleration:z",
+                thresholdDirection: "above",
+                windowSize: "256",
+                threshold: "0.8",
+                overlapStep: "50"
+            },
+            paddle: {
+                eventType: "Paddle",
+                axis: "rotationrate:x",
+                thresholdDirection: "below",
+                windowSize: "256",
+                threshold: "1.1",
+                overlapStep: "50"
+            }
+        };
 
-        function initialize() {
+        function init() {
+            schema = {
+                random: {
+                    rules: {
+                        quantity: {
+                            required: true,
+                            number: true
+                        }
+                    },
+                    showErrors: sandbox.showJqueryValidateErrors,
+                    submitHandler: submitHandler
+                },
+                spectral: {
+                    rules: {
+                        windowSize: {
+                            required: true,
+                            number: true
+                        },
+                        threshold: {
+                            required: true,
+                            number: true
+                        },
+                        overlapStep: {
+                            required: true,
+                            number: true
+                        }
+                    },
+                    showErrors: sandbox.showJqueryValidateErrors,
+                    submitHandler: submitHandler
+                }
+            };
+
             sandbox.requestTemplate('eventdetection', function(template) {
                 tile.place.html(template({}));
                 tile.place.find('[data-name=optionslist]').on('click', 'button', optionClicked);
             });
         }
 
-        var schema = {
-            random: {
-                rules: {
-                    quantity: {
-                        required: true,
-                        number: true
-                    }
-                },
-                showErrors: sandbox.showJqueryValidateErrors,
-                submitHandler: submitHandler
-            },
-            spectral: {
-                rules: {
-                    windowSize: {
-                        required: true,
-                        number: true
-                    },
-                    threshold: {
-                        required: true,
-                        number: true
-                    },
-                    overlapStep: {
-                        required: true,
-                        number: true
-                    }
-                },
-                showErrors: sandbox.showJqueryValidateErrors,
-                submitHandler: submitHandler
-            }
-        };
+
 
         function setToConsole() {
             sandbox.requestTemplate('eventdetection.console', function(template) {
                 tile.place.html(template({}));
 
                 var $area = tile.place.find('.processing_notes');
-                var socket = io.connect(sandbox.actionUrl);
+                socket = io.connect(sandbox.actionUrl);
 
                 socket.on('update', function(update) {
                     $area.append('<p class="processing_note">' + update + '</p>');
@@ -57,7 +78,6 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
 
         function submitHandler(form) {
             var $form = $(form);
-
 
             var formValues = {};
             // Convert the HTML form into a key/value list.
@@ -84,29 +104,8 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
             }
 
             sandbox.action.findEvent(type, formValues);
-
             setToConsole();
         }
-
-
-        var preconfiguredOptions = {
-            wave: {
-                eventType: "Wave",
-                axis: "acceleration:z",
-                thresholdDirection: "above",
-                windowSize: "256",
-                threshold: "0.8",
-                overlapStep: "50"
-            },
-            paddle: {
-                eventType: "Paddle",
-                axis: "rotationrate:x",
-                thresholdDirection: "below",
-                windowSize: "256",
-                threshold: "1.1",
-                overlapStep: "50"
-            }
-        };
 
 
         function setSpectralFormPreconfigured($form, configuration) {
@@ -148,6 +147,26 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
 
             });
         }
+
+        function destructor() {
+            console.log('Destructor...');
+            if (typeof socket !== 'undefined') {
+                console.log('Destroying socket...');
+                socket.removeAllListeners();
+            }
+            sandbox
+                    = tile
+                    = configuration
+                    = doneCallback
+                    = socket
+                    = null;
+
+        }
+
+        init();
+        return {
+            destructor: destructor
+        };
     }
 
     return eventDetection;

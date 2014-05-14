@@ -1,7 +1,5 @@
 define(['vendor/jquery', 'utilities/commentList'], function($) {
     function resourceDetails(sandbox, tile, configuration, doneCallback) {
-        init();
-
         function init() {
             tile.setTitle('details');
 
@@ -37,16 +35,14 @@ define(['vendor/jquery', 'utilities/commentList'], function($) {
         }
 
         function destructor() {
-            tile.place.html('<div></div>');
-            tile.destructor();
-            $
-                    = sandbox
+            sandbox
                     = tile
                     = configuration
                     = doneCallback
                     = null;
         }
 
+        init();
         return {
             destructor: destructor
         };
