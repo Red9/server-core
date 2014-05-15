@@ -44,7 +44,7 @@ var panelResource = {
     summaryStatistics: {
         type: 'object',
         includeToCreate: false,
-        editable: false
+        editable: true
     }
 };
 

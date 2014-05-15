@@ -458,7 +458,6 @@ exports.createResource = function(resource, newResource, callback) {
                     log.error(table + " resource: Error adding. " + err);
                     callback(table + " resource: Error adding. " + err);
                 } else {
-                    log.debug("successfully created in table " + table);
                     postFunction(newResource);
                     callback(undefined, [newResource]);
                 }

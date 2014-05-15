@@ -184,7 +184,6 @@ exports.updateSingle = function(type, id, updatedResource, callback) {
 
         var query = 'UPDATE ' + resources[type].table + ' SET ' + assignments + ' WHERE id=?';
 
-        log.debug("Query: " + query);
         cassandraDatabase.execute(query, queryParameters, function(err) {
             if (err) {
                 log.debug('err on update: ' + err);
