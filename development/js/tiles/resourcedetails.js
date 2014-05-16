@@ -24,7 +24,7 @@ define(['vendor/jquery', 'utilities/commentList'], function($) {
                         type: type.charAt(0).toUpperCase() + type.slice(1)
                     };
                     parameters[type] = resource;
-
+                    
                     tile.place.html(template(parameters));
                 });
             }, expand);

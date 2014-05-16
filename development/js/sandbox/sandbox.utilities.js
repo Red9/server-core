@@ -80,7 +80,7 @@ define(['vendor/underscore'], function(_) {
 
         sandbox.calculateZoom = function(zoomDirection) {
 
-        
+
             var datasetStartTime = sandbox.focusState.minStartTime;
             var datasetEndTime = sandbox.focusState.maxEndTime;
             var currentStartTime = sandbox.focusState.startTime;
