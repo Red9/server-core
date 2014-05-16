@@ -92,8 +92,8 @@ exports.log = {
     },
     info: function(message, parameters) {
         var attributes = ExtractConsoleAttributes(message, parameters);
-
-        log_color.info(CreateConsoleColorString(attributes));
+        // Add space to vertically align with longer error text.
+        log_color.info(' ' + CreateConsoleColorString(attributes));
         if (config.release === true) {
             log_standard.info(CreateConsolePlainString(attributes));
             log_json.info(JSON.stringify(attributes));
@@ -102,7 +102,7 @@ exports.log = {
     warn: function(message, parameters) {
         var attributes = ExtractConsoleAttributes(message, parameters);
 
-        log_color.warn(CreateConsoleColorString(attributes));
+        log_color.warn(' ' + CreateConsoleColorString(attributes));
         if (config.release === true) {
             log_standard.warn(CreateConsolePlainString(attributes));
             log_json.warn(JSON.stringify(attributes));

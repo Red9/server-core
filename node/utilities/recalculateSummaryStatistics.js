@@ -13,6 +13,8 @@ var eventResource = requireFromRoot('support/resources/event');
 var datasetResource = requireFromRoot('support/resources/dataset');
 var panelResource = requireFromRoot('support/resources/panel');
 
+var limitMax = 6;
+
 function processEvent(event, callback) {
     // Get the headPanelId
     datasetResource.get({id: event.datasetId}, function(datasetList) {
@@ -46,14 +48,14 @@ function processPanel(panel, callback) {
 function processResource(task, callbackDone) {
     task.resource.get({}, function(resourceList) {
         var start = new Date().getTime();
-        async.eachLimit(resourceList, 6,
+        async.eachLimit(resourceList, limitMax,
                 task.processor,
                 function(err) {
                     if (err) {
                         log.error(err);
                     } else {
                         var totalTime = ((new Date().getTime()) - start) / 1000;
-                        log.info(totalTime + ' seconds');
+                        log.info(resourceList.length + ' items in ' + totalTime + ' seconds');
                     }
                     callbackDone();
                 });
@@ -72,10 +74,12 @@ queue.push({
     processor: processEvent
 });
 
+/*
 queue.push({
     resource: panelResource,
     processor: processPanel
 });
+*/
 
 
 

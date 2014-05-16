@@ -139,7 +139,7 @@ var parseLine = function(line, rows) {
 
 function updateInsertCompleteFunction(panel) {
     // Now, we need to update the panel description with start and end times
-    panelResource.calculatePanelProperties(panel.id, function(properties) {
+    panelResource.calculatePanelProperties(panel.id, function(err, properties) {
         var panelId = panel.id;
         var modifiedPanel = {
             startTime: properties.startTime,

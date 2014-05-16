@@ -99,6 +99,29 @@
             return moment(time).fromNow();
         }
 
+        function starsHelper(n, max) {
+
+            var star = '<span class="glyphicon glyphicon-star"></span>';
+            var noStar = '<span class="glyphicon glyphicon-star-empty"></span>';
+
+            var result = '';
+
+            var i;
+
+            if (typeof n !== 'undefined') {
+                for (i = 0; i < n; i++) {
+                    result += star;
+                }
+            }
+
+            if (typeof max !== 'undefined') {
+                for (; i < max; i++) {
+                    result += noStar;
+                }
+            }
+
+            return result;
+        }
 
         Handlebars.registerHelper('decimal', numberToDecimal);
         Handlebars.registerHelper('epochtime', millisecondsEpochToTime);
@@ -108,6 +131,7 @@
         Handlebars.registerHelper('duration', formatDuration);
         Handlebars.registerHelper('bytesToHumanSize', bytesToHumanSize);
         Handlebars.registerHelper('timeFromNow', timeFromNow);
+        Handlebars.registerHelper('ratingStars', starsHelper);
 
         return {
             millisecondsEpochToTime: millisecondsEpochToTime

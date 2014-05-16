@@ -1,0 +1,6 @@
+{
+	"path":"../../data-processing/hmm",
+	"script":"cumulativeSpectralEntropy.r",
+	"overlapStep":50,
+	"windowSize":256
+}

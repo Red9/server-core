@@ -88,11 +88,11 @@ function calculate(panelId, startTime, endTime, callback) {
                 statistician.stderr.setEncoding("utf8");
                 var stdout = statistician.stdout.read();
                 var stderr = statistician.stderr.read();
-
+                
                 var result = {};
 
                 if (code !== 0) {
-                    log.error("Error log: " + stderr);
+                    log.error('Statistics Exit Code === ' + code + ' for panel ' + panelId + ':' + stderr);
                 } else {
                     try {
                         result = JSON.parse(stdout);

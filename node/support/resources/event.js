@@ -82,6 +82,40 @@ function mapToCassandra(resource) {
 
 }
 
+
+
+function calculateStar(cse) {
+    var maximum = 1000;
+    var range = [
+        maximum * 0.9,
+        maximum * 0.8,
+        maximum * 0.5,
+        maximum * 0.3
+    ];
+    var i;
+    for (i = 0; i < range.length; i++) {
+        if (cse > range[i]) {
+            break;
+        }
+    }
+
+    return range.length - i + 1;
+}
+
+function addStars(resource) {
+    var result = {};
+
+    try {
+        underscore.each(resource.summaryStatistics.static.cse.axes,
+                function(cse, axis) {
+                    result[axis] = calculateStar(cse);
+                });
+    } catch (e) {
+        //log.warn('Caught: ' + e + ', ' + JSON.stringify(resource));
+    }
+    return result;
+}
+
 function mapToResource(cassandra) {
     var resource = {};
 
@@ -104,6 +138,9 @@ function mapToResource(cassandra) {
     }
 
     resource.type = cassandra.type;
+
+
+    resource.stars = addStars(resource);
 
     return resource;
 }

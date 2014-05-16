@@ -145,7 +145,7 @@ exports.delete = function(id, callback) {
 /**
  * 
  * @param {type} panelId the actual raw data panel ID (not dataset ID)
- * @param {type} callback ({ } ) Calls with an object with the calculated properties.
+ * @param {type} callback ({ } ) Calls with an object with the err, calculated properties.
  * @returns {undefined}
  */
 exports.calculatePanelProperties = function(panelId, callback) {

@@ -88,9 +88,11 @@ exports.calculatePanelProperties = function(rawDataId, callback) {
     async.eachSeries(properties,
             function(item, asyncCallback) {
                 cassandraDatabase.execute(item.query, [rawDataId], function(err, row) {
-                    if (err || row.rows.length !== 1) {
-                        log.debug('Error calculating panel properties: ' + err);
-                        result[item.key] = item.default;
+                    if (err) {
+                        asyncCallback('Error calculating '
+                                + rawDataId + ' panel properties: ' + err);
+                    } else if (row.rows.length !== 1) {
+                        asyncCallback('Panel ' + rawDataId + ' does not exist.');
                     } else {
                         var value = row.rows[0].get(item.queryKey);
                         if (item.type === 'timestamp') {
@@ -100,12 +102,13 @@ exports.calculatePanelProperties = function(rawDataId, callback) {
                         }
 
                         result[item.key] = value;
+                        asyncCallback();
                     }
-                    asyncCallback();
+
                 });
             },
             function(err) {
-                callback(result);
+                callback(err, result);
             });
 };
 
@@ -170,12 +173,12 @@ exports.putCachedProcessedPanel = function(panelId, startTime, endTime, buckets,
             value: JSON.stringify(payload),
             hint: 'varchar'
         }
-        
+
     ];
 
     cassandraDatabase.execute(query, parameters, function(err, result) {
         if (err) {
-            log.error('Error inserting into cache: ' + err);   
+            log.error('Error inserting into cache: ' + err);
         }
     });
 };
