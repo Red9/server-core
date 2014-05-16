@@ -13,7 +13,7 @@ var eventResource = requireFromRoot('support/resources/event');
 var datasetResource = requireFromRoot('support/resources/dataset');
 var panelResource = requireFromRoot('support/resources/panel');
 
-var limitMax = 6;
+var limitMax = 1;
 
 function processEvent(event, callback) {
     // Get the headPanelId
