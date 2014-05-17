@@ -1,41 +1,39 @@
 <h4>For {{type}} '{{title}}'</h4>
 <div class="row">
-    {{#each summaryStatistics.instantaneous}}
+
+    {{#if summaryStatistics.static.cse}}
+    {{#with summaryStatistics.static.cse}}
     <div class="col-lg-12">
         <div class="panel panel-default">
-            <div class="panel-heading"><strong>{{@key}}</strong></div>
-
+            <div class="panel-heading"><strong>cse</strong></div>
             <table class="table table-condensed">
-                <thead>
-                    <tr>
-                        <th>Axis</th>
-                        <th>Minimum</th>
-                        <th>Average</th>
-                        <th>Maximum</th>
-                    </tr>
-                </thead>
+
                 <tbody>
-                    {{#each this}}
-
-
                     <tr>
-                        <td>{{@key}}</td>
-                        <td><abbr title="units: {{this.minimum.units}},  time: {{epochtime this.minimum.time}}">
-                                {{unitize this.minimum.value this.minimum.units}}</abbr></td>
-
-                        <td><abbr title="units: {{this.average.units}}">
-                                {{unitize this.average.value this.average.units}}</abbr></td>
-
-                        <td><abbr title="units: {{this.maximum.units}},  time: {{epochtime this.maximum.time}}">
-                                {{unitize this.maximum.value this.maximum.units}}</abbr></td>
+                        <td>Window Size</td>
+                        <td>{{windowSize}}</td>
                     </tr>
-                    {{/each}}
+                    <tr>
+                        <td>Overlap Step</td>
+                        <td>{{overlapStep}}</td>
+                    </tr>
+                    <tr>
+                        <td>Axes</td>
+                        <td>
+                            <ul>
+                                {{#each axes}}
+                                <li>{{@key}}: {{this}}</li>
+                                {{/each}}
+                            </ul>
+                        </td>
+                    </tr>
                 </tbody>
+
             </table>
         </div>
     </div>
-    {{/each}}
-
+    {{/with}}
+    {{/if}}
 
 
     {{#if summaryStatistics.static.route}}
@@ -173,5 +171,41 @@
     </div>    
     {{/with}}
     {{/if}}
+
+    {{#each summaryStatistics.instantaneous}}
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading"><strong>{{@key}}</strong></div>
+
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Axis</th>
+                        <th>Minimum</th>
+                        <th>Average</th>
+                        <th>Maximum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each this}}
+
+
+                    <tr>
+                        <td>{{@key}}</td>
+                        <td><abbr title="units: {{this.minimum.units}},  time: {{epochtime this.minimum.time}}">
+                                {{unitize this.minimum.value this.minimum.units}}</abbr></td>
+
+                        <td><abbr title="units: {{this.average.units}}">
+                                {{unitize this.average.value this.average.units}}</abbr></td>
+
+                        <td><abbr title="units: {{this.maximum.units}},  time: {{epochtime this.maximum.time}}">
+                                {{unitize this.maximum.value this.maximum.units}}</abbr></td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{/each}}
 </div>
 

@@ -77,7 +77,7 @@ exports.spectral = function(options) {
         var dataset = datasetList[0];
 
         var start = new Date().getTime();
-        var script = spawn('Rscript', ['spectralWave.r'], {cwd: 'bin/hmm/'});
+        var script = spawn('Rscript', ['spectralThreshold.r'], {cwd: 'bin/hmm/'});
         script.stdout.setEncoding('utf8');
         script.stderr.setEncoding('utf8');
         script.stdin.setEncoding('utf8');
