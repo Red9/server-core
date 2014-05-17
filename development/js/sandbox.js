@@ -33,6 +33,16 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             sandboxEvents(sandbox);
             sandboxAction(sandbox);
 
+            sandbox.get('event', {}, function(eventList) {
+                _.each(eventList, function(event) {
+                    try {
+                        console.log(event.type + '(' + (event.endTime - event.startTime) + '): ' + event.summaryStatistics.static.cse.axes['acceleration:z']);
+                    } catch (e) {
+                        console.log(event.type + ': <no summary statistics>');
+                    }
+                });
+            });
+
             sandbox.actionUrl = $('#page_parameters').data('actionurl');
             sandbox.apiUrl = $('#page_parameters').data('apiurl');
             sandbox.currentUser = $('#page_parameters').data('currentuser');
@@ -84,31 +94,31 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
         },
         tiles: [],
         createFlatTile: function(tile, doneCallback, myDiv) {
-            if(typeof myDiv === 'undefined'){
+            if (typeof myDiv === 'undefined') {
                 myDiv = sandbox.div;
             }
 
             if (_.isArray(tile) === true) {
-                if(tile.length > 4){
+                if (tile.length > 4) {
                     alert('ERROR: Too many tiles!');
                 }
                 var columns = 12 / tile.length;
-                
+
                 var place = $('<div class="row"></div>');
                 myDiv.append(place);
-                async.eachSeries(tile, function(t, dc){
-                    
+                async.eachSeries(tile, function(t, dc) {
+
                     var tp = $('<div class="col-md-' + columns + '"></div>');
                     place.append(tp);
                     sandbox.createFlatTile(t, dc, tp);
-                    
-                }, function(){
+
+                }, function() {
                     doneCallback();
                 });
-                
-                
-                
-                        
+
+
+
+
             } else {
                 sandbox.tiles.push(tileFrame(sandbox, sandbox.tileId++, myDiv, 'flat',
                         tile.class, tile.configuration, doneCallback));
