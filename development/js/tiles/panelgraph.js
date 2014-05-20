@@ -2,6 +2,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
     'vendor/rickshaw', 'vendor/d3'
 ], function($, _, moment, Rickshaw, d3) {
     function panelGraph(sandbox, tile, configuration, doneCallback) {
+        var kMinimumZoomDuration = 100;
+        
         var graph;
         var rangeSelector;
         var graphData;
@@ -218,7 +220,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                     onZoom: function(e) {
                         var startTime = Math.floor(e.position.xMin);
                         var endTime = Math.floor(e.position.xMax);
-                        sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset(), startTime, endTime);
+                        if (_.isNaN(startTime) === false
+                                && _.isNaN(endTime) === false
+                                && endTime - startTime > kMinimumZoomDuration) {
+                            sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset(), startTime, endTime);
+                        }
 
                     },
                     onZoomOut: function() {

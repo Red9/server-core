@@ -34,11 +34,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             sandboxAction(sandbox);
 
             sandbox.get('event', {}, function(eventList) {
-                _.each(eventList, function(event) {
+                _.each(eventList, function(event, index) {
                     try {
-                        console.log(event.type + '(' + (event.endTime - event.startTime) + '): ' + event.summaryStatistics.static.cse.axes['acceleration:z']);
+                        console.log(index + ',' + event.datasetId + ',' + event.id + ',' + event.type + ',' + (event.endTime - event.startTime) + ',' + event.summaryStatistics.static.cse.axes['acceleration:z']);
                     } catch (e) {
-                        console.log(event.type + ': <no summary statistics>');
+                        console.log(index + ',' + event.datasetId + ',' + event.id + ',' + event.type + ',' + (event.endTime - event.startTime) + ',<no summary statistics>');
                     }
                 });
             });
