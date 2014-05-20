@@ -13,7 +13,7 @@ var eventResource = requireFromRoot('support/resources/event');
 var datasetResource = requireFromRoot('support/resources/dataset');
 var panelResource = requireFromRoot('support/resources/panel');
 
-var limitMax = 1;
+var limitMax = 2;
 
 function processEvent(event, callback) {
     // Get the headPanelId
@@ -69,17 +69,17 @@ queue.drain = function() {
     process.exit();
 };
 
-queue.push({
+/*queue.push({
     resource: eventResource,
     processor: processEvent
-});
+});*/
 
-/*
+
 queue.push({
     resource: panelResource,
     processor: processPanel
 });
-*/
+
 
 
 

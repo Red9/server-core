@@ -19,7 +19,7 @@ exports.getPanel = function(panelId, startTime, endTime,
 
     var previousChunkLength;
     var totalRowIndex = 0;
-    var lastRowTime = startTime;
+    var lastRowTime = startTime - 1; // Account for the first row.
 
     async.doWhilst(
             function(callbackWhilst) { // While loop body
@@ -64,7 +64,7 @@ exports.getPanel = function(panelId, startTime, endTime,
 };
 
 exports.calculatePanelProperties = function(rawDataId, callback) {
-    // Warning: these keys are sensitive to matching the keys in dataset resource!
+    // Warning: these keys are sensitive to matching the keys in panel resource!
     var properties = [
         {
             key: 'startTime',

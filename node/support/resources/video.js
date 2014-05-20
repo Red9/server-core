@@ -5,6 +5,7 @@ var markdown = require('markdown').markdown;
 var common = requireFromRoot('support/resourcescommon');
 
 var videoResource = {
+    // TODO: Convert this to datasetId
     dataset: {
         type: 'uuid',
         includeToCreate: true,
