@@ -69,15 +69,19 @@ queue.drain = function() {
     process.exit();
 };
 
-/*queue.push({
+queue.push({
     resource: eventResource,
     processor: processEvent
-});*/
+}, function() {
+    log.info('Done processing events.');
+});
 
 
 queue.push({
     resource: panelResource,
     processor: processPanel
+}, function() {
+    log.info('Done processing datasets.');
 });
 
 

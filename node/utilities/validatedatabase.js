@@ -153,6 +153,10 @@ function checkDataset(dataset, callbackDone) {
                 if (_.isEmpty(panel.summaryStatistics) === true) {
                     log.error('dataset ' + dataset.id + ' panel ' + panel.id + ' has empty summary statistics.');
                 }
+                
+                if (_.isArray(panel.axes) === false){
+                    log.error('dataset ' + dataset.id + ' panel ' + panel.id + ' has invalid axes field: ' + panel.axes);
+                }
 
                 try {
                     if (panel.summaryStatistics.instantaneous.frequency.panelRow.average.value !== kFrequency) {
