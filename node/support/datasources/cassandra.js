@@ -9,21 +9,23 @@ var cassandraClient = require('node-cassandra-cql').Client;
 var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
 
 exports.getAll = function(type, callbackItem, callbackDone) {
-
     var command = 'SELECT * FROM ' + resources[type].table;
-    cassandraDatabase.eachRow(command,
+    exports.rawGetAll(command, [], type, callbackItem, callbackDone);
+};
+
+exports.rawGetAll = function(command, parameters, type, callbackItem, callbackDone) {
+    cassandraDatabase.eachRow(command, parameters,
             function(n, row) {
                 var item = ExtractRowToJSON(resources[type].schema, row);
                 callbackItem(item);
             },
             function(err, rowLength) {
                 if (err) {
-                    LogError('databaseCassandra.getAll', err);
+                    LogError('databaseCassandra.rawGetAll', err);
                 }
                 callbackDone(err);
             });
 };
-
 
 exports.getSingle = function(type, id, callback) {
     var command = 'SELECT * FROM ' + resources[type].table + ' WHERE id=?';

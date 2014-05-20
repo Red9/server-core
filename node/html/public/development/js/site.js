@@ -33,7 +33,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
             apiPath: null, //Dynamically set
             searchDataset: '/dataset/',
             searchEvent: '/event/',
-            eventTypes: function(){return site.urls.apiPath + '/eventtype/';}, // What a hack!!!
+            eventTypes: function() {
+                return site.urls.apiPath + '/eventtype/';
+            }, // What a hack!!!
             userList: '/user/'
         },
         getChecked: function() {
@@ -176,6 +178,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
                 url = this.urls.apiPath + this.urls.searchDataset;
                 this.resultType = 'dataset';
                 searchParams['expand'] = 'headPanel,owner';
+                searchParams['count'] = 'event,video';
             }
             $('#container-results').empty();
             var self = this;
@@ -188,6 +191,15 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
                     } else {
                         return 0;
                     }
+                });
+                
+                // Remove the 0 counts so that the badges don't display.
+                _.each(self.results, function(result) {
+                    _.each(result.count, function(count, key) {
+                        if (count <= 0) {
+                            delete result.count[key];
+                        }
+                    });
                 });
                 self.showResults();
             });

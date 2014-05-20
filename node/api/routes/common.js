@@ -1,5 +1,6 @@
 var underscore = require('underscore')._;
 var validator = require('validator');
+var async = require('async');
 
 var resources = requireFromRoot('support/resources/resources');
 
@@ -53,11 +54,39 @@ exports.describe = function(route, req, res, next) {
     res.json(resources[route.resource].resource.schema);
 };
 
-exports.search = function(route, req, res, next) {
+
+
+function countResourceList(resourceList, type, searchKey, resourceKey, doneCallback) {
+    var eachLimitMax = 6;
+    async.eachLimit(resourceList, eachLimitMax,
+            function(resource, callback) {
+                var t = {};
+                t[searchKey] = resource[resourceKey];
+                resources[type].get(t, function(countList) {
+                    resource.count[type] = countList.length;
+                    callback();
+                });
+            }, function(err) {
+        if (err) {
+            log.error('Error: ' + err);
+        }
+        doneCallback();
+    });
+}
+
+exports.search = get;
+exports.get = get;
+
+function get(route, req, res, next) {
     var simpleOutput = false;
+    var count;
+    if (typeof req.query['count'] !== 'undefined') {
+        var count = req.query['count'].split(',');
+        delete req.query['count'];
+    }
     if (typeof req.query['simpleoutput'] !== 'undefined') {
-        delete req.query['simpleoutput'];
         simpleOutput = true;
+        delete req.query['simpleoutput'];
     }
 
     var expand;
@@ -67,38 +96,44 @@ exports.search = function(route, req, res, next) {
     }
 
     // At this point, req.query has constraints.
+    var searchParams = req.query;
+    // If it's a direct resource request we should search for just that
+    if (typeof req.param('id') !== 'undefined') {
+        searchParams = {id: req.param('id')};
+    }
 
-    resources[route.resource].get(req.query, function(resources) {
+    resources[route.resource].get(searchParams, function(resources) {
         if (simpleOutput) {
             resources = simplifyOutput(route, resources);
         }
-        res.json(resources);
-    }, expand);
-};
 
-
-exports.get = function(route, req, res, next) {
-    var simpleOutput = false;
-    if (typeof req.query['simpleoutput'] !== 'undefined') {
-        delete req.query['simpleoutput'];
-        simpleOutput = true;
-    }
-
-    var expand;
-    if (typeof req.query['expand'] !== 'undefined') {
-        expand = req.query['expand'].split(',');
-        delete req.query['expand'];
-    }
-
-    // At this point, req.query has constraints.
-
-    resources[route.resource].get({id: req.param('id')}, function(resources) {
-        if (simpleOutput) {
-            resources = simplifyOutput(route, resources);
+        if (typeof count !== 'undefined') {
+            underscore.each(resources, function(resource) {
+                resource.count = {};
+            });
+            async.eachSeries(count,
+                    function(type, callback) {
+                        if (typeof route.count[type] !== 'undefined') {
+                            countResourceList(resources, type,
+                                    route.count[type].searchKey,
+                                    route.count[type].resourceKey,
+                                    callback);
+                        } else { // Unknown type, we'll set to -1;
+                            underscore.each(resources, function(resource) {
+                                resource.count[type] = -1;
+                            });
+                            callback();
+                        }
+                    },
+                    function(err) {
+                        res.json(resources);
+                    });
+        } else {
+            res.json(resources);
         }
-        res.json(resources);
     }, expand);
-};
+}
+;
 
 
 exports.create = function(route, req, res, next) {

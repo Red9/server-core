@@ -26,7 +26,7 @@ exports.dataProcessingDirectory = '../../data-processing';
 exports.usrDirectory = exports.dataProcessingDirectory + '/usr';
 exports.statistician_children = exports.dataProcessingDirectory + '/statistics/children';
 
-exports.logfilepath = '/home/ubuntu/dev-website/logs';
+exports.logFileDirectory = '/home/ubuntu/dev-website/logs';
 
 exports.release = true;
 

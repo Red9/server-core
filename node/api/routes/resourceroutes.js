@@ -1,10 +1,15 @@
+var async = require('async');
+var resources = requireFromRoot('support/resources/resources');
+
+
+
 var event = {
     simplifyOutput: [
         'summaryStatistics'
     ],
     resource: 'event',
     root: '/event/',
-    allowed:[
+    allowed: [
         'create',
         'search',
         'describe',
@@ -17,7 +22,7 @@ var event = {
 var comment = {
     resource: 'comment',
     root: '/comment/',
-    allowed:[
+    allowed: [
         'create',
         'search',
         'describe',
@@ -30,7 +35,7 @@ var comment = {
 var video = {
     resource: 'video',
     root: '/video/',
-    allowed:[
+    allowed: [
         'create',
         'search',
         'describe',
@@ -43,7 +48,7 @@ var video = {
 var layout = {
     resource: 'layout',
     root: '/layout/',
-    allowed:[
+    allowed: [
         'create',
         'search',
         'describe',
@@ -59,19 +64,33 @@ var dataset = {
     ],
     resource: 'dataset',
     root: '/dataset/',
-    allowed:[
+    allowed: [
         'search',
         'describe',
         'get',
         'update',
         'delete'
-    ]
+    ],
+    count: {
+        event: {
+            searchKey: 'datasetId',
+            resourceKey: 'id'
+        },
+        comment: {
+            searchKey: 'resource',
+            resourceKey: 'id'
+        },
+        video: {
+            searchKey: 'dataset',
+            resourceKey: 'id'
+        }
+    }
 };
 
 var user = {
     resource: 'user',
     root: '/user/',
-    allowed:[
+    allowed: [
         'search',
         'describe',
         'get',
@@ -82,7 +101,7 @@ var user = {
 var panel = {
     resource: 'panel',
     root: '/panel/',
-    allowed:[
+    allowed: [
         'create',
         'search',
         'describe',
@@ -90,19 +109,19 @@ var panel = {
         'update',
         'delete'
     ],
-    extraRoutes:[
+    extraRoutes: [
         {
-            method:'get',
+            method: 'get',
             path: '/panel/:id/body',
-            handler:requireFromRoot('api/routes/panelextra').getBody
+            handler: requireFromRoot('api/routes/panelextra').getBody
         },
         {
-            method:'put',
+            method: 'put',
             path: '/panel/:id/body',
-            handler:requireFromRoot('api/routes/panelextra').updateBody
+            handler: requireFromRoot('api/routes/panelextra').updateBody
         }
     ]
-            
+
 };
 
 module.exports.event = event;

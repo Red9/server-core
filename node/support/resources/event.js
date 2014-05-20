@@ -1,8 +1,10 @@
 var underscore = require('underscore')._;
 var moment = require('moment');
 var async = require('async');
+var validator = require('validator');
 
 var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
+var cassandraCustom = requireFromRoot('support/datasources/cassandra_custom');
 var log = requireFromRoot('support/logger').log;
 
 var common = requireFromRoot('support/resourcescommon');
@@ -216,6 +218,34 @@ function createPost(newEvent) {
     });
 }
 
+function optimizedGetTest(constraints) {
+    if (underscore.keys(constraints).length === 1
+            && underscore.has(constraints, 'datasetId')) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @param {object} constraints 
+ * @param {function} rowCallback (resource) Call once for each "got" resource
+ * @param {function} doneCallback () Call when done.
+ * @returns {undefined}
+ */
+function optimizedGet(constraints, rowCallback, doneCallback) {
+    if (underscore.keys(constraints).length === 1
+            && underscore.has(constraints, 'datasetId')
+            && validator.isUUID(constraints.datasetId)) {
+        cassandraCustom.getEventsByDataset(constraints.datasetId,
+                rowCallback,
+                doneCallback
+                );
+    } else {
+        doneCallback();
+    }
+}
+
 exports.resource = {
     name: 'event',
     mapToCassandra: mapToCassandra,
@@ -226,6 +256,10 @@ exports.resource = {
         pre: createPre,
         flush: createFlush,
         post: createPost
+    },
+    get: {
+        optimizedTest: optimizedGetTest,
+        optimizedGet: optimizedGet
     }
 };
 

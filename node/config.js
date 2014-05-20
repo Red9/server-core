@@ -10,7 +10,8 @@ var requiredInstanceKeys = [
     'release',
     'cassandraHosts',
     'cassandraKeyspace',
-    'rncDirectory'
+    'rncDirectory',
+    'logFileDirectory'
 ];
 
 exports.ProcessCommandLine = function() {

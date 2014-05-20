@@ -313,6 +313,8 @@
     <th>Started</th>
     <th>Duration</th>
     <th>Created</th>
+    <th>Ev.</th>
+    <th>Vid.</th>
     </thead>
 
     <tbody id="result_tbody">
@@ -324,7 +326,9 @@
     <td onclick="window.location.assign('/dataset/\{{id}}');">\{{title}} \{{type}}</td>
     <td>\{{toDateString headPanel.startTime}}</td>
     <td>\{{toDurationString headPanel.startTime headPanel.endTime}}</td>
-    <td>\{{toDateString createTime}} </td>
+    <td>\{{toDateString createTime}}</td>
+    <td><span class="badge">\{{count.event}}</span></td>
+    <td><span class="badge">\{{count.video}}</span></td>
     </tr>
     \{{/each}}
     </tbody>

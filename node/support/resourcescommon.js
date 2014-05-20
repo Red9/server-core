@@ -281,6 +281,10 @@ function emptyPost() {
 function emptyFlush() {
 }
 
+function emptyOptimizedTest() {
+    return false;
+}
+
 
 /** Checks whether a particular value is a valid value for the given key in the given resource.
  * 
@@ -498,14 +502,14 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
             || typeof resourceDescription.get.pre === 'undefined' ? emptyPre : resourceDescription.get.pre;
     var postFunction = typeof resourceDescription.get === 'undefined'
             || typeof resourceDescription.get.post === 'undefined' ? emptyPost : resourceDescription.get.post;
-
+    var optimizedGetTestFunction = typeof resourceDescription.get === 'undefined'
+            || typeof resourceDescription.get.optimizedTest === 'undefined' ? emptyOptimizedTest : resourceDescription.get.optimizedTest;
 
     preFunction(constraints, function(continueProcessing) {
         if (continueProcessing === false) {
             callback('get.pre failed');
             return;
         }
-
 
         var result = [];
         var table = resourceDescription.cassandraTable;
@@ -557,6 +561,10 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
                 callback([]);
             }
 
+        } else if (optimizedGetTestFunction(constraints) === true) {
+            resourceDescription.get.optimizedGet(constraints,
+                    databaseRowFunction,
+                    databaseDoneFunction);
         } else {
             cassandraDatabase.getAll(table,
                     databaseRowFunction,
