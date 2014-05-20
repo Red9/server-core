@@ -1,5 +1,6 @@
 var underscore = require('underscore')._;
 var common = requireFromRoot('support/resourcescommon');
+var useful = requireFromRoot('support/useful');
 
 var layoutResource = {
     id: {
@@ -71,7 +72,7 @@ function mapToResource(cassandra) {
 }
 
 var createFlush = function(newLayout) {
-    newLayout.id = common.generateUUID();
+    newLayout.id = useful.generateUUID();
 };
 
 

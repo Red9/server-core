@@ -26,7 +26,7 @@ exports.dataProcessingDirectory = '../../data-processing';
 exports.usrDirectory = exports.dataProcessingDirectory + '/usr';
 exports.statistician_children = exports.dataProcessingDirectory + '/statistics/children';
 
-exports.logfilepath = '../logs/';
+exports.logfilepath = '/home/clewis/consulting/red9/dev-website/logs';
 
 exports.release = false;
 
@@ -34,3 +34,5 @@ exports.cassandraHosts = ['localhost:9042'];
 exports.cassandraKeyspace = 'dev';
 
 exports.requireRoot = '/home/clewis/consulting/red9/dev-website/node';
+
+exports.rncDirectory = '/home/clewis/consulting/red9/dev-website/upload/rnc';

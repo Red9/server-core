@@ -6,6 +6,7 @@ var cassandraPanel = requireFromRoot('support/datasources/cassandra_panel');
 var cassandraPanelProcessor = requireFromRoot('support/datasources/cassandra_panel_processor');
 
 var common = requireFromRoot('support/resourcescommon');
+var useful = requireFromRoot('support/useful');
 var datasetResource = requireFromRoot('support/resources/dataset');
 
 var underscore = require('underscore')._;
@@ -95,7 +96,7 @@ function mapToResource(cassandra) {
 }
 
 function createFlush(newPanel) {
-    newPanel.id = common.generateUUID();
+    newPanel.id = useful.generateUUID();
     newPanel.createTime = moment().valueOf();
     newPanel.startTime = moment().valueOf();// Default to now
     newPanel.endTime = moment().valueOf();// Default to now

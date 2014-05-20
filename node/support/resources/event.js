@@ -6,6 +6,7 @@ var cassandraDatabase = requireFromRoot('support/datasources/cassandra');
 var log = requireFromRoot('support/logger').log;
 
 var common = requireFromRoot('support/resourcescommon');
+var useful = requireFromRoot('support/useful');
 
 var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 var datasetResource = requireFromRoot('support/resources/dataset');
@@ -188,7 +189,7 @@ exports.get = function(constraints, callback, expand) {
 };
 
 function createFlush(newEvent) {
-    newEvent.id = common.generateUUID();
+    newEvent.id = useful.generateUUID();
     newEvent.summaryStatistics = {};
 }
 

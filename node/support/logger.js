@@ -42,7 +42,7 @@ exports.init = function(newInstanceType, newInstanceId) {
     // Only include full logging if we're release.
     if (config.release === true) {
         var file_t = new (winston.transports.File)({
-            filename: config.logfilepath + instanceType + "-" + instanceId,
+            filename: config.logfilepath + '/' + instanceType + "-" + instanceId + '.log',
             maxsize: 1024 * 1024
         });
 

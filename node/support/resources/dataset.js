@@ -5,6 +5,7 @@ var config = requireFromRoot('config');
 var log = requireFromRoot('support/logger').log;
 
 var common = requireFromRoot('support/resourcescommon');
+var useful = requireFromRoot('support/useful');
 
 var userResource = requireFromRoot('support/resources/user');
 var eventResource = requireFromRoot('support/resources/event');
@@ -95,8 +96,8 @@ function mapToResource(cassandra) {
 }
 
 var createFlush = function(newDataset) {
-    newDataset.id = common.generateUUID();
-    newDataset.headPanelId = common.generateUUID();
+    newDataset.id = useful.generateUUID();
+    newDataset.headPanelId = useful.generateUUID();
     newDataset.timezone = config.defaultTimezone;
     newDataset.source = {};
     newDataset.createTime = moment().valueOf();

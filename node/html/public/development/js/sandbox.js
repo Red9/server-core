@@ -33,22 +33,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             sandboxEvents(sandbox);
             sandboxAction(sandbox);
 
-            sandbox.get('event', {}, function(eventList) {
-                _.each(eventList, function(event, index) {
-                    try {
-                        console.log(index + ',' + event.datasetId + ',' + event.id + ',' + event.type + ',' + (event.endTime - event.startTime) + ',' + event.summaryStatistics.static.cse.axes['acceleration:z']);
-                    } catch (e) {
-                        console.log(index + ',' + event.datasetId + ',' + event.id + ',' + event.type + ',' + (event.endTime - event.startTime) + ',<no summary statistics>');
-                    }
-                });
-            });
-
             sandbox.actionUrl = $('#page_parameters').data('actionurl');
             sandbox.apiUrl = $('#page_parameters').data('apiurl');
             sandbox.currentUser = $('#page_parameters').data('currentuser');
 
             sandbox.built = true;
-
         },
         init: function() {
             if (sandbox.built !== 'true') {

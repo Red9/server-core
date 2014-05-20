@@ -3,6 +3,7 @@ var underscore = require('underscore')._;
 var markdown = require('markdown').markdown;
 
 var common = requireFromRoot('support/resourcescommon');
+var useful = requireFromRoot('support/useful');
 
 var videoResource = {
     // TODO: Convert this to datasetId
@@ -93,7 +94,7 @@ exports.get = function(constraints, callback, expand) {
 };
 
 var createFlush = function(newComment) {
-    newComment.id = common.generateUUID();
+    newComment.id = useful.generateUUID();
     newComment.createTime = moment().valueOf();
 };
 

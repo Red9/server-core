@@ -9,7 +9,8 @@ var requiredInstanceKeys = [
     'statistician_children',
     'release',
     'cassandraHosts',
-    'cassandraKeyspace'   
+    'cassandraKeyspace',
+    'rncDirectory'
 ];
 
 exports.ProcessCommandLine = function() {

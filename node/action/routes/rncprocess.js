@@ -3,6 +3,7 @@ var spawn = require('child_process').spawn;
 var log = requireFromRoot('support/logger').log;
 var config = requireFromRoot('config');
 
+var useful = requireFromRoot('support/useful');
 var datasetResource = requireFromRoot('support/resources/dataset');
 var panelResource = requireFromRoot('support/resources/panel');
 var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
@@ -25,13 +26,14 @@ exports.post = function(req, res, next) {
 
     var busboy = new Busboy({headers: req.headers});
 
+    var tempId = useful.generateUUID();
+    var tempPath = path.join(config.rncDirectory, tempId + '.RNC');
     var upload = {};
 
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
         if (fieldname === 'rnc' && typeof upload.filename === 'undefined') {
-            var saveTo = path.join(os.tmpDir(), path.basename(filename));
-            file.pipe(fs.createWriteStream(saveTo));
-            upload.filepath = saveTo;
+            file.pipe(fs.createWriteStream(tempPath));
+            upload.filepath = tempPath;
             upload.userFilename = filename;
         } else {
             // Wrong file type, discard.
@@ -40,22 +42,38 @@ exports.post = function(req, res, next) {
     });
 
     busboy.on('field', function(fieldname, value, valueTruncated, keyTruncated) {
-        if(value !== ''){
+        if (value !== '') {
             upload[fieldname] = value;
         }
     });
 
     busboy.on('finish', function() {
         var valid = validateUpload(upload);
-        if (typeof valid === 'undefined') {            
-            processRNC(upload, function(id) {
+        if (typeof valid === 'undefined') {
+            processRNC(upload, function(id) { // Processing started
                 res.json({
                     message: 'Processing in progress.',
                     datasetId: id
                 });
+            }, function(err, id) { // Processing done
+                if (typeof err !== 'undefined') {
+                    // Delete the uploaded file.
+                    fs.unlink(tempPath, function() {
+                    });
+                } else {
+                    var newPath = path.join(config.rncDirectory, id + '.RNC');
+                    fs.rename(tempPath, newPath, function() {
+                        // Done 
+                    });
+                }
+
             });
         } else {
             res.status(403).json({message: 'Upload failed: ' + valid});
+
+            // Delete the uploaded file.
+            fs.unlink(tempPath, function() {
+            });
         }
     });
 
@@ -76,10 +94,10 @@ function validateUpload(upload) {
 /**
  * 
  * @param {type} upload
- * @param {type} datasetCreatedCallback called with datasetId as it's only parameter.
- * @returns {undefined}
+ * @param {function} datasetCreatedCallback (datasetId) Called when processing starts
+ * @param {function} doneCallback (err, datasetId) Called when all processing is done.
  */
-function processRNC(upload, datasetCreatedCallback) {
+function processRNC(upload, datasetCreatedCallback, doneCallback) {
 
     if (typeof upload.title === 'undefined') {
         upload.title = upload.userFilename;
@@ -122,7 +140,13 @@ function processRNC(upload, datasetCreatedCallback) {
                 var processingStatistics = JSON.parse(parsernc.stdout.read());
 
                 if (code !== 0) {
-                    log.error('Non zero code! ' + code + ': ' + processingInfo);
+                    var errorMessage = 'Non zero code! ' + code + ': ' + processingInfo;
+                    log.error(errorMessage);
+
+                    datasetResource.delete(id, function() {
+                    });
+                    callbackDone(errorMessage, id);
+                    return;
                 }
 
 
@@ -168,6 +192,7 @@ function processRNC(upload, datasetCreatedCallback) {
                                 if (err) {
                                     log.error('RNC Process dataset summary statistics update unsuccessful: ' + err);
                                 }
+                                doneCallback(undefined, id);
                             }, true);
                         });
                     }, true);

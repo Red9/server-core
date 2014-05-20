@@ -1,5 +1,6 @@
 var underscore = require('underscore')._;
 var common = requireFromRoot('support/resourcescommon');
+var useful = requireFromRoot('support/useful');
 
 var userResource = {
     id: {
@@ -74,7 +75,7 @@ function mapToResource(cassandra) {
 }
 
 var createFlush = function(newUser) {
-    newUser.id = common.generateUUID();
+    newUser.id = useful.generateUUID();
 };
 
 exports.resource = {
