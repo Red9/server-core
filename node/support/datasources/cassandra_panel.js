@@ -188,6 +188,9 @@ exports.putCachedProcessedPanel = function(panelId, startTime, endTime, buckets,
 exports.deletePanel = function(panelId, callback) {
     var query = 'DELETE FROM raw_data WHERE id=?';
     cassandraDatabase.execute(query, [panelId], callback);
+    
+    var query = 'DELETE FROM raw_data_cache WHERE id=?';
+    cassandraDatabase.execute(query, [panelId], callback);
 };
 
 
