@@ -5,7 +5,6 @@ var requiredInstanceKeys = [
     'realms',
     'tempDirectory',
     'sessionSecret',
-    'usrDirectory',
     'statistician_children',
     'release',
     'cassandraHosts',

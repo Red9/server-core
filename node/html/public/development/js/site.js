@@ -48,18 +48,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
             });
             return checkedItems;
         },
-        usrChecked: function(resultType) {
-            console.log('usrChecked!');
-            if (typeof usrModalInstance === 'undefined') {
-                // First time, load modal
-                $('#usr_modal_div').load('/snippet/usrmodal', function() {
-                    usrModalInstance = new usrModal();
-                    usrModalInstance.show();
-                });
-            } else {
-                usrModalInstance.show();
-            }
-        },
         deleteChecked: function(resultType) {
             console.log('Result type: ' + resultType);
             $('#result_tbody tr td #selectCheckbox').each(function(index, element) {

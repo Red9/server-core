@@ -44,9 +44,6 @@ exports.init = function() {
             server.listen(app.get('port'), function() {
                 log.info('Express API server listening on port ' + app.get('port'));
             });
-
-
-            requireFromRoot('support/resources/usr').loadUsrs();
         }
     });
 };

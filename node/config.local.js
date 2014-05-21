@@ -23,7 +23,6 @@ exports.tempDirectory = "/tmp/red9_dev_website/";
 exports.sessionSecret = 'powells at pdx';
 
 exports.dataProcessingDirectory = '../../data-processing';
-exports.usrDirectory = exports.dataProcessingDirectory + '/usr';
 exports.statistician_children = exports.dataProcessingDirectory + '/statistics/children';
 
 exports.logFileDirectory = '/home/clewis/consulting/red9/dev-website/logs';
