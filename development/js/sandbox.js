@@ -26,6 +26,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             panel: undefined
         },
         buildSandbox: function() {
+            sandbox.actionUrl = $('#page_parameters').data('actionurl');
+            sandbox.apiUrl = $('#page_parameters').data('apiurl');
+            sandbox.currentUser = $('#page_parameters').data('currentuser');
+
             sandboxHistory(sandbox);
             sandboxUtilities(sandbox);
             sandboxConvenience(sandbox);
@@ -33,9 +37,15 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             sandboxEvents(sandbox);
             sandboxAction(sandbox);
 
-            sandbox.actionUrl = $('#page_parameters').data('actionurl');
-            sandbox.apiUrl = $('#page_parameters').data('apiurl');
-            sandbox.currentUser = $('#page_parameters').data('currentuser');
+//            sandbox.get('event', {}, function(eventList) {
+//                _.each(eventList, function(event, index) {
+//                    try {
+//                        console.log(index + ',' + event.datasetId + ',' + event.id + ',' + event.type + ',' + event.source.type + ',' + (event.endTime - event.startTime) + ',' + event.summaryStatistics.static.cse.axes['acceleration:z']);
+//                    } catch (e) {
+//                        console.log(index + ',' + event.datasetId + ',' + event.id + ',' + event.type + ',' + event.source.type + ',' + (event.endTime - event.startTime) + ',<no summary statistics>');
+//                    }
+//                });
+//            });
 
             sandbox.built = true;
         },
