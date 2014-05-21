@@ -456,5 +456,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
             return builder.join('');
         });
     }
+    window.site = site; // Set global;
     return site;
 });

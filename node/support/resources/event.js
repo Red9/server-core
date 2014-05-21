@@ -88,16 +88,15 @@ function mapToCassandra(resource) {
 
 
 function calculateStar(cse) {
-    var maximum = 1000;
     var range = [
-        maximum * 0.9,
-        maximum * 0.8,
-        maximum * 0.5,
-        maximum * 0.3
+        260.04,
+        98.24,
+        45.165,
+        16.58
     ];
     var i;
     for (i = 0; i < range.length; i++) {
-        if (cse > range[i]) {
+        if (Math.abs(cse) > range[i]) {
             break;
         }
     }
