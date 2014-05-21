@@ -16,6 +16,11 @@ import argparse
 # Example:
 # $> python modifyPanel.py --apiDomain http://api.redninesensor.com --datasetId ef2ef6fa-6a5a-bed7-b60a-0180bcd7ad42
 #
+#
+# If you're testing you can comment out the last lines of this script so that
+# nothing is modified on the server.
+#
+#
 
 def ParseArgs():
 	parser = argparse.ArgumentParser()
@@ -42,11 +47,6 @@ dataset = requests.get(host + '/dataset/' + datasetId ).json()[0]
 # Get the panel definition (meta)
 oldPanel = requests.get(host + '/panel/' + dataset['headPanelId']).json()[0]
 oldPanelId = oldPanel['id']
-
-# Create a new panel to write to.
-newPanel = requests.post(host + '/panel/', data={'datasetId':oldPanel['datasetId']})
-newPanelId = newPanel.json()[0]['id']
-print('new panel id = ' + newPanelId, file=sys.stderr)
 
 # Request the original panel body within the start and end times
 panelUrl = host + '/panel/' + oldPanelId + '/body/?format=csv'
@@ -82,6 +82,14 @@ for row in panelBuffer:
 	
 	result.write('\n')
 
+# ------------------------------------------------------------------------------
+# Below this point content on the server will be modified. Here be dragons.
+# ------------------------------------------------------------------------------
+
+# Create a new panel to write to.
+newPanel = requests.post(host + '/panel/', data={'datasetId':oldPanel['datasetId']})
+newPanelId = newPanel.json()[0]['id']
+print('new panel id = ' + newPanelId, file=sys.stderr)
 
 # Upload the new panel
 headers = {'content-type':'text/*'}
