@@ -54,9 +54,18 @@ function processRows(task, callback) {
     callback();
 }
 
+/** This function will make sure that the database results are sent out in an
+ * ordered serial fashion, even if they arrive asynchronously.
+ *  
+ * @param {function} callbackRow
+ * @param {function} callbackDone
+ * @returns {function}
+ */
 function serializeDatabaseRows(callbackRow, callbackDone) {
+    // Buffer for storing results if the database results come in the wrong order.
     var buffer = {};
 
+    // The queue to serially process the database results.
     var processQueue = async.queue(processRows, 1);
 
     var startIndex = 0; // Total row counter
@@ -70,6 +79,8 @@ function serializeDatabaseRows(callbackRow, callbackDone) {
 
             processQueue.push({callbackRow: callbackRow, rows: buffer[currentChunk], startIndex: startIndex}, serializeCallback);
             startIndex += buffer[currentChunk].length;
+            
+            // Let's not keep unneeded data around.
             delete buffer[currentChunk];
             currentChunk++;
         }
@@ -84,15 +95,31 @@ function serializeDatabaseRows(callbackRow, callbackDone) {
     return handleChunk;
 }
 
-exports.getPanelNew = function(panelId, startTime, endTime, callbackRow, callbackDone
+/** Get a panel from the database.
+ * 
+ * This asynchronous, concurrent version of the function is 31% faster than the
+ * simple version, at the cost of some code complexity.
+ * 
+ * @param {uuid} panelId
+ * @param {number} startTime
+ * @param {number} endTime
+ * @param {function} callbackRow (time, data array, row index) Must execute synchronously. Time is in milliseconds since epoch.
+ * @param {function} callbackDone ()
+ * @param {number} durationLimit Optional. Used for testing.
+ * @param {number} concurrencyLimit Optional. Used for testing.
+ */
+exports.getPanel = function(panelId, startTime, endTime, callbackRow, callbackDone
         , durationLimit, concurrencyLimit) {
 
     if (startTime >= endTime) {
         // TODO: handle error here
     }
 
+    // Set defaults
     durationLimit = typeof durationLimit === 'undefined' ? 5000 : durationLimit;
     concurrencyLimit = typeof concurrencyLimit === 'undefined' ? 7 : concurrencyLimit;
+    
+    
     var done = false;
     var chunk = 0;
     var queue = async.queue(getDatabaseRows, concurrencyLimit);
@@ -120,6 +147,11 @@ exports.getPanelNew = function(panelId, startTime, endTime, callbackRow, callbac
 };
 
 
+/** Calculates the acutal start and end time from the database panel data.
+ * 
+ * @param {uuid} rawDataId
+ * @param {function} callback (object with keys startTime and endTime)
+ */
 exports.calculatePanelProperties = function(rawDataId, callback) {
     // Warning: these keys are sensitive to matching the keys in panel resource!
     var properties = [
@@ -169,6 +201,14 @@ exports.calculatePanelProperties = function(rawDataId, callback) {
             });
 };
 
+/** Requests a processed panel from the cache.
+ * 
+ * @param {uuid} panelId
+ * @param {number} startTime
+ * @param {number} endTime
+ * @param {number} buckets
+ * @param {function} callback (processed panel object or undefined)
+ */
 exports.getCachedProcessedPanel = function(panelId, startTime, endTime, buckets, callback) {
     var query = 'SELECT * FROM raw_data_cache WHERE id=? AND start_time=? AND end_time=? AND buckets=?';
 
@@ -206,6 +246,14 @@ exports.getCachedProcessedPanel = function(panelId, startTime, endTime, buckets,
 
 };
 
+/** Store a processed panel object
+ * 
+ * @param {uuid} panelId
+ * @param {number} startTime
+ * @param {number} endTime
+ * @param {number} buckets
+ * @param {objecw} payload
+ */
 exports.putCachedProcessedPanel = function(panelId, startTime, endTime, buckets, payload) {
     var query = 'INSERT INTO raw_data_cache (id, start_time, end_time, buckets, payload) VALUES (?,?,?,?,?) USING TTL 86400';
 
@@ -275,7 +323,14 @@ function constructAddRowQuery(panelId, time, axes) {
 }
 
 
-
+/** Add rows into a panel. Does not require pre-existing raw data to be added.
+ * 
+ * @warning does not update the panel resource
+ * 
+ * @param {uuid} panelId
+ * @param {array} rows Array of objects with keys time and axes. Time should be in milliseconds since epoch. Axes should be array of numbers.
+ * @param {function} callback
+ */
 exports.addRows = function(panelId, rows, callback) {
     var queries = [];
     underscore.each(rows, function(row) {

@@ -15,7 +15,7 @@ var panelId = '57a1ee7e-2267-fa50-358f-0d3e03f3936d';
 var testRepeatCount = 10;
 
 var concurrencyLimitList = [2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30];
-var durationLimitList = [5000, 10000, 25000, 50000, 60000, 70000, 80000, 90000, 100000, 150000];
+var durationLimitList = [500, 1000, 2000, 3000, 4000, 5000, 10000, 25000, 50000, 60000];
 
 //var concurrencyLimitList = [1, 2];
 //var durationLimitList = [500, 1000];
