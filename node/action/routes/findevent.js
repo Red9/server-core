@@ -15,7 +15,8 @@ exports.post = function(req, res, next) {
             windowSize: parseFloat(req.param('windowSize')),
             overlapStep: parseFloat(req.param('overlapStep')),
             datasetId: req.param('datasetId'),
-            thresholdDirection: req.param('thresholdDirection')
+            thresholdDirection: req.param('thresholdDirection'),
+            mergeThreshold: parseFloat(req.param('mergeThreshold'))
         });
     } else {
         next();

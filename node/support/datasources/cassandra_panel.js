@@ -116,8 +116,8 @@ exports.getPanel = function(panelId, startTime, endTime, callbackRow, callbackDo
     }
 
     // Set defaults
-    durationLimit = typeof durationLimit === 'undefined' ? 5000 : durationLimit;
-    concurrencyLimit = typeof concurrencyLimit === 'undefined' ? 7 : concurrencyLimit;
+    durationLimit = typeof durationLimit === 'undefined' ? 4000 : durationLimit;
+    concurrencyLimit = typeof concurrencyLimit === 'undefined' ? 4 : concurrencyLimit;
     
     
     var done = false;

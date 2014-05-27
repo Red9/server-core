@@ -71,7 +71,8 @@ module.exports = function(app, passport) {
                     {name: "Walk"},
                     {name: "Run"},
                     {name: "Stationary"},
-                    {name: "Dolphin"}
+                    {name: "Dolphin"},
+                    {name: "Tap"}
                 ]
                 );
     });
