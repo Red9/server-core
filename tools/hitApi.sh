@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#url="http://api.localdev.redninesensor.com/panel/29b2038c-21cd-41bb-f103-9402f3a895cc/body/?minmax=true&buckets=1000&format=json&cache=off&startTime=1395117436690&endTime=1395117501733"
-url="http://api.localdev.redninesensor.com/panel/29b2038c-21cd-41bb-f103-9402f3a895cc/body/?minmax=true&buckets=1000&format=json&cache=off&startTime=1395117482053&endTime=1395117595732"
+
+url="http://api.localdev.redninesensor.com/panel/57a1ee7e-2267-fa50-358f-0d3e03f3936d/body/?format=csv"
 #url="http://api.redninesensor.com/dataset/?expand=headPanel,owner"
 #url="http://api.redninesensor.com/panel/ec5db3c7-cab5-eddb-186d-9c08f087e15a/body?buckets=1000&format=csv&nocache"
 #url="http://api.localdev.redninesensor.com/dataset/"
