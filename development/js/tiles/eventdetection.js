@@ -3,6 +3,8 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
         var socket;
         var schema;
 
+        // If we add to the preconfigured options then we have to manually add
+        // the select option to the HTML.
         var preconfiguredOptions = {
             wave: {
                 eventType: "Wave",
