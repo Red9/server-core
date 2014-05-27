@@ -10,7 +10,8 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                 thresholdDirection: "above",
                 windowSize: "256",
                 threshold: "0.8",
-                overlapStep: "50"
+                overlapStep: "50",
+                mergeThreshold: '500'
             },
             paddle: {
                 eventType: "Paddle",
@@ -18,7 +19,17 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                 thresholdDirection: "below",
                 windowSize: "256",
                 threshold: "1.1",
-                overlapStep: "50"
+                overlapStep: "50",
+                mergeThreshold: '200'
+            },
+            tap: {
+                eventType: "Tap",
+                axis: "acceleration:z",
+                thresholdDirection: "above",
+                windowSize: "256",
+                threshold: "0.8",
+                overlapStep: "50",
+                mergeThreshold: '200'
             }
         };
 
@@ -53,7 +64,7 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                     submitHandler: submitHandler
                 }
             };
-
+            tile.setTitle('Automated Event Detection');
             sandbox.requestTemplate('eventdetection', function(template) {
                 tile.place.html(template({}));
                 tile.place.find('[data-name=optionslist]').on('click', 'button', optionClicked);
@@ -101,6 +112,7 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                 formValues.windowSize = parseFloat(formValues.windowSize);
                 formValues.threshold = parseFloat(formValues.threshold);
                 formValues.overlapStep = parseFloat(formValues.overlapStep);
+                formValues.mergeThreshold = parseFloat(formValues.mergeThreshold);
             }
 
             sandbox.action.findEvent(type, formValues);
