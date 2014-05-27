@@ -1,3 +1,4 @@
+//var agent = require('webkit-devtools-agent');
 
 var underscore = require('underscore')._;
 var cluster = require('cluster');

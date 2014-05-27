@@ -8,60 +8,117 @@ var log = requireFromRoot('support/logger').log;
 var config = requireFromRoot('config');
 
 var cassandraClient = require('node-cassandra-cql').Client;
-var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
+var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace, pageSize: 250000});
 
+function constructTask(chunk, panelId, startTime, endTime, serializer, lastChunk) {
+    return {
+        chunk: chunk,
+        query: 'SELECT time, data FROM raw_data WHERE id=? AND time>=? AND time<?',
+        parameters: [
+            {
+                value: panelId,
+                hint: 'uuid'
+            },
+            {
+                value: startTime,
+                hint: 'timestamp'
+            },
+            {
+                value: endTime,
+                hint: 'timestamp'
+            }
+        ],
+        serializer: serializer,
+        lastChunk: lastChunk
+    };
+}
 
-// Get the CSV panel version (no bucketing)
-exports.getPanel = function(panelId, startTime, endTime,
-        callbackRow, callbackDone) {
-    var chunkLimit = 5000; // 5000 seems to be a little bit faster than 1000
-    var query = 'SELECT time, data FROM raw_data WHERE id=? AND time>=? AND time<=? LIMIT ' + chunkLimit;
+function getDatabaseRows(task, callback) {
+    cassandraDatabase.execute(task.query, task.parameters, function cassandraResult(err, result) {
+        if (err) {
+            log.error('Error: ' + err);
+        }
+        task.serializer(task.chunk, result.rows, task.lastChunk);
+        callback();
+    });
+}
 
-    var previousChunkLength;
-    var totalRowIndex = 0;
-    var lastRowTime = startTime - 1; // Account for the first row.
-
-    async.doWhilst(
-            function(callbackWhilst) { // While loop body
-                var parameters = [
-                    {
-                        value: panelId,
-                        hint: 'uuid'
-                    },
-                    {
-                        value: lastRowTime + 1, // +1 so that we don't get a row twice.
-                        hint: 'timestamp'
-                    },
-                    {
-                        value: endTime,
-                        hint: 'timestamp'
-                    }
-                ];
-
-                cassandraDatabase.eachRow(query, parameters,
-                        function(n, row) {
-                            lastRowTime = moment(row.time).valueOf();
-                            callbackRow(lastRowTime, row.data, totalRowIndex++);
-                        },
-                        function(err, rowLength) {
-                            previousChunkLength = rowLength;
-                            if (err) {
-                                log.error(err);
-                            }
-                            callbackWhilst(err);
-                        }
+function processRows(task, callback) {
+    for (var index = 0; index < task.rows.length; index++) {
+        task.callbackRow(
+                moment(task.rows[index].time).valueOf(),
+                task.rows[index].data,
+                task.startIndex + index
                 );
-            },
-            function() { // Truth Test
-                return previousChunkLength === chunkLimit;
-            },
-            function(err) {
-                if (err) {
-                    log.error('Error while getting chunked panel: ' + err);
-                }
-                callbackDone(err);
-            });
+    }
+    callback();
+}
+
+function serializeDatabaseRows(callbackRow, callbackDone) {
+    var buffer = {};
+
+    var processQueue = async.queue(processRows, 1);
+
+    var startIndex = 0; // Total row counter
+    var currentChunk = 0;
+
+    var lastChunkIndex = -1;
+
+    function processFunction() {
+        while (typeof buffer[currentChunk] !== 'undefined') {
+            var serializeCallback = lastChunkIndex === currentChunk ? callbackDone : undefined;
+
+            processQueue.push({callbackRow: callbackRow, rows: buffer[currentChunk], startIndex: startIndex}, serializeCallback);
+            startIndex += buffer[currentChunk].length;
+            delete buffer[currentChunk];
+            currentChunk++;
+        }
+    }
+
+    function handleChunk(chunk, rowsMe, lastChunk) {
+        lastChunkIndex = lastChunk ? chunk : lastChunkIndex;
+        buffer[chunk] = rowsMe;
+        processFunction();
+    }
+
+    return handleChunk;
+}
+
+exports.getPanelNew = function(panelId, startTime, endTime, callbackRow, callbackDone
+        , durationLimit, concurrencyLimit) {
+
+    if (startTime >= endTime) {
+        // TODO: handle error here
+    }
+
+    durationLimit = typeof durationLimit === 'undefined' ? 5000 : durationLimit;
+    concurrencyLimit = typeof concurrencyLimit === 'undefined' ? 7 : concurrencyLimit;
+    var done = false;
+    var chunk = 0;
+    var queue = async.queue(getDatabaseRows, concurrencyLimit);
+
+    var serializer = serializeDatabaseRows(callbackRow, callbackDone);
+
+    while (done === false) {
+        var nextEndTime = startTime + durationLimit;
+        // Make sure that we don't overshoot.
+        if (nextEndTime > endTime) {
+            nextEndTime = endTime + 1; // +1 so that end time is inclusive.
+            done = true;
+        }
+
+        var task = constructTask(chunk, panelId, startTime, nextEndTime, serializer, done);
+        queue.push(task);
+
+        // Prepare for next iteration.
+        startTime = nextEndTime;
+        chunk++;
+    }
+
+    // Start the queue.
+    queue.concurrency = concurrencyLimit;
 };
+
 
 exports.calculatePanelProperties = function(rawDataId, callback) {
     // Warning: these keys are sensitive to matching the keys in panel resource!
@@ -188,7 +245,7 @@ exports.putCachedProcessedPanel = function(panelId, startTime, endTime, buckets,
 exports.deletePanel = function(panelId, callback) {
     var query = 'DELETE FROM raw_data WHERE id=?';
     cassandraDatabase.execute(query, [panelId], callback);
-    
+
     var query = 'DELETE FROM raw_data_cache WHERE id=?';
     cassandraDatabase.execute(query, [panelId], callback);
 };
