@@ -69,6 +69,8 @@ exports.spectral = function(options) {
     var broadcastId = 'spectral' + getRandomInt(0, 999);
     var datasetId = options.datasetId;
 
+    log.info('Starting SE script with options: ' + JSON.stringify(options));
+
     datasetResource.get({id: datasetId}, function(datasetList) {
         if (datasetList.length !== 1) {
             log.error('Invalid dataset id: ' + datasetId);
@@ -82,6 +84,7 @@ exports.spectral = function(options) {
         script.stderr.setEncoding('utf8');
         script.stdin.setEncoding('utf8');
 
+        // Read this as we go along so that the user can get live updates.
         var updateBuffer = '';
         script.stderr.on('data', function(something) {
             updateBuffer += something;
@@ -95,29 +98,44 @@ exports.spectral = function(options) {
 
         // clone so we have an "original" copy for our source storage.
         var storedOptions = _.clone(options);
-
+        
         script.on('exit', function(code, signal) {
-            if (updateBuffer !== '') {
-                sockets.broadcastStatus(broadcastId, updateBuffer);
-            }
-            var executionSeconds = ((new Date().getTime()) - start) / 1000;
-            sockets.broadcastStatus(broadcastId, 'Execution time: ' + executionSeconds + ' seconds');
-
-            var processingInfo = script.stderr.read();
-            var events = JSON.parse(script.stdout.read());
-
+            
+            // Let's make sure to log the error code
             if (code !== 0) {
-                var errorMessage = 'Non zero code! ' + code + ': ' + processingInfo;
+                var errorMessage = 'Non zero code! ' + code + '(' + signal + ')';
+                log.error(errorMessage);
+                sockets.broadcastStatus(broadcastId, errorMessage);
+            }
+            
+            // Let's see if we can get more info. Reading stderr might lead to ECONNRESET, so beware.
+            var processingInfo = script.stderr.read();
+            if (code !== 0) {
+                var errorMessage = 'Non zero code! ' + code + '(' + signal + '): ' + processingInfo;
                 log.error(errorMessage);
                 sockets.broadcastStatus(broadcastId, errorMessage);
                 return;
             }
 
+            // Clean up the last bit of output.
+            if (updateBuffer !== '') {
+                sockets.broadcastStatus(broadcastId, updateBuffer);
+            }
+            
+            // Record the amount of time for execution
+            var executionSeconds = ((new Date().getTime()) - start) / 1000;
+            sockets.broadcastStatus(broadcastId, 'Execution time: ' + executionSeconds + ' seconds');
+
+            // The found events
+            var events = JSON.parse(script.stdout.read());
+
+            // Let the user know.
             sockets.broadcastStatus(broadcastId, '--- Found ' + events.length + ' events ---');
             sockets.broadcastStatus(broadcastId, 'Calculating summary statistics for detected events.');
+            sockets.broadcastStatus(broadcastId, 'Please give it a minute and then refresh the page to see your new events.');
 
+            // Now we need to actually store all the events.
             _.each(events, function(event) {
-
                 event.type = options.eventType;
                 event.datasetId = options.datasetId;
                 event.source = {
@@ -125,7 +143,6 @@ exports.spectral = function(options) {
                     algorithm: 'spectralThreshold',
                     parameters: storedOptions
                 };
-
                 eventResource.create(event, function(err) {
                     if (err) {
                         log.error('Could not create event: ' + err);
@@ -134,9 +151,9 @@ exports.spectral = function(options) {
             });
 
         });
-        
-        var axisIndex = -1;
 
+        // We've set everything up, so now we need to stream the panel to the script.
+        var axisIndex = -1;
         panelResource.getPanelBody({
             id: dataset.headPanelId
         }, function(panel) {
