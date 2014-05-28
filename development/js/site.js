@@ -1,4 +1,10 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/moment', 'vendor/jquery-ui', 'customHandlebarsHelpers'], function($, _, Handlebars, moment) {
+    // AJAX: always send session cookie with requests.
+    $.ajaxSetup({
+        xhrFields: {
+            withCredentials: true
+        }
+    });
     var site = {
         //props
         adapter: {
@@ -180,7 +186,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
                         return 0;
                     }
                 });
-                
+
                 // Remove the 0 counts so that the badges don't display.
                 _.each(self.results, function(result) {
                     _.each(result.count, function(count, key) {

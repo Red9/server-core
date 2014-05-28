@@ -26,6 +26,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             panel: undefined
         },
         buildSandbox: function() {
+            // AJAX: always send session cookie with requests.
+            $.ajaxSetup({
+                xhrFields: {
+                    withCredentials: true
+                }
+            });
+
             sandbox.actionUrl = $('#page_parameters').data('actionurl');
             sandbox.apiUrl = $('#page_parameters').data('apiurl');
             sandbox.currentUser = $('#page_parameters').data('currentuser');
