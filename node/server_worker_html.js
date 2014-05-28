@@ -41,58 +41,37 @@ var staticDirectories = [
     }
 ];
 
+/** Load the user info into the templating response. This allows us to have a
+ * central place to load the logged in user information (if available).
+ * @param {type} req
+ * @param {type} res
+ * @param {type} next
+ */
+function LoadGlobalTemplateParameters(req, res, next) {
+    if (req.isAuthenticated()) {
+        res.locals['user'] = req.user;
+    }
+
+    res.locals['actionUrl'] = config.realms.action;
+    res.locals['apiUrl'] = config.realms.api;
+    if (config.release === false) {
+        res.locals['development'] = true;
+    }
+
+    next();
+}
+
 exports.init = function() {
     process.on('message', function(message) {
         if (typeof message.port !== 'undefined') {
 
             // Standard modules that we need:
             var express = require('express');
-            var routes = requireFromRoot('html/routes');
             var http = require('http');
             var path = require('path');
             var hbs = require('hbs');
-
-            // TODO(SRLM): Figure out a better way to share code between client and server
-            var hbsHelpers = requireFromRoot('html/public/development/js/utilities/customHandlebarsHelpers');
-            hbsHelpers.RegisterHelpers(hbs, require('moment'));
-
-            // Authentication details
-            var passport = require('passport');
-            var GoogleStrategy = require('passport-google').Strategy;
-            var authenticate = requireFromRoot('support/authenticate');
-
-            passport.use(new GoogleStrategy({
-                returnURL: config.realms.html + '/login/google/return',
-                realm: config.realms.html
-            }, authenticate.ProcessLoginRequest));
-
-            passport.serializeUser(function(user, done) {
-                done(null, user);
-            });
-
-            passport.deserializeUser(function(id, done) {
-                done(null, id);
-            });
-
-            /** Load the user info into the templating response. This allows us to have a
-             * central place to load the logged in user information (if available).
-             * @param {type} req
-             * @param {type} res
-             * @param {type} next
-             */
-            function LoadGlobalTemplateParameters(req, res, next) {
-                if (req.isAuthenticated()) {
-                    res.locals['user'] = req.user;
-                }
-
-                res.locals['actionUrl'] = config.realms.action;
-                res.locals['apiUrl'] = config.realms.api;
-                if (config.release === false) {
-                    res.locals['development'] = true;
-                }
-
-                next();
-            }
+            var session = require('express-session');
+            var mongoStore = require('connect-mongo')(session);
 
             // Express and Connect stuff
             var app = express();
@@ -102,15 +81,13 @@ exports.init = function() {
             app.engine('html', hbs.__express); // Handlebars templating
 
             if (config.release === true) {
-                app.use(require('static-favicon')(path.join(__dirname, 'html/public/common/images/favicon.ico')));
+                app.use(require('serve-favicon')(path.join(__dirname, 'html/public/common/images/favicon.ico')));
             } else {
-                app.use(require('static-favicon')(path.join(__dirname, 'html/public/common/images/favicon.localdev.ico')));
+                app.use(require('serve-favicon')(path.join(__dirname, 'html/public/common/images/favicon.localdev.ico')));
             }
 
-            app.use(logger.logger()); // Middleware to log all requests.
             app.use(require('compression')());
             app.use(require('method-override')());
-
 
             // Set up static directories.
             underscore.each(staticDirectories, function(resource) {
@@ -120,24 +97,54 @@ exports.init = function() {
                 } else {
                     path = resource.sourcePath.development;
                 }
-
-                app.use(resource.rootUrl, function(req, res, next){
-                    // Add flag to response, indicating static resource.
-                    res.staticResource = true;
+                app.use(resource.rootUrl, function(req, res, next) {
                     express.static(__dirname + path)(req, res, next);
                 });
             });
+            
+            // We don't want to log static files, so logger goes after.
+            app.use(logger.logger());
 
-
-            app.use(require('cookie-parser')());
             app.use(require('body-parser')());
 
-            app.use(require('express-session')({secret: config.sessionSecret, maxAge: 360 * 5}));
+            app.use(require('cookie-parser')());
+            app.use(session(
+                    {
+                        secret: config.sessionSecret,
+                        maxAge: config.sessionMaxAge,
+                        cookie: {
+                            domain: ".redninesensor.com"
+                        },
+                        store: new mongoStore({
+                            db: 'sessionStore'
+                        })
+                    }
+            ));
+
+            // Authentication details
+            var passport = require('passport');
+            var GoogleStrategy = require('passport-google').Strategy;
+            var authenticate = requireFromRoot('support/authenticate');
+
+            passport.use(new GoogleStrategy({
+                returnURL: config.realms.html + '/login/google/return',
+                realm: config.realms.html,
+                stateless: true // Allow use with other red9 servers
+            }, authenticate.ProcessLoginRequest));
+
+            passport.serializeUser(function(user, done) {
+                done(null, user);
+            });
+            passport.deserializeUser(function(user, done) {
+                done(null, user);
+            });
             app.use(passport.initialize());
             app.use(passport.session());
 
-            console.log('locals: ' + JSON.stringify(app.locals));
-            
+            // TODO(SRLM): Figure out a better way to share code between client and server
+            var hbsHelpers = requireFromRoot('html/public/development/js/utilities/customHandlebarsHelpers');
+            hbsHelpers.RegisterHelpers(hbs, require('moment'));
+
             // Store some local variables for all rendered templates.
             underscore.extend(app.locals, config.pageTemplateDefaults);
 

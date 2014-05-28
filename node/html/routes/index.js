@@ -39,8 +39,4 @@ module.exports = function(app, passport) {
     app.get('/upload/rnc', IsAuthenticated, require('./rncupload').get);
 
     app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
-
-    app.get('/actionview', IsAuthenticated, function(req, res, next) {
-        res.render('actionview');
-    });
 };

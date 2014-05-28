@@ -23,20 +23,13 @@ exports.init = function() {
             app.use(require('body-parser').json());
             app.use(require('body-parser').urlencoded());
 
-            // Enable CORS: http://enable-cors.org/server_expressjs.html
-            // From http://stackoverflow.com/q/11001817
-            app.use(function(req, res, next) {
-                res.header('Access-Control-Allow-Origin', '*');
-                res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-                res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+            var extra = requireFromRoot('support/extra');
+            extra.initializeSession(app);
+            extra.cors(app);
 
+            app.options('*', function(req, res, next) {
                 // intercept OPTIONS method
-                if (req.method === 'OPTIONS') {
-                    res.send(200);
-                }
-                else {
-                    next();
-                }
+                res.send(200);
             });
 
             app.use(require('errorhandler')());
@@ -54,9 +47,9 @@ exports.init = function() {
             });
 
 
-            
+
             requireFromRoot('action/socketroutes/socketmanager').start(server);
-            
+
         }
     });
 };

@@ -46,6 +46,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                         + video.hostId +
                         "&part=snippet,contentDetails,recordingDetails&key=" + youtubeApiKey,
                 dataType: 'json',
+                xhrFields: {
+                    withCredentials: false
+                },
                 success: function(data) {
 
 

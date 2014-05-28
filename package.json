@@ -30,11 +30,12 @@
         "body-parser":"latest",
         "compression":"latest",
         "errorhandler":"latest",
-        "static-favicon":"latest",
+        "serve-favicon":"latest",
         "method-override":"latest",
         "cookie-parser":"latest",
         "express-session":"latest",
         "busboy":"latest",
-        "webkit-devtools-agent":"latest"
+        "webkit-devtools-agent":"latest",
+        "connect-mongo":"latest"
     }
 }
