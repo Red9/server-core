@@ -28,10 +28,10 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                 eventType: "Tap",
                 axis: "acceleration:z",
                 thresholdDirection: "above",
-                windowSize: "256",
-                threshold: "0.8",
+                windowSize: "16",
+                threshold: "0.75",
                 overlapStep: "50",
-                mergeThreshold: '200'
+                mergeThreshold: '100'
             }
         };
 

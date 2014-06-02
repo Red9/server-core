@@ -131,9 +131,9 @@ function processRNC(upload, datasetCreatedCallback, doneCallback) {
             parsernc.stdout.setEncoding('utf8');
             parsernc.stderr.setEncoding('utf8');
 
-            parsernc.stderr.on('data', function(something) {
+            /*parsernc.stderr.on('data', function(something) {
                 //console.log(something);
-            });
+            });*/
 
             parsernc.on('exit', function(code, signal) {
                 var processingInfo = parsernc.stderr.read();
@@ -145,7 +145,7 @@ function processRNC(upload, datasetCreatedCallback, doneCallback) {
 
                     datasetResource.delete(id, function() {
                     });
-                    callbackDone(errorMessage, id);
+                    doneCallback(errorMessage, id);
                     return;
                 }
 

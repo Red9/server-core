@@ -60,7 +60,7 @@ if (cluster.isMaster) {
 
         var newWorker = cluster.fork();
         newWorker.send({port: workerPort});
-
+        workerPorts[newWorker.id] = workerPort;
     });
 } else {//Worker process
     logger.init(config.serverType, '' + cluster.worker.id);

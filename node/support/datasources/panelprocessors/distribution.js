@@ -5,7 +5,7 @@ var log = requireFromRoot('support/logger').log;
 
 exports.new = function(name, valueIndex, minimum, maximum, slots) {
     var distribution = [];
-       
+
     var slotSize = (maximum - minimum) / slots;
     for (var i = 0; i < slots; i++) {
         distribution.push({
@@ -16,9 +16,11 @@ exports.new = function(name, valueIndex, minimum, maximum, slots) {
     }
 
     function processRow(time, values) {
-        var index = (values[valueIndex] - minimum) / (maximum - minimum) * (slots -1);
+        var index = (values[valueIndex] - minimum) / (maximum - minimum) * (slots - 1);
         index = Math.floor(index);
-        
+        if (underscore.isNaN(values[valueIndex])) {
+            console.log('values[valueIndex]: ' + values[valueIndex] + ', index: ' + index + ', slots: ' + slots);
+        }
 
         if (underscore.isNaN(index) || index < 0 || index >= slots) {
             log.error('Wrong index: ' + index + ', value: ' + values[valueIndex]);

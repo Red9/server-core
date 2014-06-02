@@ -150,8 +150,7 @@ exports.logger = function() {
             var attributes = ExtractHttpAttributes(req, res);
 
             // Make sure not log common events that aren't meaningful.
-            if (attributes["statuscode"] !== 304
-                    && req.method !== 'HEAD') { // not logging HEAD is mostly for the uptime checkers...
+            if (req.method !== 'HEAD') { // not logging HEAD is mostly for the uptime checkers...
                 log_color.info(CreateHttpColorString(attributes));
                 if (config.release === true) {
                     log_standard.info(CreateHttpPlainString(attributes));
@@ -253,6 +252,8 @@ var ExtractHttpAttributes = function(req, res) {
         result['userid'] = req.session.passport.user.id;
     } catch (e) { // if does not exist
         // No user
+        result['userdisplayname'] = 'unknown';
+        result['userid'] = '';
     }
 
     result["timestamp"] = moment().toISOString();

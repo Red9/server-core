@@ -10,6 +10,7 @@ exports.init = function() {
     process.on('message', function(message) {
         if (typeof message.port !== 'undefined') {
             var app = express();
+            app.disable('etag');
             app.set('port', message.port);
 
             app.use(logger.logger()); // Middleware to log all requests. Uses logger
