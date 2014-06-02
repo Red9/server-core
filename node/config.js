@@ -67,7 +67,7 @@ exports.nodetimeProfile = {
 
 exports.defaultTimezone = '';
 
-exports.sessionMaxAge = 360 * 5;
+exports.sessionMaxAge = 3*24*60*60*1000; // Three days
 
 exports.logglyparameters = {
     subdomain: 'redninesensor',
