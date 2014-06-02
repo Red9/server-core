@@ -45,6 +45,7 @@ define(['vendor/jquery', 'vendor/underscore'
             }
 
             if (type === 'event') {
+                console.log('Focusing on resource ' + id);
                 sandbox.get(type, {id: id}, function(event) {
                     sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
                         startTime = event[0].startTime;

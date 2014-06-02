@@ -55,6 +55,16 @@
         <div class="pull-left">Video time: <span data-name="currentvideotime"></span>
             <div class="checkbox"><label><input type="checkbox" data-name="syncvideowithhovercheckbox">Sync video with hover</label></div>
             <div class="checkbox"><label><input type="checkbox" data-name="emitvideotimeeventscheckbox" checked>Update graphs with video marker</label></div>
+            When right side is reached:
+            <div class="radio"><label><input type="radio" name="onenddo" data-name="onenddonothingcheckbox">Continue normally</label></div>
+            <div class="radio"><label><input type="radio" name="onenddo" data-name="looponviewcheckbox" checked>Loop video in current view</label></div>
+            <div class="radio"><label><input type="radio" name="onenddo" data-name="nexteventcheckbox">Jump to next event of type
+                    <select data-name="nexteventselect" class="form-control">
+                        {{#each eventTypes}}
+                        <option value="{{name}}" {{selected}}>{{name}}</option>
+                        {{/each}}
+                    </select>
+                </label></div>
             Playback:
             <select data-name="playbackspeedselect" class="form-control">
                 <option value="1">none</option>

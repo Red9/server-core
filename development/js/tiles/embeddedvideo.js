@@ -14,6 +14,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         var $videoSyncCheckbox;
         var $videoEmitEventCheckbox;
         var $videoSpeedSelect;
+        var $videoLoopOnViewCheckbox;
+        var $videoNextEventCheckbox;
+        var $videoNextEventSelect;
 
         function init() {
             reset();
@@ -26,16 +29,24 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
         function reset() {
             videoList = [];
-            playerTimePlace = undefined;
+
             currentVideoIndex = -1;
-            player = undefined;
-            $videoSyncCheckbox = undefined;
-            $videoEmitEventCheckbox = undefined;
-            $videoSpeedSelect = undefined;
+            player
+                    = playerTimePlace
+                    = datasetId
+                    = $videoSyncCheckbox
+                    = $videoEmitEventCheckbox
+                    = $videoSpeedSelect
+                    = $videoLoopOnViewCheckbox
+                    = $videoNextEventCheckbox
+                    = $videoNextEventSelect
+                    = undefined;
+
             if (typeof showPlayerTimeTimeout !== 'undefined') {
                 clearInterval(showPlayerTimeTimeout);
+                showPlayerTimeTimeout = undefined;
             }
-            datasetId = undefined;
+
         }
 
         function annotateVideoWithHostInformation(video, callback) {
@@ -83,16 +94,39 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     || event.data === YT.PlayerState.PAUSED
                     || event.data === YT.PlayerState.BUFFERING) {
                 if (typeof showPlayerTimeTimeout !== 'undefined') {
-                    console.log('Clearing timeout');
                     clearInterval(showPlayerTimeTimeout);
                     showPlayerTimeTimeout = undefined;
                 }
             }
         }
 
+        function endOfFocusReached() {
+            if ($videoLoopOnViewCheckbox.prop('checked')) {
+                seekTo(sandbox.focusState.startTime);
+            } else if ($videoNextEventCheckbox.prop('checked')) {
+                console.log('seek to next event');
+                player.pauseVideo();
+                sandbox.get('event', {datasetId: sandbox.getCurrentDataset()}, function(eventList) {
+                    var eventType = $videoNextEventSelect.find('option:selected').val();
+                    var nextEvent = _.find(_.sortBy(_.filter(eventList, function(event) {
+                        return event.type === eventType; // Limit to the selected event type
+                    }), function(event) {
+                        return event.startTime;         // Sort by start time
+                    }), function(event) {
+                        return event.startTime >= sandbox.focusState.endTime;
+                    });
+
+                    if (typeof nextEvent !== 'undefined') {
+                        sandbox.initiateResourceFocusedEvent('event', nextEvent.id);
+                        player.playVideo();
+                    }
+                });
+            }
+        }
+
         function showPlayerTime() {
             if (typeof playerTimePlace === 'undefined') {
-                playerTimePlace = tile.place.find('[data-name=currentvideotime]')
+                playerTimePlace = tile.place.find('[data-name=currentvideotime]');
             }
 
             var playerTime = videoList[currentVideoIndex].startTime + player.getCurrentTime() * 1000;
@@ -101,58 +135,77 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             if ($videoEmitEventCheckbox.prop('checked')) {
                 sandbox.initiateVideoTimeEvent(playerTime);
             }
+
+            console.log('Condition: ' + ($videoLoopOnViewCheckbox.prop('checked')) + ' && ' + (playerTime > sandbox.focusState.endTime));
+            if (playerTime > sandbox.focusState.endTime) {
+                endOfFocusReached();
+            }
         }
 
         function displayVideos(err, annotatedVideos) {
             sandbox.requestTemplate('embeddedvideo', function(template) {
+                sandbox.get('eventtype', {}, function(eventTypes) {
 
-                videoList = _.sortBy(annotatedVideos, function(video) {
-                    return video.startTime;
-                });
-
-                var parameters = {
-                    videos: videoList
-                };
-                tile.place.html(template(parameters));
-                $videoSyncCheckbox = tile.place.find('[data-name=syncvideowithhovercheckbox]');
-                $videoEmitEventCheckbox = tile.place.find('[data-name=emitvideotimeeventscheckbox]');
-                $videoSpeedSelect = tile.place.find('[data-name=playbackspeedselect]');
-                prepareListeners();
-
-                // We have to  test this now (instead of using loadVideoById
-                // later) because it takes a while for the player to set up,
-                // and it doesn't immediately have the loadVideoById function.
-                var currentVideoId;
-                if (videoList.length > 0) {
-                    currentVideoIndex = 0;
-                    currentVideoId = videoList[currentVideoIndex].hostId;
-                }
-
-                // We recreate a new player every time, since we have replaced
-                // all of the HTML
-                player = new YT.Player(
-                        tile.place.find('[data-name=videoDiv]')[0],
-                        {
-                            height: '390',
-                            width: '640',
-                            videoId: currentVideoId,
-                            playerVars: {
-                                html5: 1, // Force HTML5.
-                                modestbranding: 1, // Hide as much YouTube stuff as possible
-                                showinfo: 0, // Don't show extra info at video start
-                                //controls: 2, // Slight performance improvement.
-                                rel: 0 // Don't show related videos
-                                        //TODO: Should specify the "origin" option to prevent cross origin security problems.
-                            },
-                            events: {
-                                onStateChange: onPlayerStateChange,
-                                onReady: onYTPlayerReady
-                            }
+                    _.each(eventTypes, function(type) {
+                        if (type.name === 'Wave') {
+                            type.selected = 'selected';
+                        } else {
+                            type.selected = '';
                         }
-                );
+                    });
 
-                // Hide if there's no videos
-                tile.setVisible(videoList.length !== 0);
+                    videoList = _.sortBy(annotatedVideos, function(video) {
+                        return video.startTime;
+                    });
+
+                    var parameters = {
+                        videos: videoList,
+                        eventTypes: eventTypes
+                    };
+                    tile.place.html(template(parameters));
+                    $videoSyncCheckbox = tile.place.find('[data-name=syncvideowithhovercheckbox]');
+                    $videoEmitEventCheckbox = tile.place.find('[data-name=emitvideotimeeventscheckbox]');
+                    $videoSpeedSelect = tile.place.find('[data-name=playbackspeedselect]');
+                    $videoLoopOnViewCheckbox = tile.place.find('[data-name=looponviewcheckbox]');
+                    $videoNextEventCheckbox = tile.place.find('[data-name=nexteventcheckbox]');
+                    $videoNextEventSelect = tile.place.find('[data-name=nexteventselect]');
+                    prepareListeners();
+
+                    // We have to  test this now (instead of using loadVideoById
+                    // later) because it takes a while for the player to set up,
+                    // and it doesn't immediately have the loadVideoById function.
+                    var currentVideoId;
+                    if (videoList.length > 0) {
+                        currentVideoIndex = 0;
+                        currentVideoId = videoList[currentVideoIndex].hostId;
+                    }
+
+                    // We recreate a new player every time, since we have replaced
+                    // all of the HTML
+                    player = new YT.Player(
+                            tile.place.find('[data-name=videoDiv]')[0],
+                            {
+                                height: '390',
+                                width: '640',
+                                videoId: currentVideoId,
+                                playerVars: {
+                                    html5: 1, // Force HTML5.
+                                    modestbranding: 1, // Hide as much YouTube stuff as possible
+                                    showinfo: 0, // Don't show extra info at video start
+                                    //controls: 2, // Slight performance improvement.
+                                    rel: 0 // Don't show related videos
+                                            //TODO: Should specify the "origin" option to prevent cross origin security problems.
+                                },
+                                events: {
+                                    onStateChange: onPlayerStateChange,
+                                    onReady: onYTPlayerReady
+                                }
+                            }
+                    );
+
+                    // Hide if there's no videos
+                    tile.setVisible(videoList.length !== 0);
+                });
             });
         }
 
@@ -163,12 +216,12 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             // video so that the first seekTo won't
             // cause the video to start playing.
             player.mute();
-            //player.playVideo();
-            //player.pauseVideo();
+            player.playVideo();
+            setTimeout(function() {
+                player.pauseVideo();
+                seekTo(sandbox.focusState.startTime);
+            }, 500);
             //player.unMute();
-
-
-
 
             // Prepare the speed settings selector
             $videoSpeedSelect.find('option').remove();
@@ -272,7 +325,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     videoTime = 0;
                 }
                 player.seekTo(videoTime, true);
-                showPlayerTime(); // Force showing in case we're not playing.
+                if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                    showPlayerTime(); // Force showing when we're not playing.
+                }
             }
         }
 
@@ -285,7 +340,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
         function destructor() {
             reset();
-
+            player.destroy();
             youtubeApiKey
                     = kPlayerUpdateInterval
                     = sandbox
@@ -301,6 +356,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     = $videoSyncCheckbox
                     = $videoEmitEventCheckbox
                     = $videoSpeedSelect
+                    = $videoLoopOnViewCheckbox
+                    = $videoNextEventCheckbox
                     = null;
         }
 
@@ -311,7 +368,4 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
     }
     return embeddedVideo;
-
-
-
 });
