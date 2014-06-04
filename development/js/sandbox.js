@@ -26,23 +26,24 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
             panel: undefined
         },
         buildSandbox: function() {
-            // AJAX: always send session cookie with requests.
-            $.ajaxSetup({
-                xhrFields: {
-                    withCredentials: true
-                }
-            });
+            if (sandbox.built !== true) {
+                // AJAX: always send session cookie with requests.
+                $.ajaxSetup({
+                    xhrFields: {
+                        withCredentials: true
+                    }
+                });
 
-            sandbox.actionUrl = $('#page_parameters').data('actionurl');
-            sandbox.apiUrl = $('#page_parameters').data('apiurl');
-            sandbox.currentUser = $('#page_parameters').data('currentuser');
+                sandbox.actionUrl = $('#page_parameters').data('actionurl');
+                sandbox.apiUrl = $('#page_parameters').data('apiurl');
+                sandbox.currentUser = $('#page_parameters').data('currentuser');
 
-            sandboxHistory(sandbox);
-            sandboxUtilities(sandbox);
-            sandboxConvenience(sandbox);
-            sandboxDatabase(sandbox);
-            sandboxEvents(sandbox);
-            sandboxAction(sandbox);
+                sandboxHistory(sandbox);
+                sandboxUtilities(sandbox);
+                sandboxConvenience(sandbox);
+                sandboxDatabase(sandbox);
+                sandboxEvents(sandbox);
+                sandboxAction(sandbox);
 
 //            sandbox.get('event', {}, function(eventList) {
 //                _.each(eventList, function(event, index) {
@@ -54,12 +55,11 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
 //                });
 //            });
 
-            sandbox.built = true;
+                sandbox.built = true;
+            }
         },
         init: function() {
-            if (sandbox.built !== 'true') {
-                sandbox.buildSandbox();
-            }
+            sandbox.buildSandbox();
 
             sandbox.setPageTitle('Red9 Sensor');
 
