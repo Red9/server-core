@@ -9,7 +9,12 @@
         <meta name="author" content="{{author.displayName}}">
 
         {{#unless spa}}
-        <script data-main="/js/app" src="/js/vendor/require.js"></script>
+        <script src="/js/vendor/require.js"></script>
+        <script src="/js/requireconfig.js"></script>
+        <script>
+require(['vendor/jquery', 'vendor/underscore', 'vendor/bootstrap', 'vendor/jquery-ui'], function() {
+});
+        </script>
         {{/unless}}
 
 
@@ -63,9 +68,9 @@
         </div>
         <br />
         <br />
-        
+
         <div id="fixedBottomBarDiv"></div>
-        
+
         {{! Navbar "fixed bottom" taken from http://stackoverflow.com/a/19231861}}
         <div class="navbar" style="margin-bottom:0px;margin-left:0px;margin-right:0px;clear:both;">
             <div class="navbar-inner">
@@ -76,7 +81,7 @@
                 </div>
             </div>
         </div>
-        
+
 
     </body>
 </html>

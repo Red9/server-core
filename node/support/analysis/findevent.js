@@ -9,16 +9,10 @@ var eventResource = requireFromRoot('support/resources/event');
 var panelResource = requireFromRoot('support/resources/panel');
 
 var sockets = requireFromRoot('action/socketroutes/socketmanager');
-
-// Returns a random integer between min and max
-// Using Math.round() will give you a non-uniform distribution!
-// Taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+var useful = requireFromRoot('support/useful');
 
 exports.random = function(datasetId, eventType, quantity) {
-    var broadcastId = 'random' + getRandomInt(0, 999);
+    var broadcastId = 'random' + useful.generateInt(0, 999);
 
     var minimumDuration = 1000;
     var maximumDuration = 20000;
@@ -32,8 +26,8 @@ exports.random = function(datasetId, eventType, quantity) {
         var dataset = datasetList[0];
 
         for (var i = 0; i < quantity; i++) {
-            var duration = getRandomInt(minimumDuration, maximumDuration);
-            var startTime = getRandomInt(dataset.headPanel.startTime,
+            var duration = useful.generateInt(minimumDuration, maximumDuration);
+            var startTime = useful.generateInt(dataset.headPanel.startTime,
                     dataset.headPanel.endTime - duration);
 
             var event = {
@@ -66,7 +60,7 @@ exports.random = function(datasetId, eventType, quantity) {
 
 
 exports.spectral = function(options) {
-    var broadcastId = 'spectral' + getRandomInt(0, 999);
+    var broadcastId = 'spectral' + useful.generateInt(0, 999);
     var datasetId = options.datasetId;
 
     log.info('Starting SE script with options: ' + JSON.stringify(options));

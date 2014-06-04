@@ -1,4 +1,10 @@
 var spawn = require('child_process').spawn;
+var Busboy = require('busboy');
+var os = require('os');
+var path = require('path');
+var fs = require('fs');
+var inspect = require('util').inspect;
+var validator = require('validator');
 
 var log = requireFromRoot('support/logger').log;
 var config = requireFromRoot('config');
@@ -8,15 +14,7 @@ var datasetResource = requireFromRoot('support/resources/dataset');
 var panelResource = requireFromRoot('support/resources/panel');
 var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 
-
-var Busboy = require('busboy');
-var os = require('os');
-var path = require('path');
-var fs = require('fs');
-
-var inspect = require('util').inspect;
-
-var validator = require('validator');
+var sockets = requireFromRoot('action/socketroutes/socketmanager');
 
 exports.post = function(req, res, next) {
     if (req.headers['content-length'] === '0') {
@@ -98,6 +96,7 @@ function validateUpload(upload) {
  * @param {function} doneCallback (err, datasetId) Called when all processing is done.
  */
 function processRNC(upload, datasetCreatedCallback, doneCallback) {
+    var broadcastId = 'upload' + useful.generateInt(0, 999);
 
     if (typeof upload.title === 'undefined') {
         upload.title = upload.userFilename;
@@ -131,12 +130,21 @@ function processRNC(upload, datasetCreatedCallback, doneCallback) {
             parsernc.stdout.setEncoding('utf8');
             parsernc.stderr.setEncoding('utf8');
 
-            /*parsernc.stderr.on('data', function(something) {
-                //console.log(something);
-            });*/
+            // Read this as we go along so that the user can get live updates.
+            var processingInfo = '';
+            var updateBuffer = '';
+            parsernc.stderr.on('data', function(something) {
+                processingInfo += something;
+                updateBuffer += something;
+
+                while (updateBuffer.split('\n', 2).length > 1) {
+                    var t = updateBuffer.split('\n');
+                    updateBuffer = t[1];
+                    sockets.broadcastStatus(broadcastId, t[0]);
+                }
+            });
 
             parsernc.on('exit', function(code, signal) {
-                var processingInfo = parsernc.stderr.read();
                 var processingStatistics = JSON.parse(parsernc.stdout.read());
 
                 if (code !== 0) {
@@ -149,6 +157,10 @@ function processRNC(upload, datasetCreatedCallback, doneCallback) {
                     return;
                 }
 
+                // Clean up the last bit of output.
+                if (updateBuffer !== '') {
+                    sockets.broadcastStatus(broadcastId, updateBuffer);
+                }
 
                 var datasetUpdate = {
                     source: {
@@ -171,26 +183,38 @@ function processRNC(upload, datasetCreatedCallback, doneCallback) {
 
                     // Integrity check
                     if (startTime !== processingStatistics.datasetStartTime) {
-                        log.error('Calculated panel start time ' + startTime + ' not equal to given start time ' + processingStatistics.datasetStartTime);
+                        var message = 'Calculated panel start time ' + startTime + ' not equal to given start time ' + processingStatistics.datasetStartTime;
+                        log.error(message);
+                        sockets.broadcastStatus(broadcastId, message);
                     }
                     if (endTime !== processingStatistics.datasetEndTime) {
-                        log.error('Calculated panel end time ' + endTime + ' not equal to given end time ' + processingStatistics.datasetEndTime);
+                        var message = 'Calculated panel end time ' + endTime + ' not equal to given end time ' + processingStatistics.datasetEndTime;
+                        log.error(message);
+                        sockets.broadcastStatus(broadcastId, message);
                     }
 
                     datasetResource.update(id, datasetUpdate, function(err) {
                         if (err) {
-                            log.error('RNC Process dataset udate unsucessful: ' + err);
+                            var message = 'RNC Process dataset udate unsucessful: ' + err;
+                            log.error(message);
+                            sockets.broadcastStatus(broadcastId, message);
                         }
                     }, true);
 
                     panelResource.update(newPanel.id, panelUpdate, function(err1) {
                         if (err1) {
-                            log.error('Error updating panel: ' + err1);
+                            var message = 'Error updating panel: ' + err1;
+                            log.error(message);
+                            sockets.broadcastStatus(broadcastId, message);
                         }
+                        sockets.broadcastStatus(broadcastId, 'Beginning summary statistics calculation.');
                         summaryStatisticsResource.calculate(newPanel.id, startTime, endTime, function(statistics) {
+                            sockets.broadcastStatus(broadcastId, 'Summary statistics calculation complete.');
                             panelResource.update(newPanel.id, {summaryStatistics: statistics}, function(err) {
                                 if (err) {
-                                    log.error('RNC Process dataset summary statistics update unsuccessful: ' + err);
+                                    var message = 'RNC Process dataset summary statistics update unsuccessful: ' + err;
+                                    log.error(message);
+                                    sockets.broadcastStatus(broadcastId, message);
                                 }
                                 doneCallback(undefined, id);
                             }, true);

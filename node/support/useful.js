@@ -12,3 +12,10 @@ exports.generateUUID = function() {
     }
     return (_p8() + _p8(true) + _p8(true) + _p8());
 };
+
+// Returns a random integer between min and max
+// Using Math.round() will give you a non-uniform distribution!
+// Taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+exports.generateInt = function(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};

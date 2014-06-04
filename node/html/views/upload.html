@@ -45,13 +45,24 @@
 
 <div class="hidden alert alert-success" data-name="uploadsuccess">
     <p>You've successfully uploaded your RNC, and it's now processing. Your dataset will be found at <a data-name="datasetlink"></a></p>
-    <p>This page will automatically be redirected when processing is done.</p>
+    <p>This page will automatically be redirected when all processing is done.</p>
+    <div class="processing_notes">    
+    </div>
 </div>
 <p class="hidden alert alert-danger" data-name="uploadfailure"></p>
 
 <script src="/js/vendor/require.js"></script>
+<script src="/js/requireconfig.js"></script>
 <script>
-require(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate', 'vendor/jquery.validate.additional-methods'], function($, _) {
+
+require(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validate', 'vendor/jquery.validate.additional-methods'], function($, _, io) {
+    // AJAX: always send session cookie with requests.
+    $.ajaxSetup({
+        xhrFields: {
+            withCredentials: true
+        }
+    });
+
     $(document).ready(function() {
 
         function progressHandlingFunction(e) {
@@ -108,6 +119,15 @@ require(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate', 'vendor
                 },
                 data: formData,
                 success: function(response) {
+
+                    var $area = $('.processing_notes');
+                    var socket = io.connect('{{actionUrl}}');
+
+                    socket.on('update', function(update) {
+                        $area.append('<p class="processing_note">' + update + '</p>');
+                        $area[0].scrollTop = $area[0].scrollHeight;
+                    });
+
                     var id = response.datasetId;
                     var url = '/dataset/' + id;
 
