@@ -6,70 +6,43 @@
 
     </div>
     <div class="col-md-5">
-        {{#if videos}}
-        <div class="long-list-wrapper" style="height:247px">
-            {{#each videos}}
-            <div data-videoid="{{id}}">{{! wrapper for each video}}
-                <div class="pull-left">
-                    <abbr title="{{epochdate createTime}} {{epochtime createTime}}" style="border-bottom-width: 0"><span class="text-muted">{{timeFromNow createTime}}</span></abbr>
 
-                    <a data-name="videofocus">view</a>
-                    &nbsp;|&nbsp;<a data-name="videoedit" data-id="{{id}}">edit</a>
-                </div>
-                <button data-name="deletevideobutton" type="button" class="pull-right close" aria-hidden="true">&times;</button>
+        <div class="row">
+            <div class="long-list-wrapper" style="height:200px">
 
-                <table class="table table-striped table-condensed">
-                    <tr>
-                        <th>Host</th>
-                        <td>{{host}} <br/></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <th>Host Id</th>
-                        <td>{{hostId}} <br/></td>
-                        <td rowspan="3"><img src="{{thumbnails.default.url}}" /></td>
-                    </tr>
-                    <tr>
-                        <th>Start Time</th>
-                        <td>{{epochdate startTime}} {{epochtime startTime}}</td>
-                    </tr>
-                    <tr>
-                        <th>Host Description</th>
-                        <td>{{{description}}}</td>
-                    </tr>
-                    <tr>
-                        <th>Duration</th>
-                        <td>{{duration 0 duration}}</td>
-                        <td></td>
-                    </tr>
-                </table>
+                {{#if videos}}    
+                {{else}}
+                No videos are defined.
+                {{/if}}
             </div>
-            {{/each}}
         </div>
-        {{else}}
-        <div class="long-list-wrapper" style="height:60px">
-            No videos are defined.
-        </div>
-        {{/if}}
+        <div class="row">
+            <div class="col-md-6">
+                <dl><dt>Video time
+                    <dd><span data-name="currentvideotime"></span>
+                    <dt>Current Video
+                    <dd><span data-name="currentvideoid"></span>
+                </dl>
 
-        <div class="pull-left">Video time: <span data-name="currentvideotime"></span>
-            <div class="checkbox"><label><input type="checkbox" data-name="syncvideowithhovercheckbox">Sync video with hover</label></div>
-            <div class="checkbox"><label><input type="checkbox" data-name="emitvideotimeeventscheckbox" checked>Update graphs with video marker</label></div>
-            When right side is reached:
-            <div class="radio"><label><input type="radio" name="onenddo" data-name="onenddonothingcheckbox">Continue normally</label></div>
-            <div class="radio"><label><input type="radio" name="onenddo" data-name="looponviewcheckbox" checked>Loop video in current view</label></div>
-            <div class="radio"><label><input type="radio" name="onenddo" data-name="nexteventcheckbox">Jump to next event of type
-                    <select data-name="nexteventselect" class="form-control">
-                        {{#each eventTypes}}
-                        <option value="{{name}}" {{selected}}>{{name}}</option>
-                        {{/each}}
-                    </select>
-                </label></div>
-            Playback:
-            <select data-name="playbackspeedselect" class="form-control">
-                <option value="1">none</option>
-            </select>
+                Playback Speed:
+                <select data-name="playbackspeedselect" class="form-control">
+                    <option value="1">none</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                When right side is reached:
+                <div class="radio"><label><input type="radio" name="onenddo" data-name="onenddonothingcheckbox">&nbsp;Continue normally</label></div>
+                <div class="radio"><label><input type="radio" name="onenddo" data-name="looponviewcheckbox" checked>&nbsp;Loop video in current view</label></div>
+                <div class="radio"><label><input type="radio" name="onenddo" data-name="nexteventcheckbox">&nbsp;Jump to next event of type
+                        <select data-name="nexteventselect" class="form-control">
+                            {{#each eventTypes}}
+                            <option value="{{name}}" {{selected}}>{{name}}</option>
+                            {{/each}}
+                        </select>
+                    </label>
+                </div>
+                <div class="checkbox"><label><input type="checkbox" data-name="syncvideowithhovercheckbox">&nbsp;Sync video with hover</label></div>                
+            </div>
         </div>
-        <span class="pull-right"><button data-name="addvideobutton" class="btn btn-default"><span class="glyphicon glyphicon-film"></span>&nbsp;Add Video</button></span>
     </div>
 </div>

@@ -34,10 +34,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/history',
 
             var startTime = parseInt(state.query['focus.starttime']);
             startTime = _.isNaN(startTime) ? undefined : startTime;
-            
+
             var endTime = parseInt(state.query['focus.endtime']);
             endTime = _.isNaN(endTime) ? undefined : endTime;
-            
+
             sandbox.internalResourceFocusedEvent(state.resource.substring(1), // remove leading '/'
                     state.id,
                     startTime,

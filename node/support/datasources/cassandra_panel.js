@@ -255,7 +255,8 @@ exports.getCachedProcessedPanel = function(panelId, startTime, endTime, buckets,
  * @param {objecw} payload
  */
 exports.putCachedProcessedPanel = function(panelId, startTime, endTime, buckets, payload) {
-    var query = 'INSERT INTO raw_data_cache (id, start_time, end_time, buckets, payload) VALUES (?,?,?,?,?) USING TTL 86400';
+    var kTTL = 60*60*24*7*4; // 4 weeks
+    var query = 'INSERT INTO raw_data_cache (id, start_time, end_time, buckets, payload) VALUES (?,?,?,?,?) USING TTL ' + kTTL;
 
     var parameters = [
         {

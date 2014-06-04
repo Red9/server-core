@@ -20,6 +20,7 @@ define(['vendor/jquery', 'vendor/underscore'
         };
 
         sandbox.initiateResourceFocusedEvent = function(type, id, startTime, endTime) {
+            // Let's set the history on this one...
             sandbox.resourceFocused(type, id, startTime, endTime);
         };
 
