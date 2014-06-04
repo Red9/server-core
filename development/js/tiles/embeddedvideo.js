@@ -242,10 +242,15 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             // Slice to make a copy (reverse is in place).
             // If videos overlap, we want the first video to end early in order
             // for the second to begin. That's what the reverse does.
-            return _.find(videoList.slice().reverse(), function(video) {
-                var result = video.startTime <= time
-                        && time <= video.endTime;
-                return result;
+            return _.find(videoList.slice().reverse(), function(video, index) {
+                return (video.startTime <= time
+                        && time <= video.endTime)
+                        // If the given time is before the first video we'll go
+                        // ahead and map it to that video. This solves the
+                        // problem of loading a dataset, and having a video
+                        // loaded.
+                        || index === videoList.length - 1;
+
             });
         }
 
