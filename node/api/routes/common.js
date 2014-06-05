@@ -51,7 +51,15 @@ function simplifyOutput(route, resourceArray) {
 }
 
 exports.describe = function(route, req, res, next) {
-    res.json(resources[route.resource].resource.schema);
+    var pretty = false;
+    if (typeof req.query['pretty'] !== 'undefined') {
+        pretty = req.query['pretty'] === 'true';
+        delete req.query['pretty'];
+    }
+
+    res.set('Content-Type', 'application/json');
+    var body = JSON.stringify(resources[route.resource].resource.schema, null, pretty ? 3 : 0);
+    res.send(body);
 };
 
 
@@ -95,6 +103,12 @@ function get(route, req, res, next) {
         delete req.query['expand'];
     }
 
+    var pretty = false;
+    if (typeof req.query['pretty'] !== 'undefined') {
+        pretty = req.query['pretty'] === 'true';
+        delete req.query['pretty'];
+    }
+
     // At this point, req.query has constraints.
     var searchParams = req.query;
     // If it's a direct resource request we should search for just that
@@ -126,10 +140,16 @@ function get(route, req, res, next) {
                         }
                     },
                     function(err) {
-                        res.json(resources);
+                        res.set('Content-Type', 'application/json');
+                        var body = JSON.stringify(resources, null, pretty ? 3 : 0);
+                        res.send(body);
+                        //res.json(resources);
                     });
         } else {
-            res.json(resources);
+            res.set('Content-Type', 'application/json');
+            var body = JSON.stringify(resources, null, pretty ? 3 : 0);
+            res.send(body);
+            //res.json(resources);
         }
     }, expand);
 }
