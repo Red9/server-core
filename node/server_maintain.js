@@ -19,9 +19,23 @@ log.info("Maintain Node.js process started.");
 //MoveDatasetPanelMetaToPanelList();
 //createRawDataMetaTable();
 //updateEventsWithSource();
-updateSourceToCreateTimeKey();
+//updateSourceToCreateTimeKey();
+addTimezoneToPanels();
 //----------------------------------------------------------------------
 
+
+function addTimezoneToPanels() {
+    var panelResource = requireFromRoot('support/resources/panel');
+    panelResource.get({}, function(panels) {
+        async.eachSeries(panels, function(panel, callback) {
+            panelResource.update(panel.id, {timezone: 'America/Los_Angeles'}, function() {
+                callback();
+            });
+        }, function() {
+            console.log('All Done.');
+        });
+    });
+}
 
 function updateSourceToCreateTimeKey() {
     var eventResource = requireFromRoot('support/resources/event');
