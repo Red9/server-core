@@ -59,14 +59,8 @@
                     return event.type.indexOf('Wave') !== -1;
                 });
 
-                // Only get events in the last n days
-
-                var recentList = _.filter(filteredList, function(event) {
-                    return event.startTime >= cutoffTime;
-                });
-
                 // Get the first n events.
-                var topList = recentList.slice(0, kMaxEntries);
+                var topList = filteredList.slice(0, kMaxEntries);
 
                 // Now, let's create a table to store the events in.
                 var $table = $('[data-name=leaderboard]');
