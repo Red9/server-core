@@ -14,11 +14,11 @@
             </tr>
             <tr>
                 <th>Created</th>
-                <td>{{epochdate dataset.createTime}}&nbsp;&nbsp;&nbsp;{{epochtime dataset.createTime}}</td>
+                <td>{{date dataset.createTime}}&nbsp;&nbsp;&nbsp;{{time dataset.createTime}}</td>
             </tr>
             <tr>
                 <th>Start Time</th>
-                <td>{{{epochdate dataset.headPanel.startTime}}}&nbsp;&nbsp;&nbsp;{{{epochtime dataset.headPanel.startTime}}}</td>
+                <td>{{date dataset.headPanel.startTime}}&nbsp;&nbsp;&nbsp;{{time dataset.headPanel.startTime}}</td>
             </tr>
             <tr>
                 <th>Duration</th>
@@ -31,6 +31,10 @@
             <tr>
                 <th>GPS On Time</th>
                 <td>{{{duration 0 dataset.headPanel.summaryStatistics.static.gps.timeon.value}}} on ({{{percent dataset.headPanel.summaryStatistics.static.gps.timeon.value dataset.headPanel.summaryStatistics.static.gps.timeoff.value}}})</td>
+            </tr>
+            <tr>
+                <th>Timezone</th>
+                <td>{{dataset.headPanel.timezone}}</td>
             </tr>
             <tr>
                 <th>SCAD Unit</th>
@@ -73,11 +77,11 @@
                     </div>
                     <div class="col-md-4">
                         <div class="row"><strong>Recorder Start Time</strong>:</div>
-                        <div class="row">{{epochdate datasetStartTime}} {{epochtime datasetStartTime}}<br/>({{datasetStartTime}})</div>
+                        <div class="row">{{date datasetStartTime}} {{time datasetStartTime}}<br/>({{datasetStartTime}})</div>
                     </div>
                     <div class="col-md-5">
                         <div class="row"><strong>Recorder End Time</strong>:</div>
-                        <div class="row">{{epochdate datasetEndTime}} {{epochtime datasetEndTime}}<br/>({{datasetEndTime}})</div>
+                        <div class="row">{{date datasetEndTime}} {{time datasetEndTime}}<br/>({{datasetEndTime}})</div>
                     </div>
                 </div>
 
