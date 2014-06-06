@@ -278,10 +278,6 @@ var dataset_schema = [
         hint: 'varchar'
     },
     {
-        key: 'timezone',
-        hint: 'varchar'
-    },
-    {
         key: 'source',
         hint: 'varchar'
     },
@@ -480,6 +476,10 @@ var raw_data_meta_schema = [
     },
     {
         key: 'summary_statistics',
+        hint: 'varchar'
+    },
+    {
+        key: 'timezone',
         hint: 'varchar'
     }
 ];

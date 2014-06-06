@@ -33,11 +33,6 @@ var datasetResource = {
         includeToCreate: false,
         editable: true
     },
-    timezone: {
-        type: 'string',
-        includeToCreate: false,
-        editable: true
-    },
     source: {// TODO(SRLM): Rename this to recorderInformation (or something...)
         type: 'object',
         includeToCreate: false,
@@ -82,7 +77,6 @@ function mapToResource(cassandra) {
 
     resource.title = cassandra.name;
     resource.headPanelId = cassandra.raw_data;
-    resource.timezone = cassandra.timezone;
     resource.owner = cassandra.owner;
     resource.createTime = moment(cassandra.create_time).valueOf();
 
@@ -98,7 +92,6 @@ function mapToResource(cassandra) {
 var createFlush = function(newDataset) {
     newDataset.id = useful.generateUUID();
     newDataset.headPanelId = useful.generateUUID();
-    newDataset.timezone = config.defaultTimezone;
     newDataset.source = {};
     newDataset.createTime = moment().valueOf();
 };

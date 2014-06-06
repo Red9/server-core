@@ -49,6 +49,20 @@
                 return parseFloat(Math.round(number * 100) / 100).toFixed(2);
             }
         }
+        function informalDateTime(milliseconds) {
+            return moment(time).fromNow();
+        }
+        function date(milliseconds) {
+            return moment(milliseconds).format('YYYY-MM-DD');
+        }
+        function time(milliseconds, precise) {
+            if (precise === "precise") {
+                return moment(milliseconds).format('h:mm:ss.SSS a');
+            } else {
+                return moment(milliseconds).format('h:mm a');
+            }
+        }
+
         function millisecondsEpochToTime(milliseconds) {
             if (typeof milliseconds === 'undefined') {
                 return 'unknown';
@@ -124,6 +138,9 @@
             return result;
         }
 
+        Handlebars.registerHelper('date', date);
+        Handlebars.registerHelper('time', time);
+        Handlebars.registerHelper('informalDateTime', informalDateTime);
         Handlebars.registerHelper('decimal', numberToDecimal);
         Handlebars.registerHelper('epochtime', millisecondsEpochToTime);
         Handlebars.registerHelper('epochdate', millisecondsEpochToDate);

@@ -11,6 +11,8 @@ var datasetResource = requireFromRoot('support/resources/dataset');
 
 var underscore = require('underscore')._;
 
+var config = requireFromRoot('config');
+
 var panelResource = {
     id: {
         type: 'uuid',
@@ -46,6 +48,11 @@ var panelResource = {
         type: 'object',
         includeToCreate: false,
         editable: true
+    },
+    timezone: {
+        type: 'string',
+        includeToCreate: false,
+        editable: true
     }
 };
 
@@ -55,6 +62,7 @@ function mapToCassandra(resource) {
     cassandra.id = resource.id;
     cassandra.dataset_id = resource.datasetId;
     cassandra.columns = resource.axes;
+    cassandra.timezone = resource.timezone;
     cassandra.summary_statistics = JSON.stringify(resource.summaryStatistics);
 
 
@@ -82,6 +90,7 @@ function mapToResource(cassandra) {
     resource.id = cassandra.id;
     resource.datasetId = cassandra.dataset_id;
     resource.axes = cassandra.columns;
+    resource.timezone = cassandra.timezone;
     resource.createTime = moment(cassandra.create_time).valueOf();
     resource.startTime = moment(cassandra.start_time).valueOf();
     resource.endTime = moment(cassandra.end_time).valueOf();
@@ -102,6 +111,7 @@ function createFlush(newPanel) {
     newPanel.endTime = moment().valueOf();// Default to now
     newPanel.summaryStatistics = {};
     newPanel.axes = [];
+    newPanel.timezone = config.defaultTimezone;
 }
 
 function deletePost(id) {
@@ -266,8 +276,8 @@ exports.getPanelBody = function(options,
             // If we're getting a subset of the "orginal" panel
             panel.startTime = startTime;
             panel.endTime = endTime;
-            
-            panel.rowCount = Math.floor((endTime - startTime)/10); // TODO: SRLM: This is based on 100Hz panel row frequency, or 10ms between readings. Should remove! Or at least put in config.
+
+            panel.rowCount = Math.floor((endTime - startTime) / 10); // TODO: SRLM: This is based on 100Hz panel row frequency, or 10ms between readings. Should remove! Or at least put in config.
 
             callbackPanelProperties(panel);
 

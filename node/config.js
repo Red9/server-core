@@ -65,7 +65,7 @@ exports.nodetimeProfile = {
     appName: 'Dev Website'
 };
 
-exports.defaultTimezone = '';
+exports.defaultTimezone = 'America/Los_Angeles';
 
 exports.sessionMaxAge = 3*24*60*60*1000; // Three days
 
