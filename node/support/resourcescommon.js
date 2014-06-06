@@ -514,11 +514,14 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
         var result = [];
         var table = resourceDescription.cassandraTable;
         var calculationStartTime = new Date();
-        var queue = async.queue(processResource, 0);
+        var queue = async.queue(processResource, 10);
+
+        // Error checking variable. Makes sure the we get everything that we push.
+        var pushedCount = 0;
 
         var databaseRowFunction = function(cassandraResource) {
             var resource = resourceDescription.mapToResource(cassandraResource);
-
+            pushedCount++;
             var parameters = {
                 resourceDescription: resourceDescription,
                 constraints: constraints,
@@ -527,7 +530,6 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
                 result: result
             };
             queue.push(parameters);
-
         };
         var databaseDoneFunction = function(err) {
             queue.drain = function() {
@@ -538,10 +540,10 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
             };
 
             if (queue.length() === 0) {
+                if (pushedCount !== 0) {
+                    log.error('Error: pushedCount !== 0, so we lost items when drain was not called.');
+                }
                 callback([]);
-            } else {
-                // Turn on the queue
-                queue.concurrency = 5;
             }
         };
 
