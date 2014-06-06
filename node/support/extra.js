@@ -34,8 +34,15 @@ exports.initializeSession = function(app) {
 exports.cors = function(app) {
     // Enable CORS: http://enable-cors.org/server_expressjs.html
     app.all('*', function(req, res, next) {
+        var acceptableOrigin = config.realms.html;
+        if (req.get('origin') === 'null') {
+            // Null origin comes from developing with a 'file://' url, aka, self
+            // hosted HTML page.
+            acceptableOrigin = 'null';
+        }
+
         res.header('Access-Control-Allow-Credentials', true);
-        res.header('Access-Control-Allow-Origin', config.realms.html);
+        res.header('Access-Control-Allow-Origin', acceptableOrigin);
         res.header('Access-Control-Allow-Headers', 'X-Requested-With');
         res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         next();

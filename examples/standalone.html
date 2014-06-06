@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Standalone Page</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js"></script>
+        <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.js"></script>
+
+        <link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="/">TotalState</a>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <!-- Add some spaces to account for the header... A bit of a hack
+            that's taken care of in the site's CSS.-->
+            <br/><br/><br/><br/><br/><br/><br/><br/>
+            <h1>Longest waves in last <span data-name="timeperiod">0</span> days.</h1>
+            <table data-name="leaderboard" class="table table-striped">
+
+            </table>
+        </div>
+
+
+
+        <script>
+            var kDaysAgo = 7;
+            var kMaxEntries = 10;
+            var htmlUrl = 'http://localdev.redninesensor.com';
+            var apiUrl = 'http://api.localdev.redninesensor.com';
+
+            function displayEventList(eventList) {
+                var sortedList = _.sortBy(eventList, function(event) {
+                    // The try/catch is necessary because the distance might
+                    // not exist (if there is no GPS). In which case, accessing
+                    // a non-existant value will throw an error. This is easier
+                    // than testing each level of access.
+                    try {
+                        // sortBy sorts in ascending order, so we reverse the
+                        // order so the largest values are ealiest in the result.
+                        return -event.summaryStatistics.static.route.path.distance.value;
+                    } catch (e) {
+                        // Return 1 so that non-existant distances are sorted
+                        // below 0 distances.
+                        return 1;
+                    }
+                });
+
+                // Only get events of a particular type.
+                var filteredList = _.filter(sortedList, function(event) {
+                    // Select events with 'Wave' in the type
+                    return event.type.indexOf('Wave') !== -1;
+                });
+
+                // Only get events in the last n days
+                var cutoffDate = new Date();
+                var cutoffTime = cutoffDate.setDate(cutoffDate.getDate() - kDaysAgo);
+                var recentList = _.filter(filteredList, function(event) {
+                    return event.startTime >= cutoffTime;
+                });
+
+                // Get the first n events.
+                var topList = recentList.slice(0, kMaxEntries);
+
+                // Now, let's create a table to store the events in.
+                var $table = $('[data-name=leaderboard]');
+                _.each(topList, function(event, index) {
+                    var distance = '---';
+                    try {
+                        distance = event.summaryStatistics.static.route.path.distance.value;
+                    } catch (e) {
+                    }
+
+                    // Index is 0 based. Add 1 to make it "normal".
+                    var row = '<tr><td>' + (index + 1) + '.</td><td>'
+                            + '<td><a href="' + htmlUrl + '/event/' + event.id + '">'
+                            + distance + '</a></td></tr>';
+
+                    $table.append(row);
+                });
+
+                // Finally, let's update the title with our timespan.
+                $('[data-name=timeperiod]').text(kDaysAgo);
+            }
+
+            $(document).ready(function() {
+                console.log('Here!');
+
+                // Setup so that it sends your cookies with AJAX requests. This
+                // is used for tracking requests, and eventually for
+                // authentication.
+                $.ajaxSetup({
+                    xhrFields: {
+                        withCredentials: true
+                    }
+                });
+
+                // Make the server request to get our events. The result is
+                // an array of events.
+                // Optimization opportunity: we can request events only from the
+                // last n days by using '?startTime.more=(n days ago)' in the
+                // query.
+                $.ajax({
+                    type: 'GET',
+                    url: apiUrl + '/event/',
+                    dataType: 'json',
+                    success: displayEventList
+                });
+
+
+            });
+        </script>
+
+
+
+        <br/><br/>
+        <div class="navbar navbar-fixed-bottom">
+            <div class="navbar-inner">
+                <div class="width-constraint clearfix">
+                    <p class="pull-left muted credit">&nbsp;&nbsp;&nbsp;Total State: Motion analytics software</p>
+                    <p class="pull-right muted credit">©2013&nbsp;&nbsp;&nbsp;
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>
+
