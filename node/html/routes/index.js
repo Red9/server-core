@@ -1,7 +1,10 @@
+var config = requireFromRoot('config');
+
 function IsAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
+        console.log('Not authenticated!');
         //next();
         res.redirect('/about');
     }
@@ -15,7 +18,20 @@ module.exports = function(app, passport) {
     app.get('/login', require('./login').get);
     app.get('/logout', require('./logout').get);
 
-    app.get('/login/google', passport.authenticate('google'));
+
+    app.get('/login/authenticate', function(req, res, next) {
+        if (config.offline === true) {
+            console.log('Doing offline login...');
+            req.body.username = 'offline.user';
+            req.body.password = 'password';
+            passport.authenticate('local')(req, res, function(req, res){
+                console.log('Success(?)');
+                res.redirect('/');
+            });
+        } else {
+            passport.authenticate('google')(req, res, next);
+        }
+    });
     app.get('/login/google/return', passport.authenticate('google',
             {
                 successRedirect: '/',

@@ -35,3 +35,7 @@ exports.cassandraKeyspace = 'dev';
 exports.requireRoot = '/home/ubuntu/dev-website/node';
 
 exports.rncDirectory = '/home/ubuntu/upload/rnc';
+
+exports.offline = false;
+
+exports.cookieDomain = '.redninesensor.com';

@@ -1,4 +1,5 @@
 var log = requireFromRoot('support/logger').log;
+var config = requireFromRoot('config');
 
 var userResource = requireFromRoot('support/resources/user');
 
@@ -17,6 +18,14 @@ var userResource = requireFromRoot('support/resources/user');
 exports.CheckUserForLogin = function(id, user, callback) {
     userResource.get({email: user.emails[0].value}, function(result) {
         callback(result[0]);
+    });
+};
+
+exports.processOfflineRequest = function(username, password, callback) {
+    console.log('Getting user...');
+    userResource.get({email: 'offline.user@redninesensor.com'}, function(result) {
+        console.log('Callback user...');
+        callback(null, result[0]);
     });
 };
 

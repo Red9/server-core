@@ -13,6 +13,7 @@
         "socket.io": "latest",
         "passport": "latest",
         "passport-google": "latest",
+        "passport-local": "latest",
         "winston": "latest",
         "winston-papertrail": "latest",
         "winston-loggly": "latest",

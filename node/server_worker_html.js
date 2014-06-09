@@ -101,7 +101,7 @@ exports.init = function() {
                     express.static(__dirname + path)(req, res, next);
                 });
             });
-            
+
             // We don't want to log static files, so logger goes after.
             app.use(logger.logger());
 
@@ -113,10 +113,10 @@ exports.init = function() {
                         secret: config.sessionSecret,
                         maxAge: config.sessionMaxAge,
                         cookie: {
-                            domain: ".redninesensor.com"
+                            domain: config.cookieDomain
                         },
                         store: new mongoStore({
-                            db: 'sessionStore'
+                            db: 'sessionStore2'
                         })
                     }
             ));
@@ -131,6 +131,14 @@ exports.init = function() {
                 realm: config.realms.html,
                 stateless: true // Allow use with other red9 servers
             }, authenticate.ProcessLoginRequest));
+
+            var LocalStrategy = require('passport-local').Strategy;
+            passport.use(new LocalStrategy(
+                    {
+                        successRedirect: '/',
+                        stateless: true // Allow use with other red9 servers
+                    },
+            authenticate.processOfflineRequest));
 
             passport.serializeUser(function(user, done) {
                 done(null, user);

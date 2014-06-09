@@ -10,7 +10,9 @@ var requiredInstanceKeys = [
     'cassandraHosts',
     'cassandraKeyspace',
     'rncDirectory',
-    'logFileDirectory'
+    'logFileDirectory',
+    'offline',
+    'cookieDomain'
 ];
 
 exports.ProcessCommandLine = function() {

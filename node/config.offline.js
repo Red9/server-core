@@ -14,13 +14,13 @@ exports.ports = {
 };
 
 exports.realms = {
-    html: 'http://localdev.redninesensor.com',
-    api: 'http://api.localdev.redninesensor.com',
-    action: 'http://action.localdev.redninesensor.com'
+    html: 'http://offline.redninesensor.com',
+    api: 'http://api.offline.redninesensor.com',
+    action: 'http://action.offline.redninesensor.com'
 };
 
 exports.tempDirectory = "/tmp/red9_dev_website/";
-exports.sessionSecret = 'powells at pdx';
+exports.sessionSecret = 'offline secret';
 
 exports.dataProcessingDirectory = '../../data-processing';
 exports.statistician_children = exports.dataProcessingDirectory + '/statistics/children';
@@ -36,6 +36,6 @@ exports.requireRoot = '/home/clewis/consulting/red9/dev-website/node';
 
 exports.rncDirectory = '/home/clewis/consulting/red9/dev-website/upload/rnc';
 
-exports.offline = false;
+exports.offline = true;
 
-exports.cookieDomain = '.redninesensor.com';
+exports.cookieDomain = '.offline.localhost';
