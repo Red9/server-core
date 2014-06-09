@@ -14,11 +14,6 @@
     }
 
     function customHandlebarsHelpers(Handlebars, moment) {
-        function padNumber(n, width, z) {
-            z = z || '0';
-            n = n + '';
-            return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-        }
         function formatDuration(startTime, endTime) {
             if (typeof startTime === 'undefined' || typeof endTime === 'undefined') {
                 return '0.000s';
@@ -109,9 +104,6 @@
             var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
             return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
         }
-        function timeFromNow(time) {
-            return moment(time).fromNow();
-        }
 
         function starsHelper(n, max) {
 
@@ -141,13 +133,10 @@
         Handlebars.registerHelper('time', time);
         Handlebars.registerHelper('informalDateTime', informalDateTime);
         Handlebars.registerHelper('decimal', numberToDecimal);
-        Handlebars.registerHelper('epochtime', millisecondsEpochToTime);
-        Handlebars.registerHelper('epochdate', millisecondsEpochToDate);
         Handlebars.registerHelper('unitize', unitize);
         Handlebars.registerHelper('percent', percentFormater);
         Handlebars.registerHelper('duration', formatDuration);
         Handlebars.registerHelper('bytesToHumanSize', bytesToHumanSize);
-        Handlebars.registerHelper('timeFromNow', timeFromNow);
         Handlebars.registerHelper('ratingStars', starsHelper);
 
         return {

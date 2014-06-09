@@ -76,13 +76,13 @@
                 <tbody>
                     <tr>
                         <td>start</td>
-                        <td>{{epochdate startTime.value}}</td>
-                        <td>{{epochtime startTime.value}}</td>
+                        <td>{{date startTime.value}}</td>
+                        <td>{{time startTime.value}}</td>
                     </tr>
                     <tr>
                         <td>end</td>
-                        <td>{{epochdate endTime.value}}</td>
-                        <td>{{epochtime endTime.value}}</td>
+                        <td>{{date endTime.value}}</td>
+                        <td>{{time endTime.value}}</td>
                     </tr>
                     <tr>
                         <td>duration</td>
@@ -192,13 +192,13 @@
 
                     <tr>
                         <td>{{@key}}</td>
-                        <td><abbr title="units: {{this.minimum.units}},  time: {{epochtime this.minimum.time}}">
+                        <td><abbr title="units: {{this.minimum.units}},  time: {{time this.minimum.time}}">
                                 {{unitize this.minimum.value this.minimum.units}}</abbr></td>
 
                         <td><abbr title="units: {{this.average.units}}">
                                 {{unitize this.average.value this.average.units}}</abbr></td>
 
-                        <td><abbr title="units: {{this.maximum.units}},  time: {{epochtime this.maximum.time}}">
+                        <td><abbr title="units: {{this.maximum.units}},  time: {{time this.maximum.time}}">
                                 {{unitize this.maximum.value this.maximum.units}}</abbr></td>
                     </tr>
                     {{/each}}
