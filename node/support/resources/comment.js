@@ -31,12 +31,14 @@ var commentResource = {
     startTime: {
         type: 'timestamp',
         includeToCreate: true,
-        editable: true
+        editable: true,
+        panelLocal: true
     },
     endTime: {
         type: 'timestamp',
         includeToCreate: true,
-        editable: true
+        editable: true,
+        panelLocal: true
     },
     //---------------------------
     id: {

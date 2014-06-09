@@ -43,7 +43,7 @@ define(['vendor/jquery', 'vendor/underscore', 'sandbox', 'vendor/bootstrap-markd
 
                 var $commentList = self.myPlace.find('[data-name=commentList]');
                 $commentList.on('click', '[data-name=commentFocus]', function() {
-                    sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset(), $(this).data('starttime'), $(this).data('endtime'));
+                    sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDatasetId(), $(this).data('starttime'), $(this).data('endtime'));
                 });
                 $commentList.scrollTop(100000);
 

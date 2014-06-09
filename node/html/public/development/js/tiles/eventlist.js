@@ -70,7 +70,7 @@ define(['vendor/jquery', 'vendor/underscore',
         }
 
         function emptyRightClick() {
-            sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset());
+            sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDatasetId());
         }
 
         function setEvents(events) {
@@ -81,14 +81,14 @@ define(['vendor/jquery', 'vendor/underscore',
 
         function resourceChanged(event, parameters) {
             if (parameters.type === 'event') {
-                sandbox.get('event', {datasetId: sandbox.getCurrentDataset()}, setEvents);
+                sandbox.get('event', {datasetId: sandbox.getCurrentDatasetId()}, setEvents);
             }
         }
 
         function resourceFocused(event, parameter) {
             var newDatasetId;
             if (parameter.type === 'dataset') {
-                newDatasetId = sandbox.getCurrentDataset();
+                newDatasetId = sandbox.getCurrentDatasetId();
             } else if (parameter.type === 'event') {
                 newDatasetId = sandbox.focusState.event.datasetId;
             }

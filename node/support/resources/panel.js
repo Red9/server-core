@@ -37,12 +37,14 @@ var panelResource = {
     startTime: {
         type: 'timestamp',
         includeToCreate: false,
-        editable: false
+        editable: false,
+        panelLocal: true
     },
     endTime: {
         type: 'timestamp',
         includeToCreate: false,
-        editable: false
+        editable: false,
+        panelLocal: true
     },
     summaryStatistics: {
         type: 'object',

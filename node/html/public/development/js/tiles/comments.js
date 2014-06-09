@@ -2,7 +2,7 @@ define(['vendor/jquery', 'utilities/commentList'], function($) {
     function comments(sandbox, tile, configuration, doneCallback) {
         function init() {
             tile.setTitle('Comments');
-            setResource('dataset', sandbox.getCurrentDataset());
+            setResource('dataset', sandbox.getCurrentDatasetId());
         }
 
         function setResource(type, id) {

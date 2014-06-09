@@ -139,7 +139,7 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
 
             sandbox.requestTemplate('eventdetection.' + type, function(template) {
                 sandbox.get('eventtype', {}, function(eventTypes) {
-                    sandbox.get('dataset', {id: sandbox.getCurrentDataset()}, function(datasetList) {
+                    sandbox.get('dataset', {id: sandbox.getCurrentDatasetId()}, function(datasetList) {
                         var dataset = datasetList[0];
                         tile.place.html(template({
                             axes: dataset.headPanel.axes,

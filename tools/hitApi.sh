@@ -1,6 +1,6 @@
 #!/bin/bash
 
-url="http://api.redninesensor.com/event/"
+url="http://api.redninesensor.com/event/?simpleoutput=true"
 #url="http://api.localdev.redninesensor.com/panel/57a1ee7e-2267-fa50-358f-0d3e03f3936d/body/?format=csv"
 #url="http://api.redninesensor.com/dataset/?expand=headPanel,owner"
 #url="http://api.redninesensor.com/panel/ec5db3c7-cab5-eddb-186d-9c08f087e15a/body?buckets=1000&format=csv&nocache"

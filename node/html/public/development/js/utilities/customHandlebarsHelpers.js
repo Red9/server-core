@@ -90,7 +90,6 @@
             }
         }
         function percentFormater(numerator, denominator) {
-            console.log('numerator: ' + numerator + ', denominator: ' + denominator);
             if (isNaN(numerator) && isNaN(denominator)) {
                 return '---';
             } else if (isNaN(numerator)) {

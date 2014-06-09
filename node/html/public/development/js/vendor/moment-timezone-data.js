@@ -1,4 +1,4 @@
-define(["moment-timezone"], function (moment) {
+define(["vendor/moment-timezone"], function (moment) {
     moment.tz.add({
         "zones": {
             "Africa/Abidjan": [

@@ -24,12 +24,14 @@ var eventResource = {
     startTime: {
         type: 'timestamp',
         includeToCreate: true,
-        editable: true
+        editable: true,
+        panelLocal: true
     },
     endTime: {
         type: 'timestamp',
         includeToCreate: true,
-        editable: true
+        editable: true,
+        panelLocal: true
     },
     type: {
         type: 'string',
