@@ -9,7 +9,7 @@ define(['vendor/jquery', 'utilities/commentList'], function($) {
             } else {
                 tile.addListener('totalState-resource-focused', resourceFocused);
                 // Default to what's currently visible
-                setResource('dataset', sandbox.getCurrentDataset());
+                setResource('dataset', sandbox.getCurrentDatasetId());
             }
             doneCallback();
         }

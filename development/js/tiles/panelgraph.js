@@ -223,12 +223,12 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/moment',
                         if (_.isNaN(startTime) === false
                                 && _.isNaN(endTime) === false
                                 && endTime - startTime > kMinimumZoomDuration) {
-                            sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset(), startTime, endTime);
+                            sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDatasetId(), startTime, endTime);
                         }
 
                     },
                     onZoomOut: function() {
-                        sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDataset());
+                        sandbox.initiateResourceFocusedEvent('dataset', sandbox.getCurrentDatasetId());
                     }
                 });
 

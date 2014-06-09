@@ -1,4 +1,4 @@
-define(['vendor/jquery'], function($) {
+define(['vendor/jquery', 'vendor/moment', 'vendor/moment-timezone', 'vendor/moment-timezone-data'], function($, moment) {
     function sandboxConvenience(sandbox) {
         // Convenience Methods
         sandbox.displayEditResourceDialog = function(type, id) {
@@ -14,15 +14,14 @@ define(['vendor/jquery'], function($) {
             });
         };
 
-        sandbox.getCurrentDataset = function() {
+        sandbox.getCurrentDatasetId = function() {
             if (typeof sandbox.focusState.dataset !== 'undefined') {
                 return sandbox.focusState.dataset.id;
             } else if (typeof sandbox.focusState.event !== 'undefined') {
                 return sandbox.focusState.event.datasetId;
             }
         };
-        
-        
+
         sandbox.showJqueryValidateErrors = function(errorMap, errorList) {
             // Taken from http://icanmakethiswork.blogspot.com/2013/08/using-bootstrap-tooltips-to-display.html
             // Clean up any tooltips for valid elements

@@ -47,19 +47,19 @@ define(['vendor/jquery', 'vendor/underscore'
 
             if (type === 'event') {
                 console.log('Focusing on resource ' + id);
-                sandbox.get(type, {id: id}, function(event) {
-                    sandbox.get('dataset', {id: event[0].datasetId}, function(dataset) {
-                        startTime = event[0].startTime;
-                        endTime = event[0].endTime;
+                sandbox.get(type, {id: id}, function(eventList) {
+                    sandbox.get('dataset', {id: eventList[0].datasetId}, function(dataset) {
+                        startTime = eventList[0].startTime;
+                        endTime = eventList[0].endTime;
                         sandbox.getPanel(dataset[0].headPanelId, startTime, endTime, true, function(panel) {
-                            sandbox.setPageTitle('Event: ' + event[0].type);
+                            sandbox.setPageTitle('Event: ' + eventList[0].type);
 
                             sandbox.focusState.dataset = undefined;
                             sandbox.focusState.minStartTime = dataset[0].headPanel.startTime;
                             sandbox.focusState.maxEndTime = dataset[0].headPanel.endTime;
                             sandbox.focusState.startTime = startTime;
                             sandbox.focusState.endTime = endTime;
-                            sandbox.focusState.event = event[0];
+                            sandbox.focusState.event = eventList[0];
                             sandbox.focusState.panel = panel;
 
                             initiateEvent(eventName,
@@ -73,9 +73,9 @@ define(['vendor/jquery', 'vendor/underscore'
                     }, ['headPanel']);
                 });
             } else if (type === 'dataset') {
-                sandbox.get(type, {id: id}, function(dataset) {
-                    if (typeof dataset[0].headPanel === 'undefined'
-                            || _.keys(dataset[0].headPanel.summaryStatistics).length === 0) {
+                sandbox.get(type, {id: id}, function(datasetList) {
+                    if (typeof datasetList[0].headPanel === 'undefined'
+                            || _.keys(datasetList[0].headPanel.summaryStatistics).length === 0) {
                         // For the case when the the dataset has just been
                         // uploaded, and processing is not done yet.
                         setTimeout(function() {
@@ -85,17 +85,17 @@ define(['vendor/jquery', 'vendor/underscore'
                     }
                     var cache = typeof startTime === 'undefined' && typeof endTime === 'undefined';
                     if (typeof startTime === 'undefined') {
-                        startTime = dataset[0].headPanel.startTime;
+                        startTime = datasetList[0].headPanel.startTime;
                     }
                     if (typeof endTime === 'undefined') {
-                        endTime = dataset[0].headPanel.endTime;
+                        endTime = datasetList[0].headPanel.endTime;
                     }
-                    sandbox.getPanel(dataset[0].headPanel.id, startTime, endTime, cache, function(panel) {
-                        sandbox.setPageTitle(dataset[0].title);
+                    sandbox.getPanel(datasetList[0].headPanel.id, startTime, endTime, cache, function(panel) {
+                        sandbox.setPageTitle(datasetList[0].title);
 
-                        sandbox.focusState.dataset = dataset[0];
-                        sandbox.focusState.minStartTime = dataset[0].headPanel.startTime;
-                        sandbox.focusState.maxEndTime = dataset[0].headPanel.endTime;
+                        sandbox.focusState.dataset = datasetList[0];
+                        sandbox.focusState.minStartTime = datasetList[0].headPanel.startTime;
+                        sandbox.focusState.maxEndTime = datasetList[0].headPanel.endTime;
                         sandbox.focusState.startTime = startTime;
                         sandbox.focusState.endTime = endTime;
                         sandbox.focusState.panel = panel;

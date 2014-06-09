@@ -45,6 +45,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
                 sandboxEvents(sandbox);
                 sandboxAction(sandbox);
 
+                sandbox.getTimezoneOffset('be2ebb1d-f68f-b2e3-6685-f07378c3f414', function(offset) {
+                    // console.log('Panel Offset: ' + offset);
+                });
+
 //            sandbox.get('event', {}, function(eventList) {
 //                _.each(eventList, function(event, index) {
 //                    try {

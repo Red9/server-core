@@ -2,6 +2,23 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async'
 ], function($, _, async) {
 
     function sandboxDatabase(sandbox) {
+        var schemas = {
+            eventtype: {} // Hack for now. Doesn't actually have a schema.
+        };
+
+        sandbox.getSchema = function(resourceType, callback) {
+            // Basic cache.
+            if (_.has(schemas, resourceType)) {
+                callback(schemas[resourceType]);
+            } else {
+                $.ajax({
+                    type: 'GET',
+                    url: sandbox.apiUrl + '/' + resourceType + '/describe',
+                    dataType: 'json',
+                    success: callback
+                });
+            }
+        };
         sandbox.get = function(resourceType, constraints, callback, expand) {
             if (typeof expand !== 'undefined') {
                 constraints.expand = "";
@@ -12,20 +29,17 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async'
                     constraints.expand += value;
                 });
             }
+            sandbox.getSchema(resourceType, function(schema) {
+                $.ajax({
+                    type: 'GET',
+                    url: sandbox.apiUrl + '/' + resourceType + '/?' + $.param(constraints),
+                    dataType: 'json',
+                    success: function(resourceList) {
+                        sandbox.getTimezoneOffset()
+                        callback(resourceList);
+                    }
 
-            $.ajax({
-                type: 'GET',
-                url: sandbox.apiUrl + '/' + resourceType + '/?' + $.param(constraints),
-                dataType: 'json',
-                success: callback
-            });
-        };
-        sandbox.getSchema = function(resourceType, callback) {
-            $.ajax({
-                type: 'GET',
-                url: sandbox.apiUrl + '/' + resourceType + '/describe',
-                dataType: 'json',
-                success: callback
+                });
             });
         };
         sandbox.update = function(resourceType, id, newValues, callback) {

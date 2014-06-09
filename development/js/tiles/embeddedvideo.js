@@ -283,7 +283,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
         function seekToNextEvent() {
             player.pauseVideo();
-            sandbox.get('event', {datasetId: sandbox.getCurrentDataset()},
+            sandbox.get('event', {datasetId: sandbox.getCurrentDatasetId()},
             function(eventList) {
                 // Get the event type to seek to
                 var eventType = $videoNextEventSelect.find('option:selected').val();
@@ -359,7 +359,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             tile.addToBar("addVideo", "", "glyphicon-plus", function() {
                 var defaults = {
                     startTime: sandbox.focusState.startTime,
-                    dataset: sandbox.getCurrentDataset()
+                    dataset: sandbox.getCurrentDatasetId()
                 };
                 sandbox.showModal('modifyresource', {
                     resourceAction: 'create',
@@ -398,7 +398,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         function resourceFocused(event, parameter) {
             var newDatasetId = '';
             if (parameter.type === 'dataset') {
-                newDatasetId = sandbox.getCurrentDataset();
+                newDatasetId = sandbox.getCurrentDatasetId();
             } else if (parameter.type === 'event') {
                 newDatasetId = sandbox.focusState.event.datasetId;
             }
