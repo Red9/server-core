@@ -116,7 +116,7 @@ exports.init = function() {
                             domain: config.cookieDomain
                         },
                         store: new mongoStore({
-                            db: 'sessionStore2'
+                            db: 'sessionStore'
                         })
                     }
             ));
@@ -135,7 +135,6 @@ exports.init = function() {
             var LocalStrategy = require('passport-local').Strategy;
             passport.use(new LocalStrategy(
                     {
-                        successRedirect: '/',
                         stateless: true // Allow use with other red9 servers
                     },
             authenticate.processOfflineRequest));

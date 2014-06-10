@@ -38,4 +38,4 @@ exports.rncDirectory = '/home/clewis/consulting/red9/dev-website/upload/rnc';
 
 exports.offline = true;
 
-exports.cookieDomain = '.offline.localhost';
+exports.cookieDomain = '.offline.redninesensor.com';
