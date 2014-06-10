@@ -1,3 +1,5 @@
+var homeDir = '/home/ubuntu';
+
 exports.ports = {
     api: [
         8082,
@@ -22,19 +24,19 @@ exports.realms = {
 exports.tempDirectory = "/tmp/red9_dev_website/";
 exports.sessionSecret = 'powells at pdx';
 
-exports.dataProcessingDirectory = '../../data-processing';
+exports.dataProcessingDirectory = homeDir + '/data-processing';
 exports.statistician_children = exports.dataProcessingDirectory + '/statistics/children';
 
-exports.logFileDirectory = '/home/ubuntu/dev-website/logs';
+exports.logFileDirectory = homeDir + '/dev-website/logs';
 
 exports.release = true;
 
 exports.cassandraHosts = ['localhost:9042'];
 exports.cassandraKeyspace = 'dev';
 
-exports.requireRoot = '/home/ubuntu/dev-website/node';
+exports.requireRoot = homeDir + '/dev-website/node';
 
-exports.rncDirectory = '/home/ubuntu/upload/rnc';
+exports.rncDirectory = homeDir + '/upload/rnc';
 
 exports.offline = false;
 
