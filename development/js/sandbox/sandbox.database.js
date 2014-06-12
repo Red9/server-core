@@ -35,7 +35,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async'
                     url: sandbox.apiUrl + '/' + resourceType + '/?' + $.param(constraints),
                     dataType: 'json',
                     success: function(resourceList) {
-                        sandbox.getTimezoneOffset()
+                        //sandbox.getTimezoneOffset()
                         callback(resourceList);
                     }
 
