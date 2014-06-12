@@ -64,6 +64,8 @@ require(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.valida
     });
 
     $(document).ready(function() {
+        
+        var kCheckInterval = 3000;
 
         function progressHandlingFunction(e) {
             console.log('Got progress');
@@ -87,7 +89,7 @@ require(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.valida
                         // uploaded, and processing is not done yet.
                         setTimeout(function() {
                             redirectToUrl(id, url);
-                        }, 1000);
+                        }, kCheckInterval);
                         return;
                     } else {
                         window.location.replace(url);

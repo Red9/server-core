@@ -92,10 +92,9 @@ exports.getPanel = function(parameters, callbackDone) {
 
     //var fft = FFT.new(fftAxes, numberOfSamples, 100);
     var se;
-    // Let's not do SE for now: it takes lot's of bandwidth, and nobody uses it.
-    /*if (numberOfSamples < 15 * 60 * 100) {
+    if (numberOfSamples < 15 * 60 * 100) {
         se = SpectralEntropy.new(fftAxes, 256, 100);
-    }*/
+    }
 
     cassandraPanel.getPanel(panelId, startTime, endTime,
             function(rowTime, rowData, n) {

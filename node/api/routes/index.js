@@ -49,6 +49,7 @@ module.exports = function(app, passport) {
                     {name: "Bottom Turn"},
                     {name: "Snap"},
                     {name: "Snap: Closeout"},
+                    {name: "Turn"},
                     {name: "Air Drop"},
                     {name: "Cutback"},
                     {name: "Floater"},
@@ -73,7 +74,10 @@ module.exports = function(app, passport) {
                     {name: "Stationary"},
                     {name: "Dolphin"},
                     {name: "Tap"},
-                    {name: "Swimming"}
+                    {name: "Swimming"},
+                    {name: "Sync"},
+                    {name: "Sync: In"},
+                    {name: "Sync: Out"}
                 ]
                 );
     });
