@@ -20,9 +20,93 @@ log.info("Maintain Node.js process started.");
 //createRawDataMetaTable();
 //updateEventsWithSource();
 //updateSourceToCreateTimeKey();
-addTimezoneToPanels();
+//addTimezoneToPanels();
+addCountsToDataset();
 //----------------------------------------------------------------------
 
+
+function addCountsToDataset() {
+    var cassandraClient = require('node-cassandra-cql').Client;
+    var cassandraDatabase = new cassandraClient({hosts: config.cassandraHosts, keyspace: config.cassandraKeyspace});
+    var eventResource = requireFromRoot('support/resources/event');
+    var videoResource = requireFromRoot('support/resources/video');
+    var commentResource = requireFromRoot('support/resources/comment');
+    var datasetResource = requireFromRoot('support/resources/dataset');
+
+    function setCounter(name, datasetId, count, doneCallback) {
+        var command = 'UPDATE dataset_counter SET ' + name + ' = ' + name + ' + 1 WHERE id = ' + datasetId + ';';
+        async.timesSeries(count, function(n, next) {
+            cassandraDatabase.execute(command, [], function(err) {
+                if (err) {
+                    log.error(err);
+                }
+                next();
+            });
+        }, function() {
+            doneCallback();
+        });
+    }
+
+    function setCounterToZero(name, datasetId, doneCallback) {
+        setCounter(name, datasetId, 1, function() {
+            var command = 'UPDATE dataset_counter SET ' + name + ' = ' + name + ' - 1 WHERE id = ' + datasetId + ';';
+            cassandraDatabase.execute(command, [], function(err) {
+                if (err) {
+                    log.error(err);
+                }
+                doneCallback();
+            });
+        });
+    }
+
+
+
+    datasetResource.get({}, function(datasets) {
+        async.eachSeries(datasets,
+                function(dataset, datasetDoneCallback) {
+                    async.waterfall([
+                        function(callback) {
+                            eventResource.get({datasetId: dataset.id}, function(events) {
+                                console.log('Updating events (' + events.length + ')');
+                                if (events.length > 0) {
+                                    setCounter('event_counter', dataset.id, events.length, callback);
+                                } else {
+                                    setCounterToZero('event_counter', dataset.id, callback);
+                                }
+                            });
+                        },
+                        function(callback) {
+                            console.log('Getting video');
+                            videoResource.get({dataset: dataset.id}, function(videos) {
+                                console.log('Updating videos (' + videos.length + ')');
+                                if (videos.length > 0) {
+                                    setCounter('video_counter', dataset.id, videos.length, callback);
+                                } else {
+                                    setCounterToZero('video_counter', dataset.id, callback);
+                                }
+                            });
+                        },
+                        function(callback) {
+                            console.log('Getting comments');
+                            commentResource.get({resource: dataset.id}, function(comments) {
+                                console.log('Updating comments (' + comments.length + ')');
+                                if (comments.length > 0) {
+                                    setCounter('comment_counter', dataset.id, comments.length, callback);
+                                } else {
+                                    setCounterToZero('comment_counter', dataset.id, callback);
+                                }
+                            });
+                        }
+                    ], function(err) {
+                        console.log('Dataset done...');
+                        datasetDoneCallback();
+                    });
+                },
+                function() {
+                    log.info('All done.');
+                });
+    });
+}
 
 function addTimezoneToPanels() {
     var panelResource = requireFromRoot('support/resources/panel');

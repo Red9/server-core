@@ -87,7 +87,7 @@ function mapToCassandra(resource) {
     return cassandra;
 }
 
-function mapToResource(cassandra) {
+function mapToResource(cassandra, callback) {
     var resource = {};
     resource.id = cassandra.id;
     resource.datasetId = cassandra.dataset_id;
@@ -103,7 +103,7 @@ function mapToResource(cassandra) {
         resource.summaryStatistics = {};
     }
 
-    return resource;
+    callback(resource);
 }
 
 function createFlush(newPanel) {

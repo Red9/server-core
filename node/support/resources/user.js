@@ -55,7 +55,7 @@ function mapToCassandra(resource) {
     return cassandra;
 }
 
-function mapToResource(cassandra) {
+function mapToResource(cassandra, callback) {
     var resource = {};
 
     resource.id = cassandra.id;
@@ -71,7 +71,7 @@ function mapToResource(cassandra) {
         resource.preferredLayout = {};
     }
 
-    return resource;
+    callback(resource);
 }
 
 var createFlush = function(newUser) {

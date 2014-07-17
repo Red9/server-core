@@ -11,6 +11,8 @@ var userResource = requireFromRoot('support/resources/user');
 var eventResource = requireFromRoot('support/resources/event');
 var panelResource = requireFromRoot('support/resources/panel');
 
+var cassandraCustom = requireFromRoot('support/datasources/cassandra_custom');
+
 var datasetResource = {
     title: {
         type: 'string',
@@ -70,7 +72,7 @@ function mapToCassandra(resource) {
 }
 
 
-function mapToResource(cassandra) {
+function mapToResource(cassandra, callback) {
     var resource = {};
 
     resource.id = cassandra.id;
@@ -86,8 +88,16 @@ function mapToResource(cassandra) {
         resource.source = {};
     }
 
-    return resource;
+    callback(resource);
 }
+
+
+function getRelatedCount(id, callback) {
+    cassandraCustom.getDatasetCount(id, function(count) {
+        callback(count);
+    });
+}
+exports.getRelatedCount = getRelatedCount;
 
 var createFlush = function(newDataset) {
     newDataset.id = useful.generateUUID();
@@ -145,7 +155,7 @@ var expandFunctions = {
 
 
 exports.resource = {
-    name:'dataset',
+    name: 'dataset',
     mapToCassandra: mapToCassandra,
     mapToResource: mapToResource,
     cassandraTable: 'dataset',
@@ -157,7 +167,8 @@ exports.resource = {
         pre: deletePre
     },
     get: {
-        expandFunctions: expandFunctions
+        expandFunctions: expandFunctions,
+        relatedCount: getRelatedCount
     }
 };
 

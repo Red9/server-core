@@ -430,7 +430,7 @@ exports.createResource = function(resource, newResource, callback) {
             || typeof resource.create.post === 'undefined' ? emptyPost : resource.create.post;
     var flushFunction = typeof resource.create === 'undefined'
             || typeof resource.create.flush === 'undefined' ? emptyFlush : resource.create.flush;
-
+    
     preFunction(newResource, function(continueprocessing) {
         if (continueprocessing === false) {
             callback('create.pre failed.');
@@ -520,16 +520,17 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
         var pushedCount = 0;
 
         var databaseRowFunction = function(cassandraResource) {
-            var resource = resourceDescription.mapToResource(cassandraResource);
             pushedCount++;
-            var parameters = {
-                resourceDescription: resourceDescription,
-                constraints: constraints,
-                resourceInstance: resource,
-                expand: expand,
-                result: result
-            };
-            queue.push(parameters);
+            resourceDescription.mapToResource(cassandraResource, function(resource) {
+                var parameters = {
+                    resourceDescription: resourceDescription,
+                    constraints: constraints,
+                    resourceInstance: resource,
+                    expand: expand,
+                    result: result
+                };
+                queue.push(parameters);
+            });
         };
         var databaseDoneFunction = function(err) {
             queue.drain = function() {
@@ -539,10 +540,7 @@ exports.getResource = function(resourceDescription, constraints, callback, expan
                 callback(result);
             };
 
-            if (queue.length() === 0) {
-                if (pushedCount !== 0) {
-                    log.error('Error: pushedCount !== 0, so we lost items when drain was not called.');
-                }
+            if (pushedCount === 0) {
                 callback([]);
             }
         };

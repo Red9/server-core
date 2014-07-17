@@ -71,20 +71,7 @@ var dataset = {
         'update',
         'delete'
     ],
-    count: {
-        event: {
-            searchKey: 'datasetId',
-            resourceKey: 'id'
-        },
-        comment: {
-            searchKey: 'resource',
-            resourceKey: 'id'
-        },
-        video: {
-            searchKey: 'dataset',
-            resourceKey: 'id'
-        }
-    }
+    count: true
 };
 
 var user = {

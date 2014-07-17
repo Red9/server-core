@@ -62,34 +62,15 @@ exports.describe = function(route, req, res, next) {
     res.send(body);
 };
 
-
-
-function countResourceList(resourceList, type, searchKey, resourceKey, doneCallback) {
-    var eachLimitMax = 6;
-    async.eachLimit(resourceList, eachLimitMax,
-            function(resource, callback) {
-                var t = {};
-                t[searchKey] = resource[resourceKey];
-                resources[type].get(t, function(countList) {
-                    resource.count[type] = countList.length;
-                    callback();
-                });
-            }, function(err) {
-        if (err) {
-            log.error('Error: ' + err);
-        }
-        doneCallback();
-    });
-}
-
 exports.search = get;
 exports.get = get;
 
 function get(route, req, res, next) {
     var simpleOutput = false;
     var count;
-    if (typeof req.query['count'] !== 'undefined') {
-        var count = req.query['count'].split(',');
+    if (typeof req.query['count'] !== 'undefined'
+            && req.query['count'] === 'true') {
+        count = true;
         delete req.query['count'];
     }
     if (typeof req.query['simpleoutput'] !== 'undefined') {
@@ -116,38 +97,27 @@ function get(route, req, res, next) {
         searchParams = {id: req.param('id')};
     }
 
-    resources[route.resource].get(searchParams, function(resources) {
+    resources[route.resource].get(searchParams, function(resourceList) {
         if (simpleOutput) {
-            resources = simplifyOutput(route, resources);
+            resourceList = simplifyOutput(route, resourceList);
         }
 
-        if (typeof count !== 'undefined') {
-            underscore.each(resources, function(resource) {
-                resource.count = {};
-            });
-            async.eachSeries(count,
-                    function(type, callback) {
-                        if (typeof route.count[type] !== 'undefined') {
-                            countResourceList(resources, type,
-                                    route.count[type].searchKey,
-                                    route.count[type].resourceKey,
-                                    callback);
-                        } else { // Unknown type, we'll set to -1;
-                            underscore.each(resources, function(resource) {
-                                resource.count[type] = -1;
-                            });
+        if (count === true) {
+            async.eachSeries(resourceList,
+                    function(resource, callback) {
+                        resources[route.resource].getRelatedCount(resource.id, function(count) {
+                            resource.count = count;
                             callback();
-                        }
+                        });
                     },
-                    function(err) {
+                    function() {
                         res.set('Content-Type', 'application/json');
-                        var body = JSON.stringify(resources, null, pretty ? 3 : 0);
+                        var body = JSON.stringify(resourceList, null, pretty ? 3 : 0);
                         res.send(body);
-                        //res.json(resources);
                     });
         } else {
             res.set('Content-Type', 'application/json');
-            var body = JSON.stringify(resources, null, pretty ? 3 : 0);
+            var body = JSON.stringify(resourceList, null, pretty ? 3 : 0);
             res.send(body);
             //res.json(resources);
         }

@@ -80,7 +80,7 @@ function mapToCassandra(resource) {
     return cassandra;
 }
 
-function mapToResource(cassandra) {
+function mapToResource(cassandra, callback) {
     var resource = {};
     resource.author = cassandra.author;
     resource.resourceType = cassandra.resource_type;
@@ -90,10 +90,10 @@ function mapToResource(cassandra) {
     resource.startTime = cassandra.start_time;
     resource.endTime = cassandra.end_time;
     resource.createTime = cassandra.create_time;
-    
+
     resource.bodyHtml = markdown.toHTML(resource.body);
-    
-    return resource;
+
+    callback(resource);
 }
 
 
@@ -119,9 +119,9 @@ var createFlush = function(newComment) {
 };
 
 var expandFunctions = {
-    author: function(resource, expandCallback){
-        userResource.get({id:resource.author}, function(userList){
-            if(userList.length === 1){
+    author: function(resource, expandCallback) {
+        userResource.get({id: resource.author}, function(userList) {
+            if (userList.length === 1) {
                 resource.author = userList[0];
             }
             expandCallback();
@@ -130,7 +130,7 @@ var expandFunctions = {
 };
 
 exports.resource = {
-    name:'comment',
+    name: 'comment',
     mapToCassandra: mapToCassandra,
     mapToResource: mapToResource,
     cassandraTable: 'comment',
@@ -138,7 +138,7 @@ exports.resource = {
     create: {
         flush: createFlush
     },
-    get:{
-        expandFunctions:expandFunctions
+    get: {
+        expandFunctions: expandFunctions
     }
 };

@@ -120,7 +120,7 @@ function addStars(resource) {
     return result;
 }
 
-function mapToResource(cassandra) {
+function mapToResource(cassandra, callback) {
     var resource = {};
 
     resource.id = cassandra.id;
@@ -146,7 +146,7 @@ function mapToResource(cassandra) {
 
     resource.stars = addStars(resource);
 
-    return resource;
+    callback(resource);
 }
 
 

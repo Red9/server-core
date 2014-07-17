@@ -65,7 +65,7 @@ function mapToCassandra(resource) {
     return cassandra;
 }
 
-function mapToResource(cassandra) {
+function mapToResource(cassandra, callback) {
     var resource = {};
     resource.dataset = cassandra.dataset;
     resource.host = cassandra.host;
@@ -74,7 +74,7 @@ function mapToResource(cassandra) {
     resource.startTime = cassandra.start_time;
     resource.createTime = cassandra.create_time;
     
-    return resource;
+    callback(resource);
 }
 
 
