@@ -311,8 +311,9 @@
     <th>Started</th>
     <th>Duration</th>
     <th>Created</th>
-    <th>Ev.</th>
+    <th>Evt.</th>
     <th>Vid.</th>
+    <th>Com.</th>
     </thead>
 
     <tbody id="result_tbody">
@@ -321,12 +322,13 @@
     <tr id="result_row_\{{id}}">
     <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
     <td><a href="/user/\{{owner.id}}">\{{owner.displayName}}</a></td>
-    <td onclick="window.location.assign('/dataset/\{{id}}');">\{{title}} \{{type}}</td>
+    <td>\{{truncate title 45}} <a href="/dataset/\{{id}}" class="pull-right">View <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
     <td>\{{toDateString headPanel.startTime}}</td>
     <td>\{{toDurationString headPanel.startTime headPanel.endTime}}</td>
     <td>\{{toDateString createTime}}</td>
     <td><span class="badge">\{{count.event}}</span></td>
     <td><span class="badge">\{{count.video}}</span></td>
+    <td><span class="badge">\{{count.comment}}</span></td>
     </tr>
     \{{/each}}
     </tbody>
@@ -347,7 +349,7 @@
     \{{#each items}}
     <tr id="result_row_\{{id}}">
     <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
-    <td onclick="window.location.assign('/event/\{{id}}');">\{{type}}</td>
+    <td>\{{type}} <a href="/event/\{{id}}" class="pull-right">View <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
     <td>\{{toDateString startTime}} \{{toTimeString startTime}}</td>
     <td>\{{toDurationString startTime endTime}}</td>
     </tr>
