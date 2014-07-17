@@ -128,6 +128,13 @@
 
             return result;
         }
+        
+        function truncateString(string, maxCharacters){
+            if(string.length >= maxCharacters){
+                string = string.substr(0, maxCharacters - 3) + '...';
+            }
+            return string;
+        }
 
         Handlebars.registerHelper('date', date);
         Handlebars.registerHelper('time', time);
@@ -138,6 +145,7 @@
         Handlebars.registerHelper('duration', formatDuration);
         Handlebars.registerHelper('bytesToHumanSize', bytesToHumanSize);
         Handlebars.registerHelper('ratingStars', starsHelper);
+        Handlebars.registerHelper('truncate', truncateString);
 
         return {
             millisecondsEpochToTime: millisecondsEpochToTime
