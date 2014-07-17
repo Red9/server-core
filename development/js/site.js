@@ -172,7 +172,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
                 url = this.urls.apiPath + this.urls.searchDataset;
                 this.resultType = 'dataset';
                 searchParams['expand'] = 'headPanel,owner';
-                searchParams['count'] = 'event,video';
+                searchParams['count'] = 'true';
             }
             $('#container-results').empty();
             var self = this;
