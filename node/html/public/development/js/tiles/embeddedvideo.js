@@ -157,19 +157,24 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     withCredentials: false
                 },
                 success: function(data) {
+
+                    //console.log('Data: ' + JSON.stringify(data, null, ' '));
                     // YouTube duration is in the format "PT13M34S"
                     // Let's convert it to our standard milliseconds
-                    var videoDuration = data.items[0].contentDetails.duration.match(/[0-9]+/g);
-                    videoDuration = (parseInt(videoDuration[0]) * 60 + parseInt(videoDuration[1])) * 1000;
+                    if (data.pageInfo.totalResults === 1) {
+                        var videoDuration = data.items[0].contentDetails.duration.match(/[0-9]+/g);
+                        videoDuration = (parseInt(videoDuration[0]) * 60 + parseInt(videoDuration[1])) * 1000;
 
-                    video.title = data.items[0].snippet.title;
-                    video.description = sandbox.truncateStringAtWord(data.items[0].snippet.description, 45);
-                    video.thumbnails = data.items[0].snippet.thumbnails;
-                    video.duration = videoDuration;
+                        video.title = data.items[0].snippet.title;
+                        video.description = sandbox.truncateStringAtWord(data.items[0].snippet.description, 45);
+                        video.thumbnails = data.items[0].snippet.thumbnails;
+                        video.duration = videoDuration;
 
-                    // Create an artificial end time.
-                    video.endTime = video.startTime + video.duration;
-
+                        // Create an artificial end time.
+                        video.endTime = video.startTime + video.duration;
+                    } else {
+                        video.private = true;
+                    }
                     callback(null, video);
                 },
                 error: function() {
@@ -244,7 +249,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             // for the second to begin. That's what the reverse does.
             return _.find(videoList.slice().reverse(), function(video, index) {
                 return (video.startTime <= time
-                        && time <= video.endTime)
+                        && time <= video.endTime
+                        && video.private !== true)
                         // If the given time is before the first video we'll go
                         // ahead and map it to that video. This solves the
                         // problem of loading a dataset, and having a video
