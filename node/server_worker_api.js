@@ -17,7 +17,11 @@ exports.init = function() {
             app.use(require('compression')());
 
             app.use(require('body-parser').json());
-            app.use(require('body-parser').urlencoded());
+            app.use(require('body-parser').urlencoded(
+                    {
+                        extended: true
+                    }
+            ));
 
             var extra = requireFromRoot('support/extra');
             extra.initializeSession(app);

@@ -21,13 +21,15 @@ exports.post = function(req, res, next) {
         res.status(403).json({message: 'You must post a valid form. POSTed form is empty.'});
         return;
     }
+    
+    console.log('Headers: ' + JSON.stringify(req.headers, null, ' '));
 
     var busboy = new Busboy({headers: req.headers});
 
     var tempId = useful.generateUUID();
     var tempPath = path.join(config.rncDirectory, tempId + '.RNC');
     var upload = {};
-
+    
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
         if (fieldname === 'rnc' && typeof upload.filename === 'undefined') {
             file.pipe(fs.createWriteStream(tempPath));
@@ -40,6 +42,7 @@ exports.post = function(req, res, next) {
     });
 
     busboy.on('field', function(fieldname, value, valueTruncated, keyTruncated) {
+        console.log('field: ' + fieldname + ', "' + value + '", "' + valueTruncated + '", "' + keyTruncated + '"');
         if (value !== '') {
             upload[fieldname] = value;
         }
@@ -79,6 +82,7 @@ exports.post = function(req, res, next) {
 };
 
 function validateUpload(upload) {
+    console.log('upload: ' + JSON.stringify(upload, null, ' '));
     if (typeof upload.owner === 'undefined') {
         return 'Must specify an owner key.';
     } else if (validator.isUUID(upload.owner) === false) {

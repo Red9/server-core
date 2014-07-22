@@ -70,8 +70,6 @@ exports.init = function() {
             var http = require('http');
             var path = require('path');
             var hbs = require('hbs');
-            var session = require('express-session');
-            var mongoStore = require('connect-mongo')(session);
 
             // Express and Connect stuff
             var app = express();
@@ -105,48 +103,14 @@ exports.init = function() {
             // We don't want to log static files, so logger goes after.
             app.use(logger.logger());
 
-            app.use(require('body-parser')());
-
-            app.use(require('cookie-parser')());
-            app.use(session(
+            app.use(require('body-parser').urlencoded(
                     {
-                        secret: config.sessionSecret,
-                        maxAge: config.sessionMaxAge,
-                        cookie: {
-                            domain: config.cookieDomain
-                        },
-                        store: new mongoStore({
-                            db: 'sessionStore'
-                        })
+                        extended: true
                     }
             ));
 
-            // Authentication details
-            var passport = require('passport');
-            var GoogleStrategy = require('passport-google').Strategy;
-            var authenticate = requireFromRoot('support/authenticate');
-
-            passport.use(new GoogleStrategy({
-                returnURL: config.realms.html + '/login/google/return',
-                realm: config.realms.html,
-                stateless: true // Allow use with other red9 servers
-            }, authenticate.ProcessLoginRequest));
-
-            var LocalStrategy = require('passport-local').Strategy;
-            passport.use(new LocalStrategy(
-                    {
-                        stateless: true // Allow use with other red9 servers
-                    },
-            authenticate.processOfflineRequest));
-
-            passport.serializeUser(function(user, done) {
-                done(null, user);
-            });
-            passport.deserializeUser(function(user, done) {
-                done(null, user);
-            });
-            app.use(passport.initialize());
-            app.use(passport.session());
+            var extra = requireFromRoot('support/extra');
+            var passport = extra.initializeSession(app, true);
 
             // TODO(SRLM): Figure out a better way to share code between client and server
             var hbsHelpers = requireFromRoot('html/public/development/js/utilities/customHandlebarsHelpers');

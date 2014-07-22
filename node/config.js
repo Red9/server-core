@@ -58,7 +58,7 @@ exports.pageTemplateDefaults = {
     },
     author: {
         displayName: 'srlm',
-        email: 'srlm@srlmproductions.com'
+        email: 'srlm@redninesensor.com'
     }
 };
 
