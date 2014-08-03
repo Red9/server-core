@@ -50,7 +50,7 @@ exports.initializeSession = function(app, allowAuthentication) {
     });
     app.use(passport.initialize());
     app.use(passport.session());
-    
+
     return passport;
 };
 
@@ -58,10 +58,11 @@ exports.cors = function(app) {
     // Enable CORS: http://enable-cors.org/server_expressjs.html
     app.all('*', function(req, res, next) {
         var acceptableOrigin = config.realms.html;
-        if (req.get('origin') === 'null') {
-            // Null origin comes from developing with a 'file://' url, aka, self
-            // hosted HTML page.
-            acceptableOrigin = 'null';
+        
+        // If we're comming from somewhere other than our site then make sure
+        // that it's in the CORS list, and go from there.
+        if (underscore.indexOf(config.corsOrigins, req.get('origin')) !== -1) {
+            acceptableOrigin = req.get('origin');
         }
 
         res.header('Access-Control-Allow-Credentials', true);

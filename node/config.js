@@ -31,8 +31,8 @@ exports.ProcessCommandLine = function() {
         console.log('ERROR: must specify a server type');
         process.exit(1);
     }
-    
-    exports.serverType = ops.type;    
+
+    exports.serverType = ops.type;
 
     var instanceconfig = require('./' + ops.config);
     underscore.each(requiredInstanceKeys, function(key) {
@@ -69,7 +69,7 @@ exports.nodetimeProfile = {
 
 exports.defaultTimezone = 'America/Los_Angeles';
 
-exports.sessionMaxAge = 3*24*60*60*1000; // Three days
+exports.sessionMaxAge = 3 * 24 * 60 * 60 * 1000; // Three days
 
 exports.logglyparameters = {
     subdomain: 'redninesensor',
@@ -81,3 +81,9 @@ exports.papertrailparameters = {
     port: 19395,
     colorize: true
 };
+
+
+exports.corsOrigins = [
+    'http://surfing22.com',
+    'null' // Null origin comes from developing with a 'file://' url, aka, self hosted HTML page.
+];
