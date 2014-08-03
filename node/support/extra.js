@@ -1,4 +1,7 @@
+var underscore = require('underscore');
+
 var config = requireFromRoot('config');
+
 
 exports.initializeSession = function(app, allowAuthentication) {
     app.use(require('cookie-parser')());
