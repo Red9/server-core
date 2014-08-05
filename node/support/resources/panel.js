@@ -279,7 +279,7 @@ exports.getPanelBody = function(options,
             panel.startTime = startTime;
             panel.endTime = endTime;
 
-            panel.rowCount = Math.floor((endTime - startTime) / 10); // TODO: SRLM: This is based on 100Hz panel row frequency, or 10ms between readings. Should remove! Or at least put in config.
+            panel.rowCount = Math.floor((endTime - startTime) / 10) + 1; // TODO: SRLM: This is based on 100Hz panel row frequency, or 10ms between readings. Should remove! Or at least put in config.
 
             callbackPanelProperties(panel);
 

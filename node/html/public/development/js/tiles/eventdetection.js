@@ -35,6 +35,219 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
             }
         };
 
+        var sessionOptions = {
+            wave: [
+                {
+                    name: 'windowSize',
+                    type: 'int',
+                    default: 256,
+                    description: ''
+                },
+                {
+                    name: 'overlapStep',
+                    type: 'int',
+                    default: 50,
+                    description: ''
+                },
+                {
+                    name: 'wThresholdDirection',
+                    type: 'selection',
+                    options: [
+                        {
+                            value: 'above',
+                            name: 'Above',
+                            selected: true
+                        },
+                        {
+                            value: 'below',
+                            name: 'Below'
+                        }
+                    ],
+                    default: 'above',
+                    description: ''
+                },
+                {
+                    name: 'pThresholdDirection',
+                    type: 'selection',
+                    options: [
+                        {
+                            value: 'above',
+                            name: 'Above'
+                        },
+                        {
+                            value: 'below',
+                            name: 'Below',
+                            selected: true
+                        }
+                    ],
+                    default: 'below',
+                    description: ''
+                },
+                {
+                    name: 'tThresholdDirection',
+                    type: 'selection',
+                    options: [
+                        {
+                            value: 'above',
+                            name: 'Above'
+                        },
+                        {
+                            value: 'below',
+                            name: 'Below',
+                            selected: true
+                        }
+                    ],
+                    default: 'below',
+                    description: ''
+                },
+                {
+                    name: 'wThreshold',
+                    type: 'float',
+                    default: 0.8,
+                    description: ''
+                },
+                {
+                    name: 'pThreshold',
+                    type: 'float',
+                    default: 1.5,
+                    description: ''
+                },
+                {
+                    name: 'tThreshold',
+                    type: 'float',
+                    default: 1.5,
+                    description: ''
+                },
+                {
+                    name: 'wMergeThreshold',
+                    type: 'float',
+                    default: 500,
+                    description: ''
+                },
+                {
+                    name: 'pMergeThreshold',
+                    type: 'float',
+                    default: 200,
+                    description: ''
+                },
+                {
+                    name: 'tMergeThreshold',
+                    type: 'float',
+                    default: 200,
+                    description: ''
+                },
+                {
+                    name: 'ampThreshold',
+                    type: 'float',
+                    default: 0.1,
+                    description: ''
+                },
+                {
+                    name: 'accThreshold',
+                    type: 'float',
+                    default: 0.7,
+                    description: ''
+                },
+                {
+                    name: 'g',
+                    type: 'float',
+                    default: 10,
+                    description: ''
+                },
+                {
+                    name: 'minLength',
+                    type: 'float',
+                    default: 5,
+                    description: ''
+                },
+                {
+                    name: 'maxAcc',
+                    type: 'float',
+                    default: 11,
+                    description: ''
+                },
+                {
+                    name: 'maxAcc2',
+                    type: 'float',
+                    default: 15,
+                    description: ''
+                },
+                {
+                    name: 'speedThresh',
+                    type: 'float',
+                    default: 0.2,
+                    description: ''
+                },
+                {
+                    name: 'accPortion1',
+                    type: 'float',
+                    default: 0.6,
+                    description: ''
+                },
+                {
+                    name: 'accPortion2',
+                    type: 'float',
+                    default: 0.3,
+                    description: ''
+                },
+                {
+                    name: 'accPortion3',
+                    type: 'float',
+                    default: 0.15,
+                    description: ''
+                }
+            ],
+            paddle: [
+                {
+                    name: 'windowSize',
+                    type: 'int',
+                    default: 256,
+                    description: ''
+                },
+                {
+                    name: 'overlapStep',
+                    type: 'int',
+                    default: 50,
+                    description: ''
+                },
+                {
+                    name: 'pThresholdDirection',
+                    type: 'selection',
+                    options: [
+                        {
+                            value: 'above',
+                            name: 'Above'
+                        },
+                        {
+                            value: 'below',
+                            name: 'Below',
+                            selected: true
+                        }
+                    ],
+                    default: 'below',
+                    description: ''
+                },
+                {
+                    name: 'pThreshold',
+                    type: 'float',
+                    default: 1.5,
+                    description: ''
+                },
+                {
+                    name: 'pMergeThreshold',
+                    type: 'float',
+                    default: 200,
+                    description: ''
+                },
+                {
+                    name: 'minLength',
+                    type: 'float',
+                    default: 5,
+                    description: ''
+                }
+            ]
+        };
+
         function init() {
             schema = {
                 random: {
@@ -64,6 +277,10 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                     },
                     showErrors: sandbox.showJqueryValidateErrors,
                     submitHandler: submitHandler
+                },
+                session: {
+                    showErrors: sandbox.showJqueryValidateErrors,
+                    submitHandler: submitHandler
                 }
             };
             tile.setTitle('Automated Event Detection');
@@ -83,6 +300,7 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                 socket = io.connect(sandbox.actionUrl);
 
                 socket.on('update', function(update) {
+                    console.log('update: "' + update + '"');
                     $area.append('<p class="processing_note">' + update + '</p>');
                     $area[0].scrollTop = $area[0].scrollHeight;
                 });
@@ -130,7 +348,10 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
 
 
         function optionClicked() {
-            var type = $(this).data('name');
+            var clickedOption = $(this);
+            var type = clickedOption.data('name');
+            var datasetId = sandbox.getCurrentDatasetId();
+
 
             if (type === 'console') {
                 setToConsole();
@@ -138,26 +359,40 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
             }
 
             sandbox.requestTemplate('eventdetection.' + type, function(template) {
-                sandbox.get('eventtype', {}, function(eventTypes) {
-                    sandbox.get('dataset', {id: sandbox.getCurrentDatasetId()}, function(datasetList) {
-                        var dataset = datasetList[0];
-                        tile.place.html(template({
-                            axes: dataset.headPanel.axes,
-                            datasetId: dataset.id,
-                            eventTypes: eventTypes
-                        }));
-                        var $form = tile.place.find('form');
-                        $form.validate(schema[type]);
+                if (type === 'session') {
+                    var command = clickedOption.data('command');
+                    var parameters = {
+                        command: command,
+                        datasetId: datasetId,
+                        fields: sessionOptions[command]
+                    };
+                    tile.place.html(template(parameters));
+                    var $form = tile.place.find('form');
+                    $form.validate(schema.session);
 
-                        if (type === 'spectral') {
-                            var $preconfigured = $form.find('[name=preconfiguredOption]');
-                            setSpectralFormPreconfigured($form, $preconfigured.val());
-                            $preconfigured.on('change', function() {
-                                setSpectralFormPreconfigured($form, $(this).val());
-                            });
-                        }
-                    }, ['headPanel']);
-                });
+                } else {
+                    // Random and Spectral
+                    sandbox.get('eventtype', {}, function(eventTypes) {
+                        sandbox.get('dataset', {id: datasetId}, function(datasetList) {
+                            var dataset = datasetList[0];
+                            tile.place.html(template({
+                                axes: dataset.headPanel.axes,
+                                datasetId: dataset.id,
+                                eventTypes: eventTypes
+                            }));
+                            var $form = tile.place.find('form');
+                            $form.validate(schema[type]);
+
+                            if (type === 'spectral') {
+                                var $preconfigured = $form.find('[name=preconfiguredOption]');
+                                setSpectralFormPreconfigured($form, $preconfigured.val());
+                                $preconfigured.on('change', function() {
+                                    setSpectralFormPreconfigured($form, $(this).val());
+                                });
+                            }
+                        }, ['headPanel']);
+                    });
+                }
 
             });
         }

@@ -128,12 +128,78 @@
 
             return result;
         }
-        
-        function truncateString(string, maxCharacters){
-            if(string.length >= maxCharacters){
+
+        function truncateString(string, maxCharacters) {
+            if (string.length >= maxCharacters) {
                 string = string.substr(0, maxCharacters - 3) + '...';
             }
             return string;
+        }
+
+        /** Taken from http://doginthehat.com.au/2012/02/comparison-block-helper-for-handlebars-templates/
+         * 
+         * @param {type} lvalue
+         * @param {type} operator
+         * @param {type} rvalue
+         * @param {type} options
+         * @returns {unresolved}
+         */
+        function compare(lvalue, operator, rvalue, options) {
+
+            var operators, result;
+
+            if (arguments.length < 3) {
+                throw new Error("Handlerbars Helper 'compare' needs 2 parameters");
+            }
+
+            if (typeof options === 'undefined') {
+                options = rvalue;
+                rvalue = operator;
+                operator = "===";
+            }
+
+            operators = {
+                '==': function(l, r) {
+                    return l == r;
+                },
+                '===': function(l, r) {
+                    return l === r;
+                },
+                '!=': function(l, r) {
+                    return l != r;
+                },
+                '!==': function(l, r) {
+                    return l !== r;
+                },
+                '<': function(l, r) {
+                    return l < r;
+                },
+                '>': function(l, r) {
+                    return l > r;
+                },
+                '<=': function(l, r) {
+                    return l <= r;
+                },
+                '>=': function(l, r) {
+                    return l >= r;
+                },
+                'typeof': function(l, r) {
+                    return typeof l == r;
+                }
+            };
+
+            if (!operators[operator]) {
+                throw new Error("Handlerbars Helper 'compare' doesn't know the operator " + operator);
+            }
+
+            result = operators[operator](lvalue, rvalue);
+
+            if (result) {
+                return options.fn(this);
+            } else {
+                return options.inverse(this);
+            }
+
         }
 
         Handlebars.registerHelper('date', date);
@@ -146,6 +212,7 @@
         Handlebars.registerHelper('bytesToHumanSize', bytesToHumanSize);
         Handlebars.registerHelper('ratingStars', starsHelper);
         Handlebars.registerHelper('truncate', truncateString);
+        Handlebars.registerHelper('compare', compare);
 
         return {
             millisecondsEpochToTime: millisecondsEpochToTime
