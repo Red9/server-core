@@ -265,7 +265,7 @@ Event Timeline
     border: 2px #222 solid;
     font-family: Consolas, sans-serif;
     font-size: 13px;
-    max-height: 300px;
+    max-height: 600px;
     min-height: 300px;
     overflow: auto;
     padding: 0;
