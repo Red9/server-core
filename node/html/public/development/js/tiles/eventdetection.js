@@ -63,7 +63,6 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                             name: 'Below'
                         }
                     ],
-                    default: 'above',
                     description: ''
                 },
                 {
@@ -97,7 +96,6 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                             selected: true
                         }
                     ],
-                    default: 'below',
                     description: ''
                 },
                 {
@@ -224,7 +222,6 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                             selected: true
                         }
                     ],
-                    default: 'below',
                     description: ''
                 },
                 {
@@ -243,6 +240,90 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                     name: 'minLength',
                     type: 'float',
                     default: 5,
+                    description: ''
+                }
+            ],
+            duckdive: [
+                {
+                    name: 'windowSize',
+                    type: 'int',
+                    default: 256,
+                    description: ''
+                },
+                {
+                    name: 'overlapStep',
+                    type: 'int',
+                    default: 50,
+                    description: ''
+                },
+                {
+                    name: 'dThresholdDirection',
+                    type: 'selection',
+                    options: [
+                        {
+                            value: 'above',
+                            name: 'Above',
+                            selected: true
+                        },
+                        {
+                            value: 'below',
+                            name: 'Below'
+                        }
+                    ],
+                    description: ''
+                },
+                {
+                    name: 'dThreshold',
+                    type: 'float',
+                    default: 0.8,
+                    description: ''
+                },
+                {
+                    name: 'dMergeThreshold',
+                    type: 'float',
+                    default: 100,
+                    description: ''
+                },
+                {
+                    name: 'lowThX',
+                    type: 'float',
+                    default: 0.4,
+                    description: ''
+                },
+                {
+                    name: 'hiThX',
+                    type: 'float',
+                    default: 0.3,
+                    description: ''
+                },
+                {
+                    name: 'lowThZ',
+                    type: 'float',
+                    default: 0.3,
+                    description: ''
+                },
+                {
+                    name: 'hiThZ',
+                    type: 'float',
+                    default: 0.5,
+                    description: ''
+                },
+                {
+                    name: 'minLengthX',
+                    type: 'float',
+                    default: 30,
+                    description: ''
+                },
+                {
+                    name: 'varLength',
+                    type: 'float',
+                    default: 10,
+                    description: ''
+                },
+                {
+                    name: 'minLengthZ',
+                    type: 'float',
+                    default: 20,
                     description: ''
                 }
             ]

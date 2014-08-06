@@ -100,7 +100,7 @@ function startSession(datasetId, readyCallback) {
     script.stdout.on('data', stdoutListener);
 
 
-    var shutdownPeriod = 1000 * 60 * 60 * 1; // 2 hours
+    var shutdownPeriod = 1000 * 60 * 60 * 1; // 1 hours
     var shutdownTimer;
 
     script.on('exit', function(code, signal) {
@@ -137,6 +137,15 @@ function startSession(datasetId, readyCallback) {
             return;
         }
         var dataset = datasetList[0];
+        var keepIndicies = [];
+        var ignoreList = [
+            'gps:altitude',
+            'gps:satellite',
+            'gps:hdop',
+            'gps:magneticvariation',
+            'pressure:pressure',
+            'pressure:temperature'
+        ];
         panelResource.getPanelBody({
             id: dataset.headPanelId
         }, function(panel) {
@@ -148,13 +157,24 @@ function startSession(datasetId, readyCallback) {
 
             // Output the axes (column titles) as a CSV list
             var axisList = _.reduce(panel.axes, function(memo, column, index) {
-                return memo + ',' + column;
+                if (_.indexOf(ignoreList, column) !== -1) {
+                    keepIndicies.push(false);
+                    return memo;
+                } else {
+                    keepIndicies.push(true);
+                    return memo + ',' + column;
+                }
             }, 'time');
+            console.log('axisList: ' + axisList);
             script.stdin.write(axisList + '\n');
         }, function(time, data, index) {
             // Output the data row as a CSV.
-            var row = _.reduce(data, function(memo, value) {
-                return memo + ',' + value;
+            var row = _.reduce(data, function(memo, value, index) {
+                if (keepIndicies[index] === true) {
+                    return memo + ',' + value;
+                } else {
+                    return memo;
+                }
             }, time);
             script.stdin.write(row + '\n');
             rowsOutput++;
