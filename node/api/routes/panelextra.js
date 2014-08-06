@@ -182,7 +182,6 @@ var processLines = function(parameters, callback) {
 exports.updateBody = function(req, res, next) {
     // TODO(SRLM): Check to make sure that the uploaded panel is balanced.
     var id = req.param('id');
-
     panelResource.get({id: id}, function(panelList) {
         if (panelList.length !== 1) {
             next();
@@ -190,7 +189,7 @@ exports.updateBody = function(req, res, next) {
             res.status(403).json({message: 'Can not modify existing panels. Must modify a new panel whose axes === null'});
         } else {
             var panel = panelList[0];
-            if (req.is('text/*')) {
+            if (req.accepts('text/*')) {
                 req.setEncoding('utf8');
 
                 var chunksNotDone = 0;
@@ -237,7 +236,7 @@ exports.updateBody = function(req, res, next) {
 
                 });
             } else {
-                next();
+                res.status(403).json({message: 'Incorrect content type.'});
             }
         }
     });
