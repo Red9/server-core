@@ -26,10 +26,10 @@ exports.getBody = function(req, res, next) {
     if (typeof req.param('axes') !== 'undefined') {
         axes = req.param('axes').split(',');
     }
-    
-    if(req.param('cache') === 'on'){
+
+    if (req.param('cache') === 'on') {
         parameters.cache = true;
-    }else{
+    } else {
         parameters.cache = false;
     }
 
@@ -225,7 +225,7 @@ exports.updateBody = function(req, res, next) {
                         chunksNotDone = chunksNotDone - 1;
 
                         if (chunksNotDone === 0) {
-                            updateInsertCompleteFunction(panel);
+                            //updateInsertCompleteFunction(panel);
                         }
                     });
                 });
@@ -234,6 +234,15 @@ exports.updateBody = function(req, res, next) {
                     // Send the response as soon as we've got the entire upload.
                     res.json({message: 'Read a bunch of lines. Now processing those lines.'});
 
+                    if (processingQueue.idle() === true) {
+                        log.info('Done before end.');
+                        updateInsertCompleteFunction(panel);
+                    } else {
+                        processingQueue.drain = function() {
+                            log.info('Still more processing to do after uploading has finished.');
+                            updateInsertCompleteFunction(panel);
+                        };
+                    }
                 });
             } else {
                 res.status(403).json({message: 'Incorrect content type.'});
