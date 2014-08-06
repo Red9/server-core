@@ -19,3 +19,19 @@ exports.generateUUID = function() {
 exports.generateInt = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+
+exports.createStreamToLine = function(lineCallback) {
+    var updateBuffer = '';
+    return function(something) {
+        updateBuffer += something;
+
+        if (updateBuffer.split('\n').length > 1) {
+            var t = updateBuffer.split('\n');
+            updateBuffer = t[t.length - 1]; // Keep last bit in case it's not an entire line.
+
+            for (var i = 0; i < t.length - 1; i++) {
+                lineCallback(t[i]);
+            }
+        }
+    };
+}

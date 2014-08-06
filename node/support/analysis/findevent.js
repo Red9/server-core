@@ -58,23 +58,6 @@ exports.random = function(datasetId, eventType, quantity) {
     }, ['headPanel']);
 };
 
-
-function createStreamToLine(lineCallback) {
-    var updateBuffer = '';
-    return function(something) {
-        updateBuffer += something;
-
-        if (updateBuffer.split('\n').length > 1) {
-            var t = updateBuffer.split('\n');
-            updateBuffer = t[t.length - 1]; // Keep last bit in case it's not an entire line.
-
-            for (var i = 0; i < t.length - 1; i++) {
-                lineCallback(t[i]);
-            }
-        }
-    };
-}
-
 function startSession(datasetId, readyCallback) {
     var broadcastId = 'sessionScript' + useful.generateInt(0, 999);
     var script = spawn('Rscript', ['main.r'], {cwd: 'bin/eventfinder/'});
@@ -88,11 +71,11 @@ function startSession(datasetId, readyCallback) {
     var resultOutput = function() {
     };
 
-    var stderrListener = createStreamToLine(function(line) {
+    var stderrListener = useful.createStreamToLine(function(line) {
         sockets.broadcastStatus(broadcastId, line);
     });
 
-    var stdoutListener = createStreamToLine(function(line) {
+    var stdoutListener = useful.createStreamToLine(function(line) {
         resultOutput(JSON.parse(line));
     });
 
@@ -165,7 +148,6 @@ function startSession(datasetId, readyCallback) {
                     return memo + ',' + column;
                 }
             }, 'time');
-            console.log('axisList: ' + axisList);
             script.stdin.write(axisList + '\n');
         }, function(time, data, index) {
             // Output the data row as a CSV.

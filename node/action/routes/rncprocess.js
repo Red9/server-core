@@ -21,7 +21,7 @@ exports.post = function(req, res, next) {
         res.status(403).json({message: 'You must post a valid form. POSTed form is empty.'});
         return;
     }
-    
+
     console.log('Headers: ' + JSON.stringify(req.headers, null, ' '));
 
     var busboy = new Busboy({headers: req.headers});
@@ -29,7 +29,7 @@ exports.post = function(req, res, next) {
     var tempId = useful.generateUUID();
     var tempPath = path.join(config.rncDirectory, tempId + '.RNC');
     var upload = {};
-    
+
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
         if (fieldname === 'rnc' && typeof upload.filename === 'undefined') {
             file.pipe(fs.createWriteStream(tempPath));
@@ -136,20 +136,17 @@ function processRNC(upload, datasetCreatedCallback, doneCallback) {
 
             // Read this as we go along so that the user can get live updates.
             var processingInfo = '';
-            var updateBuffer = '';
-            parsernc.stderr.on('data', function(something) {
-                processingInfo += something;
-                updateBuffer += something;
-
-                while (updateBuffer.split('\n', 2).length > 1) {
-                    var t = updateBuffer.split('\n');
-                    updateBuffer = t[1];
-                    sockets.broadcastStatus(broadcastId, t[0]);
-                }
+            var stderrListener = useful.createStreamToLine(function(line) {
+                processingInfo += line;
+                sockets.broadcastStatus(broadcastId, line);
             });
+            parsernc.stderr.on('data', stderrListener);
 
             parsernc.on('exit', function(code, signal) {
                 var processingStatistics = JSON.parse(parsernc.stdout.read());
+
+                // Clean up the last bit of output.
+                stderrListener('\n');
 
                 if (code !== 0) {
                     var errorMessage = 'Non zero code! ' + code + ': ' + processingInfo;
@@ -159,11 +156,6 @@ function processRNC(upload, datasetCreatedCallback, doneCallback) {
                     });
                     doneCallback(errorMessage, id);
                     return;
-                }
-
-                // Clean up the last bit of output.
-                if (updateBuffer !== '') {
-                    sockets.broadcastStatus(broadcastId, updateBuffer);
                 }
 
                 var datasetUpdate = {
