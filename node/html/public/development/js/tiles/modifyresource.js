@@ -131,7 +131,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
 
             sandbox.requestTemplate('modifyresource', function(template) {
                 if (configuration.resourceType === 'event') {
-                    $.ajax({// This is a hack, and should be moved to the API
+                    // This is a hack, and should be moved to the API
+                    // TODO(SRLM): This is now in the sandbox: use sandbox.get('eventtype', {}, function(eventTypes)
+                    $.ajax({
                         type: 'GET',
                         url: sandbox.apiUrl + '/eventtype/',
                         dataType: 'json',

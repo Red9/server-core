@@ -385,6 +385,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                 });
             });
 
+            tile.addToBar("downloadFCPXML", "", "glyphicon-compressed", function() {
+                sandbox.showModal('embeddedvideo.fcpxmldialog',
+                        {
+                            datasetId: sandbox.getCurrentDatasetId()
+                        });
+            });
+
             tile.place.find('.long-list-wrapper')
                     .on('click', '[data-name=deletevideobutton]', function() {
                         var videoId = $(this).data('id');
