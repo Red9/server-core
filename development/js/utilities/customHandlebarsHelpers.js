@@ -202,6 +202,27 @@
 
         }
 
+        // Taken from here
+        // https://github.com/helpers/handlebars-helper-repeat/blob/master/index.js
+        // Took out dependency on "digits".
+        function repeat(n, options) {
+            options = options || {};
+            var _data = {};
+            if (options._data) {
+                _data = Handlebars.createFrame(options._data);
+            }
+
+            var content = '';
+            var count = n - 1;
+            for (var i = 0; i <= count; i++) {
+                _data = {
+                    index: i
+                };
+                content += options.fn(this, {data: _data});
+            }
+            return new Handlebars.SafeString(content);
+        }
+
         Handlebars.registerHelper('date', date);
         Handlebars.registerHelper('time', time);
         Handlebars.registerHelper('informalDateTime', informalDateTime);
@@ -213,6 +234,7 @@
         Handlebars.registerHelper('ratingStars', starsHelper);
         Handlebars.registerHelper('truncate', truncateString);
         Handlebars.registerHelper('compare', compare);
+        Handlebars.registerHelper('repeat', repeat);
 
         return {
             millisecondsEpochToTime: millisecondsEpochToTime
