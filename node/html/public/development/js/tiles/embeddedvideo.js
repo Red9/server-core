@@ -8,6 +8,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
         var videoList; // sorted by start time.
         var playerTimePlace;
+        var deltaTimePlace
         var currentVideo;
         var player;
         var playerReady;
@@ -20,6 +21,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         var $videoNextEventCheckbox;
         var $videoNextEventSelect;
         var lastHoverSync;
+        var lastHoverTime;
 
         function init() {
             reset();
@@ -42,6 +44,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             player
                     = currentVideo
                     = playerTimePlace
+                    = deltaTimePlace
                     = showPlayerTimeTimeout
                     = datasetId
                     = $playerIdPlace
@@ -50,6 +53,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     = $videoLoopOnViewCheckbox
                     = $videoNextEventCheckbox
                     = $videoNextEventSelect
+                    = lastHoverTime
                     = undefined;
         }
 
@@ -217,14 +221,14 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                         }
 
                         if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
-                            updateDashboadDisplay(); // Force showing when we're not playing.
+                            updateDashboardDisplay(); // Force showing when we're not playing.
                         }
                     });
                 } else {
                     // The correct video is loaded, we just need to seek.
                     player.seekTo(videoTime, true);
                     if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
-                        updateDashboadDisplay(); // Force showing when we're not playing.
+                        updateDashboardDisplay(); // Force showing when we're not playing.
                     }
                 }
             } else { // no video at current time
@@ -320,20 +324,28 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         }
 
         function monitorPlayingVideo() {
-            var playerTime = updateDashboadDisplay();
+            var playerTime = updateDashboardDisplay();
             if (playerTime > sandbox.focusState.endTime) {
                 endOfFocusReached();
             }
         }
 
-        function updateDashboadDisplay() {
+        function updateDashboardDisplay() {
             if (typeof playerTimePlace === 'undefined') {
                 playerTimePlace = tile.place.find('[data-name=currentvideotime]');
             }
 
+            if (typeof deltaTimePlace === 'undefined') {
+                deltaTimePlace = tile.place.find('[data-name=videohoverdelta]');
+            }
+
             var playerTime = currentVideo.startTime + player.getCurrentTime() * 1000;
             //console.log('Player Time: ' + playerTime);
-            playerTimePlace.text(chh.millisecondsEpochToTime(playerTime) + ' (' + playerTime + ')');
+            playerTimePlace.text(chh.millisecondsEpochToTime(playerTime) + ' (' + Math.floor(playerTime) + ')');
+
+            var deltaTime = hoverTime - playerTime;
+
+            deltaTimePlace.text(Math.floor(deltaTime));
 
             if (typeof currentVideo === 'undefined') {
                 $playerIdPlace.text('undefined');
@@ -348,7 +360,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
             return playerTime;
         }
-
 
 
         function getVideoIndex(videoId) {
@@ -420,6 +431,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         }
 
         function hoverTime(event, parameters) {
+            hoverTime = parameters.hoverTime;
+            updateDashboardDisplay();
             if (typeof $videoSyncCheckbox !== 'undefined'
                     && $videoSyncCheckbox.prop('checked')) {
 
