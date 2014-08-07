@@ -64,7 +64,7 @@ require(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.valida
     });
 
     $(document).ready(function() {
-        
+
         var kCheckInterval = 3000;
 
         function progressHandlingFunction(e) {
@@ -73,6 +73,14 @@ require(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.valida
                 console.log('Progress: ' + e.loaded + ' / ' + e.total);
                 $('[data-name=uploadprogressbar]').css('width', Math.floor((e.loaded / e.total) * 100) + '%');
             }
+        }
+
+        // http://api.localdev.redninesensor.com/panel/30ce1686-8ecc-cc2a-9c4e-0e092a26588d/body/?buckets=1000&format=json&cache=on&startTime=1397575598860&endTime=1397576936580
+
+        var $area = $('.processing_notes');
+        function addToConsole(line) {
+            $area.append('<p class="processing_note">' + line + '</p>');
+            $area[0].scrollTop = $area[0].scrollHeight;
         }
 
         function redirectToUrl(id, url) {
@@ -92,7 +100,23 @@ require(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.valida
                         }, kCheckInterval);
                         return;
                     } else {
-                        window.location.replace(url);
+                        addToConsole('Summary statistics calculation complete.');
+                        addToConsole('Starting panel cache');
+                        var panelUrl = '{{apiUrl}}/panel/' + dataset[0].headPanel.id
+                                + '/body/?buckets=1000&format=json&cache=on&startTime='
+                                + dataset[0].headPanel.startTime
+                                + '&endTime='
+                                + dataset[0].headPanel.endTime;
+                        $.ajax({
+                            type: 'GET',
+                            url: panelUrl,
+                            dataType: 'json',
+                            success: function(panel) {
+                                addToConsole('Panel cache done.');
+                                window.location.replace(url);
+                            }
+                        })
+
                     }
                 }
 
@@ -122,13 +146,10 @@ require(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.valida
                 data: formData,
                 success: function(response) {
 
-                    var $area = $('.processing_notes');
+
                     var socket = io.connect('{{actionUrl}}');
 
-                    socket.on('update', function(update) {
-                        $area.append('<p class="processing_note">' + update + '</p>');
-                        $area[0].scrollTop = $area[0].scrollHeight;
-                    });
+                    socket.on('update', addToConsole);
 
                     var id = response.datasetId;
                     var url = '/dataset/' + id;
