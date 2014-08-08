@@ -38,6 +38,12 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
         var sessionOptions = {
             wave: [
                 {
+                    name: 'eventType',
+                    type: 'selection',
+                    default: 'Wave',
+                    description: ''
+                },
+                {
                     name: 'windowSize',
                     type: 'int',
                     default: 256,
@@ -197,6 +203,12 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
             ],
             paddle: [
                 {
+                    name: 'eventType',
+                    type: 'selection',
+                    default: 'Paddle',
+                    description: ''
+                },
+                {
                     name: 'windowSize',
                     type: 'int',
                     default: 256,
@@ -244,6 +256,12 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                 }
             ],
             duckdive: [
+                {
+                    name: 'eventType',
+                    type: 'selection',
+                    default: 'Duck Dive',
+                    description: ''
+                },
                 {
                     name: 'windowSize',
                     type: 'int',
@@ -441,15 +459,37 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
 
             sandbox.requestTemplate('eventdetection.' + type, function(template) {
                 if (type === 'session') {
-                    var command = clickedOption.data('command');
-                    var parameters = {
-                        command: command,
-                        datasetId: datasetId,
-                        fields: sessionOptions[command]
-                    };
-                    tile.place.html(template(parameters));
-                    var $form = tile.place.find('form');
-                    $form.validate(schema.session);
+                    sandbox.get('eventtype', {}, function(eventTypes) {
+                        var command = clickedOption.data('command');
+
+                        // Special map for event type selection. Avoids hard
+                        // coding the types and gets them dynamically from the
+                        // API server.
+                        var fields = _.map(sessionOptions[command], function(value, index) {
+                            if (value.name === 'eventType') {
+                                value.options = _.map(eventTypes, function(type) {
+                                    if (type.name === value.default) {
+                                        type.selected = true;
+                                    }
+                                    return type;
+                                });
+                            }
+                            return value;
+
+                        });
+
+
+
+
+                        var parameters = {
+                            command: command,
+                            datasetId: datasetId,
+                            fields: fields
+                        };
+                        tile.place.html(template(parameters));
+                        var $form = tile.place.find('form');
+                        $form.validate(schema.session);
+                    });
 
                 } else {
                     // Random and Spectral
