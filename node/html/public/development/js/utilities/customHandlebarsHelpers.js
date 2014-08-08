@@ -27,11 +27,11 @@
             if (duration > day) {
                 return '!*!';
             } else if (duration > hour) {
-                return moment(endTime - startTime).format('H:mm:ss.SSS');
+                return moment(endTime - startTime).format('H[h]mm[m]ss.SSS[s]');
             } else if (duration > minute) {
-                return moment(endTime - startTime).format('m:ss.SSS');
+                return moment(endTime - startTime).format('m[m]ss.SSS[s]');
             } else {
-                return moment(endTime - startTime).format('s.SSS');
+                return moment(endTime - startTime).format('s.SSS[s]');
             }
         }
         function numberToDecimal(number) {
@@ -45,10 +45,26 @@
             }
         }
         function informalDateTime(milliseconds) {
-            return moment(time).fromNow();
+            return moment(milliseconds).fromNow();
         }
         function date(milliseconds) {
-            return moment(milliseconds).format('YYYY-MM-DD');
+            if (!milliseconds) {
+                return '';
+            }
+            var date = new Date(milliseconds);
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            var yesterday = new Date();
+            yesterday.setHours(0, 0, 0, 0);
+            yesterday.setDate(today.getDate() - 1);
+            if (date > today) {
+                return "Today";
+            }
+            else if (date > yesterday) {
+                return "Yesterday";
+            }
+
+            return moment(date).format('YYYY-MM-DD');
         }
         function time(milliseconds, precise) {
             if (precise === "precise") {
