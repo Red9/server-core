@@ -1,14 +1,14 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsHelpers'], function($, _, async, chh) {
     // Class variables
     var youtubeApiKey = "AIzaSyBhSTRxw9EXWgZiMCqIYdPKtZuDdaXkCdA";
-    var kPlayerUpdateInterval = 250;
+    var kPlayerUpdateInterval = 125;
     var kHoverUpdateMinimum = 1000;
 
     function embeddedVideo(sandbox, tile, configuration, doneCallback) {
 
         var videoList; // sorted by start time.
         var playerTimePlace;
-        var deltaTimePlace
+        var deltaTimePlace;
         var currentVideo;
         var player;
         var playerReady;

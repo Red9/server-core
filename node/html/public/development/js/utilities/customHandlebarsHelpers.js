@@ -27,11 +27,11 @@
             if (duration > day) {
                 return '!*!';
             } else if (duration > hour) {
-                return moment(endTime - startTime).format('H[h]mm[m]ss.SSS[s]');
+                return moment(new Date(endTime - startTime)).utc().format('H[h ]mm[m ]ss.SSS[s]');
             } else if (duration > minute) {
-                return moment(endTime - startTime).format('m[m]ss.SSS[s]');
+                return moment(endTime - startTime).utc().format('m[m ]ss.SSS[s]');
             } else {
-                return moment(endTime - startTime).format('s.SSS[s]');
+                return moment(endTime - startTime).utc().format('s.SSS[s]');
             }
         }
         function numberToDecimal(number) {
