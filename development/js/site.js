@@ -325,57 +325,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
                 change: slideChange
             }).data('initialized', true);
         },
-        /**
-         * Returns a date in YYYY-MM-DD format or the string Today and Yesterday
-         * @param value Milliseconds
-         */
-        toDateString: function(value) {
-            if (!value) {
-                return null;
-            }
-
-            var date = new Date(value);
-            var today = new Date();
-            today.setHours(0, 0, 0, 0);
-            var yesterday = new Date();
-            yesterday.setHours(0, 0, 0, 0);
-            yesterday.setDate(today.getDate() - 1);
-            if (date > today) {
-                return "Today";
-            }
-            else if (date > yesterday) {
-                return "Yesterday";
-            }
-            return date.getFullYear() + '-' + this.padZeros(date.getMonth() + 1, 2) + '-' + this.padZeros(date.getDay(), 2);
-        },
-        toTimeString: function(value) {
-            return moment(value).format('hh:mm:ss');
-        },
-        toDurationString: function(startTime, endTime) {
-            var result = '';
-
-            var duration = moment.duration(endTime - startTime);
-
-            if (duration.years() !== 0) {
-                result = duration.years() + 'Y ' + duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
-            } else if (duration.months() !== 0) {
-                result = duration.months() + 'M ' + duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
-            } else if (duration.days() !== 0) {
-                result = duration.days() + 'D ' + duration.hours() + 'h ' + duration.minutes() + 'm ';
-            } else if (duration.hours() !== 0) {
-                result = duration.hours() + 'h ' + duration.minutes() + 'm ';
-            } else if (duration.minutes() !== 0) {
-                result = duration.minutes() + 'm ';
-            }
-
-            result += duration.seconds() + '.' + duration.milliseconds() + 's';
-
-            return result;
-
-        },
-        padZeros: function(value, length) {
-            return ('000000' + value).substr(-length);
-        },
         mileToMeter: function(value) {
             return parseFloat(value) / 0.00062137;
         },
@@ -409,10 +358,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
         }
     };
     if (Handlebars) {
-        Handlebars.registerHelper('toDateString', site.toDateString.bind(site));
-        Handlebars.registerHelper('toTimeString', site.toTimeString.bind(site));
-        Handlebars.registerHelper('toDurationString', site.toDurationString.bind(site));
-
         Handlebars.registerHelper('pager', function(context, options) {
             if (!context) {
                 return null;
