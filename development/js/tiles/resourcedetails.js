@@ -23,26 +23,53 @@ define(['vendor/jquery', 'vendor/underscore', 'utilities/commentList'], function
                 var dataset = datasetList[0];
                 var datasetDuration = dataset.headPanel.endTime - dataset.headPanel.startTime;
                 sandbox.get('event', {datasetId: datasetId}, function(events) {
-                    callback(_.sortBy(_.map(_.toArray(_.reduce(events, function(memo, event) {
-                        if (_.has(memo, event.type) === false) {
-                            memo[event.type] = {
-                                type: event.type,
-                                count: 0,
-                                duration: 0
-                            };
-                        }
-                        memo[event.type].count += 1;
-                        memo[event.type].duration += (event.endTime - event.startTime);
-                        return memo;
-                    }, {})), function(aggregatedEvent) {
-                        aggregatedEvent.durationPercent = aggregatedEvent.duration / datasetDuration;
-                        return aggregatedEvent;
-                    }), function(aggregatedEvent) {
-                        return aggregatedEvent.type;
-                    }));
+                    callback(
+                            _.sortBy(
+                                    _.map(
+                                            _.toArray(
+                                                    _.reduce(events, function(memo, event) {
+                                                        if (_.has(memo, event.type) === false) {
+                                                            memo[event.type] = {
+                                                                type: event.type,
+                                                                count: 0,
+                                                                duration: 0
+                                                            };
+                                                        }
+                                                        memo[event.type].count += 1;
+                                                        memo[event.type].duration += (event.endTime - event.startTime);
+                                                        return memo;
+                                                    }, {})), function(aggregatedEvent) {
+                                        aggregatedEvent.durationPercent = aggregatedEvent.duration / datasetDuration;
+                                        return aggregatedEvent;
+                                    }), function(aggregatedEvent) {
+                                return aggregatedEvent.type;
+                            }));
                 });
             }, ['headPanel', 'owner']);
+        }
 
+        function calculateEventIndex(datasetId, eventId, callback) {
+            sandbox.get('event', {datasetId: datasetId}, function(eventList) {
+                var eventType = _.find(eventList, function(event) {
+                    return event.id === eventId;
+                }).type;
+
+                var eventTypeList = _.filter(eventList, function(event) {
+                    return event.type === eventType;
+                });
+                var index =
+                        _.reduce(
+                                _.sortBy(eventTypeList, function(event) {
+                                    return event.startTime;
+                                }), function(memo, event, index) {
+                            return event.id === eventId ? index : memo;
+                        });
+
+                callback({
+                    index: index,
+                    total: eventTypeList.length
+                });
+            });
         }
 
         function setResource(type, id) {
@@ -62,7 +89,12 @@ define(['vendor/jquery', 'vendor/underscore', 'utilities/commentList'], function
                             tile.place.html(template(parameters));
                         });
                     } else if (type === 'event') {
-                        tile.place.html(template(parameters));
+                        calculateEventIndex(resource.datasetId, resource.id, function(eventIndex) {
+                            eventIndex.index += 1; // move from 0 index to 1 index
+                            parameters.eventIndex = eventIndex;
+                            tile.place.html(template(parameters));
+                        });
+
                     } else {
                         tile.place.html(template(parameters));
                     }
