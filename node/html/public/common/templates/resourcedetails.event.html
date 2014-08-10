@@ -8,6 +8,10 @@
                 <td>{{event.type}}  {{{ratingStars event.stars.[acceleration:z]}}}</td>
             </tr>
             <tr>
+                <th>Event Type Index</th>
+                <td>{{eventIndex.index}} of {{eventIndex.total}}</td>
+            </tr>
+            <tr>
                 <th>Start Time</th>
                 <td>{{date event.startTime}}&nbsp;&nbsp;&nbsp;{{time event.startTime}}</td>
             </tr>
@@ -22,6 +26,29 @@
             <tr>
                 <th>GPS On Time</th>
                 <td>{{{duration 0 event.summaryStatistics.static.gps.timeon.value}}} on ({{{percent event.summaryStatistics.static.gps.timeon.value dataset.headPanel.summaryStatistics.static.gps.timeoff.value}}})</td>
+            </tr>
+            <tr>
+                <th>Distance</th>
+                <td>
+                    {{#if event.summaryStatistics.static.route}}
+                    <table class="table table-condensed">
+                        <thead>
+                        <th>Type</th>
+                        <th>Distance</th>
+                        <th>Speed</th>
+                        </thead>
+                        {{#each event.summaryStatistics.static.route}}
+                        <tr>
+                            <td>{{@key}}</td>
+                            <td>{{unitize distance.value distance.units}}</td>
+                            <td>{{unitize averageSpeed.value averageSpeed.units}}</td>
+                        </tr>
+                        {{/each}}
+                    </table>
+                    {{else}}
+                    (no GPS)
+                    {{/if}}
+                </td>
             </tr>
             <tr>
                 <th>Source</th>
