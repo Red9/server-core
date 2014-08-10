@@ -97,18 +97,27 @@
             } else if (typeof units === 'undefined') {
                 return numberToDecimal(value);
             } else {
-                return numberToDecimal(value);
+                return numberToDecimal(value) + units;
             }
         }
+        
+        /* Pretty print a percentage number.
+         * 
+         * @param {type} numerator If no denominator specified then this should be 0 <= n <= 1
+         * @param {type} denominator Optional.
+         * @returns {String} A string that is in percent format.
+         */
         function percentFormater(numerator, denominator) {
             if (isNaN(numerator) && isNaN(denominator)) {
                 return '---';
             } else if (isNaN(numerator)) {
                 return '0%';
+            } else if (typeof denominator === 'undefined' || typeof denominator === 'object') { // Object because handlebars sends us information in subsequent parameters
+                return Math.floor(numerator * 100) + '%';
             } else if (isNaN(denominator)) {
                 return '100%';
             } else {
-                return (numberToDecimal(numerator / (numerator + denominator)) * 100) + '%';
+                return Math.floor((numerator / (numerator + denominator)) * 100) + '%';
             }
         }
         function bytesToHumanSize(bytes) {

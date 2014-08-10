@@ -439,7 +439,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
 
         function hoverTime(event, parameters) {
             hoverTime = parameters.hoverTime;
-            updateDashboardDisplay();
+            if(videoList.length > 0){
+                // If there is no video then we don't want to update the dashboard display...
+                updateDashboardDisplay();
+            }
             if (typeof $videoSyncCheckbox !== 'undefined'
                     && $videoSyncCheckbox.prop('checked')) {
 
