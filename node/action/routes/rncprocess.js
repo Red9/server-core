@@ -167,7 +167,7 @@ function processRNC(upload, datasetCreatedCallback, doneCallback) {
                 };
 
 
-                panelResource.calculatePanelProperties(newPanel.id, function(err, additionalProperties) {
+                panelResource.calculatePanelProperties(newPanel.id, false, function(err, additionalProperties) {
                     var startTime = additionalProperties.startTime;
                     var endTime = additionalProperties.endTime;
 

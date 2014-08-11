@@ -161,8 +161,18 @@ exports.delete = function(id, callback) {
  * @param {type} callback ({ } ) Calls with an object with the err, calculated properties.
  * @returns {undefined}
  */
-exports.calculatePanelProperties = function(panelId, callback) {
-    cassandraPanel.calculatePanelProperties(panelId, callback);
+exports.calculatePanelProperties = function(panelId, doSlow, callback) {
+    cassandraPanel.calculatePanelProperties(panelId, doSlow, callback);
+};
+
+/** Checks the raw data. Mostly useful in validation programs.
+ * 
+ * @param {type} panelId
+ * @param {type} callback
+ * @returns {undefined}
+ */
+exports.exists = function(panelId, callback) {
+    cassandraPanel.exists(panelId, callback);
 };
 
 //------------------------------------------------------------------------------

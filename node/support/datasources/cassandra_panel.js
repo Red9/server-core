@@ -79,7 +79,7 @@ function serializeDatabaseRows(callbackRow, callbackDone) {
 
             processQueue.push({callbackRow: callbackRow, rows: buffer[currentChunk], startIndex: startIndex}, serializeCallback);
             startIndex += buffer[currentChunk].length;
-            
+
             // Let's not keep unneeded data around.
             delete buffer[currentChunk];
             currentChunk++;
@@ -118,8 +118,8 @@ exports.getPanel = function(panelId, startTime, endTime, callbackRow, callbackDo
     // Set defaults
     durationLimit = typeof durationLimit === 'undefined' ? 4000 : durationLimit;
     concurrencyLimit = typeof concurrencyLimit === 'undefined' ? 4 : concurrencyLimit;
-    
-    
+
+
     var done = false;
     var chunk = 0;
     var queue = async.queue(getDatabaseRows, concurrencyLimit);
@@ -146,13 +146,24 @@ exports.getPanel = function(panelId, startTime, endTime, callbackRow, callbackDo
     queue.concurrency = concurrencyLimit;
 };
 
+exports.exists = function(rawDataId, callback) {
+    var query = 'SELECT id FROM raw_data WHERE id=? LIMIT 1';
+    cassandraDatabase.execute(query, [rawDataId], function(err, row) {
+        if (err) {
+            callback(err);
+        } else {
+            callback(null, row.rows.length === 1);
+        }
+    });
+};
 
 /** Calculates the acutal start and end time from the database panel data.
  * 
  * @param {uuid} rawDataId
+ * @param {boolean} doSlow Do slow operations (involves reading the whole panel)
  * @param {function} callback (object with keys startTime and endTime)
  */
-exports.calculatePanelProperties = function(rawDataId, callback) {
+exports.calculatePanelProperties = function(rawDataId, doSlow, callback) {
     // Warning: these keys are sensitive to matching the keys in panel resource!
     var properties = [
         {
@@ -255,7 +266,7 @@ exports.getCachedProcessedPanel = function(panelId, startTime, endTime, buckets,
  * @param {objecw} payload
  */
 exports.putCachedProcessedPanel = function(panelId, startTime, endTime, buckets, payload) {
-    var kTTL = 60*60*24*7*4; // 4 weeks
+    var kTTL = 60 * 60 * 24 * 7 * 4; // 4 weeks
     var query = 'INSERT INTO raw_data_cache (id, start_time, end_time, buckets, payload) VALUES (?,?,?,?,?) USING TTL ' + kTTL;
 
     var parameters = [

@@ -170,7 +170,7 @@ function createRawDataMetaTable() {
         console.log('Updating ' + datasets.length + ' datasets');
         async.eachLimit(datasets, 4, function(dataset, callback) {
             console.log('Calculating panel properties of ' + dataset.headPanelId + ' and createTime of ' + dataset.createTime);
-            panelResource.calculatePanelProperties(dataset.headPanelId,
+            panelResource.calculatePanelProperties(dataset.headPanelId, false,
                     function(err, properties) {
 
                         console.log('Properties calculated.');
@@ -241,7 +241,7 @@ function MoveDatasetPanelMetaToPanelList() {
         console.log('Updating ' + datasets.length + ' datasets');
         async.eachSeries(datasets, function(dataset, callback) {
             console.log('Calculating panel properties of ' + dataset.headPanelId + ' and createTime of ' + dataset.createTime);
-            panelResource.calculatePanelProperties(dataset.headPanelId,
+            panelResource.calculatePanelProperties(dataset.headPanelId, false,
                     function(err, properties) {
                         console.log('Properties calculated.');
                         dataset.panels = {};

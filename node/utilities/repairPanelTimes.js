@@ -15,7 +15,7 @@ var panelResource = requireFromRoot('support/resources/panel');
 var limitMax = 2;
 
 function repairPanel(id, callback) {
-    panelResource.calculatePanelProperties(id, function(err, properties) {
+    panelResource.calculatePanelProperties(id, doSlow, function(err, properties) {
         if (err) {
             log.error('Error: ' + err);
         } else {
