@@ -9,13 +9,14 @@ logger.init('validateDB', '0');
 var log = logger.log;
 
 var resources = requireFromRoot('support/resources/resources');
-var eventResource = requireFromRoot('support/resources/event');
-var datasetResource = requireFromRoot('support/resources/dataset');
-var panelResource = requireFromRoot('support/resources/panel');
-var videoResource = requireFromRoot('support/resources/video');
-var commentResource = requireFromRoot('support/resources/comment');
 
 var deepCheck = false;
+var fixErrors = true;
+
+// Guest User
+var defaultUserId = '9e401d7a-3548-64be-6c6e-66a9e9a1800b';
+
+
 // TODO: Make sure that all IDs are unique (or document why it's guarenteed)
 
 // -----------------------------------------------------------------------------
@@ -38,13 +39,36 @@ function checkDataset(dataset, callback) {
             }
             resources.panel.get({datasetId: dataset.id}, function(allPanelList) {
                 if (allPanelList.length > 1) {
-                    errors.push('too many panels (' + allPanelList.length + ')');
+                    errors.push('too many panels');
                 }
                 callback(null, errors);
             });
 
         });
     });
+}
+
+function fixDataset(id, errors, callbackDone) {
+    if (_.indexOf(errors, 'no head panel') !== -1) {
+        // Critical errors: only recourse is to delete the dataset.
+        resources.dataset.delete(id, function() {
+            callbackDone(null, ['deleted dataset']);
+        });
+    } else {
+        async.series([
+            function(callback) {
+                if (_.indexOf(errors, 'no owner') !== -1) {
+                    resources.dataset.update(id, {owner: defaultUserId}, function() {
+                        callbackDone(null, ['set owner to default.']);
+                    }, true);
+                } else {
+                    callback(null, 'no change');
+                }
+            }
+        ], function(err, results) {
+            callbackDone(null, results);
+        });
+    }
 }
 
 
@@ -91,11 +115,41 @@ function checkPanel(panel, callback) {
                 errors.push('mismatched endTime');
             }
 
-            // TODO(SRLM): Add check that get's number of rows, and calculates average frequency.
+            // TODO(SRLM): Add check that gets number of rows, and calculates average frequency.
 
             callback(null, errors);
         });
     });
+}
+
+function fixPanel(id, errors, callbackDone) {
+    if (_.indexOf(errors, 'data does not exist') !== -1) {
+        // Critical errors: only recourse is to delete the panel.
+        resources.panel.delete(id, function(err) {
+            callbackDone(null, ['deleted panel']);
+        });
+    } else {
+        async.series([
+            function(callback) {
+                if (_.indexOf(errors, 'mismatched startTime') !== -1
+                        || _.indexOf(errors, 'mismatched endTime')) {
+                    resources.panel.calculatePanelProperties(id, false, function(err, properties) {
+                        resources.panel.update(id,
+                                {
+                                    startTime: properties.startTime,
+                                    endTime: properties.endTime
+                                }, function(err) {
+                            callback(null, 'fixed times');
+                        }, true);
+                    });
+                } else {
+                    callback(null, 'no change');
+                }
+            }
+        ], function(err, results) {
+            callbackDone(null, results);
+        });
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -142,6 +196,18 @@ function checkEvent(event, callback) {
 
 }
 
+function fixEvent(id, errors, callbackDone) {
+    if (_.indexOf(errors, 'startTime >= endTime') !== -1
+            || _.indexOf(errors, 'time not in panel bounds') !== -1) {
+        // Critical errors: only recourse is to delete the event
+        resources.event.delete(id, function() {
+            callbackDone(null, ['deleted event']);
+        });
+    } else {
+        callbackDone(null, []);
+    }
+}
+
 
 // -----------------------------------------------------------------------------
 // Validate Videos
@@ -164,6 +230,22 @@ function checkVideo(video, callback) {
         errors.push('invalid host');
     }
     callback(null, errors);
+}
+
+function fixVideo(id, errors, callbackDone) {
+    async.series([
+        function(callback) {
+            if (_.indexOf(errors, 'invalid host') !== -1) {
+                resources.video.update(id, {host: 'YouTube'}, function(err) {
+                    callback(null, 'set host to YouTube');
+                });
+            } else {
+                callback(null, 'no change');
+            }
+        }
+    ], function(err, results) {
+        callbackDone(null, results);
+    });
 }
 
 // -----------------------------------------------------------------------------
@@ -196,6 +278,19 @@ function checkComment(comment, callback) {
     });
 }
 
+function fixComment(id, errors, callback) {
+    if (_.indexOf(errors, 'invalid author') !== -1) {
+        resources.comment.update(id, {author: guestUserId}, function(err) {
+            callback(null, ['update author']);
+        }, true);
+    } else {
+        callback(null, ['no change']);
+    }
+}
+
+
+// -----------------------------------------------------------------------------
+
 function checkResource(resourceType, checkFunction, callbackDone) {
     resources[resourceType].get({}, function(resourceList) {
         async.reduce(resourceList, [], function(memo, resource, callback) {
@@ -212,53 +307,49 @@ function checkResource(resourceType, checkFunction, callbackDone) {
     });
 }
 
+function fixResource(fixFunction, invalidList, callbackDone) {
+    async.mapSeries(invalidList,
+            function(item, callback) {
+                fixFunction(item.id, item.errors, function(err, resolution) {
+                    item.resolution = resolution;
+                    callback(null, item);
+                });
+            },
+            function(err, results) {
+                callbackDone(null, results);
+            }
+    );
+}
+
+
+function runResource(name, check, fix) {
+    return function(callback) {
+        checkResource(name, check, function(err, invalidList) {
+            if (fixErrors === true) {
+                fixResource(fix, invalidList, function(err, newList) {
+                    callback(null, {
+                        type: name,
+                        list: newList
+                    });
+                });
+            } else {
+                callback(null, {
+                    type: name,
+                    list: invalidList
+                });
+            }
+        });
+    };
+}
 
 function checkForInvalidResources(callbackDone) {
     log.info('===== Validating each resource.');
     async.parallel([
-        function(callback) {
-            checkResource('dataset', checkDataset, function(err, invalidList) {
-                callback(null, {
-                    type: 'dataset',
-                    list: invalidList
-                });
-            });
-        },
-        function(callback) {
-            checkResource('event', checkEvent, function(err, invalidList) {
-                callback(null, {
-                    type: 'event',
-                    list: invalidList
-                });
-            });
-        },
-        function(callback) {
-            checkResource('panel', checkPanel, function(err, invalidList) {
-                callback(null, {
-                    type: 'panel',
-                    list: invalidList
-                });
-            });
-        },
-        function(callback) {
-            checkResource('video', checkVideo, function(err, invalidList) {
-                callback(null, {
-                    type: 'video',
-                    list: invalidList
-                });
-            });
-        },
-        function(callback) {
-            checkResource('comment', checkComment, function(err, invalidList) {
-                callback(null, {
-                    type: 'comment',
-                    list: invalidList
-                });
-            });
-        }
-
-
-        //checkForInvalidVideos
+        runResource('dataset', checkDataset, fixDataset),
+        runResource('event', checkEvent, fixEvent),
+        runResource('panel', checkPanel, fixPanel),
+        runResource('video', checkVideo, fixVideo),
+        runResource('comment', checkComment, fixComment)
     ], function(err, result) {
         if (err) {
             log.error('Error: ' + err);
@@ -266,7 +357,16 @@ function checkForInvalidResources(callbackDone) {
 
         async.eachSeries(result, function(invalidOfType, callbackType) {
             async.eachSeries(invalidOfType.list, function(resource, callbackResource) {
-                log.error(invalidOfType.type + ' ' + resource.id + ' has errors: ' + resource.errors.join(', '));
+                var message = invalidOfType.type + ' ' + resource.id + ' has errors: ' + resource.errors.join(', ');
+                if (typeof resource.resolution !== 'undefined') {
+                    message += ', resoultion of ';
+                    if (resource.resolution.length === 0) {
+                        message += ' no resolution';
+                    } else {
+                        message += resource.resolution.join(', ');
+                    }
+                }
+                log.error(message);
                 callbackResource(null);
             }, function(err) {
                 callbackType(null);
@@ -291,7 +391,7 @@ function checkResourceEachHasDataset(resource, datasetIdKey, callbackDone) {
     resource.get({}, function(resourceList) {
         async.reduce(resourceList, [], function(memo, item, callback) {
             var datasetId = item[datasetIdKey];
-            datasetResource.get({id: datasetId}, function(datasetList) {
+            resources.dataset.get({id: datasetId}, function(datasetList) {
                 if (datasetList.length === 0) {
                     memo.push(item.id);
                 }
@@ -329,7 +429,7 @@ function checkForOrphanResources(callbackDone) {
 
     async.parallel([
         function(callback) {
-            checkResourceEachHasDataset(panelResource, 'datasetId', function(err, orphans) {
+            checkResourceEachHasDataset(resources.panel, 'datasetId', function(err, orphans) {
                 callback(null, {
                     type: 'panel',
                     orphans: orphans
@@ -337,7 +437,7 @@ function checkForOrphanResources(callbackDone) {
             });
         },
         function(callback) {
-            checkResourceEachHasDataset(eventResource, 'datasetId', function(err, orphans) {
+            checkResourceEachHasDataset(resources.event, 'datasetId', function(err, orphans) {
                 callback(null, {
                     type: 'event',
                     orphans: orphans
@@ -345,7 +445,7 @@ function checkForOrphanResources(callbackDone) {
             });
         },
         function(callback) {
-            checkResourceEachHasDataset(videoResource, 'dataset', function(err, orphans) {
+            checkResourceEachHasDataset(resources.video, 'dataset', function(err, orphans) {
                 callback(null, {
                     type: 'video',
                     orphans: orphans
@@ -362,9 +462,22 @@ function checkForOrphanResources(callbackDone) {
         }
     ], function(err, result) {
         async.eachSeries(result, function(orphansOfType, callbackType) {
+            var type = orphansOfType.type;
             async.eachSeries(orphansOfType.orphans, function(id, callbackOrphan) {
-                log.error(orphansOfType.type + ' ' + id + ' does not have a valid dataset.');
-                callbackOrphan(null);
+                var message = type + ' ' + id + ' does not have a valid dataset';
+                if (fixErrors === true) {
+                    resources[type].delete(id, function(err) {
+                        if (err) {
+                            log.error('Error deleting: ' + err);
+                        } else {
+                            log.error(message + '... Deleted.');
+                        }
+                        callbackOrphan(null);
+                    });
+                } else {
+                    log.error(message);
+                    callbackOrphan(null);
+                }
             }, function(err) {
                 callbackType(null);
             });
