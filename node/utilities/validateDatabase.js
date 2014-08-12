@@ -19,6 +19,11 @@ var defaultUserId = '9e401d7a-3548-64be-6c6e-66a9e9a1800b';
 
 // TODO: Make sure that all IDs are unique (or document why it's guarenteed)
 
+
+// To run this you'll need to increase the stack size:
+// nodejs --stack-size=65535
+
+
 // -----------------------------------------------------------------------------
 // Validate Dataset
 // 

@@ -7,10 +7,14 @@ var log = requireFromRoot('support/logger').log;
 var panelResource = requireFromRoot('support/resources/panel');
 var summaryStatisticsResource = requireFromRoot('support/resources/summarystatistics');
 
+var useful = requireFromRoot('support/useful');
+
 exports.getBody = function(req, res, next) {
     var parameters = {
         id: req.param('id')
     };
+    
+    var partsFunction = useful.prepareParts(req);
 
     var axes;
     if (validator.isInt(req.param('buckets'))) {
@@ -37,10 +41,15 @@ exports.getBody = function(req, res, next) {
         res.writeHead(200, {'Content-Type': 'application/json'});
         panelResource.getProcessedPanel(parameters, function(err, result) {
             if (err) {
+                // Write the error message out if we can't output the panel.
+                //  Make sure that we escape any quotes in the error message.
                 res.write('{\n"message":"' + err.replace(/"/g, '\\"') + '"\n}');
                 res.end();
             } else {
-                res.write(JSON.stringify(result));
+                // A bit of gymnastics with the arrays here: teh partsFunction
+                // wants input in an array of resources, so we give it that
+                // then take out the one that we want.
+                res.write(JSON.stringify(partsFunction([result])[0]));
                 res.end();
             }
         });
@@ -63,7 +72,6 @@ exports.getBody = function(req, res, next) {
                 if (typeof axes !== 'undefined') {
                     outputAxes = underscore.intersection(panelProperties.axes, axes);
                 }
-                ;
 
                 underscore.each(outputAxes, function(axis) {
                     axesIndicies.push(underscore.indexOf(panelProperties.axes, axis));

@@ -4,12 +4,11 @@ var async = require('async');
 
 var resources = requireFromRoot('support/resources/resources');
 
-
+var useful = requireFromRoot('support/useful');
 
 function notAllowedFunction(req, res, next) {
     res.status(403).json(JSON.parse('{"message":"Function not available via this API."}'));
 }
-
 
 exports.addRoutesToApp = function(app, route) {
     var pathFunctions = {
@@ -65,6 +64,12 @@ exports.describe = function(route, req, res, next) {
 exports.search = get;
 exports.get = get;
 
+function sendGet(res, pretty, partsFunction, resourceList) {
+    res.set('Content-Type', 'application/json');
+    var body = JSON.stringify(partsFunction(resourceList), null, pretty ? 3 : 0);
+    res.send(body);
+}
+
 function get(route, req, res, next) {
     var simpleOutput = false;
     var count;
@@ -90,6 +95,8 @@ function get(route, req, res, next) {
         delete req.query['pretty'];
     }
 
+    var partsFunction = useful.prepareParts(req);
+
     // At this point, req.query has constraints.
     var searchParams = req.query;
     // If it's a direct resource request we should search for just that
@@ -111,19 +118,13 @@ function get(route, req, res, next) {
                         });
                     },
                     function() {
-                        res.set('Content-Type', 'application/json');
-                        var body = JSON.stringify(resourceList, null, pretty ? 3 : 0);
-                        res.send(body);
+                        sendGet(res, pretty, partsFunction, resourceList);
                     });
         } else {
-            res.set('Content-Type', 'application/json');
-            var body = JSON.stringify(resourceList, null, pretty ? 3 : 0);
-            res.send(body);
-            //res.json(resources);
+            sendGet(res, pretty, partsFunction, resourceList);
         }
     }, expand);
 }
-;
 
 
 exports.create = function(route, req, res, next) {

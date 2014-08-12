@@ -97,7 +97,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
         },
         getSearchParams: function() {
             var context = $('#filter-form .filter-item:not(.inactive):not(.ignore)');
-            var params = {simpleoutput: 1};
+            var params = {};
             var self = this;
             $('input, select', context).not(':radio, :checkbox, .ignore').each(function() {
                 var element = $(this);
@@ -168,11 +168,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars', 'vendor/momen
             if ($('#type-event').is(':checked')) {
                 url = this.urls.apiPath + this.urls.searchEvent;
                 this.resultType = 'event';
+                searchParams['part'] = 'id,type,startTime,endTime';
             } else { // Dataset
                 url = this.urls.apiPath + this.urls.searchDataset;
                 this.resultType = 'dataset';
                 searchParams['expand'] = 'headPanel,owner';
                 searchParams['count'] = 'true';
+                searchParams['part'] = 'id,count,title,createTime,owner.id,owner.displayName,headPanel.startTime,headPanel.endTime';
             }
             $('#container-results').empty();
             var self = this;
