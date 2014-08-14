@@ -2,8 +2,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
     function fcpxmldialog(sandbox, tile, configuration, doneCallback) {
 
         var videoTypes = {
-            '720p_59.97hz_H.264': {
-                name: '720p   59.97Hz   H.264',
+            '720p_59.94hz_H.264': {
+                name: '720p   59.94Hz   H.264',
                 selected: 'selected',
                 numerator: 1001,
                 denominator: 60000,
