@@ -126,7 +126,7 @@ function startSession(datasetId, readyCallback) {
             'gps:satellite',
             'gps:hdop',
             'gps:magneticvariation',
-            'pressure:pressure',
+            //'pressure:pressure',
             'pressure:temperature'
         ];
         panelResource.getPanelBody({

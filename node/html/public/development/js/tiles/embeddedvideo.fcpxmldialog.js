@@ -1,6 +1,20 @@
 define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], function($, _) {
     function fcpxmldialog(sandbox, tile, configuration, doneCallback) {
 
+        var videoTypes = {
+            '720p_59.97hz_H.264': {
+                name: '720p   59.97Hz   H.264',
+                selected: 'selected',
+                numerator: 1001,
+                denominator: 60000,
+                framesPerVideo: 71623552,
+                pixels: {
+                    width: 1280,
+                    height: 720
+                }
+            }
+        };
+
         var schema = {
             showErrors: sandbox.showJqueryValidateErrors,
             submitHandler: submitHandler
@@ -10,6 +24,75 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
             tile.setTitle('Download FCPXML File');
             showForm(tile.place, configuration);
             doneCallback();
+        }
+
+        function outputFCPXML(formValues, fcpxmlTemplate, eventList, video, dataset) {
+            var framesPerVideo = videoTypes[formValues.videoType].framesPerVideo;
+            var numerator = videoTypes[formValues.videoType].numerator;
+            var denominator = videoTypes[formValues.videoType].denominator;
+            var pixels = videoTypes[formValues.videoType].pixels;
+
+            // Frames are on the 1001 boundary, so make sure that we're there.
+            function frameCorrected(value) {
+                return Math.floor(value / numerator) * numerator;
+            }
+
+            var assets = _.map(formValues.files, function(filename, index) {
+                return {
+                    ref: 'r' + (index + 2),
+                    source: filename.replace(/ /g, '%20'),
+                    start: index * framesPerVideo,
+                    duration: framesPerVideo
+                };
+            });
+
+            // Reverse so that the matching of clip to video uses the video that
+            // is "rightmost"
+            assets.reverse();
+
+            var runningOffset = 0;
+            var clips =
+                    _.chain(eventList)
+                    .sortBy(function(event) {
+                        return event.startTime;
+                    })
+                    .map(function(event) {
+                        var durationFrames = frameCorrected((event.endTime - event.startTime) / 1000 * denominator);
+                        var startFramesTotal = frameCorrected((event.startTime - video.startTime) / 1000 * denominator);
+
+                        // Find the asset. The list must be reversed for this
+                        // to work correctly.
+                        var asset = _.find(assets, function(asset) {
+                            return asset.start <= startFramesTotal;
+                        });
+
+                        var result = {
+                            name: event.type + ' ' + event.id,
+                            offsetFrames: runningOffset,
+                            durationFrames: durationFrames,
+                            startFrames: startFramesTotal - asset.start,
+                            video: asset,
+                            denominator: denominator
+                        };
+                        runningOffset += durationFrames;
+                        return result;
+                    })
+                    .value();
+
+            assets.reverse(); // Mostly for aesthetic reasons in the result.
+
+            var parameters = {
+                asset: assets,
+                clip: clips,
+                datasetName: dataset.title,
+                sequenceName: formValues.type + ' highlight reel',
+                numerator: numerator,
+                denominator: denominator,
+                pixels: pixels
+            };
+
+            window.open('data:text/xml,' + encodeURIComponent(fcpxmlTemplate(parameters)));
+            tile.destructor();
         }
 
         function submitHandler(form) {
@@ -43,12 +126,23 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 }
                 delete formValues[key];
             }
-
-            console.log('Got the following form values: ' + JSON.stringify(formValues, null, '   '));
-
-            sandbox.requestTemplate('fcpxml', function(template) {
-                window.open('data:text/xml,' + encodeURIComponent(template({})));
-                tile.destructor();
+            sandbox.requestTemplate('fcpxml', function(fcpxmlTemplate) {
+                sandbox.get('dataset', {id: formValues.datasetId}, function(datasetList) {
+                    sandbox.get('event',
+                            {
+                                datasetId: formValues.datasetId,
+                                type: formValues.type
+                            }, function(eventList) {
+                        sandbox.get('video', {dataset: formValues.datasetId}, function(videoList) {
+                            // In case we have multiple associated videos: use the
+                            // first in time as our base truth.
+                            videoList = _.sortBy(videoList, function(video) {
+                                return video.startTime;
+                            });
+                            outputFCPXML(formValues, fcpxmlTemplate, eventList, videoList[0], datasetList[0]);
+                        });
+                    });
+                });
             });
         }
 
@@ -65,21 +159,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
 
                     var parameters = {
                         eventTypes: eventTypes,
-                        frameRates: [
-                            {
-                                name: 29.97
-                            },
-                            {
-                                name: 59.94,
-                                selected: 'selected'
-                            }
-                        ],
-                        videoSizes: [
-                            {
-                                name: '1280x720',
-                                selected: 'selected'
-                            }
-                        ],
+                        videoType: videoTypes,
                         datasetId: configuration.datasetId
                     };
                     place.html(template(parameters));

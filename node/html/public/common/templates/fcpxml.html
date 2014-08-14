@@ -3,38 +3,23 @@
 
 <fcpxml version="1.4">
     <resources>
-        <format id="r1" name="FFVideoFormat720p5994" frameDuration="1001/60000s" width="1280" height="720"/>
-        <asset id="r2" src="file:///Users/mikeolson/Movies/Surfing%20Indo.fcpbundle/2014.07.01%20Telescopes%20Morn%202/Original%20Media/2014-07-01%2007_27_52%20(id).mov">
+        <format id="r1" frameDuration="{{numerator}}/{{denominator}}s" width="{{pixels.width}}" height="{{pixels.height}}"/>
+        {{#each asset}}
+        <asset id="{{ref}}" src="file://{{source}}">
         </asset>
-        <asset id="r3" src="file:///Users/mikeolson/Movies/Surfing%20Indo.fcpbundle/2014.07.01%20Telescopes%20Morn%202/Original%20Media/2014-07-01%2007_47_46%20(id).mov">
-        </asset>
-        <asset id="r4" src="file:///Users/mikeolson/Movies/Surfing%20Indo.fcpbundle/2014.07.01%20Telescopes%20Morn%202/Original%20Media/2014-07-01%2008_07_40%20(id).mov">
-        </asset>
-        <asset id="r5" src="file:///Users/mikeolson/Movies/Surfing%20Indo.fcpbundle/2014.07.01%20Telescopes%20Morn%202/Original%20Media/2014-07-01%2008_27_34%20(id).mov">
-        </asset>
-        <asset id="r6" src="file:///Users/mikeolson/Movies/Surfing%20Indo.fcpbundle/2014.07.01%20Telescopes%20Morn%202/Original%20Media/2014-07-01%2008_47_28%20(id).mov">
-        </asset>
+        {{/each}}
     </resources>
     <library>
-        <event name="Download Test">
-            <project name="Download Test">
-                <sequence format="r1">
+        <event name="{{datasetName}}">
+            <project name="{{sequenceName}}">
+                <sequence format="r1" tcFormat="DF">
                     <spine>
-                        <clip name="Wave1" offset="0s" duration="71623552/60000s" start="1612318708/60000s" tcFormat="DF">
-                            <video offset="1612318708/60000s" ref="r2" duration="71623552/60000s" start="1612318708/60000s"/>
+                        {{#each clip}}
+                        <clip name="{{name}}" offset="{{offsetFrames}}/{{denominator}}s" duration="{{durationFrames}}/{{denominator}}s" start="{{startFrames}}/{{denominator}}s" tcFormat="DF">
+                            <video ref="{{video.ref}}" duration="{{video.duration}}/{{denominator}}s">
+                            </video>
                         </clip>
-                        <clip name="Wave2" offset="71623552/60000s" duration="71623552/60000s" start="1683898216/60000s" tcFormat="DF">
-                            <video offset="1683898216/60000s" ref="r3" duration="71623552/60000s" start="1683898216/60000s"/>
-                        </clip>
-                        <clip name="Wave3" offset="143247104/60000s" duration="71623552/60000s" start="1755539786/60000s" tcFormat="DF">
-                            <video offset="1755539786/60000s" ref="r4" duration="71623552/60000s" start="1755539786/60000s"/>
-                        </clip>
-                        <clip name="Wave4" offset="214870656/60000s" duration="71623552/60000s" start="1827180355/60000s" tcFormat="DF">
-                            <video offset="1827180355/60000s" ref="r5" duration="71623552/60000s" start="1827180355/60000s"/>
-                        </clip>
-                        <clip name="Wave5" offset="286494208/60000s" duration="41712671/60000s" start="1898758862/60000s" tcFormat="DF">
-                            <video offset="1898758862/60000s" ref="r6" duration="41712671/60000s" start="1898758862/60000s"/>
-                        </clip>
+                        {{/each}}
                     </spine>
                 </sequence>
             </project>
