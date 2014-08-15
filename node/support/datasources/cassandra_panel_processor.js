@@ -60,32 +60,39 @@ exports.getPanel = function(parameters, callbackDone) {
                 || axis.indexOf('magneticfield') > -1
                 || axis.indexOf('speed') > -1) {
 
-            var t = axis.split(':');
-            var axisType = t[0];
-            var axisName = t[1];
+            try {
+                var t = axis.split(':');
+                var axisType = t[0];
+                var axisName = t[1];
 
-            var maximum = panel.summaryStatistics.instantaneous[axisType][axisName].maximum.value;
-            if (maximum > 0) {
-                maximum *= 1.001;
-            } else {
-                maximum *= 0.999;
-            }
+                var maximum = panel.summaryStatistics.instantaneous[axisType][axisName].maximum.value;
+                if (maximum > 0) {
+                    maximum *= 1.001;
+                } else {
+                    maximum *= 0.999;
+                }
 
-            var minimum = panel.summaryStatistics.instantaneous[axisType][axisName].minimum.value;
-            if (minimum > 0) {
-                minimum *= 0.999;
-            } else {
-                minimum *= 1.001;
-            }
+                var minimum = panel.summaryStatistics.instantaneous[axisType][axisName].minimum.value;
+                if (minimum > 0) {
+                    minimum *= 0.999;
+                } else {
+                    minimum *= 1.001;
+                }
 
 
-            if (minimum !== maximum) {
-                // If the minimum and maximum is the same then there is no
-                // distribution. Mostly seen where gps:speed === 0 (no lock).
-                distributions.push(Distribution.new(axis, index,
-                        minimum, maximum, kDistributionSlots));
+                if (minimum !== maximum) {
+                    // If the minimum and maximum is the same then there is no
+                    // distribution. Mostly seen where gps:speed === 0 (no lock).
+                    distributions.push(Distribution.new(axis, index,
+                            minimum, maximum, kDistributionSlots));
 
-                fftAxes.push({name: axis, index: index});
+                    fftAxes.push({name: axis, index: index});
+                }
+            } catch (e) {
+                // Do nothing
+                // We might catch an error if the particular summary statistic
+                // doesn't exist. Which shouldn't be the case, but you never
+                // know. See DW-218.
             }
         }
     });
@@ -103,7 +110,7 @@ exports.getPanel = function(parameters, callbackDone) {
                 });
 
                 //fft.processRow(rowTime, rowData, n);
-                if(typeof se !== 'undefined'){
+                if (typeof se !== 'undefined') {
                     se.processRow(rowTime, rowData, n);
                 }
                 bucketer.processRow(rowTime, rowData);
