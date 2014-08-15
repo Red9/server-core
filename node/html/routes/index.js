@@ -53,9 +53,14 @@ module.exports = function(app, passport) {
     // Authentication Barrier
     // --------------------------------------------
 
+    function sendIndex(req, res, next){
+        res.sendFile('/html/views/index.html', {root:'./'});
+    }
+    app.get('/event/', IsAuthenticated, sendIndex);
+    app.get('/dataset/', IsAuthenticated, sendIndex);
+
     app.get('/', IsAuthenticated, require('./datasetindex').get);
 
-    app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
     app.get('/dataset/:id', IsAuthenticated, require('./spa').getDataset);
     app.get('/event/:id', IsAuthenticated, require('./spa').getEvent);
 

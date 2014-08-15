@@ -38,6 +38,13 @@ var staticDirectories = [
             development: '/html/public/common/templates',
             release: '/html/public/common/templates'
         }
+    },
+    {
+        rootUrl: '/partials',
+        sourcePath: {
+            development: '/html/public/common/partials',
+            release: '/html/public/common/partials'
+        }
     }
 ];
 

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp" class="no-js">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Search</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+        <link href="/css/bootstrap.css" rel="stylesheet">
+        <link href="/css/bootstrap-theme.css" rel="stylesheet">
+    </head>
+    <body ng-controller="pageController">
+        <div class="navbar navbar-inverse navbar-fixed-top" >
+
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"> <span class="glyphicon glyphicon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/">{{site.title}}</a>
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li ng-show="user">
+                            <a href="/upload/rnc">RNC</a>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav">
+                        <li ng-show="user">
+                            <a href="/bluetooth">Bluetooth</a>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown" ng-show="user">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.displayName}}<b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/user/{{user.id}}">Profile</a></li>
+                                <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+                            </ul>
+                        </li>
+                        <li ng-hide="user">
+                            <a href="/login/authenticate">Sign In&nbsp;<span class="glyphicon glyphicon-log-in"></span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="alert alert-info">Careful: you're working on the development site</div>
+
+
+
+            <h1>Welcome</h1>
+
+            <ul class="menu">
+                <li><a href="#/dataset/">Search dataset</a></li>
+                <li><a href="#/event/">Search event</a></li>
+            </ul>
+
+            <div ng-view></div>
+
+
+        </div>
+        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+        <div>Angular seed app: v<span app-version></span></div>
+
+        <br />
+        <br />
+
+        <!-- Navbar "fixed bottom" taken from http://stackoverflow.com/a/19231861-->
+        <div class="navbar" style="margin-bottom:0px;margin-left:0px;margin-right:0px;clear:both;">
+            <div class="navbar-inner">
+                <div class="width-constraint clearfix">
+                    <p class="pull-left muted credit">&nbsp;&nbsp;&nbsp;{{site.title}}: {{site.description}}</p>
+                    <p class="pull-right muted credit">©2013 <a href="/about">RedNine</a>. Designed by <a target="_blank" href="mailto:{{site.author.email}}">{{site.author.displayName}}</a> &nbsp;&nbsp;&nbsp;
+                    </p>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <script src="/js/vendor/angular.js"></script>
+        <script src="/js/vendor/angular-route.js"></script>
+        <script src="/js/singlepage/app.js"></script>
+        <script src="/js/singlepage/services.js"></script>
+        <script src="/js/singlepage/controllers.js"></script>
+        <script src="/js/singlepage/filters.js"></script>
+        <script src="/js/singlepage/directives.js"></script>
+    </body>
+</html>
