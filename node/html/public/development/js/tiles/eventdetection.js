@@ -44,6 +44,12 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                     description: ''
                 },
                 {
+                    name: 'strictness',
+                    type: 'float',
+                    default: 1,
+                    description: ''
+                },
+                {
                     name: 'windowSize',
                     type: 'int',
                     default: 256,
