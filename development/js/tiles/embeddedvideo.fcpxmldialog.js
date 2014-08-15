@@ -2,8 +2,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
     function fcpxmldialog(sandbox, tile, configuration, doneCallback) {
 
         var videoTypes = {
-            '720p_59.94hz_H.264': {
-                name: '720p   59.94Hz   H.264',
+            'GoPro_720p_59.94hz_H.264': {
+                name: 'GoPro    720p   59.94Hz   H.264',
                 selected: 'selected',
                 numerator: 1001,
                 denominator: 60000,
@@ -11,6 +11,16 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 pixels: {
                     width: 1280,
                     height: 720
+                }
+            },
+            'standard_1080p_29.97hz_H.264': {
+                name: 'Stardard    1080p   29.97Hz   H.264',
+                numerator: 1001,
+                denominator: 30000,
+                framesPerVideo: Number.MAX_VALUE,
+                pixels: {
+                    width: 1920,
+                    height: 1080
                 }
             }
         };
@@ -53,6 +63,14 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
             var runningOffset = 0;
             var clips =
                     _.chain(eventList)
+                    // Only include events who meet the minimum staring requirements.
+                    .filter(function(event) {
+                        try {
+                            return event.stars['acceleration:z'] >= formValues.stars;
+                        } catch (e) {
+                            return false; // default to no accept.
+                        }
+                    })
                     .sortBy(function(event) {
                         return event.startTime;
                     })
@@ -102,30 +120,24 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
             // Convert the HTML form into a key/value list.
             $form.find('input, select, textarea')
                     .not('[name=submitButton]') // This is definately a hack... Couldn't get it to work otherwise.
+                    .not('[type=radio]')
                     .each(function() {
                         var $this = $(this);
                         var key = $this.attr('name');
                         var value = $this.val();
                         formValues[key] = value;
                     });
-
+            $form.find('input[type=radio]:checked').each(function() {
+                var $this = $(this);
+                var key = $this.attr('name');
+                var value = $this.val();
+                formValues[key] = value;
+            });
 
             // Extract the filenames into an array.
-            formValues.files = [];
-            for (var i = 0; ; i++) {
-                var key = "file" + i;
-                var value = formValues[key];
-                if (typeof value === 'undefined') {
-                    // Not included in the form.
-                    break;
-                } else if (value === '') {
-                    // Default of empty string
-                } else {
-                    // Video path
-                    formValues.files.push(value);
-                }
-                delete formValues[key];
-            }
+            formValues.files = _.map(formValues.files.split(','), function(file) {
+                return file.replace(/^\s+|\s+$/g, ''); // trim whitespace
+            });
             sandbox.requestTemplate('fcpxml', function(fcpxmlTemplate) {
                 sandbox.get('dataset', {id: formValues.datasetId}, function(datasetList) {
                     sandbox.get('event',
