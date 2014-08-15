@@ -424,8 +424,6 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                         var $this = $(this);
                         var key = $this.attr('name');
                         var value = $this.val();
-                        var defaultValue = $this.data('default'); // Somewhere number defaults are sticking as numbers...
-                        defaultValue = typeof defaultValue === 'undefined' ? '' : defaultValue.toString();
                         formValues[key] = value;
                     });
 
@@ -477,6 +475,7 @@ define(['vendor/jquery', 'vendor/underscore', 'socketio', 'vendor/jquery.validat
                                     if (type.name === value.default) {
                                         type.selected = true;
                                     }
+                                    type.value = type.name; // Map so that the select statement works correctly.
                                     return type;
                                 });
                             }
