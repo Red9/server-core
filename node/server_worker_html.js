@@ -132,7 +132,7 @@ exports.init = function() {
             requireFromRoot('html/routes')(app, passport);
 
             app.use(function(req, res, next) {
-                res.status(404).render('404_error', {title: "Sorry, page not found"});
+                res.redirect('/404');
             });
 
             var server = http.createServer(app);

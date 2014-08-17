@@ -25,6 +25,15 @@ module.exports = function(app, passport) {
 
     app.get('/summarystatistics/:id', require('./summarystatistics').calculate);
 
+    app.get('/user/current', function(req, res, next) {
+        var user = req.session.passport.user;
+        if (typeof user !== 'undefined') {
+            res.json(user);
+        } else {
+            res.status(401).json({message: 'No authenticated user. Please log in.'});
+        }
+    });
+
 
     // Resources
     var common = requireFromRoot('api/routes/common');
