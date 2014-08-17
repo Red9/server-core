@@ -8,6 +8,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
+
         <link href="/css/bootstrap.css" rel="stylesheet">
         <link href="/css/bootstrap-theme.css" rel="stylesheet">
     </head>
@@ -25,25 +26,25 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li ng-show="user">
+                        <li ng-show="currentUser">
                             <a href="/upload/rnc">RNC</a>
                         </li>
                     </ul>
                     <ul class="nav navbar-nav">
-                        <li ng-show="user">
+                        <li ng-show="currentUser">
                             <a href="/bluetooth">Bluetooth</a>
                         </li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown" ng-show="user">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.displayName}}<b class="caret"></b></a>
+                        <li class="dropdown" ng-show="currentUser">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{currentUser.displayName}}<b class="caret"></b></a>
                             <ul class="dropdown-menu">
-                                <li><a href="/user/{{user.id}}">Profile</a></li>
+                                <li><a href="/user/me">Profile</a></li>
                                 <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
                             </ul>
                         </li>
-                        <li ng-hide="user">
-                            <a href="/login/authenticate">Sign In&nbsp;<span class="glyphicon glyphicon-log-in"></span></a>
+                        <li ng-hide="currentUser">
+                            <a href="/login/authenticate" target="_self">Sign In&nbsp;<span class="glyphicon glyphicon-log-in"></span></a>
                         </li>
                     </ul>
                 </div>
@@ -51,15 +52,12 @@
         </div>
 
         <div class="container">
+            <br/><br/><br/>
             <div class="alert alert-info">Careful: you're working on the development site</div>
 
-
-
-            <h1>Welcome</h1>
-
             <ul class="menu">
-                <li><a href="#/dataset/">Search dataset</a></li>
-                <li><a href="#/event/">Search event</a></li>
+                <li><a href="/dataset/">Search dataset</a></li>
+                <li><a href="/event/">Search event</a></li>
             </ul>
 
             <div ng-view></div>
@@ -88,6 +86,7 @@
 
         <script src="/js/vendor/angular.js"></script>
         <script src="/js/vendor/angular-route.js"></script>
+        <script src="/js/vendor/ui-bootstrap-tpls-0.11.0.js"></script>
         <script src="/js/singlepage/app.js"></script>
         <script src="/js/singlepage/services.js"></script>
         <script src="/js/singlepage/controllers.js"></script>
