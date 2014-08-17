@@ -71,7 +71,7 @@ define(['vendor/underscore'], function(_) {
 
         sandbox.colorMap = function(axis) {
             if (_.has(mappings, axis) === false) {
-                mappings[axis] = additionalColorsIndex;
+                mappings[axis] = additionalColors[additionalColorsIndex];
                 additionalColorsIndex = (additionalColorsIndex + 1) % additionalColors.length;
             }
             return mappings[axis];
