@@ -17,7 +17,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 name: 'Stardard    1080p   29.97Hz   H.264',
                 numerator: 1001,
                 denominator: 30000,
-                framesPerVideo: Number.MAX_VALUE,
+                framesPerVideo: 71623552*10,
                 pixels: {
                     width: 1920,
                     height: 1080
