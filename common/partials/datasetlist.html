@@ -1,9 +1,4 @@
-<h3>This is the dataset partial</h3>
-
-{{list.length}}
-
-
-<p class="text-right text-muted">{{list.length}} results found</p>
+<p class="text-right text-muted">{{datasetList.length}} results found</p>
 
 <div class="panel panel-default results">
 
@@ -26,16 +21,16 @@
             </thead>
 
             <tbody>
-                <tr ng-repeat="dataset in list">
+                <tr ng-repeat="dataset in datasetList| orderBy:'createTime':true">
                     <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
                     <td><a href="/user/{{dataset.owner.id}}">{{dataset.owner.displayName}}</a></td>
-                    <td>{{dataset.title | limitTo:30}} <a href="/dataset/{{dataset.id}}" class="pull-right">View <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
+                    <td>{{dataset.title| limitTo:30}} <a href="/dataset/{{dataset.id}}" class="pull-right" target="_self">View <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
                     <td>{{dataset.headPanel.startTime| date}}</td>
                     <td>{{dataset.headPanel.startTime - dataset.headPanel.endTime}}</td>
                     <td>{{dataset.createTime| date}}</td>
-                    <td><span class="badge">{{dataset.count.event}}</span></td>
-                    <td><span class="badge">{{dataset.count.video}}</span></td>
-                    <td><span class="badge">{{dataset.count.comment}}</span></td>
+                    <td><span class="badge">{{dataset.count.event > 0 ? dataset.count.event : ''}}</span></td>
+                    <td><span class="badge">{{dataset.count.video > 0 ? dataset.count.video : ''}}</span></td>
+                    <td><span class="badge">{{dataset.count.comment > 0 ? dataset.count.comment : ''}}</span></td>
                 </tr>
             </tbody>
         </table>

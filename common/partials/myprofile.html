@@ -1,0 +1,116 @@
+
+<h1><small>Your Profile</small></h1>
+<h1>{{user.displayName}}</h1>
+<h4>{{user.givenName}} {{user.familyName}}</h4>
+<h4>{{user.email}}</h4>
+<h4>{{user.id}}</h4>
+
+<h3>Preferred Layouts <small>You should set them the same!</small></h3>
+
+<ul>
+    <li ng-repeat="(path, layout) in user.preferredLayout">{{path}}: {{layout}}</li>
+</ul>
+
+<!--
+<div id="page_parameters" data-apiurl="{{apiUrl}}" data-actionurl="{{actionUrl}}" data-currentuser="{{user.id}}">
+
+    <script>
+
+        require(['vendor/jquery', 'vendor/underscore', 'sandbox'], function($, _, sandbox) {
+            $(document).ready(function() {
+                var myPlace = $('#userProfileArea');
+
+                //sandbox.actionUrl = $('#page_parameters').data('actionurl');
+                //sandbox.apiUrl = $('#page_parameters').data('apiurl');
+                //sandbox.currentUser = $('#page_parameters').data('currentuser');
+
+                //var currentUserId = $('#page_parameters').data('currentuser');
+                
+                sandbox.buildSandbox();
+
+                sandbox.get('user', {id: sandbox.currentUser}, function(users) {
+                    if (users.length !== 1) {
+                        return;
+                    }
+                    var user = users[0];
+                    sandbox.get('layout', {/*all*/}, function(layouts) {
+                        sandbox.requestTemplate('userprofile', function(template) {
+
+
+                            var layoutUrls = [
+                                '/event/:id',
+                                '/dataset/:id',
+                                '/video/:id'
+                            ]
+
+
+
+                            var layoutSelection =
+                                    _.reduce(layoutUrls, function(layoutList, url) {
+                                        var t = _.reduce(layouts, function(urlLayoutOptions, layout) {
+                                            var option = {
+                                                id: layout.id,
+                                                title: layout.title,
+                                                description: layout.description
+                                            }
+                                            if (user.preferredLayout[url] === layout.id) {
+                                                option.selected = true;
+                                            }
+                                            urlLayoutOptions.push(option);
+                                            return urlLayoutOptions;
+                                        }, []);
+
+                                        if (typeof user.preferredLayout[url] === 'undefined') {
+                                            t.push({
+                                                id: '',
+                                                title: '<none selected>',
+                                                description: 'Please select a valid layout.',
+                                                selected: true
+                                            });
+                                        }
+
+                                        layoutList.push({
+                                            url: url,
+                                            options: t
+                                        });
+                                        return layoutList;
+                                    }, []);
+
+                            //console.log('layoutSelection: ' + JSON.stringify(layoutSelection));
+
+                            myPlace.html(template({
+                                user: user,
+                                layouts: layoutSelection
+                            }));
+
+                            myPlace.find('select[data-name=layout]').change(function() {
+
+                                var layoutId = $(this).find('option:selected').val();
+                                var url = $(this).attr('name');
+
+                                user.preferredLayout[url] = layoutId;
+
+
+                                sandbox.update('user', user.id,
+                                        {
+                                            preferredLayout: user.preferredLayout
+                                        }, function(err) {
+                                    if (err) {
+                                        console.log('Error: ' + err);
+                                    }
+                                });
+
+
+                            });
+
+                        });
+
+                    });
+                });
+                console.log('Hello!');
+
+            });
+        });
+
+    </script>
+-->
