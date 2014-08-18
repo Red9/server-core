@@ -1,13 +1,17 @@
-<p class="text-right text-muted">{{datasetList.length}} results found</p>
+<div ng-show="datasetList.length === 0">
+    No results found.
+</div>
 
-<div class="panel panel-default results">
+<div ng-hide="datasetList">Loading datasets</div>    
 
+<div ng-show="datasetList.length > 0">
+    <p class="text-right text-muted">{{datasetList.length}} results found</p>
     <div class="table-responsive">
         <table class="table table-hover table-condensed">
             <thead>
             <th>
             <div class="btn-toolbar" role="toolbar"><div class="btn-group">
-                    <button class="btn btn-md btn-default"><span class="glyphicon glyphicon-trash"></span></button>
+                    <button class="btn btn-md btn-default" ng-click="deleteSelected(datasetList)"><span class="glyphicon glyphicon-trash"></span></button>
                 </div></div>
             </th>
             <th>Owner</th>
@@ -18,11 +22,12 @@
             <th>Evt.</th>
             <th>Vid.</th>
             <th>Com.</th>
+            <th></th>
             </thead>
 
             <tbody>
-                <tr ng-repeat="dataset in datasetList| orderBy:'createTime':true">
-                    <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
+                <tr ng-repeat-start="dataset in datasetList| orderBy:'createTime':true" class="ngFade">
+                    <td><input type="checkbox" ng-model="dataset.selected"></td>
                     <td><a href="/user/{{dataset.owner.id}}">{{dataset.owner.displayName}}</a></td>
                     <td>{{dataset.title| limitTo:30}} <a href="/dataset/{{dataset.id}}" class="pull-right" target="_self">View <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
                     <td>{{dataset.headPanel.startTime| date}}</td>
@@ -31,8 +36,17 @@
                     <td><span class="badge">{{dataset.count.event > 0 ? dataset.count.event : ''}}</span></td>
                     <td><span class="badge">{{dataset.count.video > 0 ? dataset.count.video : ''}}</span></td>
                     <td><span class="badge">{{dataset.count.comment > 0 ? dataset.count.comment : ''}}</span></td>
+                    <td>
+                        <span class="glyphicon glyphicon-plus" ng-hide="dataset.expanded" ng-click="dataset.expanded = true"></span>
+                        <span class="glyphicon glyphicon-minus" ng-show="dataset.expanded" ng-click="dataset.expanded = false"></span>
+                    </td>
+                </tr>
+                <tr ng-if="dataset.expanded" ng-repeat-end="">
+                    <td colspan="100">Details here</td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
+
+

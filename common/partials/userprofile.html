@@ -1,1 +1,11 @@
-<h2>User profile here</h2>
+<h1><small>User Profile</small></h1>
+<h1>{{user.displayName}}</h1>
+<h4>{{user.givenName}} {{user.familyName}}</h4>
+<h4>{{user.email}}</h4>
+<h4>{{user.id}}</h4>
+
+<h3>Preferred Layouts</h3>
+
+<ul>
+    <li ng-repeat="(path, layout) in user.preferredLayout">{{path}}: {{layout}}</li>
+</ul>
