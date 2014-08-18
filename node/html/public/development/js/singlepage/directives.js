@@ -1,8 +1,6 @@
 'use strict';
 
 /* Directives */
-
-
 angular.module('myApp.directives', [])
         .directive('appVersion', ['version', function(version) {
                 return function(scope, elm, attrs) {
@@ -16,16 +14,21 @@ angular.module('myApp.directives', [])
                     scope: {
                         datasetList: '='
                     },
-                    controller: function($scope) {
-                        $scope.hello = "Welcome message";
+                    controller: function($scope, _) {
+                        $scope.deleteSelected = function(list) {
+                            var selectedList = _.filter(list, function(resource){
+                                return resource.selected;
+                            });
+                            
+                            console.log('selectedList: ' + JSON.stringify(selectedList));
+                        };
                     },
                     link: function(scope, elem, attrs) {
                         console.log('datasetList');
                     }
                 };
             }])
-        .directive('datasetSearch', ['currentUser', 'datastore', function(currentUser, datastore) {
-                console.log('currentUser: ' + JSON.stringify(currentUser.getCurrentUser()));
+        .directive('datasetSearch', ['datastore', function(datastore) {
                 return {
                     restrict: 'E',
                     scope: {

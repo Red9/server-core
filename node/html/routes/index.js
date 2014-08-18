@@ -6,30 +6,14 @@ function IsAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        res.redirect('/about');
+        res.redirect(401, '/page/about');
     }
 }
 
 
 module.exports = function(app, passport) {
 
-    //app.get('/about', require('./about').get);
-
-    //app.get('/login', require('./login').get);
-    //app.get('/logout', require('./logout').get);
-
-//    app.get('/login/authenticate',
-//            function(req, res, next) {
-//                req.body.username = 'offline.user';
-//                req.body.password = 'password';
-//                next();
-//            },
-//            passport.authenticate('local'),
-//            function(req, res) {
-//                console.log('Success(?)');
-//                res.redirect('/');
-//            });
-
+    // TODO(SRLM): If the authentication fails send a 401...
 
     app.get('/login/authenticate', function(req, res, next) {
         if (config.offline === true) {
@@ -48,35 +32,31 @@ module.exports = function(app, passport) {
     app.get('/login/google/return', passport.authenticate('google',
             {
                 successRedirect: '/',
-                failureRedirect: '/login?failed_login=true'
+                failureRedirect: '/?loginfailure=true'
             }));
 
     // --------------------------------------------
     // Authentication Barrier
     // --------------------------------------------
-
-
-
     var angularPageList = [
         '/',
         '/dataset/',
         '/event/',
-        '/about',
-        '/login',
         '/user/:id',
-        '/404',
-        '/monitor',
-        '/logout'
+        '/page/:name'
     ];
 
-    _.each(angularPageList, function(path) {
-        app.get(path, function(req, res, next) {
-            res.sendFile('/html/views/index.html', {root: './'});
-        });
-    });
+    function sendIndex(req, res, next) {
+        // Send the user information so that the app doesn't have to make an
+        // initial JSON request.
+        if (typeof req.session.passport.user !== 'undefined') {
+            res.cookie('currentUser', JSON.stringify(req.session.passport.user));
+        }
+        res.sendFile('/html/views/index.html', {root: './'});
+    }
 
-    app.get('/404', function(req, res, next) {
-        res.status(404).sendFile('/html/views/index.html', {root: './'});
+    _.each(angularPageList, function(path) {
+        app.get(path, sendIndex);
     });
 
     app.get('/dataset/:id', IsAuthenticated, require('./spa').getDataset);

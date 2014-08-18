@@ -105,11 +105,14 @@ exports.init = function() {
                 app.use(resource.rootUrl, function(req, res, next) {
                     express.static(__dirname + path)(req, res, next);
                 });
+                // Catch all the requests for non-existant static resources.
+                app.get(resource.rootUrl + '/:anything?*', function(req, res, next) {
+                    res.status(404).json({message: 'Could not find that static resource.'});
+                });
             });
 
             // We don't want to log static files, so logger goes after.
             app.use(logger.logger());
-
             app.use(require('body-parser').urlencoded(
                     {
                         extended: true
@@ -132,7 +135,7 @@ exports.init = function() {
             requireFromRoot('html/routes')(app, passport);
 
             app.use(function(req, res, next) {
-                res.redirect('/404');
+                res.redirect(404, '/page/404');
             });
 
             var server = http.createServer(app);
