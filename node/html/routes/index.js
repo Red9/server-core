@@ -52,7 +52,7 @@ module.exports = function(app, passport) {
         if (typeof req.session.passport.user !== 'undefined') {
             res.cookie('currentUser', JSON.stringify(req.session.passport.user));
         }
-        res.sendFile('/html/views/index.html', {root: './'});
+        res.sendFile('/html/public/index.html', {root: './'});
     }
 
     _.each(angularPageList, function(path) {

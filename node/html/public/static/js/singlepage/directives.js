@@ -6,7 +6,7 @@ angular.module('redApp.directives', [])
             return {
                 restrict: 'E',
                 templateUrl: function(element, attributes) {
-                    return '/partials/' + attributes.resourceType + 'list.html';
+                    return '/static/partials/' + attributes.resourceType + 'list.html';
                 },
                 scope: {
                     resourceFilters: '=',
@@ -135,7 +135,7 @@ angular.module('redApp.directives', [])
                 scope: {
                     searchFilters: '='
                 },
-                templateUrl: '/partials/datasetsearch.html',
+                templateUrl: '/static/partials/datasetsearch.html',
                 controller: function($scope, $location) {
 
                     $scope.search = {};

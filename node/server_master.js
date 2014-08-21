@@ -22,29 +22,7 @@ if (cluster.isMaster) {
     if (config.release === true && config.serverType === 'html') {
         // Only use nodetime on the deployed server
         require('nodetime').profile(config.nodetimeProfile);
-
-        // Only optimize static JS resources on the deployed server.
-        var requirejs = require('requirejs');
-        log.info('Beginning Static File Optimization.');
-        requirejs.optimize({
-            appDir: 'html/public/development/js',
-            dir: 'html/public/release/js',
-            uglify: {
-                except: ["$super"] // Don't modify the "$super" text, needed to make Rickshaw pass optimization.
-            }
-        },
-        function(err) {
-            if (err) {
-                log.error('Static file optimization error: ' + err);
-                process.exit(1);
-            } else {
-                log.info('Using optimized static files.');
-            }
-        });
     }
-
-
-
 
     underscore.each(config.ports[config.serverType], function(port) {
         var worker = cluster.fork();
