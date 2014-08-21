@@ -43,10 +43,10 @@ exports.init = function() {
             var staticPath = config.clientDirectory;
 
             if (config.release === true) {
-                //app.use(require('serve-favicon')(path.join(__dirname, 'html/public/static/images/favicon.ico')));
                 staticPath = path.join(staticPath, 'release');
+                app.use(require('serve-favicon')(path.join(staticPath, '/static/images/favicon.ico')));
             } else {
-                //app.use(require('serve-favicon')(path.join(__dirname, 'html/public/static/images/favicon.localdev.ico')));
+                app.use(require('serve-favicon')(path.join(staticPath, '/static/images/favicon.localdev.ico')));
             }
 
             app.use(require('compression')());

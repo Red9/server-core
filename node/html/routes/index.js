@@ -3,6 +3,9 @@ var _ = require('underscore')._;
 var config = requireFromRoot('config');
 var path = require('path');
 
+var indexFilename = path.join(config.clientDirectory, config.release ? 'release/index.html' : 'index.html');
+
+
 function IsAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         next();
@@ -53,7 +56,8 @@ module.exports = function(app, passport) {
         if (typeof req.session.passport.user !== 'undefined') {
             res.cookie('currentUser', JSON.stringify(req.session.passport.user));
         }
-        res.sendFile(path.join(config.clientDirectory, 'index.html'));
+
+        res.sendFile(indexFilename);
     }
 
     _.each(angularPageList, function(path) {
