@@ -9,8 +9,10 @@
 
         <base href="/">
 
+        <!-- build:css /static/css/app.css -->
         <link href="/static/css/bootstrap.css" rel="stylesheet">
         <link href="/static/css/bootstrap-theme.css" rel="stylesheet">
+        <!-- endbuild -->
         <style type="text/css">
             .ngFade.ng-enter { transition: 0.1s linear all; opacity: 0;}
             .ngFade.ng-enter-active {opacity: 1;}
@@ -86,10 +88,13 @@
             <div ng-view></div>
         </div>
 
-        
+        <!-- build:js /static/js/vendor1.js -->
         <script src="/static/js/vendor/spin.js"></script>
         <script src="/static/js/vendor/underscore_no_require.js"></script>
         <script src="/static/js/vendor/angular.js"></script>
+        <!-- endbuild -->
+        
+        <!-- build:js /static/js/vendor2.js -->
         <script src="/static/js/vendor/angular-animate.js"></script>
         <script src="/static/js/vendor/angular-resource.js"></script>
         <script src="/static/js/vendor/angular-route.js"></script>
@@ -97,10 +102,14 @@
         <script src="/static/js/vendor/angular-spinner.js"></script>
         <script src="/static/js/vendor/angular-filter.js"></script>
         <script src="/static/js/vendor/ui-bootstrap-tpls-0.11.0.js"></script>
+        <!-- endbuild -->
+        
+        <!-- build:js /static/js/client.js -->
         <script src="/static/js/singlepage/app.js"></script>
         <script src="/static/js/singlepage/services.js"></script>
         <script src="/static/js/singlepage/controllers.js"></script>
         <script src="/static/js/singlepage/filters.js"></script>
         <script src="/static/js/singlepage/directives.js"></script>
+        <!-- endbuild -->
     </body>
 </html>

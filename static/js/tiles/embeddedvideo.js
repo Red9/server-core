@@ -22,12 +22,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
         var $videoNextEventSelect;
         var lastHoverSync;
         var lastHoverTime;
+        var hoverTime;
 
         function init() {
             reset();
             setupTile();
             tile.addListener('totalState-resource-focused', resourceFocused);
-            tile.addListener('totalState-hover-time', hoverTime);
+            tile.addListener('totalState-hover-time', hoverTimeUpdate);
             tile.setTitle('videos');
             doneCallback();
         }
@@ -54,6 +55,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     = $videoNextEventCheckbox
                     = $videoNextEventSelect
                     = lastHoverTime
+                    = hoverTime
                     = undefined;
         }
 
@@ -437,7 +439,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
             }
         }
 
-        function hoverTime(event, parameters) {
+        function hoverTimeUpdate(event, parameters) {
             hoverTime = parameters.hoverTime;
             if(videoList.length > 0){
                 // If there is no video then we don't want to update the dashboard display...

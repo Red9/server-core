@@ -35,11 +35,12 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                     tile.place.find('button').on('click', function() {
                         var $this = $(this);
                         var layout;
+                        var id;
 
 
                         if ($this.data('name') === 'apply') {
                             var pl = sandbox.currentUser.preferredLayout;
-                            var id = tile.place.find('select option:selected').val();
+                            id = tile.place.find('select option:selected').val();
                             pl['/event/:id'] = id;
                             pl['/dataset/:id'] = id;
                             pl['/video/:id'] = id;
@@ -58,7 +59,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                             tile.setTitle('Create new layout');
                             layout = {};
                         } else {
-                            var id = tile.place.find('select option:selected').val();
+                            id = tile.place.find('select option:selected').val();
                             layout = _.find(layouts, function(l) {
                                 return l.id === id;
                             });

@@ -59,12 +59,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
             var maxY = -9007199254740992;
             var minZ = 9007199254740992;
             var maxZ = -9007199254740992;
+            var x, y, z;
 
 
             var xCount = 0;
             var previousX = -9007199254740992;
             for (var i = 0; i < data.length; i++) {
-                var x = data[i][0];
+                x = data[i][0];
                 if (x !== previousX) {
                     xCount++;
                     previousX = x;
@@ -76,7 +77,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
                     maxX = x;
                 }
 
-                var y = data[i][1];
+                y = data[i][1];
                 if (y < minY) {
                     minY = y;
                 }
@@ -84,7 +85,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
                     maxY = y;
                 }
 
-                var z = data[i][2];
+                z = data[i][2];
                 if (z < minZ) {
                     minZ = z;
                 }
@@ -93,15 +94,15 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/d3'], function($, _, d3) {
                 }
             }
 
-            var x = d3.scale.linear()
+            x = d3.scale.linear()
                     .range([0, width])
                     .domain([minX, maxX]);
 
-            var y = d3.scale.linear()
+            y = d3.scale.linear()
                     .range([height, 0]) // reverse so that 0 is at the bottom
                     .domain([minY, maxY]);
 
-            var z = d3.scale.log().domain([minZ, maxZ]);
+            z = d3.scale.log().domain([minZ, maxZ]);
             z.domain([0, 0.5, 1].map(z.invert));
             z.range(["green", "yellow", "red"]);
 

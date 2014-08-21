@@ -9,6 +9,8 @@
         "grunt-contrib-uglify": "latest",
         "grunt-contrib-jshint": "latest",
         "grunt-contrib-clean": "latest",
-        "grunt-ng-annotate": "latest"
+        "grunt-ng-annotate": "latest",
+        "grunt-usemin": "latest",
+        "grunt-contrib-cssmin": "latest"
     }
 }

@@ -51,20 +51,20 @@
             if (!milliseconds) {
                 return '';
             }
-            var date = new Date(milliseconds);
+            var givenDate = new Date(milliseconds);
             var today = new Date();
             today.setHours(0, 0, 0, 0);
             var yesterday = new Date();
             yesterday.setHours(0, 0, 0, 0);
             yesterday.setDate(today.getDate() - 1);
-            if (date > today) {
+            if (givenDate > today) {
                 return "Today";
             }
-            else if (date > yesterday) {
+            else if (givenDate > yesterday) {
                 return "Yesterday";
             }
 
-            return moment(date).format('YYYY-MM-DD');
+            return moment(givenDate).format('YYYY-MM-DD');
         }
         function time(milliseconds, precise) {
             if (precise === "precise") {
