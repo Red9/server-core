@@ -152,7 +152,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/handlebars',
         requestTemplate: function(name, callback) {
             if (typeof sandbox.templates[name] === 'undefined') {
                 $.ajax({
-                    url: '/templates/' + name + '.html',
+                    url: '/static/templates/' + name + '.html',
                     datatype: 'text/javascript',
                     success: function(response, status, jqXHR) {
                         sandbox.templates[name] = Handlebars.compile(response);

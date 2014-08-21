@@ -1,6 +1,6 @@
 requirejs.config({
     noGlobal: true,
-    baseUrl: "/js",
+    baseUrl: "/static/js",
     paths: {
         customHandlebarsHelpers: 'utilities/customHandlebarsHelpers',
         socketio: (function() {
