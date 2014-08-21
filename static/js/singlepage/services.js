@@ -44,7 +44,7 @@ angular.module('redApp.services', [])
                     };
 
                     var modalInstance = $modal.open({
-                        templateUrl: '/partials/modals/areyousure.html',
+                        templateUrl: '/static/partials/modals/areyousure.html',
                         controller: ModalInstanceCtrl,
                         size: 'sm'
                     });
