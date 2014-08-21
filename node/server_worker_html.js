@@ -40,16 +40,19 @@ exports.init = function() {
             app.set('view engine', 'html');
             app.engine('html', hbs.__express); // Handlebars templating
 
+            var staticPath = config.clientDirectory;
+
             if (config.release === true) {
-                app.use(require('serve-favicon')(path.join(__dirname, 'html/public/static/images/favicon.ico')));
+                //app.use(require('serve-favicon')(path.join(__dirname, 'html/public/static/images/favicon.ico')));
+                staticPath = path.join(staticPath, 'release');
             } else {
-                app.use(require('serve-favicon')(path.join(__dirname, 'html/public/static/images/favicon.localdev.ico')));
+                //app.use(require('serve-favicon')(path.join(__dirname, 'html/public/static/images/favicon.localdev.ico')));
             }
 
             app.use(require('compression')());
             app.use(require('method-override')());
 
-            app.use('/static', express.static(__dirname + '/html/public/static'));
+            app.use('/static', express.static(path.join(staticPath, 'static')));
             // Catch all the requests for non-existant static resources.
             // If we don't go through this hoop then the 404 redirect to the fancy
             // html page will mess up our passport authorization and prevent
@@ -72,7 +75,7 @@ exports.init = function() {
             var passport = extra.initializeSession(app, true);
 
             // TODO(SRLM): Figure out a better way to share code between client and server
-            var hbsHelpers = requireFromRoot('html/public/static/js/utilities/customHandlebarsHelpers');
+            var hbsHelpers = require(path.join(config.clientDirectory, 'static/js/utilities/customHandlebarsHelpers'));
             hbsHelpers.RegisterHelpers(hbs, require('moment'));
 
             // Store some local variables for all rendered templates.

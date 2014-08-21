@@ -39,3 +39,5 @@ exports.rncDirectory = '/home/clewis/consulting/red9/dev-website/upload/rnc';
 exports.offline = false;
 
 exports.cookieDomain = '.localdev.redninesensor.com';
+
+exports.clientDirectory = '/home/clewis/consulting/red9/dev-website-client';
