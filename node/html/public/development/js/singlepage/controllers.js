@@ -1,8 +1,6 @@
 'use strict';
 
-/* Controllers */
-
-angular.module('myApp.controllers', [])
+angular.module('redApp.controllers', [])
         .controller('pageController', function($scope, $location, $cookieStore) {
             $scope.logout = function() {
                 $scope.currentUser = null;
@@ -10,47 +8,28 @@ angular.module('myApp.controllers', [])
                 $location.path('/page/about');
             };
         })
-        .controller('searchDataset', function($scope, datastore) {
-            $scope.searchFilters = {};
-            $scope.datasetList = null;
+        .controller('search', function($scope, $location) {
+            $scope.searchFilters = $location.search();
 
             $scope.$watch('searchFilters', function(newValue, oldValue) {
-                var parameters = {
-                    part: 'title,id,createTime,headPanel.startTime,headPanel.endTime,owner.id,owner.displayName,count',
-                    count: true,
-                    expand: 'headPanel,owner'
-                };
-                $scope.datasetList = null;  // Clear variable to indicate loading
-                datastore.get('dataset', angular.extend(parameters, newValue), function(data) {
-                    $scope.datasetList = data;
-                });
-
-            });
-        })
-        .controller('searchEvent', function($scope, datastore) {
-            $scope.searchFilters = {};
-
-            $scope.eventList = null;
-
-            $scope.$watch('searchFilters', function(newValue, oldValue) {
-                var parameters = {
-                    part: 'type,id,startTime,endTime'
-                };
-
-                $scope.eventList = null; // Clear variable to indicate loading
-                datastore.get('event', angular.extend(parameters, newValue), function(data) {
-                    $scope.eventList = data;
-                });
-
+                if (Object.keys(newValue).length > 0) {
+                    // Set the search keys
+                    $location.search(newValue);
+                } else {
+                    // Clear the search keys
+                    $location.url($location.path());
+                }
+                //$scope.datasetList = null;
+                $scope.resourceFilters = $scope.searchFilters;
             });
         })
         .controller('myProfile',
                 function($scope) {
                 })
         .controller('userProfile',
-                function($scope, $routeParams, datastore) {
-                    datastore.get('user', {id: $routeParams['id']}, function(data) {
-                        $scope.user = data[0];
+                function($scope, $routeParams, api) {
+                    api.user.get({id: $routeParams['id']}, function(user) {
+                        $scope.user = user;
                     });
                 })
         .controller('homeController',

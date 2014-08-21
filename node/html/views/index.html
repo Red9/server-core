@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="myApp" class="no-js">
+<html lang="en" ng-app="redApp" class="no-js">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -14,6 +14,20 @@
         <style type="text/css">
             .ngFade.ng-enter { transition: 0.1s linear all; opacity: 0;}
             .ngFade.ng-enter-active {opacity: 1;}
+
+            // Taken from http://stackoverflow.com/a/13754758/2557842
+            .input-mini { width: 75px; }
+            .input-small { width: 90px; }
+            .input-medium { width: 150px; }
+            .input-large { width: 210px; }
+            .input-xlarge { width: 270px; }
+            .input-xxlarge { width: 530px; }
+
+            .form-control-inline {
+                min-width: 0;
+                width: auto;
+                display: inline;
+            }
         </style>
 
     </head>
@@ -50,14 +64,14 @@
                                         </div>
                                     </form>-->
                     <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown" ng-show="currentUser">
+                        <li class="dropdown" ng-if="currentUser">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{currentUser.displayName}}<b class="caret"></b></a>
                             <ul class="dropdown-menu">
                                 <li><a href="/user/me">Profile</a></li>
                                 <li><a href="" ng-click="logout()"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
                             </ul>
                         </li>
-                        <li ng-hide="currentUser">
+                        <li ng-if="!currentUser">
                             <a href="/login/authenticate" target="_self">Sign In&nbsp;<span class="glyphicon glyphicon-log-in"></span></a>
                         </li>
                     </ul>
@@ -67,36 +81,20 @@
 
         <div class="container">
             <br/><br/><br/>
-            <div class="alert alert-info" ng-show="developmentSite">Careful: you're working on the development site</div>
+            <div class="alert alert-info" ng-if="developmentSite">Careful: you're working on the development site</div>
 
             <div ng-view></div>
-
-
-        </div>
-        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
-
-        <br />
-        <br />
-
-        <!-- Navbar "fixed bottom" taken from http://stackoverflow.com/a/19231861-->
-        <div class="navbar" style="margin-bottom:0px;margin-left:0px;margin-right:0px;clear:both;">
-            <div class="navbar-inner">
-                <div class="width-constraint clearfix">
-                    <p class="pull-left muted credit">&nbsp;&nbsp;&nbsp;Total State: Motion analytics platform</p>
-                    <p class="pull-right muted credit">©2013 <a href="/about">RedNine</a>. Designed by <a target="_blank" href="mailto:srlm@redninesensor.com">srlm</a> &nbsp;&nbsp;&nbsp;
-                    </p>
-                </div>
-            </div>
         </div>
 
-
-
+        <script src="/js/vendor/spin.js"></script>
         <script src="/js/vendor/underscore_no_require.js"></script>
         <script src="/js/vendor/angular.js"></script>
         <script src="/js/vendor/angular-animate.js"></script>
         <script src="/js/vendor/angular-resource.js"></script>
         <script src="/js/vendor/angular-route.js"></script>
         <script src="/js/vendor/angular-cookies.js"></script>
+        <script src="/js/vendor/angular-spinner.js"></script>
+        <script src="/js/vendor/angular-filter.js"></script>
         <script src="/js/vendor/ui-bootstrap-tpls-0.11.0.js"></script>
         <script src="/js/singlepage/app.js"></script>
         <script src="/js/singlepage/services.js"></script>

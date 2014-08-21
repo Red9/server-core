@@ -1,34 +1,61 @@
-<div ng-show="eventList.length === 0">
+<div ng-if="resourceList.length === 0">
     No results found.
 </div>
 
-<div ng-hide="eventList">Loading events</div>    
+<div ng-if="resourceList === null">
+    <span us-spinner></span>
+</div>    
 
-<div ng-show="eventList.length > 0">
-    <p class="text-right text-muted">{{eventList.length}} results found</p>
-    <div class="panel panel-default results">
-        <div class="table-responsive">
-            <table class="table table-hover table-condensed">
-                <thead>
-                <th>
-                <div class="btn-toolbar" role="toolbar"><div class="btn-group">
-                        <button class="btn btn-md btn-default"><span class="glyphicon glyphicon-trash"></span></button>
-                    </div></div>
-                </th>
-                <th>Type</th>
-                <th>Started</th>
-                <th>Duration</th>
-                </thead>
+<div ng-if="resourceList.length > 0">
 
-                <tbody>
-                    <tr ng-repeat="event in eventList| orderBy:'startTime':true" class="ngFade">
-                        <td><input type="checkbox" id='selectCheckbox' value="\{{id}}"></td>
-                        <td>{{event.type| limitTo:30}} <a href="/event/{{event.id}}" class="pull-right">View <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
-                        <td>{{event.startTime| date}}</td>
-                        <td>{{event.startTime - event.endTime}}</td>
-                    </tr>
-                </tbody>
-            </table>
+
+    <!--    <div ng-repeat="(datasetId, eventList) in resourceList | groupBy:'datasetId'">
+            .{{datasetId}}<br/>
+        </div>-->
+
+    <div class="row">
+        <div class="col-xs-9">
+            <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group">
+                    <button class="btn btn-md btn-default" ng-click="deleteSelected(resourceList)"><span class="glyphicon glyphicon-trash"></span></button>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-2">
+            <p class="text-muted">{{resourceList.length}} results found</p>
+        </div>
+        <div class="col-xs-1">
+            <select ng-model="resourcePages.itemsPerPage" class="form-control form-control-inline">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
         </div>
     </div>
+
+
+
+    <div class="table-responsive">
+        <table class="table table-hover table-condensed">
+            <thead>
+            <th></th>
+            <th>Type</th>
+            <th>Started</th>
+            <th>Duration</th>
+            </thead>
+
+            <tbody>
+                <tr ng-repeat="event in resourcePage" class="ngFade">
+                    <td><input type="checkbox" ng-model="event.selected"></td>
+                    <td>{{event.type| limitTo:40}} <a href="/event/{{event.id}}" class="pull-right">View <span class="glyphicon glyphicon-circle-arrow-right"></span></a></td>
+                    <td>{{event.startTime| date}}</td>
+                    <td>{{event.endTime - event.startTime| duration}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    <pagination total-items="resourceList.length" ng-model="resourcePages.currentPage" items-per-page="resourcePages.itemsPerPage" max-size="resourcePages.maxSize" boundary-links="true"></pagination>
 </div>
