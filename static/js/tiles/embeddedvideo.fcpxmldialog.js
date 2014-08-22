@@ -17,7 +17,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 name: 'Stardard    1080p   29.97Hz   H.264',
                 numerator: 1001,
                 denominator: 30000,
-                framesPerVideo: 71623552*10,
+                framesPerVideo: 71623552 * 10,
                 pixels: {
                     width: 1920,
                     height: 1080
@@ -37,6 +37,8 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
         }
 
         function outputFCPXML(formValues, fcpxmlTemplate, eventList, video, dataset) {
+            console.log('formValues.tight: ' + formValues.tight);
+
             var framesPerVideo = videoTypes[formValues.videoType].framesPerVideo;
             var numerator = videoTypes[formValues.videoType].numerator;
             var denominator = videoTypes[formValues.videoType].denominator;
@@ -49,7 +51,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
 
             var assets = _.map(formValues.files, function(filename, index) {
                 return {
-                    ref: 'r' + (index + 2),
+                    ref: 'r' + (index + 3),
                     source: filename.replace(/ /g, '%20'),
                     start: index * framesPerVideo,
                     duration: framesPerVideo
@@ -66,7 +68,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                     // Only include events who meet the minimum staring requirements.
                     .filter(function(event) {
                         try {
-                            return event.stars['acceleration:z'] >= formValues.stars;
+                            // Make sure that we get exactly the event type ('Wave' vs 'wave' vs 'Wave: Right')
+                            return (formValues.type === event.type || typeof formValues.tight === 'undefined') &&
+                                    (formValues.stars === 'any' || event.stars['acceleration:z'] >= formValues.stars);
                         } catch (e) {
                             return false; // default to no accept.
                         }
@@ -74,7 +78,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                     .sortBy(function(event) {
                         return event.startTime;
                     })
-                    .map(function(event) {
+                    .map(function(event, index, list) {
                         var durationFrames = frameCorrected((event.endTime - event.startTime) / 1000 * denominator);
                         var startFramesTotal = frameCorrected((event.startTime - video.startTime) / 1000 * denominator);
 
@@ -84,13 +88,31 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                             return asset.start <= startFramesTotal;
                         });
 
+                        var startFrames = startFramesTotal - asset.start;
+
+                        var distance = 'unknown';
+                        try {
+                            console.log('event.summaryStatistics.static.route: ' + JSON.stringify(event.summaryStatistics.route, null, '  '));
+                            distance = Math.round(event.summaryStatistics.static.route.path.distance.value);
+                        } catch (e) {
+                        }
+
+                        var title = {
+                            name: event.type + ' ' + (index + 1) + ' of ' + list.length,
+                            textA: event.stars['acceleration:z'] + ' stars',
+                            textB: distance + ' meters',
+                            offset: startFrames,
+                            duration: '181181'
+                        };
+
                         var result = {
                             name: event.type + ' ' + event.id,
                             offsetFrames: runningOffset,
                             durationFrames: durationFrames,
-                            startFrames: startFramesTotal - asset.start,
+                            startFrames: startFrames,
                             video: asset,
-                            denominator: denominator
+                            denominator: denominator,
+                            title: title
                         };
                         runningOffset += durationFrames;
                         return result;
@@ -121,6 +143,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
             $form.find('input, select, textarea')
                     .not('[name=submitButton]') // This is definately a hack... Couldn't get it to work otherwise.
                     .not('[type=radio]')
+                    .not('[type=checkbox]')
                     .each(function() {
                         var $this = $(this);
                         var key = $this.attr('name');
@@ -128,6 +151,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                         formValues[key] = value;
                     });
             $form.find('input[type=radio]:checked').each(function() {
+                var $this = $(this);
+                var key = $this.attr('name');
+                var value = $this.val();
+                formValues[key] = value;
+            });
+
+            $form.find('input[type=checkbox]:checked').each(function() {
                 var $this = $(this);
                 var key = $this.attr('name');
                 var value = $this.val();

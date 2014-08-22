@@ -12,6 +12,16 @@
         </div>
 
         <div class="form-group">
+            <label for="tight">Tight Event Type</label>
+            <div class="checkbox">
+                <label for="tight">
+                    <input type="checkbox" name="tight" value="true" checked>
+                    Restrict event select to exact type match.
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
             <label class="control-label" for="stars">Event Stars</label>
             <div>
                 <div class="radio">
@@ -42,6 +52,12 @@
                     <label>
                         <input type="radio" name="stars" value="1">
                         {{{ratingStars 1}}} and up
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="stars" value="any">
+                        Any stars
                     </label>
                 </div>
             </div>
