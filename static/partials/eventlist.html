@@ -13,6 +13,7 @@
             <div class="btn-group">
                 <label class="btn btn-primary" ng-model="resultDisplay" btn-radio="'table'">Table</label>
                 <label class="btn btn-primary" ng-model="resultDisplay" btn-radio="'grid'">Grid</label>
+                <label class="btn btn-primary" ng-model="resultDisplay" btn-radio="'cse'">CSE List</label>
             </div>
         </div>
         <div class="col-xs-2">
@@ -95,5 +96,12 @@
 
 
         <pagination total-items="resourceList.length" ng-model="resourcePages.currentPage" items-per-page="resourcePages.itemsPerPage" max-size="resourcePages.maxSize" boundary-links="true"></pagination>
+    </div>
+
+
+    <div ng-if="resultDisplay === 'cse'">
+        <div ng-repeat="event in resourceList" style="font-family:monospace">
+            {{event.id}},{{event.type}}<span ng-repeat="(column, value) in event.summaryStatistics.static.cse.axes">,{{value}}</span><br/>
+        </div>        
     </div>
 </div>

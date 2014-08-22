@@ -24,7 +24,7 @@
                                 expand: 'headPanel,owner'
                             },
                             event: {
-                                part: 'type,id,startTime,endTime,datasetId'
+                                part: 'type,id,startTime,endTime,datasetId,summaryStatistics.static.cse.axes'
                             }
 
                         };
