@@ -8,10 +8,14 @@
 
 <div ng-if="resourceList.length > 0">
 
-
-    <!--    <div ng-repeat="(datasetId, eventList) in resourceList | groupBy:'datasetId'">
-            .{{datasetId}}<br/>
-        </div>-->
+<!--    <div ng-init="groups = (resourceList | groupBy: 'datasetId')"></div>
+    <div ng-repeat="(datasetId, eventList) in groups">
+        {{datasetId}}<br/>
+        <div ng-init="types = (eventList | groupBy: 'type')"></div>
+        <div ng-repeat="(type, events) in types">
+            {{type}}
+        </div>
+    </div>-->
 
     <div class="row">
         <div class="col-xs-9">

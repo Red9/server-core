@@ -13,7 +13,9 @@
              *   - delete
              *  
              */
-            .factory('api', function($resource, $http, apiUrl) {
+            .factory('api', function($resource, $http, $location) {
+                var apiUrl = 'http://api.' + $location.host()
+                
                 $http.defaults.withCredentials = true;
 
                 var apiOptions = {

@@ -23,7 +23,6 @@
         'redApp.controllers'
 
     ])
-            .constant('apiUrl', 'http://api.localdev.redninesensor.com')
             .config(function($routeProvider, $locationProvider) {
 
 
