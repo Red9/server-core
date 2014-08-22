@@ -15,6 +15,7 @@
                     },
                     controller: function($scope, $location, $q, _, api, confirmDialog) {
                         $scope.resourceList = null;
+                        $scope.resultDisplay = 'table';
 
                         var parameters = {
                             dataset: {
@@ -126,6 +127,54 @@
 
                                 $location.url(url);
                             };
+                        } else if ($scope.resourceType === 'event') {
+                            $scope.datasetGroups = null;
+                            $scope.$watchCollection('resourceList', function(newValue) {
+                                $scope.datasetGroups = _.chain(newValue)
+                                        .groupBy('datasetId')
+                                        .reduce(function(memo, eventList, datasetId, index) {
+                                            console.log('index: ' + index);
+                                            if (memo[memo.length - 1].length === 3) {
+                                                memo.push([]);
+                                            }
+
+                                            var sumDuration = 0;
+
+                                            var groupedEventList = _.chain(eventList)
+                                                    .groupBy('type')
+                                                    .map(function(events, type) {
+                                                        var duration = _.reduce(events, function(memo, event) {
+                                                            memo += (event.endTime - event.startTime);
+                                                            return memo;
+                                                        }, 0);
+
+                                                        sumDuration += duration;
+
+                                                        return {
+                                                            type: type,
+                                                            duration: duration,
+                                                            count: events.length
+                                                        };
+                                                    })
+                                                    .map(function(eventSummary, type) {
+                                                        eventSummary.percent = (eventSummary.duration / sumDuration) * 100;
+                                                        eventSummary.percentString = eventSummary.percent + '%';
+                                                        return eventSummary;
+                                                    })
+                                                    .sortBy(function(eventSummary) {
+                                                        return eventSummary.type;
+                                                    })
+                                                    .value();
+
+
+                                            memo[memo.length - 1].push({
+                                                datasetId: datasetId,
+                                                eventList: groupedEventList
+                                            });
+                                            return memo;
+                                        }, [[]])
+                                        .value();
+                            });
                         }
                     }
                 };
