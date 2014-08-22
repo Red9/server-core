@@ -42,4 +42,4 @@ exports.offline = false;
 
 exports.cookieDomain = '.redninesensor.com';
 
-exports.clientDirectory = homeDir + '/dev-website-client';
+exports.clientDirectory = homeDir + '/website-client';
