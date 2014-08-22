@@ -35,6 +35,16 @@
                     })
             .controller('homeController',
                     function($scope) {
+                        $scope.message = 'hello';
+                        $scope.datasetFilters = {
+                            user: {
+                                'owner.id': $scope.currentUser.id,
+                                'createTime.more': Date.now() - 1000 * 60 * 60 * 24 * 30 * 3
+                            },
+                            allRecent: {
+                                'createTime.more': Date.now() - 1000 * 60 * 60 * 24 * 30 * 1
+                            }
+                        };
                     });
 
 })();
