@@ -393,6 +393,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                             datasetId: sandbox.getCurrentDatasetId()
                         });
             });
+            
+            tile.addToBar("importFCPXML", "", "glyphicon-import", function() {
+                sandbox.showModal('embeddedvideo.fcpxmlimportdialog',
+                        {
+                            datasetId: sandbox.getCurrentDatasetId()
+                        });
+            });
 
             tile.place.find('.long-list-wrapper')
                     .on('click', '[data-name=deletevideobutton]', function() {
