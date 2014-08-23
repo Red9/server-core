@@ -1,33 +1,23 @@
+var _ = require('underscore')._;
+
 var config = requireFromRoot('config');
+var path = require('path');
+
+var indexFilename = path.join(config.clientDirectory, config.release ? 'release/index.html' : 'index.html');
+
 
 function IsAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        res.redirect('/about');
+        res.redirect(401, '/page/about');
     }
 }
 
 
 module.exports = function(app, passport) {
 
-    app.get('/about', require('./about').get);
-
-    app.get('/login', require('./login').get);
-    app.get('/logout', require('./logout').get);
-
-//    app.get('/login/authenticate',
-//            function(req, res, next) {
-//                req.body.username = 'offline.user';
-//                req.body.password = 'password';
-//                next();
-//            },
-//            passport.authenticate('local'),
-//            function(req, res) {
-//                console.log('Success(?)');
-//                res.redirect('/');
-//            });
-
+    // TODO(SRLM): If the authentication fails send a 401...
 
     app.get('/login/authenticate', function(req, res, next) {
         if (config.offline === true) {
@@ -46,24 +36,38 @@ module.exports = function(app, passport) {
     app.get('/login/google/return', passport.authenticate('google',
             {
                 successRedirect: '/',
-                failureRedirect: '/login?failed_login=true'
+                failureRedirect: '/?loginfailure=true'
             }));
 
     // --------------------------------------------
     // Authentication Barrier
     // --------------------------------------------
+    var angularPageList = [
+        '/',
+        '/dataset/',
+        '/event/',
+        '/user/:id',
+        '/page/:name'
+    ];
 
-    app.get('/', IsAuthenticated, require('./datasetindex').get);
+    function sendIndex(req, res, next) {
+        // Send the user information so that the app doesn't have to make an
+        // initial JSON request.
+        if (typeof req.session.passport.user !== 'undefined') {
+            res.cookie('currentUser', JSON.stringify(req.session.passport.user));
+        }
 
-    app.get('/dataset', IsAuthenticated, require('./datasetindex').get);
+        res.sendFile(indexFilename);
+    }
+
+    _.each(angularPageList, function(path) {
+        app.get(path, sendIndex);
+    });
+
     app.get('/dataset/:id', IsAuthenticated, require('./spa').getDataset);
     app.get('/event/:id', IsAuthenticated, require('./spa').getEvent);
-
-    app.get('/user/:uuid', IsAuthenticated, require('./user').get);
 
     app.get('/bluetooth', IsAuthenticated, require('./bluetooth').get);
 
     app.get('/upload/rnc', IsAuthenticated, require('./rncupload').get);
-
-    app.get('/monitor', IsAuthenticated, require('./monitoringtools').get);
 };

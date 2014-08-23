@@ -3,44 +3,6 @@ var log = logger.log; // console.log replacement
 var config = require('./config');
 var underscore = require('underscore')._;
 
-var staticDirectories = [
-    {
-        rootUrl: '/js',
-        sourcePath: {
-            development: '/html/public/development/js',
-            release: '/html/public/release/js'
-        }
-    },
-    {
-        rootUrl: '/css',
-        sourcePath: {
-            development: '/html/public/common/css',
-            release: '/html/public/common/css'
-        }
-    },
-    {
-        rootUrl: '/images',
-        sourcePath: {
-            development: '/html/public/common/images',
-            release: '/html/public/common/images'
-        }
-    },
-    {
-        rootUrl: '/fonts',
-        sourcePath: {
-            development: '/html/public/common/fonts',
-            release: '/html/public/common/fonts'
-        }
-    },
-    {
-        rootUrl: '/templates',
-        sourcePath: {
-            development: '/html/public/common/templates',
-            release: '/html/public/common/templates'
-        }
-    }
-];
-
 /** Load the user info into the templating response. This allows us to have a
  * central place to load the logged in user information (if available).
  * @param {type} req
@@ -78,31 +40,31 @@ exports.init = function() {
             app.set('view engine', 'html');
             app.engine('html', hbs.__express); // Handlebars templating
 
+            var staticPath = config.clientDirectory;
+
             if (config.release === true) {
-                app.use(require('serve-favicon')(path.join(__dirname, 'html/public/common/images/favicon.ico')));
+                staticPath = path.join(staticPath, 'release');
+                app.use(require('serve-favicon')(path.join(staticPath, '/static/images/favicon.ico')));
             } else {
-                app.use(require('serve-favicon')(path.join(__dirname, 'html/public/common/images/favicon.localdev.ico')));
+                app.use(require('serve-favicon')(path.join(staticPath, '/static/images/favicon.localdev.ico')));
             }
 
             app.use(require('compression')());
             app.use(require('method-override')());
 
-            // Set up static directories.
-            underscore.each(staticDirectories, function(resource) {
-                var path;
-                if (config.release === true) {
-                    path = resource.sourcePath.release;
-                } else {
-                    path = resource.sourcePath.development;
-                }
-                app.use(resource.rootUrl, function(req, res, next) {
-                    express.static(__dirname + path)(req, res, next);
-                });
+            app.use('/static', express.static(path.join(staticPath, 'static')));
+            // Catch all the requests for non-existant static resources.
+            // If we don't go through this hoop then the 404 redirect to the fancy
+            // html page will mess up our passport authorization and prevent
+            // us from having sessions. Plus we might as well be as lightweight
+            // as possible on these static resources.
+            app.use('/static/:anything?*', function(req, res, next) {
+                res.status(404).json({message: '404: Could not find that static resource.'});
             });
+
 
             // We don't want to log static files, so logger goes after.
             app.use(logger.logger());
-
             app.use(require('body-parser').urlencoded(
                     {
                         extended: true
@@ -113,7 +75,7 @@ exports.init = function() {
             var passport = extra.initializeSession(app, true);
 
             // TODO(SRLM): Figure out a better way to share code between client and server
-            var hbsHelpers = requireFromRoot('html/public/development/js/utilities/customHandlebarsHelpers');
+            var hbsHelpers = require(path.join(config.clientDirectory, 'static/js/utilities/customHandlebarsHelpers'));
             hbsHelpers.RegisterHelpers(hbs, require('moment'));
 
             // Store some local variables for all rendered templates.
@@ -125,7 +87,7 @@ exports.init = function() {
             requireFromRoot('html/routes')(app, passport);
 
             app.use(function(req, res, next) {
-                res.status(404).render('404_error', {title: "Sorry, page not found"});
+                res.redirect(404, '/page/404');
             });
 
             var server = http.createServer(app);

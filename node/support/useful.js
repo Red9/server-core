@@ -47,6 +47,9 @@ exports.createStreamToLine = function(lineCallback) {
 
 
 function extractValue(partPath, resource) {
+    if (typeof resource === 'undefined') {
+        return; // undefined;
+    }
     if (partPath.length === 1) {
         return resource[partPath[0]];
     } else {
@@ -58,7 +61,7 @@ function setValue(memo, partPath, value) {
     if (partPath.length === 1) {
         memo[partPath[0]] = value;
     } else {
-        if(typeof memo[partPath[0]] === 'undefined'){
+        if (typeof memo[partPath[0]] === 'undefined') {
             memo[partPath[0]] = {};
         }
         setValue(memo[partPath[0]], partPath.slice(1), value);

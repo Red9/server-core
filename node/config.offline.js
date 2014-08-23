@@ -41,3 +41,5 @@ exports.rncDirectory = homeDir + '/upload/rnc';
 exports.offline = true;
 
 exports.cookieDomain = '.offline.redninesensor.com';
+
+exports.clientDirectory = homeDir + '/dev-website-client';

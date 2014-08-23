@@ -61,69 +61,72 @@ exports.describe = function(route, req, res, next) {
     res.send(body);
 };
 
-exports.search = get;
-exports.get = get;
+exports.search = get(false);
+exports.get = get(true);
 
-function sendGet(res, pretty, partsFunction, resourceList) {
+function sendGet(res, pretty, partsFunction, resourceList, singularResponse) {
     res.set('Content-Type', 'application/json');
-    var body = JSON.stringify(partsFunction(resourceList), null, pretty ? 3 : 0);
+    var t = partsFunction(resourceList);
+    var body = JSON.stringify(singularResponse ? t[0] : t, null, pretty ? 3 : 0);
     res.send(body);
 }
 
-function get(route, req, res, next) {
-    var simpleOutput = false;
-    var count;
-    if (typeof req.query['count'] !== 'undefined'
-            && req.query['count'] === 'true') {
-        count = true;
-        delete req.query['count'];
-    }
-    if (typeof req.query['simpleoutput'] !== 'undefined') {
-        simpleOutput = true;
-        delete req.query['simpleoutput'];
-    }
-
-    var expand;
-    if (typeof req.query['expand'] !== 'undefined') {
-        expand = req.query['expand'].split(',');
-        delete req.query['expand'];
-    }
-
-    var pretty = false;
-    if (typeof req.query['pretty'] !== 'undefined') {
-        pretty = req.query['pretty'] === 'true';
-        delete req.query['pretty'];
-    }
-
-    var partsFunction = useful.prepareParts(req);
-
-    // At this point, req.query has constraints.
-    var searchParams = req.query;
-    // If it's a direct resource request we should search for just that
-    if (typeof req.param('id') !== 'undefined') {
-        searchParams = {id: req.param('id')};
-    }
-
-    resources[route.resource].get(searchParams, function(resourceList) {
-        if (simpleOutput) {
-            resourceList = simplifyOutput(route, resourceList);
+function get(singularResponse) {
+    return function(route, req, res, next) {
+        var simpleOutput = false;
+        var count;
+        if (typeof req.query['count'] !== 'undefined'
+                && req.query['count'] === 'true') {
+            count = true;
+            delete req.query['count'];
+        }
+        if (typeof req.query['simpleoutput'] !== 'undefined') {
+            simpleOutput = true;
+            delete req.query['simpleoutput'];
         }
 
-        if (count === true) {
-            async.eachSeries(resourceList,
-                    function(resource, callback) {
-                        resources[route.resource].getRelatedCount(resource.id, function(count) {
-                            resource.count = count;
-                            callback();
+        var expand;
+        if (typeof req.query['expand'] !== 'undefined') {
+            expand = req.query['expand'].split(',');
+            delete req.query['expand'];
+        }
+
+        var pretty = false;
+        if (typeof req.query['pretty'] !== 'undefined') {
+            pretty = req.query['pretty'] === 'true';
+            delete req.query['pretty'];
+        }
+
+        var partsFunction = useful.prepareParts(req);
+
+        // At this point, req.query has constraints.
+        var searchParams = req.query;
+        // If it's a direct resource request we should search for just that
+        if (typeof req.param('id') !== 'undefined') {
+            searchParams = {id: req.param('id')};
+        }
+
+        resources[route.resource].get(searchParams, function(resourceList) {
+            if (simpleOutput) {
+                resourceList = simplifyOutput(route, resourceList);
+            }
+
+            if (count === true) {
+                async.eachSeries(resourceList,
+                        function(resource, callback) {
+                            resources[route.resource].getRelatedCount(resource.id, function(count) {
+                                resource.count = count;
+                                callback();
+                            });
+                        },
+                        function() {
+                            sendGet(res, pretty, partsFunction, resourceList, singularResponse);
                         });
-                    },
-                    function() {
-                        sendGet(res, pretty, partsFunction, resourceList);
-                    });
-        } else {
-            sendGet(res, pretty, partsFunction, resourceList);
-        }
-    }, expand);
+            } else {
+                sendGet(res, pretty, partsFunction, resourceList, singularResponse);
+            }
+        }, expand);
+    };
 }
 
 

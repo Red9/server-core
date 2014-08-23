@@ -12,7 +12,8 @@ var requiredInstanceKeys = [
     'rncDirectory',
     'logFileDirectory',
     'offline',
-    'cookieDomain'
+    'cookieDomain',
+    'clientDirectory'
 ];
 
 exports.ProcessCommandLine = function() {
