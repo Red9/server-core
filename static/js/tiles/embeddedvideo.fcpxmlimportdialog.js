@@ -195,8 +195,16 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
             });
 
             sandbox.get('video', {dataset: formValues.datasetId}, function(videoList) {
-                var videoStartTime = _.chain(videoList).pluck('startTime').min().value();
-                processXml(formValues.datasetId, formValues.xml, videoStartTime);
+                try {
+                    var videoStartTime = _.chain(videoList).pluck('startTime').min().value();
+                    if (typeof videoStartTime === 'undefined') {
+                        console.log('Must define at least one video');
+                        return;
+                    }
+                    processXml(formValues.datasetId, formValues.xml, videoStartTime);
+                } catch (e) {
+
+                }
             });
         }
 
