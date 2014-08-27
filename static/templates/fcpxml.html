@@ -18,22 +18,24 @@
                         {{#each clip}}
                         <clip name="{{name}}" offset="{{offsetFrames}}/{{denominator}}s" duration="{{durationFrames}}/{{denominator}}s" start="{{startFrames}}/{{denominator}}s" tcFormat="DF">
                             <video ref="{{video.ref}}" duration="{{video.duration}}/{{denominator}}s"></video>
+                            {{#if title}}
                             <title name="{{title.name}}" lane="1" offset="{{title.offset}}/{{denominator}}s" ref="r2" duration="{{title.duration}}/{{denominator}}s">
                                 <param name="Position" key="9999/999166631/999166633/1/100/101" value="-764.941 -384"/>
                                 <param name="Position" key="9999/999166631/999169525/1/100/101" value="-763.7 -438"/>
                                 <text>
-                                <text-style ref="ts5">{{title.textA}}</text-style>
+                                <text-style ref="{{title.textARef}}">{{title.textA}}</text-style>
                                 </text>
                                 <text>
-                                <text-style ref="ts6">{{title.textB}}</text-style>
+                                <text-style ref="{{title.textBRef}}">{{title.textB}}</text-style>
                                 </text>
-                                <text-style-def id="ts5">
+                                <text-style-def id="{{title.textARef}}">
                                     <text-style font="Helvetica Neue" fontSize="66" fontFace="Regular" fontColor="0.986246 0.00712073 0.0274342 1" strokeColor="1 0.999974 0.999991 1" strokeWidth="1"/>
                                 </text-style-def>
-                                <text-style-def id="ts6">
+                                <text-style-def id="{{title.textBRef}}">
                                     <text-style font="Helvetica Neue" fontSize="48" fontFace="Medium" fontColor="0.986246 0.00712073 0.0274342 1" strokeColor="1 0.999974 0.999991 1" strokeWidth="1"/>
                                 </text-style-def>
                             </title>
+                            {{/if}}
                         </clip>
                         {{/each}}
                     </spine>
