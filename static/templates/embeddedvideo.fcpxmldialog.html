@@ -70,13 +70,20 @@
                 <option value="{{@key}}" {{selected}}>{{name}}</option>
                 {{/each}}
             </select>
-        </div>        
+        </div>
 
         <div class="form-group">
-            <label for="files">Video File(s) Local Path(s)</label>            
+            <label for="files">Video File(s) Local Path(s)</label>
             <textarea class="form-control" name="files"></textarea>
-            <span class="help-block">Path to a local video file on your machine. If you have multiple videos to stich together then separate the paths with commas.</span>  
+            <span class="help-block">Path to a local video file on your machine. If you have multiple videos to stich together then separate the paths with commas.</span>
         </div>
+
+        <div class="form-group">
+            <label for="titleDuration">Title Duration</label>
+            <input class="form-control" type="number" name="titleDuration" min="0" value="3">
+            <p class="help-block">The number of seconds to display the title at the beginning of an event. 0 removes titles entirely.</p>
+        </div>
+
 
         <button class="btn btn-large btn-default pull-right" name="submitButton" type="submit">Create FCPXML File</button>
     </fieldset>
