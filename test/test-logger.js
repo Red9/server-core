@@ -1,9 +1,11 @@
 var proxyquire = require('proxyquire');
 var sandbox = require('nodeunit').utils.sandbox;
 
+var path = '../lib/support.logger.js';
+
 exports['test log functions'] = {
     setUp: function(callback) {
-        this.sut = sandbox(__dirname + '/../lib/newfiles/logger.js',
+        this.sut = sandbox(__dirname + '/' + path,
                 {
                     exports: {},
                     console: {},

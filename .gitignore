@@ -1,8 +1,9 @@
 /nbproject/private/
 /node/node_modules/
-/node/html/bin/
+/lib/bin/
 /node/logs/
 /node/nbproject/
 /node_modules/
 /upload/
 /nbproject/private/
+/.idea/

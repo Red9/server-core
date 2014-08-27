@@ -1,4 +1,4 @@
-var cassandra = require('../../lib/resource/cassandra');
+//var cassandra = require('../lib/support.datasource.cassandra');
 
 exports['cassandra database'] = {
     setUp: function(callback) {
