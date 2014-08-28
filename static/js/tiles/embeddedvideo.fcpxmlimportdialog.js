@@ -200,6 +200,14 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
             setDone(events.length + ' events created.');
         }
 
+        // Taken from http://stackoverflow.com/a/13709663
+        function checkFileAPI() {
+            if (window.File && window.FileReader && window.FileList && window.Blob) {
+                return true;
+            } else {
+                return false;
+            }
+        }
 
         function submitHandler(form) {
             var $form = $(form);
@@ -223,32 +231,40 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
                 formValues[key] = value;
             });
 
-            $form.find('input[type=checkbox]:checked').each(function () {
-                var $this = $(this);
-                var key = $this.attr('name');
-                var value = $this.val();
-                formValues[key] = value;
-            });
+            var filePath = $form.find('[data-name=fileinput]')[0];
 
-            sandbox.get('video', {dataset: formValues.datasetId}, function (videoList) {
-                try {
-                    var videoStartTime = _.chain(videoList).pluck('startTime').min().value();
-                    if (typeof videoStartTime === 'undefined') {
-                        console.log('Must define at least one video');
-                        return;
-                    }
-                    processXml(formValues.datasetId, formValues.xml, videoStartTime);
-                } catch (e) {
+            if (filePath.files && filePath.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var fcpxml = reader.result;
+                    sandbox.get('video', {dataset: formValues.datasetId}, function (videoList) {
+                        try {
+                            var videoStartTime = _.chain(videoList).pluck('startTime').min().value();
+                            if (typeof videoStartTime === 'undefined') {
+                                setAlert('Must define at least one video');
+                                return;
+                            }
+                            processXml(formValues.datasetId, fcpxml, videoStartTime);
+                        } catch (e) {
 
-                }
-            });
+                        }
+                    });
+                };
+                reader.readAsText(filePath.files[0]);
+            }
         }
 
 
         function showForm(place, configuration) {
             sandbox.requestTemplate('embeddedvideo.fcpxmlimportdialog', function (template) {
                 place.html(template({datasetId: configuration.datasetId}));
-                place.find('form').validate(schema);
+
+                if (checkFileAPI() === false) {
+                    setAlert('You need to upgrade to a newer browser to use this feature.');
+                } else {
+                    place.find('form').validate(schema);
+                }
+
             });
         }
 
