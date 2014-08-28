@@ -1,8 +1,8 @@
 /**
- * 
+ *
  * This module is used to import FCP XML files with specific marks. I've designed
  * it to work with a FCPXML file that has the following section:
- * 
+ *
  * <spine>
  <clip name="2014-07-01 09:06:36" offset="0s" duration="71623552/60000s" format="r2" tcFormat="DF">
  <video offset="0s" ref="r3" duration="71623552/60000s"/>
@@ -41,20 +41,20 @@
  <video offset="0s" ref="r8" duration="34706672/60000s"/>
  </clip>
  </spine>
- * 
+ *
  * The design is probably pretty brittle, but it's just for Mike Olson at this point.
- * 
- * 
+ *
+ *
  * @param {type} $
  * @param {type} _
  * @param {type} X2JS
  * @returns {_L6.fcpxmlimportdialog}
- * 
- * 
+ *
+ *
  */
 
 
-define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.validate'], function($, _, X2JS) {
+define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.validate'], function ($, _, X2JS) {
     function fcpxmlimportdialog(sandbox, tile, configuration, doneCallback) {
 
         function init() {
@@ -69,7 +69,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
         };
 
         /**
-         * 
+         *
          * @param {type} timeString An FCPXML time string, of the format '52305/60000s'.
          * @returns {Number} millisecond equivalent
          */
@@ -82,86 +82,122 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
             return Math.round(parseInt(fraction[0]) / parseInt(fraction[1]) * 1000);
         }
 
+        function setAlert(message) {
+            tile.place.find('[data-name=alert]').html(message).removeClass('hidden');
+        }
+
+        function setWarning(message) {
+            tile.place.find('[data-name=warning]').html(message).removeClass('hidden');
+        }
+
+        function setDone(message) {
+            tile.place.find('[data-name=done]').html(message).removeClass('hidden');
+        }
+
+        function hideMessages() {
+            tile.place.find('.alert').addClass('hidden');
+        }
+
         function processXml(datasetId, xml, videoStartTime) {
+            var warnings = '';
+            hideMessages();
+
             var x2js = new X2JS();
 
-            var clips = x2js.xml_str2json(xml).fcpxml.library.event.project.sequence.spine.clip;
+            var clips = [];
+            try {
+                clips = x2js.xml_str2json(xml).fcpxml.library.event.project.sequence.spine.clip;
+            } catch (e) {
+                setAlert('XML structure not valid. Make sure that you hav the following nesting of elements: fcpxml.library.event.project.sequence.spine.clip');
+                return;
+            }
+
+            // If there is only a single clip then the x2js library parses it as an object. But we want it to always be
+            // an array, so we'll convert it here.
+            if (_.isObject(clips)) {
+                clips = [clips];
+            }
 
             var parsedEvents = _.chain(clips)
-                    // For each clip get all the markers, and with the correct times calculated
-                    .map(function(clip) {
-                        var offset = fcpTimeToMilliseconds(clip._offset);
+                // For each clip get all the markers, and with the correct times calculated
+                .map(function (clip) {
+                    var offset = fcpTimeToMilliseconds(clip._offset);
 
-                        // If the marker is a single element then we need to convert
-                        // it to an array.
-                        if (typeof clip.marker === 'undefined') {
-                            return [];
-                        }
+                    // If the marker is a single element then we need to convert
+                    // it to an array.
+                    if (typeof clip.marker === 'undefined') {
+                        return [];
+                    }
 
-                        if (_.isArray(clip.marker) === false) {
-                            clip.marker = [clip.marker];
-                        }
+                    if (_.isArray(clip.marker) === false) {
+                        clip.marker = [clip.marker];
+                    }
 
-                        return _.map(clip.marker, function(marker) {
-                            console.log('marker: ' + JSON.stringify(marker));
-                            return  {
-                                time: fcpTimeToMilliseconds(marker._start) + offset,
-                                type: marker._value
+                    return _.map(clip.marker, function (marker) {
+                        console.log('marker: ' + JSON.stringify(marker));
+                        return  {
+                            time: fcpTimeToMilliseconds(marker._start) + offset,
+                            type: marker._value,
+                            fcpStart: marker._start
 
-                            };
-                        });
-                    })
-                    // Then put all the markers into a single array (we don't care about clips any more)
-                    .flatten()
-                    // Convert times from milliseconds since video start to
-                    // milliseconds since epoch.
-                    .map(function(marker) {
-                        marker.time = marker.time + videoStartTime;
-                        return marker;
-                    })
-                    // Convert the arary of ins and outs to an array of events
-                    .reduce(function(memo, marker) {
-                        var t = marker.type.split('.');
-                        var type = t[0];
+                        };
+                    });
+                })
+                // Then put all the markers into a single array (we don't care about clips any more)
+                .flatten()
+                // Convert times from milliseconds since video start to
+                // milliseconds since epoch.
+                .map(function (marker) {
+                    marker.time = marker.time + videoStartTime;
+                    return marker;
+                })
+                // Convert the arary of ins and outs to an array of events
+                .reduce(function (memo, marker) {
+                    var t = marker.type.split('.');
+                    var type = t[0].trim();
 
-                        if (typeof memo.scratchPad[type] === 'undefined') {
-                            memo.scratchPad[type] = {
-                                type: type
-                            };
-                        }
+                    if (typeof memo.scratchPad[type] === 'undefined') {
+                        memo.scratchPad[type] = {
+                            type: type
+                        };
+                    }
 
-                        if (t[1].toUpperCase() === 'I') {
-                            memo.scratchPad[type].startTime = marker.time;
-                        } else if (t[1].toUpperCase() === 'O') {
-                            var startTime = memo.scratchPad[type].startTime;
-                            if (typeof startTime === 'undefined') {
-                                console.log('XMLXMLXML - Bad format: missing startTime for ' + type);
-                            } else {
-                                memo.events.push({
-                                    type: type,
-                                    startTime: startTime,
-                                    endTime: marker.time,
-                                    datasetId: datasetId
-                                });
-                            }
-                            delete memo.scratchPad[type];
+                    if (t[1].toUpperCase() === 'I') {
+                        memo.scratchPad[type].startTime = marker.time;
+                    } else if (t[1].toUpperCase() === 'O') {
+                        var startTime = memo.scratchPad[type].startTime;
+                        if (typeof startTime === 'undefined') {
+                            setWarning(warnings += ('Bad format: missing startTime for "' + type + '" at time ' + marker.fcpStart + '<br/>'));
                         } else {
-                            console.log('XMLXMLXML - Type suffix not supported: ' + t[1]);
+                            memo.events.push({
+                                type: type,
+                                startTime: startTime,
+                                endTime: marker.time,
+                                datasetId: datasetId
+                            });
                         }
-                        return memo;
-                    }, {events: [], scratchPad: {}})
-                    .value();
+                        delete memo.scratchPad[type];
+                    } else {
+                        setWarning(warnings += ('Type suffix not supported: ' + marker.type + ' at time ' + marker.fcpStart + '<br/>'));
+                    }
+                    return memo;
+                }, {events: [], scratchPad: {}})
+                .value();
             // At this point if there are any open elements in the scratch pad
             // then that indicates a "malformed" input file.
             console.log('Parsed Events From XML' + JSON.stringify(parsedEvents, null, '   '));
+            if (_.keys(parsedEvents.scratchPad).length !== 0) {
+                setWarning(warnings += 'Unclosed events: ' + JSON.stringify(parsedEvents.scratchPad) + '<br/>');
+            }
 
             var events = parsedEvents.events;
-
-            _.each(events, function(event) {
-                sandbox.create('event', event, function() {
+            _.each(events, function (event) {
+                sandbox.create('event', event, function () {
                     console.log('created event');
                 });
             });
+
+            setDone(events.length + ' events created.');
         }
 
 
@@ -171,30 +207,30 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
 
             // Convert the HTML form into a key/value list.
             $form.find('input, select, textarea')
-                    .not('[name=submitButton]') // This is definately a hack... Couldn't get it to work otherwise.
-                    .not('[type=radio]')
-                    .not('[type=checkbox]')
-                    .each(function() {
-                        var $this = $(this);
-                        var key = $this.attr('name');
-                        var value = $this.val();
-                        formValues[key] = value;
-                    });
-            $form.find('input[type=radio]:checked').each(function() {
+                .not('[name=submitButton]') // This is definately a hack... Couldn't get it to work otherwise.
+                .not('[type=radio]')
+                .not('[type=checkbox]')
+                .each(function () {
+                    var $this = $(this);
+                    var key = $this.attr('name');
+                    var value = $this.val();
+                    formValues[key] = value;
+                });
+            $form.find('input[type=radio]:checked').each(function () {
                 var $this = $(this);
                 var key = $this.attr('name');
                 var value = $this.val();
                 formValues[key] = value;
             });
 
-            $form.find('input[type=checkbox]:checked').each(function() {
+            $form.find('input[type=checkbox]:checked').each(function () {
                 var $this = $(this);
                 var key = $this.attr('name');
                 var value = $this.val();
                 formValues[key] = value;
             });
 
-            sandbox.get('video', {dataset: formValues.datasetId}, function(videoList) {
+            sandbox.get('video', {dataset: formValues.datasetId}, function (videoList) {
                 try {
                     var videoStartTime = _.chain(videoList).pluck('startTime').min().value();
                     if (typeof videoStartTime === 'undefined') {
@@ -210,7 +246,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
 
 
         function showForm(place, configuration) {
-            sandbox.requestTemplate('embeddedvideo.fcpxmlimportdialog', function(template) {
+            sandbox.requestTemplate('embeddedvideo.fcpxmlimportdialog', function (template) {
                 place.html(template({datasetId: configuration.datasetId}));
                 place.find('form').validate(schema);
             });
@@ -218,10 +254,10 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
 
         function destructor() {
             sandbox
-                    = tile
-                    = configuration
-                    = doneCallback
-                    = null;
+                = tile
+                = configuration
+                = doneCallback
+                = null;
         }
 
         init();
@@ -229,5 +265,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
             destructor: destructor
         };
     }
+
     return fcpxmlimportdialog;
 });
