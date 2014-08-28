@@ -30,7 +30,7 @@
                 $routeProvider.when('/', {
                     templateUrl: '/static/partials/home.html',
                     controller: 'homeController',
-                    accessLevel: 'public',
+                    accessLevel: 'user',
                     title: 'Red9: Measure Up to You'
                 });
                 $routeProvider.when('/dataset/', {
