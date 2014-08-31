@@ -114,7 +114,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
 
             // If there is only a single clip then the x2js library parses it as an object. But we want it to always be
             // an array, so we'll convert it here.
-            if (_.isObject(clips)) {
+            if (_.isArray(clips) === false) {
                 clips = [clips];
             }
 
