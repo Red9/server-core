@@ -401,6 +401,64 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                     });
             });
 
+            tile.addToBar('exportFCPXMLMarkers', '', 'glyphicon-flag', function () {
+                sandbox.get('dataset', {id: sandbox.getCurrentDatasetId()}, function (datasets) {
+                    sandbox.get('event', {datasetId: sandbox.getCurrentDatasetId()}, function (events) {
+                        sandbox.get('video', {dataset: sandbox.getCurrentDatasetId()}, function (videos) {
+                            if (videos.length === 0 || datasets.length === 0) {
+                                return; // do nothing
+                            }
+                            var videoStartTime = videos[0].startTime;
+                            var dataset = datasets[0];
+
+
+                            var numerator = 1001;
+                            var denominator = 60000;
+                            // Frames are on the 1001 boundary, so make sure that we're there.
+                            function frameCorrected(value) {
+                                return Math.floor(value / numerator) * numerator;
+                            }
+
+                            var markers =
+                                _.chain(events)
+                                    .map(function (event) {
+                                        var start = {
+                                            start: frameCorrected((event.startTime - videoStartTime) * denominator),
+                                            durationValue: numerator,
+                                            denominator: denominator,
+                                            value: event.type + '.I'
+                                        };
+                                        var end = {
+                                            start: frameCorrected((event.endTime - videoStartTime) * denominator),
+                                            durationValue: numerator,
+                                            denominator: denominator,
+                                            value: event.type + '.O'
+                                        };
+                                        return [start, end];
+                                    })
+                                    .flatten()
+                                    .sortBy(function (marker) {
+                                        return marker.start;
+                                    })
+                                    .value();
+                            var parameters = {
+                                durationValue: frameCorrected((dataset.headPanel.endTime - dataset.headPanel.startTime) * denominator),
+                                denominator: denominator,
+                                datasetName: dataset.title,
+                                sequenceName: 'Marker list',
+                                markers: markers
+                            };
+
+                            sandbox.requestTemplate('embeddedvideo.fcpxml.exportmarkers', function (fcpxmlTemplate) {
+                                window.open('data:text/xml,' + encodeURIComponent(fcpxmlTemplate(parameters)));
+                            });
+
+                            console.dir(events);
+                        });
+                    });
+                }, ['headPanel']);
+            });
+
             tile.place.find('.long-list-wrapper')
                 .on('click', '[data-name=deletevideobutton]', function () {
                     var videoId = $(this).data('id');
