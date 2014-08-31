@@ -14,7 +14,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                 }
             },
             'standard_1080p_29.97hz_H.264': {
-                name: 'Stardard    1080p   29.97Hz   H.264',
+                name: 'Standard    1080p   29.97Hz   H.264',
                 numerator: 1001,
                 denominator: 30000,
                 framesPerVideo: 71623552 * 10,
@@ -22,8 +22,19 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
                     width: 1920,
                     height: 1080
                 }
+            },
+            'standard_720p_59.97hz_H.264': {
+                name: 'Standard    720p    59.97Hz   H.264',
+                numerator: 1001,
+                denominator: 60000,
+                framesPerVideo: 71623552 * 20,
+                pixels: {
+                    width: 1280,
+                    height: 720
+                }
             }
         };
+
 
         var schema = {
             showErrors: sandbox.showJqueryValidateErrors,
@@ -235,4 +246,5 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/jquery.validate'], functio
     }
 
     return fcpxmldialog;
-});
+})
+;
