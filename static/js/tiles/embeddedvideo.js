@@ -423,13 +423,13 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                                 _.chain(events)
                                     .map(function (event) {
                                         var start = {
-                                            start: frameCorrected((event.startTime - videoStartTime) * denominator),
+                                            start: frameCorrected((event.startTime - videoStartTime)/1000 * denominator),
                                             durationValue: numerator,
                                             denominator: denominator,
                                             value: event.type + '.I'
                                         };
                                         var end = {
-                                            start: frameCorrected((event.endTime - videoStartTime) * denominator),
+                                            start: frameCorrected((event.endTime - videoStartTime)/1000 * denominator),
                                             durationValue: numerator,
                                             denominator: denominator,
                                             value: event.type + '.O'
@@ -442,7 +442,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/async', 'customHandlebarsH
                                     })
                                     .value();
                             var parameters = {
-                                durationValue: frameCorrected((dataset.headPanel.endTime - dataset.headPanel.startTime) * denominator),
+                                durationValue: frameCorrected((dataset.headPanel.endTime - dataset.headPanel.startTime)/1000 * denominator),
                                 denominator: denominator,
                                 datasetName: dataset.title,
                                 sequenceName: 'Marker list',
