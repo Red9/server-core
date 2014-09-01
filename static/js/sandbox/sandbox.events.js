@@ -74,8 +74,9 @@ define(['vendor/jquery', 'vendor/underscore'
                 });
             } else if (type === 'dataset') {
                 sandbox.get(type, {id: id}, function(datasetList) {
-                    if (typeof datasetList[0].headPanel === 'undefined'
-                            || _.keys(datasetList[0].headPanel.summaryStatistics).length === 0) {
+                    if (typeof datasetList[0].headPanel === 'undefined'){
+                        // Removed this second check for DW-246.
+                            //|| _.keys(datasetList[0].headPanel.summaryStatistics).length === 0) {
                         // For the case when the the dataset has just been
                         // uploaded, and processing is not done yet.
                         setTimeout(function() {
