@@ -409,3 +409,349 @@ exports['resource.common testAgainstQuery'] = {
         test.done();
     }
 };
+
+exports['resource.common setupOrderBy'] = {
+    setUp: function (callback) {
+        var proxyquireOptions = {};
+        proxyquireOptions[loggerPath] = {
+            error: function (message) {
+                // do nothing.
+            }
+        };
+
+        this.sut = proxyquire(path, proxyquireOptions).setupOrderBy;
+
+
+        this.testObjects = [
+            {a: 5},
+            {a: 1},
+            {a: 2}
+        ];
+        callback();
+    },
+    tearDown: function (callback) {
+        callback();
+    },
+    'basic no ordering': function (test) {
+        test.expect(this.testObjects.length * 2);
+
+
+        var self = this;
+        // Test with empty (default no) orderBy
+        var index = 0;
+        var t = this.sut({}, function (actual) {
+            test.deepEqual(actual, self.testObjects[index++]);
+        });
+        _.each(this.testObjects, t.newRow);
+
+
+        // Test with explicit no orderBy
+        var index2 = 0;
+        var u = this.sut({a: 0}, function (actual) {
+            test.deepEqual(actual, self.testObjects[index2++]);
+        });
+        _.each(this.testObjects, u.newRow);
+
+        // Important: should pass without a call to test done: this means that
+        // it does it's processing without buffering the values.
+
+        test.done();
+    },
+    'basic ascending ordering': function (test) {
+        var expected = [
+            {a: 1},
+            {a: 2},
+            {a: 5}
+        ];
+
+        test.expect(this.testObjects.length);
+
+        var index = 0;
+        var t = this.sut({a: 1}, function (actual) {
+            test.deepEqual(actual, expected[index++]);
+        });
+
+        _.each(this.testObjects, t.newRow);
+        t.done();
+
+        test.done();
+    },
+    'basic descending ordering': function (test) {
+        var expected = [
+            {a: 5},
+            {a: 2},
+            {a: 1}
+        ];
+
+        test.expect(this.testObjects.length);
+
+        var index = 0;
+        var t = this.sut({a: -1}, function (actual) {
+            test.deepEqual(actual, expected[index++]);
+        });
+
+        _.each(this.testObjects, t.newRow);
+        t.done();
+
+        test.done();
+    },
+    'non unitary ordering value': function (test) {
+        var expected = [
+            {a: 1},
+            {a: 2},
+            {a: 5}
+        ];
+
+        test.expect(this.testObjects.length);
+
+        var index = 0;
+        var t = this.sut({a: 125325032.50}, function (actual) {
+            test.deepEqual(actual, expected[index++]);
+        });
+
+        _.each(this.testObjects, t.newRow);
+        t.done();
+
+        test.done();
+    },
+    'multiple keys': function (test) {
+        test.expect(this.testObjects.length * 2);
+
+        var self = this;
+        var index = 0;
+        var t = this.sut({a: 1, b: -1}, function (actual) {
+            test.deepEqual(actual, self.testObjects[index++]);
+        });
+        _.each(this.testObjects, t.newRow);
+
+        var expected = [
+            {a: 1},
+            {a: 2},
+            {a: 5}
+        ];
+        var index2 = 0;
+        var t2 = this.sut({a: 1, b: 0}, function (actual) {
+            test.deepEqual(actual, expected[index2++]);
+        });
+        _.each(this.testObjects, t2.newRow);
+        t2.done();
+
+        test.done();
+    }
+};
+
+
+exports['resource.common setupSkipAndLimit'] = {
+    setUp: function (callback) {
+        this.sut = require(path).setupSkipAndLimit;
+        this.testObjects = [
+            {a: 1},
+            {a: 2},
+            {a: 3},
+            {a: 4},
+            {a: 5}
+        ];
+        callback();
+    },
+    tearDown: function (callback) {
+        callback();
+    },
+    'no skip or limit': function (test) {
+
+        var index = 0;
+        var expected = this.testObjects;
+        test.expect(expected.length);
+
+        var postQueue = {
+            push: function (e) {
+                test.deepEqual(e, expected[index++]);
+            }
+        };
+
+        var t = this.sut(null, null, postQueue);
+        _.each(this.testObjects, t);
+
+        test.done();
+    },
+    'skip': function (test) {
+
+        var index = 0;
+        var expected = [
+            {a: 4},
+            {a: 5}
+        ];
+
+        test.expect(expected.length);
+
+        var postQueue = {
+            push: function (e) {
+                test.deepEqual(e, expected[index++]);
+            }
+        };
+
+        var t = this.sut(3, null, postQueue);
+        _.each(this.testObjects, t);
+
+        test.done();
+    },
+    'limit': function (test) {
+
+        var index = 0;
+        var expected = [
+            {a: 1},
+            {a: 2}
+        ];
+
+        test.expect(expected.length);
+
+        var postQueue = {
+            push: function (e) {
+                test.deepEqual(e, expected[index++]);
+            }
+        };
+
+        var t = this.sut(null, 2, postQueue);
+        _.each(this.testObjects, t);
+
+        test.done();
+    },
+    'skip and limit': function (test) {
+
+        var index = 0;
+        var expected = [
+            {a: 3},
+            {a: 4}
+        ];
+
+        test.expect(expected.length);
+
+        var postQueue = {
+            push: function (e) {
+                test.deepEqual(e, expected[index++]);
+            }
+        };
+
+        var t = this.sut(2, 2, postQueue);
+        _.each(this.testObjects, t);
+
+        test.done();
+    }
+};
+
+exports['resource.common queryTailPipeline'] = {
+    setUp: function (callback) {
+        this.sut = require(path).queryTailPipeline;
+        this.testObjects = [
+            {a: 5},
+            {a: 1},
+            {a: 2},
+            {a: 3},
+            {a: 4}
+        ];
+        callback();
+    },
+    tearDown: function (callback) {
+        callback();
+    },
+    'basic': function (test) {
+        var testObjects = this.testObjects;
+        test.expect(testObjects.length);
+
+        var index = 0;
+
+        function expandFunction(expandParameters, e, callback) {
+            callback(e);
+        }
+
+        function rowFunction(element) {
+            test.deepEqual(element, testObjects[index++]);
+        }
+
+        function doneFunction() {
+            test.done();
+        }
+
+        var pipeline = this.sut({}, expandFunction, rowFunction, doneFunction);
+
+        _.each(testObjects, pipeline.row);
+        pipeline.done();
+    },
+    'multi conditional': function (test) {
+        var testObjects = this.testObjects;
+        var testExpected = [
+            {a: 2},
+            {a: 3}
+        ];
+        test.expect(testExpected.length);
+
+        var index = 0;
+
+        function expandFunction(expandParameters, e, callback) {
+            callback(e);
+        }
+
+        function rowFunction(element) {
+            test.deepEqual(element, testExpected[index++]);
+        }
+
+        function doneFunction() {
+            test.done();
+        }
+
+        var parameters = {
+            $skip: 1,
+            $limit: 2,
+            $orderBy: {a: 1}
+        };
+        var pipeline = this.sut(parameters, expandFunction, rowFunction, doneFunction);
+
+        _.each(testObjects, pipeline.row);
+        pipeline.done();
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
