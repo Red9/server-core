@@ -23,7 +23,7 @@ var kDistributionSlots = 50;
 /** If cache is enabled:
  * - uses if buckets in cache
  * - stores buckets in cache if cache miss
- * 
+ *
  * @param {type} panelId
  * @param {type} startTime
  * @param {type} endTime
@@ -31,7 +31,7 @@ var kDistributionSlots = 50;
  * @param {type} callbackDone
  * @returns {undefined}
  */
-exports.getPanel = function(parameters, callbackDone) {
+exports.getPanel = function (parameters, callbackDone) {
     var panelId = parameters.id;
     var startTime = parameters.startTime;
     var endTime = parameters.endTime;
@@ -41,7 +41,7 @@ exports.getPanel = function(parameters, callbackDone) {
     var numberOfSamples = Math.floor((endTime - startTime) / 10); // Hard code 10 milliseconds per sample (100 Hz)
 
     var bucketAxes = [];
-    underscore.each(panel.axes, function(axis, index) {
+    underscore.each(panel.axes, function (axis, index) {
         bucketAxes.push({name: axis, index: index});
     });
 
@@ -54,48 +54,54 @@ exports.getPanel = function(parameters, callbackDone) {
 
     var fftAxes = [];
 
-    underscore.each(panel.axes, function(axis, index) {
-        if (axis.indexOf('acceleration') > -1
+    // We can only calculate distributions if we have summary statistics to prepare them.
+    if (typeof panel.summaryStatistics === 'undefined'
+        || underscore.keys(panel.summaryStatistics).length === 0) {
+        log.error('Panel ' + panel.id + ' does not have summary statistics.');
+    } else {
+        underscore.each(panel.axes, function (axis, index) {
+            if (axis.indexOf('acceleration') > -1
                 || axis.indexOf('rotationrate') > -1
                 || axis.indexOf('magneticfield') > -1
                 || axis.indexOf('speed') > -1) {
 
-            try {
-                var t = axis.split(':');
-                var axisType = t[0];
-                var axisName = t[1];
+                try {
+                    var t = axis.split(':');
+                    var axisType = t[0];
+                    var axisName = t[1];
 
-                var maximum = panel.summaryStatistics.instantaneous[axisType][axisName].maximum.value;
-                if (maximum > 0) {
-                    maximum *= 1.001;
-                } else {
-                    maximum *= 0.999;
-                }
+                    var maximum = panel.summaryStatistics.instantaneous[axisType][axisName].maximum.value;
+                    if (maximum > 0) {
+                        maximum *= 1.001;
+                    } else {
+                        maximum *= 0.999;
+                    }
 
-                var minimum = panel.summaryStatistics.instantaneous[axisType][axisName].minimum.value;
-                if (minimum > 0) {
-                    minimum *= 0.999;
-                } else {
-                    minimum *= 1.001;
-                }
+                    var minimum = panel.summaryStatistics.instantaneous[axisType][axisName].minimum.value;
+                    if (minimum > 0) {
+                        minimum *= 0.999;
+                    } else {
+                        minimum *= 1.001;
+                    }
 
 
-                if (minimum !== maximum) {
-                    // If the minimum and maximum is the same then there is no
-                    // distribution. Mostly seen where gps:speed === 0 (no lock).
-                    distributions.push(Distribution.new(axis, index,
+                    if (minimum !== maximum) {
+                        // If the minimum and maximum is the same then there is no
+                        // distribution. Mostly seen where gps:speed === 0 (no lock).
+                        distributions.push(Distribution.new(axis, index,
                             minimum, maximum, kDistributionSlots));
 
-                    fftAxes.push({name: axis, index: index});
+                        fftAxes.push({name: axis, index: index});
+                    }
+                } catch (e) {
+                    // Do nothing
+                    // We might catch an error if the particular summary statistic
+                    // doesn't exist. Which shouldn't be the case, but you never
+                    // know. See DW-218.
                 }
-            } catch (e) {
-                // Do nothing
-                // We might catch an error if the particular summary statistic
-                // doesn't exist. Which shouldn't be the case, but you never
-                // know. See DW-218.
             }
-        }
-    });
+        });
+    }
 
     //var fft = FFT.new(fftAxes, numberOfSamples, 100);
     var se;
@@ -104,35 +110,35 @@ exports.getPanel = function(parameters, callbackDone) {
     }
 
     cassandraPanel.getPanel(panelId, startTime, endTime,
-            function(rowTime, rowData, n) {
-                underscore.each(distributions, function(distribution) {
-                    distribution.processRow(rowTime, rowData);
-                });
+        function (rowTime, rowData, n) {
+            underscore.each(distributions, function (distribution) {
+                distribution.processRow(rowTime, rowData);
+            });
 
-                //fft.processRow(rowTime, rowData, n);
-                if (typeof se !== 'undefined') {
-                    se.processRow(rowTime, rowData, n);
-                }
-                bucketer.processRow(rowTime, rowData);
-            },
-            function(err) {
-                var distributionResults = underscore.reduce(distributions, function(memo, d) {
-                    memo.push(d.processEnd());
-                    return memo;
-                }, []);
-
-
-                var result = {
-                    startTime: startTime,
-                    endTime: endTime,
-                    id: panelId,
-                    buckets: buckets,
-                    panel: bucketer.processEnd(),
-                    distributions: distributionResults,
-                    //fft: fft.processEnd()
-                    spectralEntropy: typeof se !== 'undefined' ? se.processEnd() : {}
-                };
-                callbackDone(err, result);
+            //fft.processRow(rowTime, rowData, n);
+            if (typeof se !== 'undefined') {
+                se.processRow(rowTime, rowData, n);
             }
+            bucketer.processRow(rowTime, rowData);
+        },
+        function (err) {
+            var distributionResults = underscore.reduce(distributions, function (memo, d) {
+                memo.push(d.processEnd());
+                return memo;
+            }, []);
+
+
+            var result = {
+                startTime: startTime,
+                endTime: endTime,
+                id: panelId,
+                buckets: buckets,
+                panel: bucketer.processEnd(),
+                distributions: distributionResults,
+                //fft: fft.processEnd()
+                spectralEntropy: typeof se !== 'undefined' ? se.processEnd() : {}
+            };
+            callbackDone(err, result);
+        }
     );
 };
