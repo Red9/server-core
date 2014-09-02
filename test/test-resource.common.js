@@ -9,9 +9,6 @@ exports['resource.common extractEqualityConditions'] = {
         this.sut = require(path).divideQueries;
         callback();
     },
-    tearDown: function (callback) {
-        callback();
-    },
     'all results': function (test) {
         var query = {};
         var result = {
@@ -95,9 +92,6 @@ exports['resource.common mapQueryKeyName'] = {
         this.sut = require(path).mapQueryKeyName;
         callback();
     },
-    tearDown: function (callback) {
-        callback();
-    },
     'basic': function (test) {
         var input = {
             firstName: '',
@@ -123,9 +117,6 @@ exports['resource.common mapQueryKeyName'] = {
 exports['resource.common calculateWhereQuery'] = {
     setUp: function (callback) {
         this.sut = require(path).constructWhereQuery;
-        callback();
-    },
-    tearDown: function (callback) {
         callback();
     },
     'none where': function (test) {
@@ -183,9 +174,6 @@ exports['resource.common valueToCassandraString'] = {
         this.sut = proxyquire(path, proxyquireOptions).valueToCassandraString;
         callback();
     },
-    tearDown: function (callback) {
-        callback();
-    },
     'basic: strings': function (test) {
         test.strictEqual(this.sut("hello"), "'hello'");
         test.strictEqual(this.sut("with 'single' quotes"), "'with ''single'' quotes'");
@@ -210,15 +198,18 @@ exports['resource.common valueToCassandraString'] = {
         this.sut([]);
 
         test.done();
+    },
+    'does not treat embedded UUID as UUID': function (test) {
+        test.strictEqual(this.sut("beginning fec5ac27-912a-450c-8d64-9843b4f8bdbc"), "'beginning fec5ac27-912a-450c-8d64-9843b4f8bdbc'");
+        test.strictEqual(this.sut("fec5ac27-912a-450c-8d64-9843b4f8bdbc end"), "'fec5ac27-912a-450c-8d64-9843b4f8bdbc end'");
+        test.strictEqual(this.sut("middle fec5ac27-912a-450c-8d64-9843b4f8bdbc middle"), "'middle fec5ac27-912a-450c-8d64-9843b4f8bdbc middle'");
+        test.done();
     }
 };
 
 exports['testQueryOnValue'] = {
     setUp: function (callback) {
         this.sut = require(path).testQueryOnValue;
-        callback();
-    },
-    tearDown: function (callback) {
         callback();
     },
     'equal': function (test) {
@@ -301,9 +292,6 @@ exports['extractValue'] = {
         this.sut = require(path).extractValue;
         callback();
     },
-    tearDown: function (callback) {
-        callback();
-    },
     'basic': function (test) {
         var resource = {
             first: {
@@ -373,9 +361,6 @@ exports['resource.common testAgainstQuery'] = {
         this.sut = require(path).testAgainstQuery;
         callback();
     },
-    tearDown: function (callback) {
-        callback();
-    },
     'empty query passes': function (test) {
         test.strictEqual(this.sut({}, {}), true);
         test.done();
@@ -427,9 +412,6 @@ exports['resource.common setupOrderBy'] = {
             {a: 1},
             {a: 2}
         ];
-        callback();
-    },
-    tearDown: function (callback) {
         callback();
     },
     'basic no ordering': function (test) {
@@ -553,9 +535,6 @@ exports['resource.common setupSkipAndLimit'] = {
         ];
         callback();
     },
-    tearDown: function (callback) {
-        callback();
-    },
     'no skip or limit': function (test) {
 
         var index = 0;
@@ -650,9 +629,6 @@ exports['resource.common queryTailPipeline'] = {
         ];
         callback();
     },
-    tearDown: function (callback) {
-        callback();
-    },
     'basic': function (test) {
         var testObjects = this.testObjects;
         test.expect(testObjects.length);
@@ -710,9 +686,154 @@ exports['resource.common queryTailPipeline'] = {
     }
 };
 
+exports['resource.common createResourceString'] = {
+    setUp: function (callback) {
+        this.sut = require(path).createResourceString;
+        callback();
+    },
+    'basic': function (test) {
+        var resource = {
+            a: 1,
+            b: 'two',
+            c: '3ae1340b-334e-4d5e-a38d-a30b3d6010ea'
+        };
+        var expectedResult = "INSERT INTO table (a,b,c) VALUES (1,'two',3ae1340b-334e-4d5e-a38d-a30b3d6010ea)";
+        test.strictEqual(this.sut('table', resource), expectedResult);
+        test.done();
+    },
+    'one item': function (test) {
+        var resource = {
+            a: 1
+        };
+        var expectedResult = "INSERT INTO table (a) VALUES (1)";
+        test.strictEqual(this.sut('table', resource), expectedResult);
+        test.done();
+    }
+};
+
+exports['resource.common checkNewResource'] = {
+    setUp: function (callback) {
+        this.sut = require(path).checkNewResource;
+        this.schema = {
+            startTime: {
+                type: 'timestamp',
+                includeToCreate: true,
+                editable: true
+            },
+            type: {
+                type: 'string',
+                includeToCreate: true,
+                editable: true
+            },
+            id: {
+                type: 'uuid',
+                includeToCreate: false,
+                editable: false
+            }
+        };
+        callback();
+    },
+    'basic': function (test) {
+        var resource = {
+            startTime: 12345678,
+            type: 'happy'
+        };
+        test.strictEqual(this.sut(this.schema, resource), null);
+        test.done();
+    },
+    'too few keys': function (test) {
+        var resource = {
+            startTime: 12345678
+        };
+        test.notStrictEqual(this.sut(this.schema, resource), null);
+        test.done();
+    },
+    'keys that are not included on create': function (test) {
+        var resource = {
+            startTime: 12345678,
+            type: 'happy',
+            id: '3ae1340b-334e-4d5e-a38d-a30b3d6010ea'
+        };
+        test.notStrictEqual(this.sut(this.schema, resource), null);
+        test.done();
+    },
+    'extra keys': function (test) {
+        var resource = {
+            startTime: 12345678,
+            type: 'happy',
+            extra: 'hippo'
+        };
+        test.notStrictEqual(this.sut(this.schema, resource), null);
+        test.done();
+    },
+    'invalid type': function (test) {
+        var resource = {
+            startTime: '12345678',
+            type: 'happy'
+        };
+        test.notStrictEqual(this.sut(this.schema, resource), null);
+        test.done();
+    }
+};
+
+exports['resource.common validateType'] = {
+    setUp: function (callback) {
+        this.sut = require(path).validateType;
+        callback();
+    },
+    'basic': function (test) {
+        test.strictEqual(this.sut(), false);
+        test.strictEqual(this.sut('no value'), false);
 
 
+        // timestamp
+        test.strictEqual(this.sut('timestamp', 1234567), true);
+        test.strictEqual(this.sut('timestamp', '1234567'), false);
 
+        // string
+        test.strictEqual(this.sut('string', 'hello'), true);
+        test.strictEqual(this.sut('string', 1234), false);
+
+        // uuid
+        test.strictEqual(this.sut('uuid', 'bb825486-02fe-453a-afb6-4fb2fa79228c'), true);
+        test.strictEqual(this.sut('uuid', 'hello'), false);
+        test.strictEqual(this.sut('uuid', 1234), false);
+
+        // object
+        test.strictEqual(this.sut('object', {}), true);
+        test.strictEqual(this.sut('object', []), false);
+        test.strictEqual(this.sut('object', 1234), false);
+
+        // integer
+        test.strictEqual(this.sut('integer', 1234), true);
+        test.strictEqual(this.sut('integer', 1234.5), false);
+        test.strictEqual(this.sut('integer', '1234'), false);
+
+        // float
+        test.strictEqual(this.sut('float', 1234), true);
+        test.strictEqual(this.sut('float', 1234.5), true);
+        test.strictEqual(this.sut('float', '1234.5'), false);
+
+        // string:email
+        test.strictEqual(this.sut('string:email', 'first@example.com'), true);
+        test.strictEqual(this.sut('string:email', 'monkey'), false);
+        test.strictEqual(this.sut('string:email', 1234), false);
+
+        // array:<type>
+        test.strictEqual(this.sut('array:string', ['a', 'b', 'c']), true);
+        test.strictEqual(this.sut('array:integer', [1, 2, '3']), false);
+        test.strictEqual(this.sut('array:string:email', ['first@example.com']), true);
+
+
+        // bad types
+        test.strictEqual(this.sut('bad_type', ''), false);
+        test.strictEqual(this.sut('bad:type', ''), false);
+        test.strictEqual(this.sut('very:bad:type', ''), false);
+
+
+        test.done();
+    }
+};
 
 
 

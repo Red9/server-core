@@ -1,5 +1,5 @@
 var _ = require('underscore')._;
-var proxyquire = require('proxyquire');
+var proxyquire = require('proxyquire').callThru();
 
 var path = '../lib/support.resource.event';
 var cassandraPath = './support.datasource.cassandra';
@@ -101,3 +101,5 @@ exports['event resource'] = {
         this.sut({a: {$gt: 2}}, {$orderBy: {a: 1}, $skip: 1, $limit: 1}, rowCallback, doneCallback);
     }
 };
+
+// TODO(SRLM): Add tests for event creation.
