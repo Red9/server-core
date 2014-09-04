@@ -4,12 +4,22 @@ var proxyquire = require('proxyquire').callThru();
 var path = '../lib/support.resource.event';
 var cassandraPath = './support.datasource.cassandra';
 
-var sampleEvents = [{"id":"672daee5-67b3-e6cd-4faf-78a32c2aa4d8","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409039372773,"startTime":1409039367643,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"582cfe3b-4cea-31f4-fb46-202f66377f74","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409038603473,"startTime":1409038593233,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"3d9d450a-713e-3900-e001-a3d70a096fa5","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409039342033,"startTime":1409039306193,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"db167d3d-ba27-e087-646c-1639308bc7ef","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409040750033,"startTime":1409040737233,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"cc41374a-7427-7427-855c-f32fc44613e6","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409042874853,"startTime":1409042862043,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"902784bf-b4b7-bf54-53c7-845676bb0aff","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409040125393,"startTime":1409040110033,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"7d6c8323-5cbc-d19f-65ec-d01639d72711","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409041729253,"startTime":1409041702353,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"bfe79f0c-1045-91f5-82a8-073533214ede","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409041757393,"startTime":1409041740763,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"d9f7b0d4-40e6-91f1-6419-c7647909763d","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409042673893,"startTime":1409042652123,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"3fde8553-8bff-8b88-0f0e-85fd2e95937b","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409042452433,"startTime":1409042444753,"type":"Wave","summaryStatistics":{},"source":{}},{"id":"25afa1aa-ddd9-5f82-f9f9-6784fcd5ab04","datasetId":"ead038a6-f069-8515-4d2f-8dc6154fed2e","endTime":1409040890833,"startTime":1409040871633,"type":"Wave","summaryStatistics":{},"source":{}}];
+var sampleEvents = [
+    {"id": "672daee5-67b3-e6cd-4faf-78a32c2aa4d8", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409039372773, "startTime": 1409039367643, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "582cfe3b-4cea-31f4-fb46-202f66377f74", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409038603473, "startTime": 1409038593233, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "3d9d450a-713e-3900-e001-a3d70a096fa5", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409039342033, "startTime": 1409039306193, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "db167d3d-ba27-e087-646c-1639308bc7ef", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409040750033, "startTime": 1409040737233, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "cc41374a-7427-7427-855c-f32fc44613e6", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409042874853, "startTime": 1409042862043, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "902784bf-b4b7-bf54-53c7-845676bb0aff", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409040125393, "startTime": 1409040110033, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "7d6c8323-5cbc-d19f-65ec-d01639d72711", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409041729253, "startTime": 1409041702353, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "bfe79f0c-1045-91f5-82a8-073533214ede", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409041757393, "startTime": 1409041740763, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "d9f7b0d4-40e6-91f1-6419-c7647909763d", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409042673893, "startTime": 1409042652123, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "3fde8553-8bff-8b88-0f0e-85fd2e95937b", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409042452433, "startTime": 1409042444753, "type": "Wave", "summaryStatistics": {}, "source": {}},
+    {"id": "25afa1aa-ddd9-5f82-f9f9-6784fcd5ab04", "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409040890833, "startTime": 1409040871633, "type": "Wave", "summaryStatistics": {}, "source": {}}
+];
 
-exports['event resource'] = {
+exports['support.resource.event find proxyquire'] = {
     setUp: function (callback) {
-        this.sut = require(path).find;
-
         var self = this;
         var proxyquireOptions = {};
 
@@ -20,11 +30,6 @@ exports['event resource'] = {
         };
 
         this.sut = proxyquire(path, proxyquireOptions).find;
-
-
-        callback();
-    },
-    tearDown: function (callback) {
         callback();
     },
     'correct CQL statement': function (test) {
@@ -60,6 +65,7 @@ exports['event resource'] = {
         };
 
         var index = 0;
+
         function rowCallback(resource) {
             test.deepEqual(resource, cassandraResults[index++]);
         }
@@ -90,6 +96,7 @@ exports['event resource'] = {
         };
 
         var index = 0;
+
         function rowCallback(resource) {
             test.deepEqual(resource, queryResults[index++]);
         }
@@ -103,3 +110,39 @@ exports['event resource'] = {
 };
 
 // TODO(SRLM): Add tests for event creation.
+exports['support.resource.event create proxyquire'] = {
+    setUp: function (callback) {
+        var self = this;
+        var proxyquireOptions = {};
+
+        proxyquireOptions[cassandraPath] = {
+            execute: function (options) {
+                self.execute(options);
+            }
+        };
+
+        this.sut = proxyquire(path, proxyquireOptions).create;
+        callback();
+    },
+    basic: function (test) {
+
+        var newEvent = {
+            startTime: 1234,
+            endTime: 12345,
+            datasetId: 'c2ade0e5-9a65-441b-89b8-ef0488ca9e8f',
+            type: 'Wave'
+        };
+
+
+        this.execute = function (options) {
+            options.doneCallback();
+        };
+
+
+        function doneCallback() {
+            test.done();
+        }
+
+        this.sut(newEvent, doneCallback);
+    }
+};
