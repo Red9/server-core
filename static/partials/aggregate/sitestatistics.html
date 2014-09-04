@@ -1,0 +1,66 @@
+<h1>Site Statistics</h1>
+
+<h3>Total datasets: {{datasetAggregate.count}}</h3>
+<p>Average duration: {{datasetAggregate.averageDuration | duration:true}}</p>
+<p>Sum duration: {{datasetAggregate.sumDuration | duration:true}}</p>
+
+<div class="table-responsive">
+    <table class="table table-hover table-condensed">
+        <thead>
+        <th>Name</th>
+        <th>Total Time</th>
+        <th>Count</th>
+        </thead>
+        <tbody>
+        <tr ng-repeat="dataset in datasetUsers | orderBy:'sumDuration':true">
+            <td>{{dataset.owner.displayName}}
+            </td>
+            <td>
+                {{dataset.sumDuration | duration:true}}
+            </td>
+            <td>
+                {{dataset.count}}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<h3>Total events: {{eventCount.total}} ({{eventCount.manual.count}} manual, {{eventCount.auto.count}} auto)</h3>
+<p>{{eventCount.manual.sumDuration | duration:true}} manual</p>
+<p>{{eventCount.auto.sumDuration | duration:true}} auto</p>
+
+<div class="table-responsive">
+    <table class="table table-hover table-condensed">
+        <thead>
+        <th>Type</th>
+        <th>Total Time</th>
+        <th>Average Time</th>
+        <th>Count</th>
+        <th></th>
+        </thead>
+        <tbody>
+        <tr ng-repeat="event in eventsAggregate | orderBy:'type'">
+            <td>{{event.type}}
+            </td>
+            <td>
+                {{event.manual.sumDuration | duration:true}}<br/>
+                {{event.auto.sumDuration | duration:true}}
+            </td>
+            <td>
+                {{event.manual.averageDuration | duration:true}}<br/>
+                {{event.auto.averageDuration | duration:true}}
+            </td>
+            <td>
+                {{event.manual.count}}<br/>
+                {{event.auto.count}}
+            </td>
+            <td>
+                manual <br/>
+                auto
+            </td>
+
+        </tr>
+        </tbody>
+    </table>
+</div>
