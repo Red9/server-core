@@ -6,11 +6,21 @@ var path = require('path');
 var indexFilename = path.join(config.clientDirectory, config.release ? 'release/index.html' : 'index.html');
 
 
+function sendIndex(req, res, next) {
+    // Send the user information so that the app doesn't have to make an
+    // initial JSON request.
+    if (typeof req.session.passport.user !== 'undefined') {
+        res.cookie('currentUser', JSON.stringify(req.session.passport.user));
+    }
+
+    res.sendFile(indexFilename);
+}
+
 function IsAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        res.redirect(401, '/page/about');
+        sendIndex(req, res, next);
     }
 }
 
@@ -50,16 +60,6 @@ module.exports = function(app, passport) {
         '/page/:name',
         '/aggregate/:page'
     ];
-
-    function sendIndex(req, res, next) {
-        // Send the user information so that the app doesn't have to make an
-        // initial JSON request.
-        if (typeof req.session.passport.user !== 'undefined') {
-            res.cookie('currentUser', JSON.stringify(req.session.passport.user));
-        }
-
-        res.sendFile(indexFilename);
-    }
 
     _.each(angularPageList, function(path) {
         app.get(path, sendIndex);
