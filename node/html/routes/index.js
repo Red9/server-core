@@ -47,7 +47,8 @@ module.exports = function(app, passport) {
         '/dataset/',
         '/event/',
         '/user/:id',
-        '/page/:name'
+        '/page/:name',
+        '/aggregate/:page'
     ];
 
     function sendIndex(req, res, next) {
