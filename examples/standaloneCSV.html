@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Standalone CSV Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.js"></script>
+
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/">TotalState</a>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <!-- Add some spaces to account for the header... A bit of a hack
+    that's taken care of in the site's CSS.-->
+    <br/><br/><br/>
+
+    <h1>Generate CSV</h1>
+    <p>Copy all text by clicking in the text area and using <kbd><kbd>ctrl</kbd>+<kbd>a</kbd></kbd> and <kbd><kbd>ctrl</kbd>+<kbd>c</kbd></kbd>. Then paste into your favorite spreadsheet program.</p>
+
+    <!-- Use a text area so that it's easy to copy and paste. -->
+    <textarea id="csvarea" class="form-control" rows="5" style="font-family:monospace">Loading...</textarea>
+
+</div>
+
+<script>
+    var htmlUrl = 'http://redninesensor.com';
+    var apiUrl = 'http://api.redninesensor.com';
+
+    function displayEventList(eventList) {
+        var headerRow = 'id,duration,gpsPathDistance,cseAcceleration:z,source\n';
+
+        var matchingResults = 0;
+        var CSV = _.reduce(eventList, function (memo, event) {
+            // Restrict our results display to only events of type
+            if (event.type === 'Wave') {
+                memo += event.id + ',' + (event.endTime - event.startTime);
+
+                // Surround each additional type with a try/catch in case the requested value doesn't exist (which throws an error)
+                try {
+                    memo += ',' + event.summaryStatistics.static.route.path.distance.value;
+                } catch (e) {
+                    memo += ','; // default to an "empty" value
+                }
+
+                try {
+                    memo += ',' + event.summaryStatistics.static.cse.axes['acceleration:z'];
+                } catch (e) {
+                    memo += ','; // default to an "empty" value
+                }
+
+                try {
+                    memo += ',' + event.source.type;
+                } catch (e) {
+                    memo += ','; // default to an "empty" value
+                }
+
+                memo += '\n';
+                matchingResults ++;
+            }
+
+            return memo;
+
+        }, headerRow);
+
+        // Add the CSV string to the HTML, and extend our textarea so that all the rows are visible without scrolling
+        $('#csvarea').val(CSV).attr('rows', matchingResults + 1);
+    }
+
+    $(document).ready(function () {
+        // Setup so that it sends your cookies with AJAX requests. This
+        // is used for tracking requests, and eventually for
+        // authentication.
+        $.ajaxSetup({
+            xhrFields: {
+                withCredentials: true
+            }
+        });
+
+        // Make the server request to get our events. The result is
+        // an array of events.
+        $.ajax({
+            type: 'GET',
+            url: apiUrl + '/event/',
+            dataType: 'json',
+            success: displayEventList
+        });
+    });
+</script>
+
+</body>
+</html>
+
