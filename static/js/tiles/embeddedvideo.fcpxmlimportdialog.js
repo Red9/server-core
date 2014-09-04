@@ -98,8 +98,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
             tile.place.find('.alert').addClass('hidden');
         }
 
-        function processXml(datasetId, xml, videoStartTime) {
+        function processXml(datasetId, xml, videoId, videoStartTime) {
             var warnings = '';
+            var doneMessage = '';
             hideMessages();
 
             var x2js = new X2JS();
@@ -145,13 +146,7 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
                 })
                 // Then put all the markers into a single array (we don't care about clips any more)
                 .flatten()
-                // Convert times from milliseconds since video start to
-                // milliseconds since epoch.
-                .map(function (marker) {
-                    marker.time = marker.time + videoStartTime;
-                    return marker;
-                })
-                // Convert the arary of ins and outs to an array of events
+                // Convert the array of ins and outs to an array of events
                 .reduce(function (memo, marker) {
                     var t = marker.type.split('.');
                     var type = t[0].trim();
@@ -185,19 +180,48 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
                 .value();
             // At this point if there are any open elements in the scratch pad
             // then that indicates a "malformed" input file.
-            console.log('Parsed Events From XML' + JSON.stringify(parsedEvents, null, '   '));
             if (_.keys(parsedEvents.scratchPad).length !== 0) {
                 setWarning(warnings += 'Unclosed events: ' + JSON.stringify(parsedEvents.scratchPad) + '<br/>');
             }
 
-            var events = parsedEvents.events;
-            _.each(events, function (event) {
-                sandbox.create('event', event, function () {
-                    console.log('created event');
-                });
-            });
 
-            setDone(events.length + ' events created.');
+            var events = parsedEvents.events;
+            var syncEvent = _.findWhere(events, {type: 'FCP Sync'});
+
+
+            sandbox.get('event', {datasetId: datasetId, type: 'Sync'}, function (syncEventsList) {
+                // If there's a new 'FCP Sync' event, and the dataset has a 'Sync' event, then we'll autosync the new
+                // events and the current video to the defined event.
+                if (typeof syncEvent !== 'undefined') {
+                    if (syncEventsList.length === 0) {
+                        setWarning(warnings += 'No Sync event in dataset for auto syncing.<br/>');
+                    } else {
+                        videoStartTime = syncEventsList[0].startTime - syncEvent.startTime;
+
+                        doneMessage += 'FCP Sync used for video syncing.<br/>';
+
+                        sandbox.update('video', videoId, {startTime: videoStartTime}, function () {
+                        });
+                    }
+                }
+
+                _.chain(events)
+                    // Convert times from milliseconds since video start to
+                    // milliseconds since epoch.
+                    .map(function (event) {
+                        event.startTime += videoStartTime;
+                        event.endTime += videoStartTime;
+                        return event;
+                    })
+                    .each(function (event) {
+                        sandbox.create('event', event, function () {
+                            console.log('created event');
+                        });
+                    });
+
+                doneMessage += events.length + ' events created.';
+                setDone(doneMessage);
+            });
         }
 
         // Taken from http://stackoverflow.com/a/13709663
@@ -239,12 +263,14 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
                     var fcpxml = reader.result;
                     sandbox.get('video', {dataset: formValues.datasetId}, function (videoList) {
                         try {
-                            var videoStartTime = _.chain(videoList).pluck('startTime').min().value();
-                            if (typeof videoStartTime === 'undefined') {
+                            if (videoList.length === 0) {
                                 setAlert('Must define at least one video');
-                                return;
+                            } else {
+                                var video = _.min(videoList, function (video) {
+                                    return video.startTime;
+                                });
+                                processXml(formValues.datasetId, fcpxml, video.id, video.startTime);
                             }
-                            processXml(formValues.datasetId, fcpxml, videoStartTime);
                         } catch (e) {
 
                         }
