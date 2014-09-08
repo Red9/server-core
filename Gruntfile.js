@@ -21,7 +21,10 @@ module.exports = function (grunt) {
           }
         },
         nodeunit: {
-            all: ['test/**/test-*.js']
+            all: ['test/**/test-*.js'],
+            options: {
+                reporter: 'grunt'
+            }
         },
         watch: {
             files: ['<%= jshint.files %>'],
@@ -33,6 +36,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-nodeunit');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-shell');
+
 
     grunt.registerTask('default',
         [

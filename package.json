@@ -43,6 +43,7 @@
         "grunt-contrib-nodeunit": "latest",
         "grunt-contrib-watch": "latest",
         "proxyquire": "latest",
-        "grunt-shell": "latest"
+        "grunt-shell": "latest",
+        "verror": "latest"
     }
 }

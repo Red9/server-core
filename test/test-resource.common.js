@@ -160,6 +160,23 @@ exports['resource.common calculateWhereQuery'] = {
 
 };
 
+exports['resource.common generateUUID'] = {
+    setUp: function (callback) {
+        this.sut = require(path).generateUUID;
+        callback();
+    },
+    'basic': function (test) {
+        var uuid4Regex = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12}$/;
+
+        // Repeat a few times, just to make sure
+        test.ok(uuid4Regex.test(this.sut()));
+        test.ok(uuid4Regex.test(this.sut()));
+        test.ok(uuid4Regex.test(this.sut()));
+
+        test.done();
+    }
+};
+
 exports['resource.common valueToCassandraString'] = {
     setUp: function (callback) {
         var self = this;
@@ -171,7 +188,9 @@ exports['resource.common valueToCassandraString'] = {
             }
         };
 
-        this.sut = proxyquire(path, proxyquireOptions).valueToCassandraString;
+        this.sut = require(path).valueToCassandraString;
+
+        //this.sut = proxyquire(path, proxyquireOptions).valueToCassandraString;
         callback();
     },
     'basic: strings': function (test) {
@@ -186,16 +205,16 @@ exports['resource.common valueToCassandraString'] = {
     },
     'basic: uuid': function (test) {
         test.strictEqual(this.sut('fec5ac27-912a-450c-8d64-9843b4f8bdbc'), 'fec5ac27-912a-450c-8d64-9843b4f8bdbc');
+        test.strictEqual(this.sut('ead038a6-f069-8515-4d2f-8dc6154fed2e'), 'ead038a6-f069-8515-4d2f-8dc6154fed2e');
         test.done();
     },
-    'logs errors on objects and arrays': function (test) {
-        test.expect(2);
-        this.log = function (message) {
-            test.ok(true);
-        };
-
-        this.sut({});
-        this.sut([]);
+    'throws errors on objects and arrays': function (test) {
+        test.throws(function () {
+            this.sut({});
+        });
+        test.throws(function () {
+            this.sut([]);
+        });
 
         test.done();
     },
@@ -631,19 +650,20 @@ exports['resource.common queryTailPipeline'] = {
     },
     'basic': function (test) {
         var testObjects = this.testObjects;
-        test.expect(testObjects.length);
+        test.expect(testObjects.length + 1);
 
         var index = 0;
 
         function expandFunction(expandParameters, e, callback) {
-            callback(e);
+            callback(null, e);
         }
 
         function rowFunction(element) {
             test.deepEqual(element, testObjects[index++]);
         }
 
-        function doneFunction() {
+        function doneFunction(err, rowCount) {
+            test.strictEqual(rowCount, testObjects.length);
             test.done();
         }
 
@@ -658,19 +678,20 @@ exports['resource.common queryTailPipeline'] = {
             {a: 2},
             {a: 3}
         ];
-        test.expect(testExpected.length);
+        test.expect(testExpected.length + 1);
 
         var index = 0;
 
         function expandFunction(expandParameters, e, callback) {
-            callback(e);
+            callback(null, e);
         }
 
         function rowFunction(element) {
             test.deepEqual(element, testExpected[index++]);
         }
 
-        function doneFunction() {
+        function doneFunction(err, rowCount) {
+            test.strictEqual(rowCount, testExpected.length);
             test.done();
         }
 
@@ -683,12 +704,32 @@ exports['resource.common queryTailPipeline'] = {
 
         _.each(testObjects, pipeline.row);
         pipeline.done();
+    },
+    'no results returns 0 rowCount': function (test) {
+        var pipeline = this.sut(null, null, function () {
+        }, function (err, rowCount) {
+            test.strictEqual(rowCount, 0);
+            test.done();
+        });
+        pipeline.done();
     }
 };
 
 exports['resource.common createResourceString'] = {
     setUp: function (callback) {
-        this.sut = require(path).createResourceString;
+        //this.sut = require(path).createResourceString;
+
+        var self = this;
+
+        var proxyquireOptions = {};
+        proxyquireOptions[loggerPath] = {
+            error: function (message) {
+                self.log(message);
+            }
+        };
+
+        this.sut = proxyquire(path, proxyquireOptions).createResourceString;
+
         callback();
     },
     'basic': function (test) {
@@ -708,27 +749,34 @@ exports['resource.common createResourceString'] = {
         var expectedResult = "INSERT INTO table (a) VALUES (1)";
         test.strictEqual(this.sut('table', resource), expectedResult);
         test.done();
+    },
+    'has error when trying to pass unsupported type': function (test) {
+
+        this.log = function (message) { // throw away log errors
+        };
+
+        //test.strictEqual(this.sut('event', {object: {}});
+
+
+        test.done();
     }
 };
 
-exports['resource.common checkNewResource'] = {
+exports['resource.common checkNewResourceAgainstSchema'] = {
     setUp: function (callback) {
-        this.sut = require(path).checkNewResource;
+        this.sut = require(path).checkNewResourceAgainstSchema;
         this.schema = {
             startTime: {
                 type: 'timestamp',
                 includeToCreate: true,
-                editable: true
             },
             type: {
                 type: 'string',
                 includeToCreate: true,
-                editable: true
             },
             id: {
                 type: 'uuid',
                 includeToCreate: false,
-                editable: false
             }
         };
         callback();
@@ -738,14 +786,20 @@ exports['resource.common checkNewResource'] = {
             startTime: 12345678,
             type: 'happy'
         };
-        test.strictEqual(this.sut(this.schema, resource), null);
+        var self = this;
+        test.doesNotThrow(function () {
+            self.sut(self.schema, resource);
+        });
         test.done();
     },
     'too few keys': function (test) {
         var resource = {
             startTime: 12345678
         };
-        test.notStrictEqual(this.sut(this.schema, resource), null);
+        var self = this;
+        test.throws(function () {
+            self.sut(self.schema, resource);
+        });
         test.done();
     },
     'keys that are not included on create': function (test) {
@@ -754,7 +808,10 @@ exports['resource.common checkNewResource'] = {
             type: 'happy',
             id: '3ae1340b-334e-4d5e-a38d-a30b3d6010ea'
         };
-        test.notStrictEqual(this.sut(this.schema, resource), null);
+        var self = this;
+        test.throws(function () {
+            self.sut(self.schema, resource);
+        });
         test.done();
     },
     'extra keys': function (test) {
@@ -763,7 +820,10 @@ exports['resource.common checkNewResource'] = {
             type: 'happy',
             extra: 'hippo'
         };
-        test.notStrictEqual(this.sut(this.schema, resource), null);
+        var self = this;
+        test.throws(function () {
+            self.sut(self.schema, resource);
+        });
         test.done();
     },
     'invalid type': function (test) {
@@ -771,7 +831,10 @@ exports['resource.common checkNewResource'] = {
             startTime: '12345678',
             type: 'happy'
         };
-        test.notStrictEqual(this.sut(this.schema, resource), null);
+        var self = this;
+        test.throws(function () {
+            self.sut(self.schema, resource);
+        });
         test.done();
     }
 };
@@ -835,9 +898,128 @@ exports['resource.common validateType'] = {
     }
 };
 
+exports['resource.common filterUpdatedResourceThroughSchema'] = {
+    setUp: function (callback) {
+        this.sut = require(path).filterUpdatedResourceThroughSchema;
+        this.schema = {
+            startTime: {
+                type: 'timestamp',
+                editable: true
+            },
+            type: {
+                type: 'string',
+                editable: true
+            },
+            id: {
+                type: 'uuid',
+                editable: false
+            }
+        };
+        callback();
+    },
+    'basic': function (test) {
+
+        var resourceA = {
+            startTime: 1234,
+            type: 'Skydive'
+        };
+        test.deepEqual(this.sut(this.schema, resourceA), resourceA);
+
+        var resourceB = {
+            startTime: 1234
+        };
+        test.deepEqual(this.sut(this.schema, resourceB), resourceB, 'should work without all the editable fields specified');
+
+        var resourceC = {
+            startTime: 1234,
+            type: 'Skydive',
+            id: '30b0207f-10f3-4e24-ac92-d0b18ffcfdf5'
+        };
+        var resourceCResult = _.clone(resourceC);
+        delete resourceCResult.id;
+        test.deepEqual(this.sut(this.schema, resourceC), resourceCResult, 'ignores all non-editable fields');
+
+        test.done();
+    },
+    'checks key validity': function (test) {
+        var resource = {
+            startTime: '1234'
+        };
+        var self = this;
+        test.throws(function () {
+            self.sut(self.schema, resource);
+        });
+        test.done();
+    },
+    'checks for no keys': function (test) {
+        var self = this;
+        test.throws(function () {
+            self.sut(self.schema, {});
+        });
+        test.done();
+    },
+    'checks for extra keys': function (test) {
+        var resource = {
+            extra: 'Wat?'
+        };
+        var self = this;
+        test.throws(function () {
+            self.sut(self.schema, resource);
+        });
+        test.done();
+    }
+};
+
+exports['resource.common createUpdateString'] = {
+    setUp: function (callback) {
+        this.sut = require(path).createUpdateString;
+
+        // Extra data for convenience
+        this.id = '2de3eff2-d122-4562-a058-ddc8f143c014';
+        callback();
+    },
+    'basic': function (test) {
+        var resource = {
+            start_time: 1234
+        };
+
+        var result = 'UPDATE event SET start_time = 1234 WHERE id = ' + this.id;
+        test.strictEqual(this.sut('event', this.id, resource), result);
+        test.done();
+    },
+    'multiple values': function (test) {
+        // Fragile: relies on ordering of the object
+        var resource = {
+            start_time: 1234,
+            type: 'Wave'
+        };
+
+        var result = "UPDATE event SET start_time = 1234, type = 'Wave' WHERE id = " + this.id;
+        test.strictEqual(this.sut('event', this.id, resource), result);
+        test.done();
+    },
+    'throws error on empty resource': function (test) {
+        var self = this;
+        test.throws(function () {
+            self.sut('event', self.id, {});
+        });
+        test.done();
+    }
+};
 
 
+exports['resource.common createDeleteString'] = {
+    setUp: function (callback) {
+        this.sut = require(path).createDeleteString;
+        callback();
+    },
+    'basic': function (test) {
+        var id = '58485eab-cfee-4a3b-ab13-431be4e8d9bf';
 
+        test.strictEqual(this.sut('event', id), 'DELETE FROM event WHERE id = ' + id);
+        test.done();
+    }
+};
 
 
 
