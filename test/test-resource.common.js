@@ -1,7 +1,7 @@
 var proxyquire = require('proxyquire');
 var _ = require('underscore')._;
 
-var path = '../lib/support.resource.common';
+var path = '../lib/resource.common';
 var loggerPath = './support.logger';
 
 exports['resource.common extractEqualityConditions'] = {
