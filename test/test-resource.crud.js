@@ -13,7 +13,7 @@ var proxyquire = require('proxyquire').callThru().noPreserveCache();
 var _ = require('underscore')._;
 
 var path = '../lib/resource.crud';
-var eventDescriptionPath = '../lib/resource.description.event';
+var stubDescriptionPath = './stub.resource.description';
 var cassandraPath = './support.datasource.cassandra';
 
 
@@ -29,14 +29,14 @@ exports['resource.crud find'] = {
         };
 
         this.sut = proxyquire(path, proxyquireOptions).find;
-        this.eventDescription = require(eventDescriptionPath);
+        this.stubDescription = require(stubDescriptionPath);
         callback();
     },
     'correct CQL statement': function (test) {
         var query = {
             type: 'Wave',
             id: 'd3bc9992-7ce3-4c67-9de9-404d61c5d072',
-            startTime: {$gt: 1234567} // Red herring option: shouldn't be in Cassandra query
+            time: {$gt: 1234567} // Red herring option: shouldn't be in Cassandra query
         };
         // Note: may be fragile, since this assumes that the query object is ordered.
         var correctCQL = "SELECT * FROM event WHERE type = 'Wave' AND id = d3bc9992-7ce3-4c67-9de9-404d61c5d072 ALLOW FILTERING";
@@ -47,15 +47,15 @@ exports['resource.crud find'] = {
             test.done();
         };
 
-        this.sut(this.eventDescription, query, null, null, function () {
+        this.sut(this.stubDescription, query, null, null, function () {
         });
     },
     'all results passed': function (test) {
         var cassandraResults = [
-            {a: 4},
-            {a: 1},
-            {a: 2},
-            {a: 3}
+            {time: 4, type: 'a', id: '9d79f26a-263b-4cf9-8b9c-a3a1040cf026'},
+            {time: 1, type: 'a', id: '744bebdb-7f8e-4436-b15d-edda9b4eef1f'},
+            {time: 2, type: 'a', id: '49e6b99a-461d-4c84-9ceb-96cfd5cf3c5c'},
+            {time: 3, type: 'a', id: '36824e74-1d83-4b1b-a7c9-b48be893cbcc'}
         ];
 
         test.expect(cassandraResults.length);
@@ -75,18 +75,18 @@ exports['resource.crud find'] = {
             test.done();
         }
 
-        this.sut(this.eventDescription, {}, {}, rowCallback, callback);
+        this.sut(this.stubDescription, {}, {}, rowCallback, callback);
     },
     'local query with orderBy, skip, and limit': function (test) {
         var cassandraResults = [
-            {a: 4},
-            {a: 1},
-            {a: 2},
-            {a: 3},
-            {a: 5}
+            {time: 4, type: 'a', id: '9d79f26a-263b-4cf9-8b9c-a3a1040cf026'},
+            {time: 1, type: 'a', id: '744bebdb-7f8e-4436-b15d-edda9b4eef1f'},
+            {time: 2, type: 'a', id: '49e6b99a-461d-4c84-9ceb-96cfd5cf3c5c'},
+            {time: 3, type: 'a', id: '36824e74-1d83-4b1b-a7c9-b48be893cbcc'},
+            {time: 5, type: 'a', id: 'a36f4903-b63d-42bf-a7a3-528b43c685b2'}
         ];
         var queryResults = [
-            {a: 4}
+            {time: 4, type: 'a', id: '9d79f26a-263b-4cf9-8b9c-a3a1040cf026'}
         ];
 
         test.expect(queryResults.length);
@@ -106,7 +106,7 @@ exports['resource.crud find'] = {
             test.done();
         }
 
-        this.sut(this.eventDescription, {a: {$gt: 2}}, {$orderBy: {a: 1}, $skip: 1, $limit: 1}, rowCallback, callback);
+        this.sut(this.stubDescription, {time: {$gt: 2}}, {$orderBy: {time: 1}, $skip: 1, $limit: 1}, rowCallback, callback);
     }
 };
 
@@ -117,15 +117,14 @@ function prepareStubs(self, functionName) {
     proxyquireOptions[cassandraPath] = {
         execute: function (options) {
             self.execute(options);
-        },
-        '@global': true
+        }
     };
 
 
     // Convenience id
     self.id = '10563808-1ee5-44e9-a3e3-5c904e840976';
     // Provide a default execute
-    self.event = {"id": self.id, "datasetId": "ead038a6-f069-8515-4d2f-8dc6154fed2e", "endTime": 1409040890833, "startTime": 1409040871633, "type": "Wave", "summaryStatistics": {}, "source": {'type': 'auto'}};
+    self.event = {id: self.id, time: 1409040871633, type: 'Wave'};
 
     // We need to pretend that this event exists in order to update it.
     self.execute = function (options) {
@@ -139,7 +138,7 @@ function prepareStubs(self, functionName) {
     };
 
     self.sut = proxyquire(path, proxyquireOptions)[functionName];
-    self.eventDescription = require(eventDescriptionPath);
+    self.stubDescription = require(stubDescriptionPath);
 
     // Function to replicate the "find" function, used for update and delete
     self.find = function (query, options, rowCallback, callback) {
@@ -162,9 +161,7 @@ exports['resource.crud create'] = {
     'basic': function (test) {
 
         var newEvent = {
-            startTime: 1234,
-            endTime: 12345,
-            datasetId: 'c2ade0e5-9a65-441b-89b8-ef0488ca9e8f',
+            time: 1234,
             type: 'Wave'
         };
 
@@ -172,7 +169,7 @@ exports['resource.crud create'] = {
             test.done();
         }
 
-        this.sut(this.eventDescription, newEvent, callback);
+        this.sut(this.stubDescription, newEvent, callback);
     },
     'missing keys sent create do not pass': function (test) {
         function callback(err) {
@@ -180,71 +177,38 @@ exports['resource.crud create'] = {
         }
 
         var newEvent = {
-            startTime: 1234,
-            endTime: 12345,
-            datasetId: 'c2ade0e5-9a65-441b-89b8-ef0488ca9e8f',
+            time: 1234,
             type: 'Wave'
         };
 
         var clonedEvent = _.clone(newEvent);
-        delete clonedEvent.startTime;
-        this.sut(this.eventDescription, clonedEvent, callback);
-
-        clonedEvent = _.clone(newEvent);
-        delete clonedEvent.endTime;
-        this.sut(this.eventDescription, clonedEvent, callback);
-
-        clonedEvent = _.clone(newEvent);
-        delete clonedEvent.datasetId;
-        this.sut(this.eventDescription, clonedEvent, callback);
+        delete clonedEvent.time;
+        this.sut(this.stubDescription, clonedEvent, callback);
 
         clonedEvent = _.clone(newEvent);
         delete clonedEvent.type;
-        this.sut(this.eventDescription, clonedEvent, callback);
+        this.sut(this.stubDescription, clonedEvent, callback);
 
         test.done();
     },
-    'too many keys or non-crate keys created do not pass': function (test) {
+    'too many keys or non-create keys created do not pass': function (test) {
         function callback(err) {
             test.ok(err, 'error must be defined');
         }
 
         var newEventA = {
-            startTime: 1234,
-            endTime: 12345,
-            datasetId: 'c2ade0e5-9a65-441b-89b8-ef0488ca9e8f',
+            time: 1234,
             type: 'Wave',
             extra: 'hello?'
         };
-        this.sut(this.eventDescription, newEventA, callback);
+        this.sut(this.stubDescription, newEventA, callback);
 
         var newEventB = {
-            startTime: 1234,
-            endTime: 12345,
-            datasetId: 'c2ade0e5-9a65-441b-89b8-ef0488ca9e8f',
+            time: 1234,
             type: 'Wave',
-            summaryStatistics: {}
+            id: '92174fbc-3b97-4743-979e-dd906776e715'
         };
-        this.sut(this.eventDescription, newEventB, callback);
-
-        test.done();
-    },
-    'allows defining source': function (test) {
-        function callback(err) {
-            test.ok(!err, 'error should not be defined');
-        }
-
-        var newEvent = {
-            startTime: 1234,
-            endTime: 12345,
-            datasetId: 'c2ade0e5-9a65-441b-89b8-ef0488ca9e8f',
-            type: 'Wave',
-            source: {
-                type: 'auto'
-            }
-        };
-
-        this.sut(this.eventDescription, newEvent, callback);
+        this.sut(this.stubDescription, newEventB, callback);
 
         test.done();
     }
@@ -257,18 +221,17 @@ exports['resource.crud update'] = {
         callback();
     },
     'basic': function (test) {
-        var updatedEvent = {
-            startTime: 1234
+        var updatedResource = {
+            time: 1234
         };
-
 
         test.expect(1);
         function callback(err) {
-            test.ok(!err);
+            test.strictEqual(err, null);
             test.done();
         }
 
-        this.sut(this.find, this.eventDescription, this.id, updatedEvent, callback);
+        this.sut(this.find, this.stubDescription, this.id, updatedResource, callback);
     },
     'throws errors': function (test) {
         // The counter is a bit of a hack since test.done() doesn't work with async delays...
@@ -278,29 +241,29 @@ exports['resource.crud update'] = {
 
         function callback(err) {
             counter++;
-            test.ok(err);
+            test.notStrictEqual(err, null);
             if (counter === expectedTests) {
                 test.done();
             }
         }
 
         // Can't update with just non-editable values
-        this.sut(this.find, this.eventDescription, this.id, {
+        this.sut(this.find, this.stubDescription, this.id, {
             id: this.id
         }, callback);
 
-        this.sut(this.find, this.eventDescription, this.id, {
+        this.sut(this.find, this.stubDescription, this.id, {
             nonExistentKey: 'hello'
         }, callback);
 
         // Should fail with a non-existent id
-        this.sut(this.find, this.eventDescription, '07bf7e59-3f80-4762-a0bf-bb37d1107e04', {
-            startTime: 1234
+        this.sut(this.find, this.stubDescription, '07bf7e59-3f80-4762-a0bf-bb37d1107e04', {
+            time: 1234
         }, callback);
 
-        // Should run event checks, one of which is startTime < endTime
-        this.sut(this.find, this.eventDescription, this.id, {
-            startTime: 9999999999999
+        // Should run event checks, one of which is time >= 0
+        this.sut(this.find, this.stubDescription, this.id, {
+            time: -1
         }, callback);
     }
 };
@@ -319,7 +282,7 @@ exports['resource.crud delete'] = {
             test.done();
         }
 
-        this.sut(this.find, this.eventDescription, this.id, callback);
+        this.sut(this.find, this.stubDescription, this.id, callback);
     },
     'errors': function (test) {
         var self = this;
@@ -329,6 +292,6 @@ exports['resource.crud delete'] = {
             test.done();
         }
 
-        this.sut(this.find, this.eventDescription, '05b4a41e-94f8-4ac8-affe-9586c35191c9', callback);
+        this.sut(this.find, this.stubDescription, '05b4a41e-94f8-4ac8-affe-9586c35191c9', callback);
     }
 };

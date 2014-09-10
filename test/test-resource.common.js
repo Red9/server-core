@@ -777,6 +777,10 @@ exports['resource.common checkNewResourceAgainstSchema'] = {
             id: {
                 type: 'uuid',
                 includeToCreate: false,
+            },
+            stars: {
+                type: 'int',
+                dynamic: true
             }
         };
         callback();
@@ -830,6 +834,18 @@ exports['resource.common checkNewResourceAgainstSchema'] = {
         var resource = {
             startTime: '12345678',
             type: 'happy'
+        };
+        var self = this;
+        test.throws(function () {
+            self.sut(self.schema, resource);
+        });
+        test.done();
+    },
+    'dynamic keys throw error': function (test) {
+        var resource = {
+            startTime: 12345678,
+            type: 'happy',
+            stars: 31
         };
         var self = this;
         test.throws(function () {
@@ -913,7 +929,12 @@ exports['resource.common filterUpdatedResourceThroughSchema'] = {
             id: {
                 type: 'uuid',
                 editable: false
+            },
+            stars: {
+                type: 'int',
+                dynamic: true
             }
+
         };
         callback();
     },
@@ -937,7 +958,7 @@ exports['resource.common filterUpdatedResourceThroughSchema'] = {
         };
         var resourceCResult = _.clone(resourceC);
         delete resourceCResult.id;
-        test.deepEqual(this.sut(this.schema, resourceC), resourceCResult, 'ignores all non-editable fields');
+        test.deepEqual(this.sut(this.schema, resourceC), resourceCResult, 'ignores all explicitly non-editable fields');
 
         test.done();
     },
@@ -966,6 +987,19 @@ exports['resource.common filterUpdatedResourceThroughSchema'] = {
         test.throws(function () {
             self.sut(self.schema, resource);
         });
+        test.done();
+    },
+    'ignores keys with editable not set': function (test) {
+        // Particularly useful for dynamic keys
+        var resource = {
+            startTime: 1234,
+            type: 'Skydive',
+            stars: 3
+        };
+        var resourceResult = _.clone(resource);
+        delete resourceResult.stars;
+        test.deepEqual(this.sut(this.schema, resource), resourceResult, 'ignores all implicitly non-editable fields');
+
         test.done();
     }
 };
