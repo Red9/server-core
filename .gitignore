@@ -2,7 +2,8 @@
 /node/node_modules/
 /node/html/bin/
 /node/logs/
-/nbproject/
+/node/nbproject/
 /node_modules/
 /upload/
+/nbproject/private/
 /.idea/
