@@ -135,7 +135,6 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
                     }
 
                     return _.map(clip.marker, function (marker) {
-                        console.log('marker: ' + JSON.stringify(marker));
                         return  {
                             time: fcpTimeToMilliseconds(marker._start) + offset,
                             type: marker._value,
@@ -157,7 +156,9 @@ define(['vendor/jquery', 'vendor/underscore', 'vendor/xml2json', 'vendor/jquery.
                         };
                     }
 
-                    if (t[1].toUpperCase() === 'I') {
+                    if (t.length < 2) {
+                        setWarning(warnings += 'Marker "' + marker.type + '" is not in the correct format.<br/>');
+                    } else if (t[1].toUpperCase() === 'I') {
                         memo.scratchPad[type].startTime = marker.time;
                     } else if (t[1].toUpperCase() === 'O') {
                         var startTime = memo.scratchPad[type].startTime;
