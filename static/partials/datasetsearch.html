@@ -1,0 +1,28 @@
+<form class="form-inline" role="form" novalidate>
+    <div class="form-group">
+        <label class="sr-only" for="selectbasic">Select User</label>
+        <div>
+            <select class="form-control" ng-model="search.user" ng-options="user.displayName for user in users">
+                <option value="">-- Any User --</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="sr-only">search dataset titles</label>
+        <input type="search" class="form-control" placeholder="search titles" ng-model="search.title">
+    </div>
+<!--    
+    <div class="form-group">
+        <div class="input-group">
+            <div class="input-group-addon">before</div>
+            <input class="form-control" type="date" ng-model="search.startTime">
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <div class="input-group-addon">after</div>
+            <input class="form-control" type="date" ng-model="search.endTime">
+        </div>
+    </div>-->
+    <button ng-click="formChange(search)" class="btn btn-default">Search</button>
+</form>

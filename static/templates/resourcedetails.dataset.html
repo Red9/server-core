@@ -1,0 +1,164 @@
+<div class="row">
+    <div class="col-md-12">    
+        <h4>{{type}} Summary</h4>
+
+        <table class="table table-condensed">
+            <tr>
+                <th>Dataset Title</th>
+                <td>{{{dataset.title}}}</td>
+            </tr>
+            <tr>
+                <th>Owner</th>
+                <td><a href="/user/{{dataset.owner.id}}">{{{dataset.owner.displayName}}}</a>
+                </td>
+            </tr>
+            <tr>
+                <th>Uploaded Filename</th>
+                <td>{{{dataset.source.filename}}}</td>
+            </tr>
+            <tr>
+                <th>Created</th>
+                <td>{{date dataset.createTime}}&nbsp;&nbsp;&nbsp;{{time dataset.createTime}}</td>
+            </tr>
+            <tr>
+                <th>Start Time</th>
+                <td>{{date dataset.headPanel.startTime}}&nbsp;&nbsp;&nbsp;{{time dataset.headPanel.startTime}}</td>
+            </tr>
+            <tr>
+                <th>Duration</th>
+                <td>{{{duration dataset.headPanel.startTime dataset.headPanel.endTime}}}</td>
+            </tr>
+            <tr>
+                <th>GPS On Time</th>
+                <td>{{{duration 0 dataset.headPanel.summaryStatistics.static.gps.timeon.value}}} on ({{{percent dataset.headPanel.summaryStatistics.static.gps.timeon.value dataset.headPanel.summaryStatistics.static.gps.timeoff.value}}})</td>
+            </tr>
+            <tr>
+                <th>Distance</th>
+                <td>
+                    {{#if dataset.headPanel.summaryStatistics.static.route}}
+                    <table class="table table-condensed">
+                        <thead>
+                        <th>Type</th>
+                        <th>Distance</th>
+                        <th>Speed</th>
+                        </thead>
+                        {{#each dataset.headPanel.summaryStatistics.static.route}}
+                        <tr>
+                            <td>{{@key}}</td>
+                            <td>{{unitize distance.value distance.units}}</td>
+                            <td>{{unitize averageSpeed.value averageSpeed.units}}</td>
+                        </tr>
+                        {{/each}}
+                    </table>
+                    {{else}}
+                    (no GPS)
+                    {{/if}}
+                </td>
+            </tr>
+            <tr>
+                <th>Events</th>
+                <td>
+                    {{#if aggregation}}
+                    <table class="table table-condensed">
+                        <thead>
+                        <th>Type</th>
+                        <th>Count</th>
+                        <th>Total Duration</th>
+                        </thead>
+                        {{#each aggregation}}
+                        <tr>
+                            <td>{{type}}</td>
+                            <td>{{count}}</td>
+                            <td>{{duration 0 duration}} ({{percent durationPercent}})</td>
+                        </tr>
+                        {{/each}}
+                    </table>
+                    {{else}}
+                    (no events)
+                    {{/if}}
+                </td>
+            </tr>
+        </table>
+
+        <h4>
+            Download <a download="{{dataset.id}}-panel.csv" href="{{apiUrl}}/panel/{{dataset.headPanelId}}/body?minmax=false">Complete Panel</a>
+        </h4>
+
+    </div>
+</div>
+
+<div class="panel-group" id="accordion">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#recordingSource">
+                    Recording Source (click to toggle)
+                </a>
+            </h4>
+        </div>
+        <div id="recordingSource" class="panel-collapse collapse">
+            <div class="panel-body">
+                <h3>Parsed Properties</h3>
+                <div class="row">
+                    <div class="col-md-12"><strong>Filename</strong>: {{dataset.source.filename}}</div>
+                </div>
+                {{#if dataset.source.scad}}{{#with dataset.source.scad}}
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="row"><div class="col-md-3"><strong>Unit</strong>: {{unit}}</div></div>
+                        <div class="row"><div class="col-md-3"><strong>Rows</strong>: {{rows}}</div></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row"><strong>Recorder Start Time</strong>:</div>
+                        <div class="row">{{date datasetStartTime}} {{time datasetStartTime}}<br/>({{datasetStartTime}})</div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="row"><strong>Recorder End Time</strong>:</div>
+                        <div class="row">{{date datasetEndTime}} {{time datasetEndTime}}<br/>({{datasetEndTime}})</div>
+                    </div>
+                </div>
+
+
+                <h3>RNC Properties</h3>
+                {{#with rncParameters}}
+                <div class="row">
+                    <div class="col-md-3"><strong>Sensors</strong><br/>
+                        <table class="table table-condensed">
+                            <thead>
+                            <th>Class</th><th>id</th><th>Name</th>
+                            </thead>
+                            <tbody>
+                                {{#each sensors}}
+                                <tr><td>{{@key}}</td><td>{{id}}</td><td>{{name}}</td></tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="row">
+                            <div class="col-md-4"><strong>Create CNT</strong>: {{createTime.timestamp}}</div>
+                            <div class="col-md-5"><strong>Broken Time</strong>: {{createTime.brokenTime}}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><strong>Bits/Timestamp</strong>: {{timestampFormat.bitsPerTimestamp}}</div>
+                            <div class="col-md-5"><strong>Frequency</strong>: {{timestampFormat.frequency}}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"><strong>SW Version</strong>: {{softwareVersion}}</div>
+                            <div class="col-md-5"><strong>Create Filename</strong>: {{createName}}</div>
+                        </div>
+
+                    </div>
+                </div>
+                {{/with}}
+
+                {{/with}}{{else}}
+                Unknown source (not SCAD).
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</div>
