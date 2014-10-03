@@ -11,8 +11,6 @@ module.exports = function(grunt) {
                 files: [
                     // Copy assets over
                     {expand: true, src: ['static/css/**'], dest: 'release/'},
-                    {expand: true, src: ['static/fonts/**'], dest: 'release/'},
-                    {expand: true, src: ['static/images/**'], dest: 'release/'},
                     {expand: true, src: ['static/partials/**'], dest: 'release/'},
                     {expand: true, src: ['static/templates/**'], dest: 'release/'},
                     {expand: true, src: ['static/js/**'], dest: 'release'}
