@@ -1,0 +1,16 @@
+{
+  "name": "red9panelprocessor",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "test": "grunt"
+  },
+  "main": "build/rncvalidate",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-contrib-watch": "latest",
+    "grunt-shell": "latest"
+  }
+}
