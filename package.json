@@ -12,7 +12,7 @@
         "async": "latest",
         "socket.io": "latest",
         "passport": "latest",
-        "passport-google": "latest",
+        "passport-google-oauth": "latest",
         "passport-local": "latest",
         "winston": "latest",
         "winston-papertrail": "latest",

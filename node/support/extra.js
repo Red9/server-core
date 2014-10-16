@@ -28,14 +28,28 @@ exports.initializeSession = function(app, allowAuthentication) {
     var passport = require('passport');
 
     if (allowAuthentication === true) {
-        var GoogleStrategy = require('passport-google').Strategy;
         var authenticate = requireFromRoot('support/authenticate');
 
+        /*var GoogleStrategy = require('passport-google').Strategy;
         passport.use(new GoogleStrategy({
             returnURL: config.realms.html + '/login/google/return',
             realm: config.realms.html,
             stateless: true // Allow use with other red9 servers
-        }, authenticate.ProcessLoginRequest));
+        }, authenticate.ProcessLoginRequest));*/
+
+        var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+
+        passport.use(new GoogleStrategy({
+                clientID: '464191550717-t9q80jrmsjpj8sdvmjbaeidj1k4gpuhn.apps.googleusercontent.com',
+                clientSecret: 'YEGwK03xmvEp6HYgJMhj1Kpn',
+                callbackURL: config.realms.html + '/login/google/return',
+                scope: ['profile', 'email']
+            },
+            function(accessToken, refreshToken, profile, done) {
+                authenticate.ProcessLoginRequest(null, profile, done);
+            }
+        ));
+
 
         var LocalStrategy = require('passport-local').Strategy;
         passport.use(new LocalStrategy(
