@@ -1,0 +1,17 @@
+{
+    "name": "panel_server",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "start": "nodejs index.js"
+    },
+    "dependencies": {
+        "hapi": "latest",
+        "good": "latest",
+        "hapi-route-directory": "latest",
+        "joi": "latest",
+        "underscore": "latest",
+        "lout": "latest",
+        "hapi-swagger": "latest"
+    }
+}
