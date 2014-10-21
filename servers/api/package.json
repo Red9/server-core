@@ -8,10 +8,9 @@
     "dependencies": {
         "hapi": "latest",
         "good": "latest",
-        "hapi-route-directory": "latest",
         "joi": "latest",
         "underscore": "latest",
-        "lout": "latest",
-        "hapi-swagger": "latest"
+        "hapi-swagger": "latest",
+        "nconf": "latest"
     }
 }

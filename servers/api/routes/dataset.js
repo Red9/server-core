@@ -2,8 +2,10 @@
 var Joi = require('joi');
 var routeHelp = require('./../support/routehelp');
 
+var nconf = require('nconf');
+
 var panelConfig = {
-    dataPath: '/home/clewis/Downloads/RNC'
+    dataPath: nconf.get('rncDataPath')
 };
 var panel = require('red9panel').panelReader(panelConfig);
 
