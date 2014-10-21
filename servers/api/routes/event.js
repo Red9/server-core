@@ -9,63 +9,63 @@ var _ = require('underscore')._;
 exports.init = function (server, resource) {
     var listResponse = routeHelp.createListResponse(resource.event.find);
 
-    var resultModelRaw = {
-        id: routeHelp.idValidator,
-        startTime: Joi.number().description('The event start time'),
-        endTime: Joi.number(),
-        datasetId: routeHelp.idValidator,
-        type: Joi.string().description('The event type, free form string'),
-        summaryStatistics: Joi.object().description('Statistics that describe this event'),
-        source: Joi.object().description('information about the source that created this event')
-    };
-
-    var resultModel = Joi.object({
-        id: resultModelRaw.id.required(),
-        startTime: resultModelRaw.startTime.required(),
-        endTime: resultModelRaw.endTime.required(),
-        datasetId: resultModelRaw.datasetId.required(),
-        type: resultModelRaw.type.required(),
-        summaryStatistics: resultModelRaw.summaryStatistics.required(),
-        source: resultModelRaw.source.required()
-
-    }).options({
-        className: 'event'
-    });
-
-    var resultModelList = Joi.array().includes(resultModel);
+    // Convenient handles
+    var models = resource.event.models;
+    var model = models.model;
+    var resultModel = models.resultModel;
+    var resultModelList = Joi.array().includes(resultModel).options({className: 'eventList'});
 
     server.route({
         method: 'GET',
-        path: '/event/{id?}',
+        path: '/event/',
         handler: function (request, reply) {
             var filters = {};
-            if (request.params.id) {
-                filters.id = request.params.id;
-            }
 
-            routeHelp.checkAndAddQuery(filters, request.query,
-                [ 'startTime', 'endTime', 'datasetId', 'type']);
+            _.each(request.query, function (value, key) {
+                var keyParts = key.split('.');
+                if (keyParts.length === 1) {
+                    filters[key] = value;
+                } else if (keyParts.length === 2) {
+                    if (!_.has(filters, keyParts[0])) {
+                        filters[keyParts[0]] = {};
+                    }
+                    if (keyParts[1] === 'lt') {
+                        filters[keyParts[0]]['$lt'] = value;
+                    } else if (keyParts[1] === 'gt') {
+                        filters[keyParts[0]]['$gt'] = value;
+                    }
+                }
+            });
 
             listResponse(filters, reply);
         },
         config: {
             validate: {
+                query: models.search
+            },
+            description: 'Get events',
+            notes: 'Gets all events that matches the parameters',
+            tags: ['api'],
+            response: {schema: resultModelList}
+        }
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/event/{id}',
+        handler: function (request, reply) {
+            var filters = {};
+            filters.id = request.params.id;
+            listResponse(filters, reply);
+        },
+        config: {
+            validate: {
                 params: {
-                    id: routeHelp.idValidator
-                },
-                query: {
-                    'startTime': resultModelRaw.startTime,
-                    'startTime.gt': routeHelp.timestampValidator.description('Select events whose timestamp is greater than'),
-                    'startTime.lt': routeHelp.timestampValidator.description('Select events whose timestamp is less than'),
-                    'endTime': resultModelRaw.endTime,
-                    'endTime.gt': routeHelp.timestampValidator,
-                    'endTime.lt': routeHelp.timestampValidator,
-                    'datasetId': resultModelRaw.datasetId,
-                    'type': resultModelRaw.type
+                    id: model.id
                 }
             },
-            description: 'Get event(s)',
-            notes: 'Gets an event that matches the parameters.',
+            description: 'Get a single event',
+            notes: 'Gets a single event that matches with the given id',
             tags: ['api'],
             response: {schema: resultModelList}
         }
@@ -74,18 +74,10 @@ exports.init = function (server, resource) {
     server.route({
         method: 'POST',
         path: '/event/',
-        handler: function (request, reply) {
-            console.dir(request.payload);
-            reply();
-        },
+        handler: routeHelp.simpleCreateHandler(resource.event.create),
         config: {
             validate: {
-                payload: {
-                    startTime: resultModelRaw.startTime.required(),
-                    endTime: resultModelRaw.endTime.required(),
-                    type: resultModelRaw.type.required(),
-                    datasetId: resultModelRaw.datasetId.required()
-                }
+                payload: models.create
             },
             description: 'Create new event',
             notes: 'Create a new event on a dataset.',
@@ -96,30 +88,11 @@ exports.init = function (server, resource) {
     server.route({
         method: 'PUT',
         path: '/event/{id}',
-        handler: function (request, reply) {
-            console.dir(request.payload);
-
-            resource.event.update(request.params.id, request.payload, function (err) {
-                if (err) {
-                    console.log(err);
-                    reply(err);
-                } else {
-                    reply();
-                }
-
-            });
-        },
+        handler: routeHelp.simpleUpdateHandler(resource.event.update),
         config: {
             validate: {
-                params: {
-                    id: resultModelRaw.id
-                },
-                payload: {
-                    startTime: resultModelRaw.startTime,
-                    endTime: resultModelRaw.endTime,
-                    type: resultModelRaw.type,
-                    datasetId: resultModelRaw.datasetId
-                }
+                params: { id: model.id },
+                payload: models.update
             },
             description: 'Update event',
             notes: 'Update one or more fields of an event.',
@@ -130,20 +103,10 @@ exports.init = function (server, resource) {
     server.route({
         method: 'DELETE',
         path: '/event/{id}',
-        handler: function (request, reply) {
-            resource.event.delete(request.params.id, function (err, deletedResource) {
-                if (err) {
-                    reply(err);
-                } else {
-                    reply();
-                }
-            });
-        },
+        handler: routeHelp.simpleDeleteHandler(resource.event.delete),
         config: {
             validate: {
-                params: {
-                    id: resultModelRaw.id
-                }
+                params: { id: model.id }
             },
             description: 'Delete an event',
             notes: 'Delete a single event.',

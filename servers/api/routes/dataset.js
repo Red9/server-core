@@ -1,7 +1,7 @@
 //var panel = require('red9panel').panelReader(panelReaderConfig);
 var Joi = require('joi');
 var routeHelp = require('./../support/routehelp');
-
+var _ = require('underscore')._;
 var nconf = require('nconf');
 
 var panelConfig = {
@@ -11,64 +11,59 @@ var panel = require('red9panel').panelReader(panelConfig);
 
 
 exports.init = function (server, resource) {
-    var listResponse = routeHelp.createListResponse(resource.dataset.find);
+    var queryWithListResponse = routeHelp.createListResponse(resource.dataset.find);
 
-    var resultModelRaw = {
-        id: routeHelp.idValidator.description('resource UUID'),
-        startTime: routeHelp.timestampValidator.description('the dataset start time'),
-        endTime: routeHelp.timestampValidator.description('the dataset end time'),
-        owner: routeHelp.idValidator.description('the user id of the dataset owner'),
-        title: Joi.string().description('the human readable title of this dataset'),
-        summaryStatistics: Joi.object().description('statistics that describe this dataset'),
-        timezone: Joi.string().description('timezone information. Not used at this time.'),
-        source: Joi.object().description('the RNC source information'),
-        createTime: routeHelp.timestampValidator.description('the time that this dataset was uploaded')
-    };
-
-    var resultModel = Joi.object({
-        id: resultModelRaw.id.required(),
-        owner: resultModelRaw.owner.required(),
-        title: resultModelRaw.title.required(),
-        createTime: resultModelRaw.createTime.required(),
-
-        // These are part of the migration away from Cassandra panels, so they're not required yet
-        summaryStatistics: resultModelRaw.summaryStatistics,
-        timezone: resultModelRaw.timezone,
-        source: resultModelRaw.source,
-        startTime: resultModelRaw.startTime,
-        endTime: resultModelRaw.endTime
-    }).options({
-        className: 'dataset'
-    });
-
-    var resultModelList = Joi.array().includes(resultModel);
+    // Convenient handles
+    var models = resource.dataset.models;
+    var model = resource.dataset.models.model;
+    var resultModel = resource.dataset.models.resultModel;
+    var resultModelList = Joi.array().includes(resultModel).options({className: 'datasetList'});
 
 
     server.route({
         method: 'GET',
-        path: '/dataset/{id?}',
+        path: '/dataset/',
         handler: function (request, reply) {
+            // use routeHelp.checkAndAddQuery here when I add route options...
             var filters = {};
-            if (request.params.id) {
-                filters.id = request.params.id;
-            }
 
             routeHelp.checkAndAddQuery(filters, request.query,
-                []);
-            listResponse(filters, reply);
+                [ 'startTime', 'endTime', 'owner', 'title']);
+
+            queryWithListResponse(filters, reply);
         },
         config: {
             validate: {
-                params: {
-                    id: resultModelRaw.id
-                },
                 query: {
-
+                    'startTime': model.startTime,
+                    'startTime.gt': model.startTime.description('Select datasets that begin after a given time'),
+                    'startTime.lt': model.startTime.description('Select datasets that begin before a given time'),
+                    'endTime': model.endTime,
+                    'endTime.gt': model.endTime.description('Select datasets that end after a given time'),
+                    'endTime.lt': model.endTime.description('Select datasets that end before a given time'),
+                    'owner': model.owner,
+                    'title': model.title
                 }
-
             },
-            description: 'Get dataset(s)',
+            description: 'Get all dataset(s) that match query',
             notes: 'Gets dataset(s) that match the given parameters.',
+            tags: ['api'],
+            response: {schema: resultModelList}
+        }
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/dataset/{id}',
+        handler: routeHelp.simpleGetSingleHandler(queryWithListResponse),
+        config: {
+            validate: {
+                params: {
+                    id: model.id
+                }
+            },
+            description: 'Get a single dataset',
+            notes: 'Get a single dataset with given id',
             tags: ['api'],
             response: {schema: resultModelList}
         }
@@ -77,19 +72,11 @@ exports.init = function (server, resource) {
     server.route({
         method: 'PUT',
         path: '/dataset/{id}',
-        handler: function (request, reply) {
-            console.dir(request.payload);
-            reply();
-        },
+        handler: routeHelp.simpleUpdateHandler(resource.dataset.update),
         config: {
             validate: {
-                params: {
-                    id: resultModelRaw.id
-                },
-                payload: {
-                    title: resultModelRaw.title,
-                    owner: resultModelRaw.owner
-                }
+                params: { id: model.id },
+                payload: models.update
             },
             description: 'Update a dataset',
             notes: 'Update a dataset',
@@ -100,15 +87,10 @@ exports.init = function (server, resource) {
     server.route({
         method: 'DELETE',
         path: '/dataset/{id}',
-        handler: function (request, reply) {
-            // Delete dataset, panel, and all associated resources.
-            reply()
-        },
+        handler: routeHelp.simpleDeleteHandler(resource.dataset.delete),
         config: {
             validate: {
-                params: {
-                    id: resultModelRaw.id
-                }
+                params: { id: model.id }
             },
             description: 'Delete a dataset',
             notes: 'Delete a singe dataset',
@@ -172,9 +154,13 @@ exports.init = function (server, resource) {
             },
             validate: {
                 payload: {
+                    // For whatever reason, when I tried _.extend to use the
+                    // dataset resource create model and the file validation
+                    // together they didn't both come through. So, we have
+                    // to hard code the requirements.
                     rnc: Joi.required(),
-                    title: resultModelRaw.title.required(),
-                    owner: resultModelRaw.owner.required()
+                    title: model.title.required(),
+                    owner: model.owner.required()
                 }
             },
             description: 'Create new dataset',
@@ -195,11 +181,11 @@ exports.init = function (server, resource) {
         config: {
             validate: {
                 params: {
-                    id: resultModelRaw.id.required()
+                    id: model.id.required()
                 },
                 query: {
-                    startTime: resultModelRaw.startTime,
-                    endTime: resultModelRaw.endTime,
+                    startTime: model.startTime,
+                    endTime: model.endTime,
                     axes: Joi.string(),
                     frequency: Joi.number().integer().min(1).max(1000)
                 }
@@ -219,11 +205,11 @@ exports.init = function (server, resource) {
         config: {
             validate: {
                 params: {
-                    id: resultModelRaw.id.required()
+                    id: model.id.required()
                 },
                 query: {
-                    startTime: resultModelRaw.startTime,
-                    endTime: resultModelRaw.endTime,
+                    startTime: model.startTime,
+                    endTime: model.endTime,
                     axes: Joi.string(),
                     buckets: Joi.number().integer().min(1).max(10000),
                     minmax: Joi.boolean()

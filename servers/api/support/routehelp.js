@@ -65,7 +65,7 @@ exports.timestampValidator = Joi.number().integer().min(0);
  * @param key
  */
 exports.checkAndAddQuery = function (filters, query, keys) {
-    _.each(keys, function(key) {
+    _.each(keys, function (key) {
         if (query[key]) {
             filters[key] = query[key];
         } else if (query[key + '.lt'] || query[key + '.gt']) {
@@ -79,3 +79,224 @@ exports.checkAndAddQuery = function (filters, query, keys) {
         }
     });
 };
+
+exports.simpleCreateHandler = function (createFunction) {
+    return function (request, reply) {
+        createFunction(request.payload, function (err, createdResource) {
+            if (err) {
+                reply(err);
+            } else {
+                reply(createdResource);
+            }
+        });
+    }
+};
+
+exports.simpleGetSingleHandler = function (queryWithListResponse) {
+    return function (request, reply) {
+        var filters = {};
+        filters.id = request.params.id;
+        queryWithListResponse(filters, reply);
+    };
+};
+
+exports.simpleUpdateHandler = function (updateFunction) {
+    return function (request, reply) {
+        updateFunction(request.params.id, request.payload, function (err, updatedResource) {
+            if (err) {
+                reply(err);
+            } else {
+                reply(updatedResource);
+            }
+        });
+    }
+};
+
+exports.simpleDeleteHandler = function (deleteFunction) {
+    return function (request, reply) {
+        deleteFunction(request.params.id, function (err, deletedResource) {
+            if (err) {
+                reply(err);
+            } else {
+                reply(deletedResource);
+            }
+        });
+    }
+};
+
+exports.createSearchRoute = function(server, resource, searchKeys){
+    var listResponse = routeHelp.createListResponse(resource.find);
+
+    // Convenient handles
+    var models = resource.models;
+    var model = models.model;
+    var resultModel = models.resultModel;
+    var resultModelList = Joi.array().includes(resultModel).options({className: resource.name + 'List'});
+
+    var queryKeys= {
+    };
+
+
+
+    server.route({
+        method: 'GET',
+        path: '/' + resource.name + '/',
+        handler: function (request, reply) {
+            var filters = {};
+
+            routeHelp.checkAndAddQuery(filters, request.query,
+                searchKeys);
+
+            listResponse(filters, reply);
+        },
+        config: {
+            validate: {
+                query: {
+                    email: model.email,
+                    displayName: model.displayName
+                }
+            },
+            description: 'Get users',
+            notes: 'Gets all users that matches the parameters',
+            tags: ['api'],
+            response: {schema: resultModelList}
+        }
+    });
+};
+
+exports.createCRUDRoutes = function (server, resource) {
+    var listResponse = exports.createListResponse(resource.find);
+
+    // Convenient handles
+    var models = resource.models;
+    var model = models.model;
+    var resultModel = models.resultModel;
+    var resultModelList = Joi.array().includes(resultModel).options({className: resource.name + 'List'});
+
+    server.route({
+        method: 'GET',
+        path: '/' + resource.name + '/',
+        handler: function (request, reply) {
+            var filters = {};
+
+            _.each(request.query, function (value, key) {
+                var keyParts = key.split('.');
+                if (keyParts.length === 1) {
+                    filters[key] = value;
+                } else if (keyParts.length === 2) {
+                    if (!_.has(filters, keyParts[0])) {
+                        filters[keyParts[0]] = {};
+                    }
+                    if (keyParts[1] === 'lt') {
+                        filters[keyParts[0]]['$lt'] = value;
+                    } else if (keyParts[1] === 'gt') {
+                        filters[keyParts[0]]['$gt'] = value;
+                    }
+                }
+            });
+
+            listResponse(filters, reply);
+        },
+        config: {
+            validate: {
+                query: models.search
+            },
+            description: 'Get ' + resource.name,
+            notes: 'Gets all ' + resource.name + ' that matches the parameters',
+            tags: ['api'],
+            response: {schema: resultModelList}
+        }
+    });
+
+
+    server.route({
+        method: 'GET',
+        path: '/' + resource.name + '/{id}',
+        handler: function (request, reply) {
+            var filters = {};
+            filters.id = request.params.id;
+            listResponse(filters, reply);
+        },
+        config: {
+            validate: {
+                params: {
+                    id: model.id
+                }
+            },
+            description: 'Get a single ' + resource.name,
+            notes: 'Gets a single ' + resource.name + ' that matches the given id',
+            tags: ['api'],
+            response: {schema: resultModelList}
+        }
+    });
+
+    server.route({
+        method: 'POST',
+        path: '/' + resource.name + '/',
+        handler: function (request, reply) {
+            resource.create(request.payload, function (err, createdResource) {
+                if (err) {
+                    reply(err);
+                } else {
+                    reply(createdResource);
+                }
+            });
+        },
+        config: {
+            validate: {
+                payload: models.create
+            },
+            description: 'Create new ' + resource.name,
+            notes: 'Create new ' + resource.name,
+            tags: ['api']
+        }
+    });
+
+    server.route({
+        method: 'PUT',
+        path: '/' + resource.name + '/{id}',
+        handler: function (request, reply) {
+            resource.update(request.params.id, request.payload, function (err, updatedResource) {
+                if (err) {
+                    reply(err);
+                } else {
+                    reply(updatedResource);
+                }
+            });
+        },
+        config: {
+            validate: {
+                params: { id: model.id },
+                payload: models.update
+            },
+            description: 'Update ' + resource.name,
+            notes: 'Update one or more fields of a single ' + resource.name,
+            tags: ['api']
+        }
+    });
+
+    server.route({
+        method: 'DELETE',
+        path: '/' + resource.name + '/{id}',
+        handler: function (request, reply) {
+            resource.delete(request.params.id, function (err, deletedResource) {
+                if (err) {
+                    reply(err);
+                } else {
+                    reply(deletedResource);
+                }
+            });
+        },
+        config: {
+            validate: {
+                params: { id: model.id }
+            },
+            description: 'Delete ' + resource.name,
+            notes: 'Delete a single ' + resource.name,
+            tags: ['api']
+        }
+    });
+};
+
+
+
