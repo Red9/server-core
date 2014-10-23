@@ -1,0 +1,14 @@
+{
+    "name": "total_state",
+    "version": "0.0.2",
+    "private": true,
+    "scripts": {
+        "start": "nodejs index.js"
+    },
+    "dependencies": {
+        "nconf": "latest",
+        "express": "latest",
+        "compression": "latest",
+        "serve-favicon": "latest"
+    }
+}

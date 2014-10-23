@@ -1,0 +1,16 @@
+{
+    "name": "panel_server",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "start": "nodejs index.js"
+    },
+    "dependencies": {
+        "hapi": "latest",
+        "good": "latest",
+        "joi": "latest",
+        "underscore": "latest",
+        "hapi-swagger": "git://github.com/glennjones/hapi-swagger.git",
+        "nconf": "latest"
+    }
+}

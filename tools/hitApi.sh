@@ -10,7 +10,12 @@
 #url="http://api.localdev.redninesensor.com/event/?part=id,startTime,endTime,datasetId"
 #url="http://api.localdev.redninesensor.com/panel/4d5254a9-b055-7651-4652-0f2ffb06511f/body/?buckets=1000&format=json&cache=on&startTime=1401376812943&endTime=1401377909213&part=startTime,endTime,buckets,id,panel"
 
-url="http://api.localdev.redninesensor.com/dataset/?simpleoutput=1&expand=headPanel%2Cowner&count=true&pretty=true"
+#url="http://api.localdev.redninesensor.com/dataset/?simpleoutput=1&expand=headPanel%2Cowner&count=true&pretty=true"
+
+url="http://api.redninesensor.com/panel/3a84c127-0513-7fd7-a0ed-5fd54e3d0a94/body?format=json&buckets=1001&cache=false"
+
+url="http://localhost:3000/event/"
+
 #url="http://api.localdev.redninesensor.com/dataset/?expand=headPanel%2Cowner&count=true&pretty=true&part=id,count,title,createTime,owner.id,owner.displayName,headPanel.startTime,headPanel.endTime"
 
 temporaryFile="apiTimeFile.txt"

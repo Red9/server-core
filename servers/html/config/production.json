@@ -1,0 +1,6 @@
+{
+  "port": 8080,
+  "faviconPath": "",
+  "staticPath": "../../../dev-website-client-2/release/static",
+  "applicationPagePath": "../../../dev-website-client-2/release/index.html"
+}
