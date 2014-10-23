@@ -33,7 +33,7 @@ exports.init = function (server, resource) {
 
                 var newDataset = {
                     title: request.payload.title,
-                    owner: request.payload.owner
+                    ownerId: request.payload.ownerId
                 };
 
                 resource.helpers.createDataset(panel, resource, newDataset, request.payload.rnc, function (err, createdDataset) {
@@ -52,7 +52,7 @@ exports.init = function (server, resource) {
                     // to hard code the requirements.
                     rnc: Joi.required(),
                     title: model.title.required(),
-                    owner: model.owner.required()
+                    ownerId: model.ownerId.required()
                 }
             },
             description: 'Create new dataset',

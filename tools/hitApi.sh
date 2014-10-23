@@ -14,6 +14,8 @@
 
 url="http://api.redninesensor.com/panel/3a84c127-0513-7fd7-a0ed-5fd54e3d0a94/body?format=json&buckets=1001&cache=false"
 
+url="http://localhost:3000/event/"
+
 #url="http://api.localdev.redninesensor.com/dataset/?expand=headPanel%2Cowner&count=true&pretty=true&part=id,count,title,createTime,owner.id,owner.displayName,headPanel.startTime,headPanel.endTime"
 
 temporaryFile="apiTimeFile.txt"

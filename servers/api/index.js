@@ -1,23 +1,34 @@
+// default to development environment
+if (typeof process.env.NODE_ENV === 'undefined') {
+    process.env.NODE_ENV = 'development';
+}
+
 var nconf = require('nconf');
 nconf
-    .argv({
-        'configPath': {
-            describe: 'Specify path to a configuration file.',
-            demand: true
-        }
-    })
-    .env();
-
-nconf.file('configurationFile', {file: nconf.get('configPath')});
+    .argv()
+    .env()
+    .file('general', {file: 'config/general.json'})
+    .file('deployment', {file: 'config/' + process.env.NODE_ENV + '.json'})
+    .file('common', {file: '../config/' + process.env.NODE_ENV + '.json'});
 
 
 var Hapi = require('hapi');
 var Good = require('good');
-var server = new Hapi.Server(nconf.get('port'));
 var Joi = require('joi');
 
 var resource = require('red9resource');
 var routeHelp = require('./support/routehelp');
+
+
+//var server = new Hapi.Server(nconf.get('port'));
+var server = Hapi.createServer('localhost', nconf.get('port'), {
+    cors: {
+        origin: [
+            nconf.get('htmlOrigin')
+        ],
+        credentials: true
+    }
+});
 
 
 resource.init({
@@ -28,10 +39,11 @@ resource.init({
 //    cassandraPassword: nconf.get('cassandraPassword')
 }, function (err) {
 
-    if(err){
+    if (err) {
         console.log('Cassandra error: ' + err);
         process.exit(1);
     }
+
 
     routeHelp.createCRUDRoutes(server, resource.user);
     routeHelp.createCRUDRoutes(server, resource.event);

@@ -10,7 +10,7 @@
         "good": "latest",
         "joi": "latest",
         "underscore": "latest",
-        "hapi-swagger": "latest",
+        "hapi-swagger": "git://github.com/glennjones/hapi-swagger.git",
         "nconf": "latest"
     }
 }

@@ -1,13 +1,16 @@
+
+// default to development environment
+if (typeof process.env.NODE_ENV === 'undefined') {
+    process.env.NODE_ENV = 'development';
+}
+
 var nconf = require('nconf');
-
-var configFilename = 'config/' + process.env.NODE_ENV + '.json';
-
 nconf
     .argv()
     .env()
-    .file('html', {file: configFilename})
-    .file('serverAgnostic', {file: '../' + configFilename});
-
+    .file('general', {file: 'config/general.json'})
+    .file('deployment', {file: 'config/' + process.env.NODE_ENV + '.json'})
+    .file('common', {file: '../config/' + process.env.NODE_ENV + '.json'});
 
 // Standard modules that we need:
 var express = require('express');
@@ -40,8 +43,8 @@ function sendIndex(req, res, next) {
     // Send the user information so that the app doesn't have to make an
     // initial JSON request.
     /*if (typeof req.session.passport.user !== 'undefined') {
-        res.cookie('currentUser', JSON.stringify(req.session.passport.user));
-    }*/
+     res.cookie('currentUser', JSON.stringify(req.session.passport.user));
+     }*/
     console.log('[' + (new Date().toUTCString()) + '] Sending file.');
     res.sendFile(require('path').join(__dirname, nconf.get('applicationPagePath')));
     //res.sendFile(nconf.get('applicationPagePath'));
@@ -55,6 +58,14 @@ function sendIndex(req, res, next) {
 // TODO(SRLM): I'll have to add this in...
 //app.get('/dataset/:id', IsAuthenticated, require('./routes/spa').getDataset);
 //app.get('/event/:id', IsAuthenticated, require('./routes/spa').getEvent);
+
+
+app.get('/domains', function (req, res, next) {
+    res.json({
+        apiUrl: nconf.get('apiUrl'),
+        htmlUrl: nconf.get('htmlUrl')
+    });
+});
 
 
 // For everything else, send the single page application and let it figure out what to do

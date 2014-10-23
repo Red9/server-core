@@ -1,5 +1,5 @@
 {
-    "sessionCookie:secret": "cotwfowibyogalanwesacwobuedog",
-    "sessionCookie:duration": 86400000,
-    "sessionCookie:activeDuration": 300000
+  "apiUrl": "localhost:3000",
+  "htmlUrl": "localhost:9532",
+  "htmlOrigin": "http://localhost:9532"
 }
