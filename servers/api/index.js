@@ -33,14 +33,12 @@ resource.init({
         process.exit(1);
     }
 
-    //require('./routes/event').init(server, resource);
-    //require('./routes/user').init(server, resource);
     routeHelp.createCRUDRoutes(server, resource.user);
     routeHelp.createCRUDRoutes(server, resource.event);
     routeHelp.createCRUDRoutes(server, resource.comment);
     routeHelp.createCRUDRoutes(server, resource.video);
     routeHelp.createCRUDRoutes(server, resource.layout);
-
+    routeHelp.createCRUDRoutes(server, resource.dataset, ['read', 'update', 'delete', 'search']);
 
     require('./routes/dataset').init(server, resource);
 

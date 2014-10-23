@@ -124,7 +124,7 @@ exports.simpleDeleteHandler = function (deleteFunction) {
     }
 };
 
-exports.createSearchRoute = function(server, resource, searchKeys){
+exports.createSearchRoute = function (server, resource, searchKeys) {
     var listResponse = routeHelp.createListResponse(resource.find);
 
     // Convenient handles
@@ -133,9 +133,8 @@ exports.createSearchRoute = function(server, resource, searchKeys){
     var resultModel = models.resultModel;
     var resultModelList = Joi.array().includes(resultModel).options({className: resource.name + 'List'});
 
-    var queryKeys= {
+    var queryKeys = {
     };
-
 
 
     server.route({
@@ -164,7 +163,11 @@ exports.createSearchRoute = function(server, resource, searchKeys){
     });
 };
 
-exports.createCRUDRoutes = function (server, resource) {
+exports.createCRUDRoutes = function (server, resource, routesToCreate) {
+    if (typeof routesToCreate === 'undefined') {
+        routesToCreate = ['create', 'read', 'update', 'delete', 'search'];
+    }
+
     var listResponse = exports.createListResponse(resource.find);
 
     // Convenient handles
@@ -173,129 +176,139 @@ exports.createCRUDRoutes = function (server, resource) {
     var resultModel = models.resultModel;
     var resultModelList = Joi.array().includes(resultModel).options({className: resource.name + 'List'});
 
-    server.route({
-        method: 'GET',
-        path: '/' + resource.name + '/',
-        handler: function (request, reply) {
-            var filters = {};
 
-            _.each(request.query, function (value, key) {
-                var keyParts = key.split('.');
-                if (keyParts.length === 1) {
-                    filters[key] = value;
-                } else if (keyParts.length === 2) {
-                    if (!_.has(filters, keyParts[0])) {
-                        filters[keyParts[0]] = {};
+    if (routesToCreate.indexOf('search') !== -1) {
+        server.route({
+            method: 'GET',
+            path: '/' + resource.name + '/',
+            handler: function (request, reply) {
+                var filters = {};
+
+                _.each(request.query, function (value, key) {
+                    var keyParts = key.split('.');
+                    if (keyParts.length === 1) {
+                        filters[key] = value;
+                    } else if (keyParts.length === 2) {
+                        if (!_.has(filters, keyParts[0])) {
+                            filters[keyParts[0]] = {};
+                        }
+                        if (keyParts[1] === 'lt') {
+                            filters[keyParts[0]]['$lt'] = value;
+                        } else if (keyParts[1] === 'gt') {
+                            filters[keyParts[0]]['$gt'] = value;
+                        }
                     }
-                    if (keyParts[1] === 'lt') {
-                        filters[keyParts[0]]['$lt'] = value;
-                    } else if (keyParts[1] === 'gt') {
-                        filters[keyParts[0]]['$gt'] = value;
+                });
+
+                listResponse(filters, reply);
+            },
+            config: {
+                validate: {
+                    query: models.search
+                },
+                description: 'Get ' + resource.name + 's',
+                notes: 'Gets all ' + resource.name + 's that matches the parameters',
+                tags: ['api'],
+                response: {schema: resultModelList}
+            }
+        });
+    }
+
+    if (routesToCreate.indexOf('read') !== -1) {
+        server.route({
+            method: 'GET',
+            path: '/' + resource.name + '/{id}',
+            handler: function (request, reply) {
+                var filters = {};
+                filters.id = request.params.id;
+                listResponse(filters, reply);
+            },
+            config: {
+                validate: {
+                    params: {
+                        id: model.id
                     }
-                }
-            });
+                },
+                description: 'Get a single ' + resource.name,
+                notes: 'Gets a single ' + resource.name + ' that matches the given id',
+                tags: ['api'],
+                response: {schema: resultModelList}
+            }
+        });
+    }
 
-            listResponse(filters, reply);
-        },
-        config: {
-            validate: {
-                query: models.search
+    if (routesToCreate.indexOf('create') !== -1) {
+        server.route({
+            method: 'POST',
+            path: '/' + resource.name + '/',
+            handler: function (request, reply) {
+                resource.create(request.payload, function (err, createdResource) {
+                    if (err) {
+                        reply(err);
+                    } else {
+                        reply(createdResource);
+                    }
+                });
             },
-            description: 'Get ' + resource.name,
-            notes: 'Gets all ' + resource.name + ' that matches the parameters',
-            tags: ['api'],
-            response: {schema: resultModelList}
-        }
-    });
+            config: {
+                validate: {
+                    payload: models.create
+                },
+                description: 'Create new ' + resource.name,
+                notes: 'Create new ' + resource.name,
+                tags: ['api']
+            }
+        });
+    }
 
-
-    server.route({
-        method: 'GET',
-        path: '/' + resource.name + '/{id}',
-        handler: function (request, reply) {
-            var filters = {};
-            filters.id = request.params.id;
-            listResponse(filters, reply);
-        },
-        config: {
-            validate: {
-                params: {
-                    id: model.id
-                }
+    if (routesToCreate.indexOf('update') !== -1) {
+        server.route({
+            method: 'PUT',
+            path: '/' + resource.name + '/{id}',
+            handler: function (request, reply) {
+                resource.update(request.params.id, request.payload, function (err, updatedResource) {
+                    if (err) {
+                        reply(err);
+                    } else {
+                        reply(updatedResource);
+                    }
+                });
             },
-            description: 'Get a single ' + resource.name,
-            notes: 'Gets a single ' + resource.name + ' that matches the given id',
-            tags: ['api'],
-            response: {schema: resultModelList}
-        }
-    });
+            config: {
+                validate: {
+                    params: { id: model.id },
+                    payload: models.update
+                },
+                description: 'Update ' + resource.name,
+                notes: 'Update one or more fields of a single ' + resource.name,
+                tags: ['api']
+            }
+        });
+    }
 
-    server.route({
-        method: 'POST',
-        path: '/' + resource.name + '/',
-        handler: function (request, reply) {
-            resource.create(request.payload, function (err, createdResource) {
-                if (err) {
-                    reply(err);
-                } else {
-                    reply(createdResource);
-                }
-            });
-        },
-        config: {
-            validate: {
-                payload: models.create
+    if (routesToCreate.indexOf('delete') !== -1) {
+        server.route({
+            method: 'DELETE',
+            path: '/' + resource.name + '/{id}',
+            handler: function (request, reply) {
+                resource.delete(request.params.id, function (err, deletedResource) {
+                    if (err) {
+                        reply(err);
+                    } else {
+                        reply(deletedResource);
+                    }
+                });
             },
-            description: 'Create new ' + resource.name,
-            notes: 'Create new ' + resource.name,
-            tags: ['api']
-        }
-    });
-
-    server.route({
-        method: 'PUT',
-        path: '/' + resource.name + '/{id}',
-        handler: function (request, reply) {
-            resource.update(request.params.id, request.payload, function (err, updatedResource) {
-                if (err) {
-                    reply(err);
-                } else {
-                    reply(updatedResource);
-                }
-            });
-        },
-        config: {
-            validate: {
-                params: { id: model.id },
-                payload: models.update
-            },
-            description: 'Update ' + resource.name,
-            notes: 'Update one or more fields of a single ' + resource.name,
-            tags: ['api']
-        }
-    });
-
-    server.route({
-        method: 'DELETE',
-        path: '/' + resource.name + '/{id}',
-        handler: function (request, reply) {
-            resource.delete(request.params.id, function (err, deletedResource) {
-                if (err) {
-                    reply(err);
-                } else {
-                    reply(deletedResource);
-                }
-            });
-        },
-        config: {
-            validate: {
-                params: { id: model.id }
-            },
-            description: 'Delete ' + resource.name,
-            notes: 'Delete a single ' + resource.name,
-            tags: ['api']
-        }
-    });
+            config: {
+                validate: {
+                    params: { id: model.id }
+                },
+                description: 'Delete ' + resource.name,
+                notes: 'Delete a single ' + resource.name,
+                tags: ['api']
+            }
+        });
+    }
 };
 
 

@@ -1,6 +1,5 @@
 //var panel = require('red9panel').panelReader(panelReaderConfig);
 var Joi = require('joi');
-var routeHelp = require('./../support/routehelp');
 var _ = require('underscore')._;
 var nconf = require('nconf');
 
@@ -9,100 +8,17 @@ var panelConfig = {
 };
 var panel = require('red9panel').panelReader(panelConfig);
 
-
 exports.init = function (server, resource) {
-    var queryWithListResponse = routeHelp.createListResponse(resource.dataset.find);
-
     // Convenient handles
     var models = resource.dataset.models;
-    var model = resource.dataset.models.model;
-    var resultModel = resource.dataset.models.resultModel;
-    var resultModelList = Joi.array().includes(resultModel).options({className: 'datasetList'});
-
-
-    server.route({
-        method: 'GET',
-        path: '/dataset/',
-        handler: function (request, reply) {
-            // use routeHelp.checkAndAddQuery here when I add route options...
-            var filters = {};
-
-            routeHelp.checkAndAddQuery(filters, request.query,
-                [ 'startTime', 'endTime', 'owner', 'title']);
-
-            queryWithListResponse(filters, reply);
-        },
-        config: {
-            validate: {
-                query: {
-                    'startTime': model.startTime,
-                    'startTime.gt': model.startTime.description('Select datasets that begin after a given time'),
-                    'startTime.lt': model.startTime.description('Select datasets that begin before a given time'),
-                    'endTime': model.endTime,
-                    'endTime.gt': model.endTime.description('Select datasets that end after a given time'),
-                    'endTime.lt': model.endTime.description('Select datasets that end before a given time'),
-                    'owner': model.owner,
-                    'title': model.title
-                }
-            },
-            description: 'Get all dataset(s) that match query',
-            notes: 'Gets dataset(s) that match the given parameters.',
-            tags: ['api'],
-            response: {schema: resultModelList}
-        }
-    });
-
-    server.route({
-        method: 'GET',
-        path: '/dataset/{id}',
-        handler: routeHelp.simpleGetSingleHandler(queryWithListResponse),
-        config: {
-            validate: {
-                params: {
-                    id: model.id
-                }
-            },
-            description: 'Get a single dataset',
-            notes: 'Get a single dataset with given id',
-            tags: ['api'],
-            response: {schema: resultModelList}
-        }
-    });
-
-    server.route({
-        method: 'PUT',
-        path: '/dataset/{id}',
-        handler: routeHelp.simpleUpdateHandler(resource.dataset.update),
-        config: {
-            validate: {
-                params: { id: model.id },
-                payload: models.update
-            },
-            description: 'Update a dataset',
-            notes: 'Update a dataset',
-            tags: ['api']
-        }
-    });
-
-    server.route({
-        method: 'DELETE',
-        path: '/dataset/{id}',
-        handler: routeHelp.simpleDeleteHandler(resource.dataset.delete),
-        config: {
-            validate: {
-                params: { id: model.id }
-            },
-            description: 'Delete a dataset',
-            notes: 'Delete a singe dataset',
-            tags: ['api']
-        }
-    });
-
+    var model = models.model;
+    var resultModel = models.resultModel;
 
     // ------------------------------------------------------------------------
     // Panel operations
     // ------------------------------------------------------------------------
 
+    // TODO(SRLM): Should this route have a response model?
     server.route({
         method: 'POST',
         path: '/dataset/',
@@ -120,36 +36,12 @@ exports.init = function (server, resource) {
                     owner: request.payload.owner
                 };
 
-                resource.dataset.create(newDataset, function (err, createdDataset) {
-                    panel.createPanel(createdDataset.id, request.payload.rnc, function (err) {
-                        if (err) {
-                            reply(err);
-                        } else {
-                            reply(createdDataset);
-                            panel.readPanelJSON(createdDataset.id, {
-                                properties: {},
-                                csPeriod: 1000000
-                            }, function (err, result) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    resource.dataset.update(createdDataset.id, {
-                                        startTime: result.startTime,
-                                        endTime: result.endTime,
-                                        summaryStatistics: {}
-                                    }, function (err, updatedDataset) {
-                                        if (err) {
-                                            console.log(err);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                    //reply(createdDataset);
-                    /*panel.createPanel(id, request.payload.rnc, function (err) {
-                     reply('Thanks');
-                     });*/
+                resource.helpers.createDataset(panel, resource, newDataset, request.payload.rnc, function (err, createdDataset) {
+                    if (err) {
+                        reply(err);
+                    } else {
+                        reply(createdDataset);
+                    }
                 });
             },
             validate: {
