@@ -46,7 +46,7 @@ function sendIndex(req, res, next) {
      res.cookie('currentUser', JSON.stringify(req.session.passport.user));
      }*/
     console.log('[' + (new Date().toUTCString()) + '] Sending file.');
-    res.sendFile(require('path').join(__dirname, nconf.get('applicationPagePath')));
+    res.sendFile(nconf.get('applicationPagePath'));
     //res.sendFile(nconf.get('applicationPagePath'));
 }
 

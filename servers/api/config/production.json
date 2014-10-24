@@ -2,7 +2,7 @@
   "port": "3000",
   "cassandraHosts": ["localhost"],
   "cassandraKeyspace": "development",
-  "rncDataPath": "/home/clewis/Downloads/RNC"
+  "rncDataPath": "/home/ubuntu/RNC/"
   "sessionCookie:secret": "cotwfowibyogalanwesacwobuedog",
 
 }
