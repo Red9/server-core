@@ -250,8 +250,13 @@ function getUploadableDatasets(callback) {
 
 
 resource.init({
-    cassandraHosts: ["localhost"],
-    cassandraKeyspace: "development"
+    //cassandraHosts: ["localhost"],
+    //cassandraKeyspace: "development"
+    "cassandraHosts": ["54.82.82.55"],
+    "cassandraKeyspace": "production",
+    "cassandraUsername": "client",
+    "cassandraPassword": "e798169e-768b-4ba5-a6a0-1366909cc3f5"
+
 }, function (err) {
     if (err) {
         console.log(err);

@@ -11,7 +11,6 @@ nconf
     .file('deployment', {file: 'config/' + process.env.NODE_ENV + '.json'})
     .file('common', {file: '../config/' + process.env.NODE_ENV + '.json'});
 
-
 var Hapi = require('hapi');
 var Good = require('good');
 var Joi = require('joi');
@@ -19,8 +18,8 @@ var Joi = require('joi');
 var resource = require('red9resource');
 var routeHelp = require('./support/routehelp');
 
+console.log('rncDataPath: ' + nconf.get('rncDataPath'));
 
-//var server = new Hapi.Server(nconf.get('port'));
 var server = Hapi.createServer('localhost', nconf.get('port'), {
     cors: {
         origin: [
@@ -33,10 +32,9 @@ var server = Hapi.createServer('localhost', nconf.get('port'), {
 
 resource.init({
     cassandraHosts: nconf.get('cassandraHosts'),
-    cassandraKeyspace: nconf.get('cassandraKeyspace')//,
-    // TODO(SRLM): Need to add in username and password
-//    cassandraUsername: nconf.get('cassandraUsername'),
-//    cassandraPassword: nconf.get('cassandraPassword')
+    cassandraKeyspace: nconf.get('cassandraKeyspace'),
+    cassandraUsername: nconf.get('cassandraUsername'),
+    cassandraPassword: nconf.get('cassandraPassword')
 }, function (err) {
 
     if (err) {

@@ -28,18 +28,18 @@ exports.createListResponse = function (findFunction) {
         };
 
         var firstLine = true;
-        outputStream.push('[');
+        outputStream.push('[\n');
         findFunction(filters, options,
             function (resource) {
                 if (!firstLine) {
-                    outputStream.push(',');
+                    outputStream.push(',\n');
                 } else {
                     firstLine = false;
                 }
-                outputStream.push(JSON.stringify(resource));
+                outputStream.push(JSON.stringify(resource, null, 4));
             },
             function (err, rowCount) {
-                outputStream.push(']');
+                outputStream.push('\n]');
                 outputStream.push(null);
             }
         );

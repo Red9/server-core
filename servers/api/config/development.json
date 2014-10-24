@@ -2,5 +2,7 @@
   "port": "3000",
   "cassandraHosts": ["localhost"],
   "cassandraKeyspace": "development",
+  "cassandraUsername": "cassandra",
+  "cassandraPassword": "cassandra",
   "rncDataPath": "/home/clewis/Downloads/RNC"
 }
