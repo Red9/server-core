@@ -20,7 +20,7 @@ var routeHelp = require('./support/routehelp');
 
 console.log('rncDataPath: ' + nconf.get('rncDataPath'));
 
-var server = Hapi.createServer('localhost', nconf.get('port'), {
+var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {
     cors: {
         origin: [
             nconf.get('htmlOrigin')

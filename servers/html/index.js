@@ -56,8 +56,8 @@ function sendIndex(req, res, next) {
 // ----------------------------------------------------------------------------
 
 // TODO(SRLM): I'll have to add this in...
-//app.get('/dataset/:id', IsAuthenticated, require('./routes/spa').getDataset);
-//app.get('/event/:id', IsAuthenticated, require('./routes/spa').getEvent);
+app.get('/dataset/:id', require('./routes/spa').getDataset);
+//app.get('/event/:id', require('./routes/spa').getEvent);
 
 
 app.get('/domains', function (req, res, next) {

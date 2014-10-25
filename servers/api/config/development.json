@@ -1,5 +1,6 @@
 {
   "port": "3000",
+  "listenIp": "0.0.0.0",
   "cassandraHosts": ["localhost"],
   "cassandraKeyspace": "development",
   "cassandraUsername": "cassandra",
