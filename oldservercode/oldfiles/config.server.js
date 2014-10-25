@@ -16,7 +16,7 @@ exports.ports = {
 };
 
 exports.realms = {
-    html: 'http://redninesensor.com',
+    html: 'http://data.redninesensor.com',
     api: 'http://api.redninesensor.com',
     action: 'http://action.redninesensor.com'
 };

@@ -1,8 +1,9 @@
 {
-  "port": "3000",
-  "cassandraHosts": ["localhost"],
-  "cassandraKeyspace": "development",
-  "rncDataPath": "/home/clewis/Downloads/RNC"
-  "sessionCookie:secret": "cotwfowibyogalanwesacwobuedog",
-
+  "port": "8080",
+  "listenIp": "0.0.0.0",
+  "cassandraHosts": ["54.82.82.55"],
+  "cassandraKeyspace": "production",
+  "cassandraUsername": "client",
+  "cassandraPassword": "e798169e-768b-4ba5-a6a0-1366909cc3f5",
+  "rncDataPath": "/home/ubuntu/RNC"
 }
