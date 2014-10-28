@@ -49,8 +49,8 @@ exports.createListResponse = function (findFunction) {
 };
 
 // This second regex (after the OR) is a legacy option!!! As it turns out, I haven't been using version 4
-exports.idValidator = Joi.string().regex(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12}|^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$$/);
-exports.timestampValidator = Joi.number().integer().min(0);
+//exports.idValidator = Joi.string().regex(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12}|^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$$/);
+//exports.timestampValidator = Joi.number().integer().min(0);
 
 exports.createCRUDRoutes = function (server, resource, routesToCreate) {
     if (typeof routesToCreate === 'undefined') {

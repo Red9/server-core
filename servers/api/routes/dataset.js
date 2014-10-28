@@ -92,6 +92,12 @@ exports.init = function (server, resource) {
         method: 'GET',
         path: '/dataset/{id}/json',
         handler: function (request, reply) {
+            panel.readPanelJSON(request.params.id, {
+                startTime: request.query.startTime,
+                endTime: request.query.endTime,
+                panel: {},
+                properties: {}
+            });
             reply('Thanks for your input: ' + request.params.id + ', ' + request.query.startTime);
         },
         config: {

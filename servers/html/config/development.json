@@ -1,6 +1,7 @@
 {
-    "port": 9532,
-    "faviconPath": "",
-    "staticPath": "/home/clewis/consulting/red9/dev-website-client-2/data-client/static",
-    "applicationPagePath": "/home/clewis/consulting/red9/dev-website-client-2/data-client/index.html"
+  "port": 9532,
+  "faviconPath": "",
+  "staticPath": "/home/clewis/consulting/red9/clients-core/data-client/src/static",
+  "applicationPagePath": "/home/clewis/consulting/red9/clients-core/data-client/src/index.html",
+  "dataPagePath": "/home/clewis/consulting/red9/clients-core/data-client/src/data.html"
 }
