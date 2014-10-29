@@ -1,13 +1,19 @@
 var request = require('request');
 var _ = require('underscore')._;
 var fs = require('fs');
+var nconf = require('nconf');
+nconf
+    .argv()
+    .env()
+    .file('general', {file: 'config/general.json'})
+    .file('deployment', {file: 'config/' + process.env.NODE_ENV + '.json'});
 
 
-var panelInputDir = '/home/clewis/Downloads/migration/combinedRNC';
+var panelInputDir = nconf.get('panelInputDir');
 
 var resource = require('red9resource');
 var panel = require('red9panel').panelReader({
-    dataPath: "/home/clewis/Downloads/RNC"
+    dataPath: nconf.get('panelDataPath')
 });
 var path = require('path');
 var async = require('async');
@@ -252,16 +258,14 @@ function getUploadableDatasets(callback) {
 resource.init({
     //cassandraHosts: ["localhost"],
     //cassandraKeyspace: "development"
-    "cassandraHosts": ["54.82.82.55"],
-    "cassandraKeyspace": "production",
-    "cassandraUsername": "client",
-    "cassandraPassword": "e798169e-768b-4ba5-a6a0-1366909cc3f5"
-
+    "cassandraHosts": nconf.get('cassandraHosts'),
+    "cassandraKeyspace": nconf.get('cassandraKeyspace'),
+    "cassandraUsername": nconf.get('cassandraUsername'),
+    "cassandraPassword": nconf.get('cassandraPassword')
 }, function (err) {
     if (err) {
         console.log(err);
     }
-
     migrateLayouts(function (err, migratedLayouts) {
         migrateUsers(function (err, migratedUsers) {
             getUploadableDatasets(function (err, uploadableDatasets, unmigratedDatasets) {

@@ -39,6 +39,7 @@ exports.init = function (server, resources) {
         clearInvalid: true,
         redirectTo: false,
         isSecure: false,
+        domain: nconf.get('authorizationCookieDomain'),
         validateFunc: function (session, callback) {
             // TODO: Check cassandra here for valid session.
             callback(null, session);
@@ -86,7 +87,7 @@ exports.init = function (server, resources) {
                 checkUserAuthentication(resources, normalizedUser, function (err, validUser) {
                     var callbackUrl = nconf.get('defaultCallbackUrl');
                     if (request.auth.credentials.query.callbackUrl) {
-                        callbackUrl = request.auth.credentials.query.callbackUrl
+                        callbackUrl = decodeURIComponent(request.auth.credentials.query.callbackUrl)
                     }
 
                     if (typeof validUser !== 'undefined') {

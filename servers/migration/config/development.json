@@ -1,0 +1,8 @@
+{
+  "cassandraHosts": ["localhost"],
+  "cassandraKeyspace": "development",
+  "cassandraUsername": "cassandra",
+  "cassandraPassword": "cassandra",
+  "panelDataPath": "/home/clewis/Downloads/RNC",
+  "panelInputDir": "/home/clewis/Downloads/migration/combinedRNC"
+}
