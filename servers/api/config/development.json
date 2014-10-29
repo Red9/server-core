@@ -5,5 +5,7 @@
   "cassandraKeyspace": "development",
   "cassandraUsername": "cassandra",
   "cassandraPassword": "cassandra",
-  "rncDataPath": "/home/clewis/Downloads/RNC"
+  "rncDataPath": "/home/clewis/Downloads/RNC",
+  "defaultCallbackUrl" : "http://localhost:9532",
+  "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated"
 }

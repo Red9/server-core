@@ -1,4 +1,3 @@
-
 // default to development environment
 if (typeof process.env.NODE_ENV === 'undefined') {
     process.env.NODE_ENV = 'development';
@@ -26,6 +25,11 @@ app.set('port', nconf.get('port'));
 app.use(require('compression')());
 //app.use(logger.logger());
 
+app.get('/static/config.js', function (req, res, next) {
+    res.sendFile(__dirname + '/clientconfig/' + process.env.NODE_ENV + '.js');
+});
+
+
 app.use('/static', express.static(nconf.get('staticPath')));
 // Catch all the requests for non-existant static resources.
 // If we don't go through this hoop then the 404 redirect to the fancy
@@ -47,25 +51,18 @@ function sendIndex(req, res, next) {
      }*/
     console.log('[' + (new Date().toUTCString()) + '] Sending file.');
     res.sendFile(nconf.get('applicationPagePath'));
-    //res.sendFile(nconf.get('applicationPagePath'));
 }
 
 // ----------------------------------------------------------------------------
 // Routes
 // These are the main site routes
 // ----------------------------------------------------------------------------
+function sendDataPage(req, res, next) {
+    res.sendFile(nconf.get('dataPagePath'));
+}
 
-// TODO(SRLM): I'll have to add this in...
-app.get('/dataset/:id', require('./routes/spa').getDataset);
-//app.get('/event/:id', require('./routes/spa').getEvent);
-
-
-app.get('/domains', function (req, res, next) {
-    res.json({
-        apiUrl: nconf.get('apiUrl'),
-        htmlUrl: nconf.get('htmlUrl')
-    });
-});
+app.get('/dataset/:id', sendDataPage);
+app.get('/event/:id', sendDataPage);
 
 
 // For everything else, send the single page application and let it figure out what to do

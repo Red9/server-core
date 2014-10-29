@@ -1,0 +1,3 @@
+[submodule "servers/node_modules/red9panel/rnctools/bats"]
+	path = servers/node_modules/red9panel/rnctools/bats
+	url = git@github.com:sstephenson/bats.git

@@ -12,10 +12,10 @@ nconf
     .file('common', {file: '../config/' + process.env.NODE_ENV + '.json'});
 
 var Hapi = require('hapi');
-var Good = require('good');
+
 var Joi = require('joi');
 
-var resource = require('red9resource');
+var resources = require('red9resource');
 var routeHelp = require('./support/routehelp');
 
 console.log('rncDataPath: ' + nconf.get('rncDataPath'));
@@ -30,7 +30,7 @@ var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {
 });
 
 
-resource.init({
+resources.init({
     cassandraHosts: nconf.get('cassandraHosts'),
     cassandraKeyspace: nconf.get('cassandraKeyspace'),
     cassandraUsername: nconf.get('cassandraUsername'),
@@ -42,18 +42,10 @@ resource.init({
         process.exit(1);
     }
 
-
-    routeHelp.createCRUDRoutes(server, resource.user);
-    routeHelp.createCRUDRoutes(server, resource.event);
-    routeHelp.createCRUDRoutes(server, resource.comment);
-    routeHelp.createCRUDRoutes(server, resource.video);
-    routeHelp.createCRUDRoutes(server, resource.layout);
-    routeHelp.createCRUDRoutes(server, resource.dataset, ['read', 'update', 'delete', 'search']);
-
-    require('./routes/dataset').init(server, resource);
-
     server.pack.register([
-        Good,
+        require('bell'),
+        require('good'),
+        require('hapi-auth-cookie'),
         {
             plugin: require('hapi-swagger'),
             apiVersion: nconf.get("apiVersion")
@@ -63,6 +55,18 @@ resource.init({
         if (err) {
             console.log('plugin err: ' + err);
         }
+
+        routeHelp.createCRUDRoutes(server, resources.user);
+        routeHelp.createCRUDRoutes(server, resources.event);
+        routeHelp.createCRUDRoutes(server, resources.comment);
+        routeHelp.createCRUDRoutes(server, resources.video);
+        routeHelp.createCRUDRoutes(server, resources.layout);
+        routeHelp.createCRUDRoutes(server, resources.dataset, ['read', 'update', 'delete', 'search']);
+
+        require('./routes/dataset').init(server, resources);
+        require('./routes/eventtype').init(server);
+        require('./routes/authentication').init(server, resources);
+
         server.start(function () {
             console.log('Server running at:', server.info.uri);
         });
