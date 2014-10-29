@@ -25,6 +25,11 @@ app.set('port', nconf.get('port'));
 app.use(require('compression')());
 //app.use(logger.logger());
 
+app.get('/static/config.js', function (req, res, next) {
+    res.sendFile(__dirname + '/clientconfig/' + process.env.NODE_ENV + '.js');
+});
+
+
 app.use('/static', express.static(nconf.get('staticPath')));
 // Catch all the requests for non-existant static resources.
 // If we don't go through this hoop then the 404 redirect to the fancy
@@ -58,13 +63,6 @@ function sendDataPage(req, res, next) {
 
 app.get('/dataset/:id', sendDataPage);
 app.get('/event/:id', sendDataPage);
-
-app.get('/domains', function (req, res, next) {
-    res.json({
-        apiUrl: nconf.get('apiUrl'),
-        htmlUrl: nconf.get('htmlUrl')
-    });
-});
 
 
 // For everything else, send the single page application and let it figure out what to do

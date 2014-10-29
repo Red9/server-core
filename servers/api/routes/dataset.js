@@ -92,13 +92,23 @@ exports.init = function (server, resource) {
         method: 'GET',
         path: '/dataset/{id}/json',
         handler: function (request, reply) {
-            panel.readPanelJSON(request.params.id, {
-                startTime: request.query.startTime,
-                endTime: request.query.endTime,
+            var options = {
+                rows: request.query.rows,
                 panel: {},
                 properties: {}
+            };
+
+            if (_.has(request.query, 'startTime')) {
+                options.startTime = request.query.startTime;
+            }
+            if (_.has(request.query, 'endTime')) {
+                options.endTime = request.query.endTime;
+            }
+
+            panel.readPanelJSON(request.params.id, options, function (err, result) {
+                reply(result);
             });
-            reply('Thanks for your input: ' + request.params.id + ', ' + request.query.startTime);
+            //reply('Thanks for your input: ' + request.params.id + ', ' + request.query.startTime);
         },
         config: {
             validate: {
@@ -108,9 +118,9 @@ exports.init = function (server, resource) {
                 query: {
                     startTime: model.startTime,
                     endTime: model.endTime,
-                    axes: Joi.string(),
-                    buckets: Joi.number().integer().min(1).max(10000),
-                    minmax: Joi.boolean()
+                    rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.')
+                    //axes: Joi.string(),
+                    //minmax: Joi.boolean()
                     // TODO (SRLM): Add
                     // - parts: panel, spectral, fft, distribution, comparison, ...
                 }
