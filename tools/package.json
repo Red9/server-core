@@ -1,0 +1,12 @@
+{
+  "name": "hitapi",
+  "version": "0.0.1",
+  "private": true,
+  "main": "hitApi.js",
+  "dependencies": {
+    "request": "latest",
+    "underscore": "latest",
+    "async": "latest"
+  }
+}
+

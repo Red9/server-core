@@ -39,7 +39,7 @@ function loadDatasets(datasetList, doneCallback) {
                     old: oldDataset,
                     new: createdDataset
                 };
-                callback();
+                process.nextTick(callback);
             }
         }, true);
     }
@@ -77,6 +77,7 @@ function migrateLayouts(doneCallback) {
     });
 }
 
+// TODO: SRLM: For some reason user preferred_layouts is not migrated.
 function migrateUsers(doneCallback) {
     var migratedUsers = [];
     request({
