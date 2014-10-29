@@ -1,7 +1,7 @@
 {
   "port": 8080,
   "faviconPath": "",
-  "staticPath": "/home/ubuntu/clients-core/data-client/release/static",
-  "applicationPagePath": "/home/ubuntu/clients-core/data-client/release/index.html",
+  "staticPath": "/home/ubuntu/clients-core/data-client/release/src/static",
+  "applicationPagePath": "/home/ubuntu/clients-core/data-client/release/src/index.html",
   "dataPagePath": "/home/ubuntu/clients-core/data-client/release/src/data.html"
 }
