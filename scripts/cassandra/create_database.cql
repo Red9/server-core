@@ -1,3 +1,4 @@
+CREATE KEYSPACE production WITH REPLICATION = {'class': 'NetworkTopologyStrategy', 'us-east': 3};
 USE production;
 
 CREATE TABLE comment (
@@ -78,6 +79,3 @@ CREATE INDEX event_dataset ON event (dataset);
 CREATE INDEX event_end_time ON event (end_time);
 CREATE INDEX event_start_time ON event (start_time);
 CREATE INDEX event_type ON event (type);
-
-INSERT INTO user(id, display_name, email, first, last)
- VALUES (fadedcab-0528-e834-b47d-c80e3696846c,'srlm','srlm@srlmproductions.com','Cody','Lewis');
