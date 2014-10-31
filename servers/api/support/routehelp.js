@@ -106,7 +106,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Get ' + resource.name + 's',
                 notes: 'Gets all ' + resource.name + 's that matches the parameters',
-                tags: ['api'],
+                tags: ['api']
                 //response: {schema: resultModelList}
             }
         });
@@ -119,7 +119,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             handler: function (request, reply) {
                 var filters = {};
                 filters.id = request.params.id;
-                listResponse(filters, reply);
+                listResponse(filters, {}, reply);
             },
             config: {
                 validate: {
@@ -129,7 +129,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Get a single ' + resource.name,
                 notes: 'Gets a single ' + resource.name + ' that matches the given id',
-                tags: ['api'],
+                tags: ['api']
                 //response: {schema: resultModelList}
             }
         });

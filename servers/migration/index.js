@@ -29,6 +29,7 @@ function loadDatasets(datasetList, doneCallback) {
     function loadDataset(oldDataset, callback) {
         console.log('Uploading ' + oldDataset.id);
         var readStream = fs.createReadStream(path.join(panelInputDir, oldDataset.id + '.RNC'));
+        oldDataset.ownerId = oldDataset.owner; // There's a key change!
 
         resource.helpers.createDataset(panel, resource, oldDataset, readStream, function (err, createdDataset) {
             if (err) {
@@ -38,12 +39,12 @@ function loadDatasets(datasetList, doneCallback) {
                     old: oldDataset,
                     new: createdDataset
                 };
+                process.nextTick(callback);
             }
-            callback();
         }, true);
     }
 
-    async.eachLimit(datasetList, 10, loadDataset, function (err) {
+    async.eachLimit(datasetList, nconf.get('datasetAsyncLimit'), loadDataset, function (err) {
         doneCallback(err, migratedDatasets);
     });
 }
@@ -76,6 +77,7 @@ function migrateLayouts(doneCallback) {
     });
 }
 
+// TODO: SRLM: For some reason user preferred_layouts is not migrated.
 function migrateUsers(doneCallback) {
     var migratedUsers = [];
     request({
