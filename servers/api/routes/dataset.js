@@ -95,7 +95,8 @@ exports.init = function (server, resource) {
             var options = {
                 rows: request.query.rows,
                 panel: {},
-                properties: {}
+                properties: {},
+                statistics: {}
             };
 
             if (_.has(request.query, 'startTime')) {
