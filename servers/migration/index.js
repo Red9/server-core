@@ -12,9 +12,7 @@ nconf
 var panelInputDir = nconf.get('panelInputDir');
 
 var resource = require('red9resource');
-var panel = require('red9panel').panelReader({
-    dataPath: nconf.get('panelDataPath')
-});
+
 var path = require('path');
 var async = require('async');
 
@@ -31,10 +29,15 @@ function loadDatasets(datasetList, doneCallback) {
         var readStream = fs.createReadStream(path.join(panelInputDir, oldDataset.id + '.RNC'));
         oldDataset.ownerId = oldDataset.owner; // There's a key change!
 
-        resource.helpers.createDataset(panel, resource, oldDataset, readStream, function (err, createdDataset) {
+        resource.helpers.createDataset(oldDataset, readStream, function (err, createdDataset) {
             if (err) {
                 callback(err);
             } else {
+                if (!_.has(createdDataset, 'startTime') || !_.has(createdDataset, 'endTime')) {
+                    console.log('ERROR: dataset ' + createdDataset.id + ' missing startTime or endTime');
+                    process.exit(1);
+                }
+
                 migratedDatasets[oldDataset.id] = {
                     old: oldDataset,
                     new: createdDataset
@@ -198,7 +201,7 @@ function migrateEvents(datasets, doneCallback) {
 
                     resource.event.create(event, function (err, createdEvent) {
                         if (err) {
-                            console.log(err);
+                            console.log('Could not migrate event ' + event.id + ': ' + err);
                         } else {
                             migratedEvents.push(createdEvent.id);
                         }
@@ -263,7 +266,8 @@ resource.init({
     "cassandraHosts": nconf.get('cassandraHosts'),
     "cassandraKeyspace": nconf.get('cassandraKeyspace'),
     "cassandraUsername": nconf.get('cassandraUsername'),
-    "cassandraPassword": nconf.get('cassandraPassword')
+    "cassandraPassword": nconf.get('cassandraPassword'),
+    dataPath: nconf.get('panelDataPath')
 }, function (err) {
     if (err) {
         console.log(err);

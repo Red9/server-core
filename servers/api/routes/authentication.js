@@ -41,7 +41,7 @@ exports.init = function (server, resources) {
         isSecure: false,
         domain: nconf.get('authorizationCookieDomain'),
         validateFunc: function (session, callback) {
-            // TODO: Check cassandra here for valid session.
+            // TODO: Check cassandra here for valid session (as opposed to just a valid user)
             callback(null, session);
         }
     });

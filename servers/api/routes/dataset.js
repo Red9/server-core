@@ -3,10 +3,10 @@ var Joi = require('joi');
 var _ = require('underscore')._;
 var nconf = require('nconf');
 
-var panelConfig = {
-    dataPath: nconf.get('rncDataPath')
-};
-var panel = require('red9panel').panelReader(panelConfig);
+//var panelConfig = {
+//    dataPath: nconf.get('rncDataPath')
+//};
+//var panel = require('red9panel').panelReader(panelConfig);
 
 exports.init = function (server, resource) {
     // Convenient handles
@@ -36,7 +36,7 @@ exports.init = function (server, resource) {
                     ownerId: request.payload.ownerId
                 };
 
-                resource.helpers.createDataset(panel, resource, newDataset, request.payload.rnc, function (err, createdDataset) {
+                resource.helpers.createDataset(newDataset, request.payload.rnc, function (err, createdDataset) {
                     if (err) {
                         reply(err);
                     } else {
@@ -66,7 +66,7 @@ exports.init = function (server, resource) {
         method: 'GET',
         path: '/dataset/{id}/csv',
         handler: function (request, reply) {
-            var resultStream = panel.readPanelCSV('B39F36');
+            var resultStream = resource.panel.readPanelCSV('B39F36');
             reply(resultStream);
             //reply('Thanks for your input: ' + request.params.id + ', ' + request.query.startTime);
         },
@@ -106,7 +106,7 @@ exports.init = function (server, resource) {
                 options.endTime = request.query.endTime;
             }
 
-            panel.readPanelJSON(request.params.id, options, function (err, result) {
+            resource.panel.readPanelJSON(request.params.id, options, function (err, result) {
                 reply(result);
             });
             //reply('Thanks for your input: ' + request.params.id + ', ' + request.query.startTime);

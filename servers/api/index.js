@@ -34,7 +34,8 @@ resources.init({
     cassandraHosts: nconf.get('cassandraHosts'),
     cassandraKeyspace: nconf.get('cassandraKeyspace'),
     cassandraUsername: nconf.get('cassandraUsername'),
-    cassandraPassword: nconf.get('cassandraPassword')
+    cassandraPassword: nconf.get('cassandraPassword'),
+    dataPath: nconf.get('rncDataPath')
 }, function (err) {
 
     if (err) {
