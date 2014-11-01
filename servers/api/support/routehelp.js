@@ -78,7 +78,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     var keyParts = key.split('.');
                     if (keyParts.length === 1) {
                         if (key === 'expand') {
-                            options['$expand'] = value.split(',');
+                            options['$expand'] = value;
                         } else if (value.split(',').length > 1) {
                             filters[key] = {
                                 '$in': value.split(',')
