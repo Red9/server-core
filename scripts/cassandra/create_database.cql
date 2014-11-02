@@ -35,7 +35,10 @@ CREATE TABLE dataset (
     source text,
     start_time timestamp,
     end_time timestamp,
-    summary_statistics text
+    summary_statistics text,
+    bounding_circle map<text,double>,
+    bounding_box map<text,double>,
+    gps_lock map<text,int>
 );
 CREATE INDEX dataset_owner ON dataset(owner);
 
