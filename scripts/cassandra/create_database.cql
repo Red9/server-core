@@ -79,7 +79,10 @@ CREATE TABLE event (
     source text,
     start_time timestamp,
     summary_statistics text,
-    type text
+    type text,
+    bounding_circle map<text,double>,
+    bounding_box map<text,double>,
+    gps_lock map<text,int>
 );
 CREATE INDEX event_dataset ON event (dataset);
 CREATE INDEX event_end_time ON event (end_time);
