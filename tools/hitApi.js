@@ -17,6 +17,8 @@ function hitUrl(url, callback){
 }
 
 var urls = [
+    "http://api.redninesensor.com/dataset?count=true&expand=headPanel,owner&part=title,id,createTime,headPanel.startTime,headPanel.endTime,owner.id,owner.displayName,count",
+    "http://betaapi.redninesensor.com/dataset/?expand=owner&expand=count",
     "http://api.redninesensor.com/user/", 
     "http://betaapi.redninesensor.com/user/", 
     "http://api.redninesensor.com/dataset/?expand=owner", 

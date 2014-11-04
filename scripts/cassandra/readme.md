@@ -22,6 +22,9 @@ rpc_address: #blank
 
 endpoint_snitch: Ec2Snitch
 
+# Login to cluster
+cqlsh -u admin -p 08c88df1-50a7-450f-a7be-c84584fc564a
+
 
 # New cluster changes
 When we first create a cluster we need to setup the authentication.

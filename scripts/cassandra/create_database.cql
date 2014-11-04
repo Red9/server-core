@@ -35,9 +35,14 @@ CREATE TABLE dataset (
     source text,
     start_time timestamp,
     end_time timestamp,
-    summary_statistics text
+    summary_statistics text,
+    bounding_circle map<text,double>,
+    bounding_box map<text,double>,
+    gps_lock map<text,int>,
+    tags set<text>
 );
 CREATE INDEX dataset_owner ON dataset(owner);
+CREATE INDEX dataset_tags ON dataset (tags);
 
 
 CREATE TABLE video (
@@ -76,7 +81,10 @@ CREATE TABLE event (
     source text,
     start_time timestamp,
     summary_statistics text,
-    type text
+    type text,
+    bounding_circle map<text,double>,
+    bounding_box map<text,double>,
+    gps_lock map<text,int>
 );
 CREATE INDEX event_dataset ON event (dataset);
 CREATE INDEX event_end_time ON event (end_time);

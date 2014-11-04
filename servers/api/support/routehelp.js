@@ -75,14 +75,42 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 var options = {};
 
                 _.each(request.query, function (value, key) {
+                    // This little hack works around the fact that we could have two named
+                    // id path parameters: /resource/:id, and ?id=...
+                    // It's mostly a server side hack for Angular's $Resource.
+                    // so, that's that.
+                    if(key === 'idList'){
+                        key = 'id';
+                    }
+
                     var keyParts = key.split('.');
                     if (keyParts.length === 1) {
                         if (key === 'expand') {
                             options['$expand'] = value;
+                        } else if (_.isArray(value)) {
+                            if (!_.has(filters, '$and')) {
+                                filters['$and'] = [];
+                            }
+                            _.each(value, function (v) {
+                                var t = {};
+                                t[key] = v;
+                                filters['$and'].push(t);
+                            });
                         } else if (value.split(',').length > 1) {
-                            filters[key] = {
-                                '$in': value.split(',')
-                            };
+                            if (key === 'id') { // Cassandra limitation: we can only IN on primary key. See issue CASSANDRA-4386
+                                filters.id = {
+                                    '$in': value.split(',')
+                                };
+                            } else {
+                                if (!_.has(filters, '$or')) {
+                                    filters['$or'] = [];
+                                }
+                                _.each(value.split(','), function (v) {
+                                    var t = {};
+                                    t[key] = v;
+                                    filters['$or'].push(t);
+                                });
+                            }
                         } else {
                             filters[key] = value;
                         }
