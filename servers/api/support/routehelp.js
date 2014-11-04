@@ -79,6 +79,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     if (keyParts.length === 1) {
                         if (key === 'expand') {
                             options['$expand'] = value;
+                        } else if (_.isArray(value)) {
+                            filters[key] = {
+                                '$in': value
+                            };
                         } else if (value.split(',').length > 1) {
                             filters[key] = {
                                 '$in': value.split(',')
@@ -97,6 +101,8 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                         }
                     }
                 });
+
+                console.dir(filters);
 
                 listResponse(filters, options, reply);
             },
