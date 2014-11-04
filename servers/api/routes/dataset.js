@@ -61,14 +61,36 @@ exports.init = function (server, resource) {
         }
     });
 
+    server.route({
+        method: 'PUT',
+        path: '/dataset/{id}/tags',
+        config: {
+            handler: function (request, reply) {
+                console.log('Add a tag: ' + request.params.id + ': ' + request.payload.tags);
+                reply('Add a tag: ' + request.params.id + ': ' + request.payload.tags);
+            },
+            validate: {
+                params: {
+                    id: model.id.required()
+                },
+                payload: {
+                    tags: Joi.string()
+                }
+            },
+            description: 'Add a new tag to the dataset',
+            notes: 'Add a single tag without modifying others.',
+            tags: ['api']
+        }
+    });
+
 
     server.route({
         method: 'GET',
         path: '/dataset/{id}/csv',
         handler: function (request, reply) {
-            var resultStream = resource.panel.readPanelCSV('B39F36');
+            // TODO(SRLM): Add this feature in fully.
+            var resultStream = resource.panel.readPanelCSV(request.params.id);
             reply(resultStream);
-            //reply('Thanks for your input: ' + request.params.id + ', ' + request.query.startTime);
         },
         config: {
             validate: {

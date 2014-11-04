@@ -38,9 +38,11 @@ CREATE TABLE dataset (
     summary_statistics text,
     bounding_circle map<text,double>,
     bounding_box map<text,double>,
-    gps_lock map<text,int>
+    gps_lock map<text,int>,
+    tags set<text>
 );
 CREATE INDEX dataset_owner ON dataset(owner);
+CREATE INDEX dataset_tags ON dataset (tags);
 
 
 CREATE TABLE video (
