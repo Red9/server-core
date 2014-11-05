@@ -62,7 +62,7 @@ resources.init({
         routeHelp.createCRUDRoutes(server, resources.comment);
         routeHelp.createCRUDRoutes(server, resources.video);
         routeHelp.createCRUDRoutes(server, resources.layout);
-        routeHelp.createCRUDRoutes(server, resources.dataset, ['read', 'update', 'delete', 'search']);
+        routeHelp.createCRUDRoutes(server, resources.dataset, ['read', 'update', 'delete', 'search', 'updateCollection']);
 
         require('./routes/dataset').init(server, resources);
         require('./routes/eventtype').init(server);
