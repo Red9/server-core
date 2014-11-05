@@ -145,9 +145,21 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             method: 'GET',
             path: '/' + resource.name + '/{id}',
             handler: function (request, reply) {
-                var filters = {};
-                filters.id = request.params.id;
-                listResponse(filters, {}, reply);
+                var result;
+                resource.find({id: request.params.id}, {},
+                    function (result_) {
+                        result = result_;
+                    }, function (err, rowCount) {
+                        if (err) {
+                            reply(Boom.wrap(err));
+                        } else if (rowCount === 0) {
+                            reply(Boom.notFound('No ' + resource.name + ' with id ' + request.params.id));
+                        } else if (rowCount > 1) {
+                            reply(Boom.badImplementation('Got ' + rowCount + ' responses to query.'));
+                        } else {
+                            reply(result);
+                        }
+                    });
             },
             config: {
                 validate: {
@@ -215,7 +227,6 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
     if (routesToCreate.indexOf('updateCollection') !== -1
         && _.has(models, 'updateCollection')) {
         _.each(models.updateCollection, function (validator, key) {
-            console.log('Key ' + key);
             var payloadValidation = {};
             payloadValidation[key] = validator;
 
