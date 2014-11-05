@@ -62,29 +62,6 @@ exports.init = function (server, resource) {
     });
 
     server.route({
-        method: 'PUT',
-        path: '/dataset/{id}/tags',
-        config: {
-            handler: function (request, reply) {
-                console.log('Add a tag: ' + request.params.id + ': ' + request.payload.tags);
-                reply('Add a tag: ' + request.params.id + ': ' + request.payload.tags);
-            },
-            validate: {
-                params: {
-                    id: model.id.required()
-                },
-                payload: {
-                    tags: Joi.string()
-                }
-            },
-            description: 'Add a new tag to the dataset',
-            notes: 'Add a single tag without modifying others.',
-            tags: ['api']
-        }
-    });
-
-
-    server.route({
         method: 'GET',
         path: '/dataset/{id}/csv',
         handler: function (request, reply) {

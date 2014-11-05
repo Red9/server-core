@@ -79,7 +79,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     // id path parameters: /resource/:id, and ?id=...
                     // It's mostly a server side hack for Angular's $Resource.
                     // so, that's that.
-                    if(key === 'idList'){
+                    if (key === 'idList') {
                         key = 'id';
                     }
 
@@ -145,9 +145,21 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             method: 'GET',
             path: '/' + resource.name + '/{id}',
             handler: function (request, reply) {
-                var filters = {};
-                filters.id = request.params.id;
-                listResponse(filters, {}, reply);
+                var result;
+                resource.find({id: request.params.id}, {},
+                    function (result_) {
+                        result = result_;
+                    }, function (err, rowCount) {
+                        if (err) {
+                            reply(Boom.wrap(err));
+                        } else if (rowCount === 0) {
+                            reply(Boom.notFound('No ' + resource.name + ' with id ' + request.params.id));
+                        } else if (rowCount > 1) {
+                            reply(Boom.badImplementation('Got ' + rowCount + ' responses to query.'));
+                        } else {
+                            reply(result);
+                        }
+                    });
             },
             config: {
                 validate: {
@@ -211,6 +223,56 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             }
         });
     }
+
+    if (routesToCreate.indexOf('updateCollection') !== -1
+        && _.has(models, 'updateCollection')) {
+        _.each(models.updateCollection, function (validator, key) {
+            var payloadValidation = {};
+            payloadValidation[key] = validator;
+
+            server.route({
+                method: 'PUT',
+                path: '/' + resource.name + '/{id}/' + key,
+                handler: function (request, reply) {
+                    resource.collection.add(request.params.id, key, request.payload[key], function (err) {
+                        console.log(err);
+                        reply(err);
+                    });
+                },
+                config: {
+                    validate: {
+                        params: {id: model.id},
+                        payload: payloadValidation
+                    },
+                    description: 'Add ' + resource.name + ' ' + key,
+                    notes: 'Add items to collection ' + key + ' on ' + resource.name,
+                    tags: ['api']
+                }
+            });
+
+            server.route({
+                method: 'DELETE',
+                path: '/' + resource.name + '/{id}/' + key,
+                handler: function (request, reply) {
+                    resource.collection.remove(request.params.id, key, request.payload[key], function (err) {
+                        console.log(err);
+                        reply(err);
+                    });
+                },
+                config: {
+                    validate: {
+                        params: {id: model.id},
+                        payload: payloadValidation
+                    },
+                    description: 'Remove ' + resource.name + ' ' + key,
+                    notes: 'Remove items from collection ' + key + ' on ' + resource.name,
+                    tags: ['api']
+                }
+            });
+
+        });
+    }
+
 
     if (routesToCreate.indexOf('delete') !== -1) {
         server.route({
