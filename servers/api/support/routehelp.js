@@ -130,7 +130,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             },
             config: {
                 validate: {
-                    query: models.search
+                    query: _.extend({}, models.search, models.resultOptions)
                 },
                 description: 'Get ' + resource.name + 's',
                 notes: 'Gets all ' + resource.name + 's that matches the parameters',
@@ -146,7 +146,13 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             path: '/' + resource.name + '/{id}',
             handler: function (request, reply) {
                 var result;
-                resource.find({id: request.params.id}, {},
+                var options = {};
+                if (_.has(request.query, 'expand')) {
+                    options['$expand'] = request.query.expand;
+                }
+
+
+                resource.find({id: request.params.id}, options,
                     function (result_) {
                         result = result_;
                     }, function (err, rowCount) {
@@ -165,7 +171,8 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 validate: {
                     params: {
                         id: model.id
-                    }
+                    },
+                    query: models.resultOptions
                 },
                 description: 'Get a single ' + resource.name,
                 notes: 'Gets a single ' + resource.name + ' that matches the given id',
@@ -228,7 +235,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
         && _.has(models, 'updateCollection')) {
         _.each(models.updateCollection, function (validator, key) {
             var payloadValidation = {};
-            payloadValidation[key] = validator;
+            payloadValidation[key] = validator.required();
 
             server.route({
                 method: 'PUT',
@@ -251,7 +258,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             });
 
             server.route({
-                method: 'DELETE',
+                method: 'PATCH',
                 path: '/' + resource.name + '/{id}/' + key,
                 handler: function (request, reply) {
                     resource.collection.remove(request.params.id, key, request.payload[key], function (err) {
@@ -265,7 +272,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                         payload: payloadValidation
                     },
                     description: 'Remove ' + resource.name + ' ' + key,
-                    notes: 'Remove items from collection ' + key + ' on ' + resource.name,
+                    notes: 'Remove items from collection ' + key + ' on ' + resource.name + '. Note the method is PATCH.',
                     tags: ['api']
                 }
             });
