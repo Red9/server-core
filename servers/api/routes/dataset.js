@@ -65,9 +65,26 @@ exports.init = function (server, resource) {
         method: 'GET',
         path: '/dataset/{id}/csv',
         handler: function (request, reply) {
-            // TODO(SRLM): Add this feature in fully.
-            var resultStream = resource.panel.readPanelCSV(request.params.id);
-            reply(resultStream);
+            var options = {};
+            if (_.has(request.query, 'csPeriod')) {
+                options.csPeriod = request.query.csPeriod;
+            }
+            if (_.has(request.query, 'frequency')) {
+                options.csPeriod = Math.round(1000 / request.query.frequency);
+            }
+            if (_.has(request.query, 'startTime') && _.has(request.query, 'endTime')) {
+                options.startTime = request.query.startTime;
+                options.endTime = request.query.endTime;
+            }
+
+            resource.panel.readPanelCSV(request.params.id, options, function (err, resultStream) {
+                if (err) {
+                    reply(err);
+                } else {
+                    reply(resultStream);
+                }
+            });
+
         },
         config: {
             validate: {
@@ -77,8 +94,8 @@ exports.init = function (server, resource) {
                 query: {
                     startTime: model.startTime,
                     endTime: model.endTime,
-                    axes: Joi.string(),
-                    frequency: Joi.number().integer().min(1).max(1000)
+                    csPeriod: Joi.number().integer().min(1).default(10).description('Period of the rows, in milliseconds'),
+                    frequency: Joi.number().integer().min(1).max(1000).description('Frequency in Hz. Rounded to the nearest even millisecond period.')
                 }
             },
             description: 'Get CSV panel',
@@ -98,17 +115,14 @@ exports.init = function (server, resource) {
                 statistics: {}
             };
 
-            if (_.has(request.query, 'startTime')) {
+            if (_.has(request.query, 'startTime') && _.has(request.query, 'endTime')) {
                 options.startTime = request.query.startTime;
-            }
-            if (_.has(request.query, 'endTime')) {
                 options.endTime = request.query.endTime;
             }
 
             resource.panel.readPanelJSON(request.params.id, options, function (err, result) {
                 reply(result);
             });
-            //reply('Thanks for your input: ' + request.params.id + ', ' + request.query.startTime);
         },
         config: {
             validate: {
