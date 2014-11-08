@@ -19,18 +19,18 @@ var http = require('http');
 var app = express();
 app.set('port', nconf.get('port'));
 
-//app.use(require('serve-favicon')(nconf.get('faviconPath')));
-
+app.use(require('serve-favicon')(nconf.get('faviconPath')));
+app.use(require('morgan')('dev')); // Logger
 
 app.use(require('compression')());
-//app.use(logger.logger());
 
 app.get('/static/config.js', function (req, res, next) {
+    res.setHeader('Cache-Control', 'public, max-age=' + nconf.get('cacheMaxAge'));
     res.sendFile(__dirname + '/clientconfig/' + process.env.NODE_ENV + '.js');
 });
 
 
-app.use('/static', express.static(nconf.get('staticPath')));
+app.use('/static', express.static(nconf.get('staticPath'), { maxAge: nconf.get('cacheMaxAge')*1000 }));
 // Catch all the requests for non-existant static resources.
 // If we don't go through this hoop then the 404 redirect to the fancy
 // html page will mess up our passport authorization and prevent
@@ -44,12 +44,7 @@ app.use('/static/:anything?*', function (req, res, next) {
 // Helper Functions
 // ----------------------------------------------------------------------------
 function sendIndex(req, res, next) {
-    // Send the user information so that the app doesn't have to make an
-    // initial JSON request.
-    /*if (typeof req.session.passport.user !== 'undefined') {
-     res.cookie('currentUser', JSON.stringify(req.session.passport.user));
-     }*/
-    console.log('[' + (new Date().toUTCString()) + '] Sending file.');
+    res.setHeader('Cache-Control', 'public, max-age=' + nconf.get('cacheMaxAge'));
     res.sendFile(nconf.get('applicationPagePath'));
 }
 
@@ -58,6 +53,7 @@ function sendIndex(req, res, next) {
 // These are the main site routes
 // ----------------------------------------------------------------------------
 function sendDataPage(req, res, next) {
+    res.setHeader('Cache-Control', 'public, max-age=' + nconf.get('cacheMaxAge'));
     res.sendFile(nconf.get('dataPagePath'));
 }
 

@@ -1,7 +1,8 @@
 {
   "port": 9532,
-  "faviconPath": "",
+  "faviconPath": "/home/clewis/consulting/red9/clients-core/data-client/src/static/images/favicon.localdev.ico",
   "staticPath": "/home/clewis/consulting/red9/clients-core/data-client/src/static",
   "applicationPagePath": "/home/clewis/consulting/red9/clients-core/data-client/src/index.html",
-  "dataPagePath": "/home/clewis/consulting/red9/clients-core/data-client/src/data.html"
+  "dataPagePath": "/home/clewis/consulting/red9/clients-core/data-client/src/data.html",
+  "cacheMaxAge": 0
 }

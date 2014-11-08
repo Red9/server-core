@@ -9,6 +9,7 @@
         "nconf": "latest",
         "express": "latest",
         "compression": "latest",
-        "serve-favicon": "latest"
+        "serve-favicon": "latest",
+        "morgan": "latest"
     }
 }
