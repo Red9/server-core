@@ -58,14 +58,11 @@ resources.init({
                     {
                         reporter: require('good-file'),
                         args: [
-                            nconf.get('logFileDirectory'),
+                            nconf.get('logFilePath'),
                             {
                                 log: '*',
                                 request: '*',
                                 error: '*'
-                            },
-                            {
-                                extension: 'log'
                             }]
                     }
                 ]
@@ -73,13 +70,18 @@ resources.init({
         },
         {
             plugin: require('hapi-swagger'),
-            apiVersion: nconf.get("apiVersion")
+            options: {
+                apiVersion: nconf.get("apiVersion"),
+                payloadType: 'form'
+            }
         }
 
     ], function (err) {
         if (err) {
             console.log('plugin err: ' + err);
         }
+
+        require('./routes/authentication').init(server, resources); // Needs to be first
 
         routeHelp.createCRUDRoutes(server, resources.user);
         routeHelp.createCRUDRoutes(server, resources.event);
@@ -90,7 +92,7 @@ resources.init({
 
         require('./routes/dataset').init(server, resources);
         require('./routes/eventtype').init(server);
-        require('./routes/authentication').init(server, resources);
+
 
         server.start(function () {
             console.log('Server running at:', server.info.uri);

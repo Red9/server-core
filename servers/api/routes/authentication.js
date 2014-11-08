@@ -33,9 +33,9 @@ function checkUserAuthentication(resources, providedUser, callback) {
 
 
 exports.init = function (server, resources) {
-    server.auth.strategy('session', 'cookie', 'try', {
+    server.auth.strategy('session', 'cookie', {
         password: '867cfa6cal5-c80eouwvvrl-4aba4ad-92atueh2-e4c737otauh76e129a', // random string
-        cookie: 'r9session',
+        cookie: nconf.get('authorizationCookieName'),
         clearInvalid: true,
         redirectTo: false,
         isSecure: false,
@@ -56,6 +56,12 @@ exports.init = function (server, resources) {
         clientSecret: 'm6OYo8hpLAMaK-U-QBtItRJP',
         scope: ['profile', 'email'],
         isSecure: false     // Terrible idea but required if not using HTTPS
+    });
+
+
+    server.auth.default({
+        mode: 'required',
+        strategy: 'session'
     });
 
     // Use the 'twitter' authentication strategy to protect the
@@ -102,7 +108,7 @@ exports.init = function (server, resources) {
                 });
             },
             description: 'Perform Google+ Authentication',
-            notes: 'Unique API endpoint. Returns HTML that should be displayed to the user. On sucess it will redirect to callbackURL. Do not POST this endpoint.',
+            notes: 'Returns HTML that should be displayed to the user, which is unique for this server. On success it will redirect to callbackURL. Do not POST this endpoint, only GET.',
             tags: ['api']
         }
     });
@@ -118,7 +124,11 @@ exports.init = function (server, resources) {
             },
             description: 'Delete the current session',
             notes: 'Delete the current session, if any.',
-            tags: ['api']
+            tags: ['api'],
+            auth: {
+                mode: 'try',
+                strategy: 'session'
+            }
         }
     });
 
@@ -141,8 +151,8 @@ exports.init = function (server, resources) {
                 mode: 'try',
                 strategy: 'session'
             },
-            description: 'Get the currrent logged in user',
-            notes: 'Returs the current user who is logged in, otherwise returns an unauthorized error.',
+            description: 'Get the current logged in user',
+            notes: 'Returns the current user who is logged in, otherwise returns an unauthorized error. Uses the "' + nconf.get('authorizationCookieName') + '" cookie.',
             tags: ['api']
         }
     });

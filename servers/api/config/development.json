@@ -9,5 +9,6 @@
   "defaultCallbackUrl" : "http://localhost:9532",
   "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated",
   "authorizationCookieDomain": null,
-  "logFileDirectory": "/home/clewis/Downloads/apiserver/"
+  "logFilePath": "/home/clewis/Downloads/apiserver/apiserver",
+  "authorizationCookieName": "r9session"
 }

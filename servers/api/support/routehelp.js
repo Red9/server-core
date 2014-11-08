@@ -1,6 +1,7 @@
 var stream = require('stream');
 var Joi = require('joi');
 var _ = require('underscore')._;
+var Boom = require('boom');
 
 // Slow, array based version
 //exports.createListResponse = function (findFunction) {
@@ -151,6 +152,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     options['$expand'] = request.query.expand;
                 }
 
+                console.log('Request from : '+ request.auth.credentials);
 
                 resource.find({id: request.params.id}, options,
                     function (result_) {
@@ -176,8 +178,15 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Get a single ' + resource.name,
                 notes: 'Gets a single ' + resource.name + ' that matches the given id',
-                tags: ['api']
-                //response: {schema: resultModelList}
+                tags: ['api'],
+                response: {
+                    // The response validation is set so that Hapi Swagger can pull it
+                    // for documentation, but we don't actually want it to validate.
+                    // Why no validate? Because we'd have to add in all the expand keys...
+                    schema: resultModel,
+                    sample: 1,
+                    failAction: 'log'
+                }
             }
         });
     }
