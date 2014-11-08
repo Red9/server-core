@@ -8,6 +8,8 @@
   "dependencies": {
     "hapi": "latest",
     "good": "latest",
+    "good-console": "latest",
+    "good-file": "latest",
     "bell": "latest",
     "joi": "latest",
     "boom": "latest",

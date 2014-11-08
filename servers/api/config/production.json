@@ -8,5 +8,6 @@
   "rncDataPath": "/home/ubuntu/RNC",
   "defaultCallbackUrl" : "http://betadata.redninesensor.com",
   "unauthorizedCallbackUrl": "http://betadata.redninesensor.com/page/unauthenticated",
-  "authorizationCookieDomain": ".redninesensor.com"
+  "authorizationCookieDomain": ".redninesensor.com",
+  "logFileDirectory": "/home/ubuntu/log/"
 }

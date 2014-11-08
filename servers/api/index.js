@@ -12,13 +12,10 @@ nconf
     .file('common', {file: '../config/' + process.env.NODE_ENV + '.json'});
 
 var Hapi = require('hapi');
-
 var Joi = require('joi');
 
 var resources = require('red9resource');
 var routeHelp = require('./support/routehelp');
-
-console.log('rncDataPath: ' + nconf.get('rncDataPath'));
 
 var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {
     cors: {
@@ -45,8 +42,35 @@ resources.init({
 
     server.pack.register([
         require('bell'),
-        require('good'),
         require('hapi-auth-cookie'),
+        {
+            plugin: require('good'),
+            options: {
+                reporters: [
+                    {
+                        reporter: require('good-console'),
+                        args: [{
+                            log: '*',
+                            request: '*',
+                            error: '*'
+                        }]
+                    },
+                    {
+                        reporter: require('good-file'),
+                        args: [
+                            nconf.get('logFileDirectory'),
+                            {
+                                log: '*',
+                                request: '*',
+                                error: '*'
+                            },
+                            {
+                                extension: 'log'
+                            }]
+                    }
+                ]
+            }
+        },
         {
             plugin: require('hapi-swagger'),
             apiVersion: nconf.get("apiVersion")
