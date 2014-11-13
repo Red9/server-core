@@ -18,7 +18,8 @@ function checkUserAuthentication(resources, providedUser, callback) {
     resources.user.find({email: providedUser.email}, {},
         function (user_) {
             user = user_;
-        }, function (err) {
+        },
+        function (err) {
             if (err) {
                 console.log('Error in user login: ' + err);
             }
@@ -26,7 +27,12 @@ function checkUserAuthentication(resources, providedUser, callback) {
                 callback(null);
             } else {
                 // Found a user.
-                callback(null, user);
+                // Now, update their profile with the most recently provided information.
+                // Allow the user to set a Red9 specific display name (we don't want to automatically update that)
+                if (user.displayName !== 'unknown') {
+                    delete providedUser.displayName;
+                }
+                resources.user.update(user.id, providedUser, callback);
             }
         });
 }

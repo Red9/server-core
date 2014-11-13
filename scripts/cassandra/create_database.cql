@@ -61,7 +61,9 @@ CREATE TABLE user (
     email text,
     first text,
     last text,
-    preferred_layout text
+    preferred_layout text,
+    picture text,
+    gender text
 );
 CREATE INDEX user_email ON user(email);
 CREATE INDEX user_display_name ON user(display_name);
