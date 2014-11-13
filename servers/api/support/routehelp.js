@@ -151,9 +151,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 if (_.has(request.query, 'expand')) {
                     options['$expand'] = request.query.expand;
                 }
-
-                console.log('Request from : '+ request.auth.credentials);
-
+                
                 resource.find({id: request.params.id}, options,
                     function (result_) {
                         result = result_;
