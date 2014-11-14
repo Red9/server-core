@@ -57,7 +57,7 @@ exports.createListResponse = function (findFunction) {
 
 exports.createCRUDRoutes = function (server, resource, routesToCreate) {
     if (typeof routesToCreate === 'undefined') {
-        routesToCreate = ['create', 'read', 'update', 'delete', 'search'];
+        routesToCreate = ['create', 'read', 'update', 'updateCollection', 'delete', 'search'];
     }
 
     var listResponse = exports.createListResponse(resource.find);

@@ -61,10 +61,12 @@ CREATE TABLE user (
     email text,
     first text,
     last text,
-    preferred_layout text,
+    preferred_layout map<text,text>,
     picture text,
     gender text,
-    create_time timestamp
+    create_time timestamp,
+    affiliations set<text>,
+    characteristics set<text>
 );
 CREATE INDEX user_email ON user(email);
 CREATE INDEX user_display_name ON user(display_name);
@@ -97,3 +99,4 @@ CREATE INDEX event_dataset ON event (dataset);
 CREATE INDEX event_end_time ON event (end_time);
 CREATE INDEX event_start_time ON event (start_time);
 CREATE INDEX event_type ON event (type);
+

@@ -149,6 +149,8 @@ function migrateUsers(doneCallback) {
                     return memo;
                 }, {});
 
+                console.dir(user);
+
                 resource.user.create(user, function (err, createdUser) {
                     if (err) {
                         console.log(err);
