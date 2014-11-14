@@ -12,8 +12,10 @@ var before = lab.before;
 var after = lab.after;
 var expect = Code.expect;
 
+var requirePath = '../resources/resource.common.collection.set';
+
 describe('createAddQuery', function () {
-    var sutFunction = rewire('../lib/resource.common.collection.set').__get__('createUpdateQuery');
+    var sutFunction = rewire(requirePath).__get__('createUpdateQuery');
 
     var tableName = 'table';
     var id = '85ab100f-1497-4c3f-8c74-e5048dd1f855';
@@ -49,7 +51,7 @@ describe('createAddQuery', function () {
 });
 
 describe('add and remove', function () {
-    var sut = rewire('../lib/resource.common.collection.set');
+    var sut = rewire(requirePath);
     var cassandraMock = {
         execute: function (parameters) {
             parameters.callback(null);

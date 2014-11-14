@@ -1,9 +1,10 @@
 {
-  "name": "panel_server",
-  "version": "0.0.1",
+  "name": "rednineapi",
+  "version": "0.0.5",
   "private": true,
   "scripts": {
-    "start": "nodejs index.js"
+    "start": "nodejs index.js",
+    "test": "grunt"
   },
   "dependencies": {
     "hapi": "latest",
@@ -16,7 +17,10 @@
     "underscore": "latest",
     "hapi-swagger": "git://github.com/glennjones/hapi-swagger.git",
     "hapi-auth-cookie": "latest",
-    "nconf": "latest"
+    "nconf": "latest",
+    "async": "latest",
+    "markdown": "latest",
+    "cassandra-driver": "latest"
   },
   "devDependencies": {
     "grunt": "latest",

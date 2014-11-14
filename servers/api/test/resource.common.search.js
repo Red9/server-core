@@ -12,7 +12,7 @@ var before = lab.before;
 var after = lab.after;
 var expect = Code.expect;
 
-var requirePath = '../lib/resource.common.search';
+var requirePath = '../resources/resource.common.search';
 
 var sut = require(requirePath);
 

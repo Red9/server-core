@@ -2,6 +2,8 @@
 
 var Joi = require('joi');
 var validators = require('./validators');
+var nconf = require('nconf');
+var _ = require('underscore')._;
 
 var basicModel = {
     id: validators.id,
@@ -12,7 +14,7 @@ var basicModel = {
     familyName: Joi.string().description('last name'),
     preferredLayout: Joi.object().options({className: 'preferredLayout'}).default({}).description('layouts for user'),
     picture: Joi.string().description('link to a profile picture.'),
-    gender: Joi.string().valid('male', 'female', 'unknown').description('gender'),
+    gender: Joi.string().valid('male', 'female', 'other').description('gender'),
     affiliations: Joi.array().includes(Joi.string()).description('organization affiliations of this user'),
     characteristics: Joi.array().includes(Joi.string()).description('user self-defined characteristics')
 };
@@ -137,6 +139,10 @@ module.exports = {
         callback(null, user);
     },
     expand: function (parameters, user, callback) {
+        if (_.isNull(user.picture)) {
+            console.log('Cookie domain: ' + nconf.get('authorizationCookieDomain'));
+            user.picture = nconf.get('defaultUserPicture');
+        }
         callback(null, user);
     }
 };

@@ -16,7 +16,7 @@ nconf
 var Hapi = require('hapi');
 var Joi = require('joi');
 
-var resources = require('red9resource');
+var resources = require('./resources/index');
 var routeHelp = require('./support/routehelp');
 
 var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {

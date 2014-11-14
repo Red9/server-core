@@ -2,7 +2,7 @@
 
 var _ = require('underscore');
 var cassandra = require('./cassandra');
-var common = require('./resource.common');
+var common = require('./resource.common.js');
 
 function createUpdateQuery(tableName, id, operation, cassandraKey, cassandraType, values) {
     var operator = '';

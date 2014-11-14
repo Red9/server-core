@@ -3,7 +3,7 @@
 var _ = require('underscore')._;
 var Boom = require('boom');
 
-var common = require('./resource.common');
+var common = require('./resource.common.js');
 
 
 function isEmbeddedDocument(key) {

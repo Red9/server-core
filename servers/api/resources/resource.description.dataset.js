@@ -1,9 +1,9 @@
 "use strict";
 var _ = require('underscore')._;
 
-var common = require('./resource.common');
+var common = require('./resource.common.js');
 var validators = require('./validators');
-var aggregateStatistics = require('./resource.aggregatestatistics');
+var aggregateStatistics = require('./resource.aggregatestatistics.js');
 var async = require('async');
 
 var Joi = require('joi');

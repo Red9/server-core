@@ -10,5 +10,6 @@
   "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated",
   "authorizationCookieDomain": null,
   "logFilePath": "/home/clewis/Downloads/apiserver/apiserver",
-  "authorizationCookieName": "r9session"
+  "authorizationCookieName": "r9session",
+  "defaultUserPicture": "http://localhost:9532/static/images/profile-default.png"
 }

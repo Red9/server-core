@@ -11,9 +11,10 @@ var before = lab.before;
 var after = lab.after;
 var expect = Code.expect;
 
+var requirePath = '../resources/cassandra';
 
 describe('init', function () {
-    var sut = rewire('../lib/cassandra');
+    var sut = rewire(requirePath);
 
     var config = {
         cassandraHosts: ['localhost'],
@@ -63,7 +64,7 @@ describe('init', function () {
 });
 
 describe('execute', function () {
-    var sut = rewire('../lib/cassandra');
+    var sut = rewire(requirePath);
     var error = false;
     var cassandraMock = {
         eachRow: function (query, parameters, queryOptions, rowCallback, doneCallback) {
@@ -108,7 +109,7 @@ describe('execute', function () {
 });
 
 describe('getDatasetCount', function () {
-    var sut = rewire('../lib/cassandra');
+    var sut = rewire(requirePath);
     var countResult = {
         rows: [
             {
