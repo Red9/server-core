@@ -1,3 +1,5 @@
+"use strict";
+
 var request = require('request');
 var _ = require('underscore')._;
 var fs = require('fs');
@@ -8,13 +10,56 @@ nconf
     .file('general', {file: 'config/general.json'})
     .file('deployment', {file: 'config/' + process.env.NODE_ENV + '.json'});
 
-
 var panelInputDir = nconf.get('panelInputDir');
 
 var resource = require('red9resource');
 
 var path = require('path');
 var async = require('async');
+
+var defaultCreateTime = (new Date()).getTime();
+
+
+/** Taken from red9resource, and put here for convenience
+ * Generates a GUID string, according to RFC4122 standards.
+ *
+ * Modified by SRLM to generate a version 4 UUID.
+ *
+ * @returns {String} The generated GUID.
+ * @example af8a8416-6e18-a307-bd9c-f2c947bbb3aa
+ * @author Slavik Meltser (slavik@meltser.info).
+ * @link http://slavik.meltser.info/?p=142
+ */
+function generateUUID() {
+    function _p8() {
+        return (Math.random().toString(16) + "000000000").substr(2, 8);
+    }
+
+    var setB = _p8();
+    var setC = _p8();
+
+    var t = ['8', '9', 'a', 'b'];
+    var single = t[Math.floor(Math.random() * t.length)];
+
+    return _p8() + '-' + setB.substr(0, 4) + '-4' + setB.substr(4, 3) + '-'
+        + single + setC.substr(0, 3) + '-' + setC.substr(4, 4) + _p8();
+}
+
+function adjustId(idMap, oldId) {
+    var newId = generateUUID();
+    idMap[oldId] = newId;
+    return newId;
+}
+
+var idMap = {
+    layout: {},
+    user: {},
+    dataset: {},
+    event: {},
+    comment: {},
+    video: {}
+};
+
 
 /**
  *
@@ -27,7 +72,10 @@ function loadDatasets(datasetList, doneCallback) {
     function loadDataset(oldDataset, callback) {
         console.log('Uploading ' + oldDataset.id);
         var readStream = fs.createReadStream(path.join(panelInputDir, oldDataset.id + '.RNC'));
-        oldDataset.ownerId = oldDataset.owner; // There's a key change!
+
+        // Key change from "owner" to "ownerId"
+        oldDataset.ownerId = idMap.user[oldDataset.owner];
+        oldDataset.id = adjustId(idMap.dataset, oldDataset.id);
 
         resource.helpers.createDataset(oldDataset, readStream, function (err, createdDataset) {
             if (err) {
@@ -47,7 +95,7 @@ function loadDatasets(datasetList, doneCallback) {
         }, true);
     }
 
-    async.eachLimit(datasetList, nconf.get('datasetAsyncLimit'), loadDataset, function (err) {
+    async.eachLimit(datasetList, nconf.get('asyncLimit'), loadDataset, function (err) {
         doneCallback(err, migratedDatasets);
     });
 }
@@ -65,6 +113,9 @@ function migrateLayouts(doneCallback) {
     }, function (err, response, layoutList) {
         async.eachLimit(layoutList, 20,
             function (layout, callback) {
+                layout.createTime = defaultCreateTime;
+                layout.id = adjustId(idMap.layout, layout.id);
+
                 resource.layout.create(layout, function (err, createdLayout) {
                     if (err) {
                         console.log(err);
@@ -89,6 +140,15 @@ function migrateUsers(doneCallback) {
     }, function (err, response, userList) {
         async.eachLimit(userList, 20,
             function (user, callback) {
+                user.createTime = defaultCreateTime;
+                user.id = adjustId(idMap.user, user.id);
+
+                // map from the old layout id's to the new layout id's.
+                user.preferredLayout = _.reduce(user.preferredLayout, function (memo, value, key) {
+                    memo[key] = idMap.layout[value];
+                    return memo;
+                }, {});
+
                 resource.user.create(user, function (err, createdUser) {
                     if (err) {
                         console.log(err);
@@ -113,11 +173,20 @@ function migrateVideos(datasets, doneCallback) {
     }, function (err, response, videoList) {
         async.eachLimit(videoList, 20,
             function (video, callback) {
-                if (_.has(datasets, video.dataset)) {
-                    video.startTime = mapTime(datasets[video.dataset].new.startTime,
-                        datasets[video.dataset].old.headPanel.startTime,
+
+                // Key change from "dataset" to "datasetId"
+                video.datasetId = idMap.dataset[video.dataset];
+                delete video.dataset;
+
+                if (_.has(datasets, video.datasetId)) {
+                    // update id here because we only want to change it if we can successfully migrate.
+                    video.id = adjustId(idMap.video, video.id);
+
+
+                    video.startTime = mapTime(datasets[video.datasetId].new.startTime,
+                        datasets[video.datasetId].old.headPanel.startTime,
                         video.startTime);
-                    video.dataset = datasets[video.dataset].new.id;
+                    video.datasetId = datasets[video.datasetId].new.id;
 
                     resource.video.create(video, function (err, createdVideo) {
                         if (err) {
@@ -149,15 +218,24 @@ function migrateComments(datasets, doneCallback) {
     }, function (err, response, commentList) {
         async.eachLimit(commentList, 20,
             function (comment, callback) {
-                if (_.has(datasets, comment.resource)) {
+
+                // Key change from "resource" to "resourceId"
+                comment.resourceId = idMap.dataset[comment.resource];
+                comment.authorId = idMap.user[comment.author];
+                delete comment.resource;
+
+                if (_.has(datasets, comment.resourceId)) {
+                    comment.id = adjustId(idMap.comment, comment.id);
+
+
                     if (comment.startTime !== 0) {
-                        comment.startTime = mapTime(datasets[comment.resource].new.startTime,
-                            datasets[comment.resource].old.headPanel.startTime,
+                        comment.startTime = mapTime(datasets[comment.resourceId].new.startTime,
+                            datasets[comment.resourceId].old.headPanel.startTime,
                             comment.startTime);
                     }
                     if (comment.endTime !== 0) {
-                        comment.endTime = mapTime(datasets[comment.resource].new.startTime,
-                            datasets[comment.resource].old.headPanel.startTime,
+                        comment.endTime = mapTime(datasets[comment.resourceId].new.startTime,
+                            datasets[comment.resourceId].old.headPanel.startTime,
                             comment.endTime);
                     }
 
@@ -189,15 +267,25 @@ function migrateEvents(datasets, doneCallback) {
         url: 'http://api.redninesensor.com/event/',
         json: true
     }, function (err, response, eventList) {
-        async.eachLimit(eventList, 20,
+        async.eachLimit(eventList, nconf.get('asyncLimit'),
             function (event, callback) {
+                event.createTime = defaultCreateTime;
+                event.datasetId = idMap.dataset[event.datasetId];
+
                 if (_.has(datasets, event.datasetId)) {
+                    event.id = adjustId(idMap.event, event.id);
                     event.startTime = mapTime(datasets[event.datasetId].new.startTime,
                         datasets[event.datasetId].old.headPanel.startTime,
                         event.startTime);
                     event.endTime = mapTime(datasets[event.datasetId].new.startTime,
                         datasets[event.datasetId].old.headPanel.startTime,
                         event.endTime);
+
+                    var temp = event.type.split(': ');
+                    if(temp.length === 2){
+                        event.type = temp[0];
+                        event.subtype = temp[1];
+                    }
 
                     resource.event.create(event, function (err, createdEvent) {
                         if (err) {
@@ -261,8 +349,6 @@ function getUploadableDatasets(callback) {
 
 
 resource.init({
-    //cassandraHosts: ["localhost"],
-    //cassandraKeyspace: "development"
     "cassandraHosts": nconf.get('cassandraHosts'),
     "cassandraKeyspace": nconf.get('cassandraKeyspace'),
     "cassandraUsername": nconf.get('cassandraUsername'),
@@ -281,6 +367,8 @@ resource.init({
                     migrateVideos(migratedDatasets, function (err, migratedVideos, unmigratedVideos) {
                         migrateComments(migratedDatasets, function (err, migratedComments, unmigratedComments) {
                             migrateEvents(migratedDatasets, function (err, migratedEvents, unmigratedEvents) {
+
+                                fs.writeFileSync(nconf.get('migrationMapPath'), JSON.stringify(idMap, null, 4), {flag: 'w'});
                                 process.exit(0);
                             });
                         });

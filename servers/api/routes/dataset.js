@@ -1,3 +1,5 @@
+"use strict";
+
 //var panel = require('red9panel').panelReader(panelReaderConfig);
 var Joi = require('joi');
 var _ = require('underscore')._;

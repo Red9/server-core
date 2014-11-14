@@ -9,8 +9,8 @@ var basicModel = {
     startTime: validators.timestamp,
     host: Joi.string().valid(['YouTube']).description('The hosting service for this video'),
     hostId: Joi.string().description('The hosting service identifier for this video.'),
-    dataset: validators.id,
-    createTime: validators.timestamp
+    datasetId: validators.id,
+    createTime: validators.createTime,
 };
 
 var resourceName = 'video';
@@ -25,20 +25,20 @@ module.exports = {
             startTime: basicModel.startTime.required(),
             host: basicModel.host.required(),
             hostId: basicModel.hostId.required(),
-            dataset: basicModel.dataset.required()
+            datasetId: basicModel.datasetId.required()
         }).options({className: resourceName + '.create'}),
         update: Joi.object({
             startTime: basicModel.startTime,
             host: basicModel.host,
             hostId: basicModel.hostId,
-            dataset: basicModel.dataset
+            datasetId: basicModel.datasetId
         }).options({className: resourceName + '.update'}),
         resultModel: Joi.object({
             id: basicModel.id.required(),
             startTime: basicModel.startTime.required(),
             host: basicModel.host.required(),
             hostId: basicModel.hostId.required(),
-            dataset: basicModel.dataset.required(),
+            datasetId: basicModel.datasetId.required(),
             createTime: basicModel.createTime.required()
         }).options({className: resourceName}),
         search: {
@@ -46,7 +46,7 @@ module.exports = {
             idList: validators.idCSV,
             host: basicModel.host,
             hostId: basicModel.hostId,
-            dataset: basicModel.dataset
+            datasetId: basicModel.datasetId
         }
     },
 
@@ -78,7 +78,7 @@ module.exports = {
         {
             cassandraKey: 'dataset',
             cassandraType: 'uuid',
-            jsKey: 'dataset',
+            jsKey: 'datasetId',
             jsType: 'string',
         },
         {

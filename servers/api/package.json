@@ -17,5 +17,14 @@
     "hapi-swagger": "git://github.com/glennjones/hapi-swagger.git",
     "hapi-auth-cookie": "latest",
     "nconf": "latest"
+  },
+  "devDependencies": {
+    "grunt": "latest",
+    "lab": "latest",
+    "code": "latest",
+    "grunt-lab": "latest",
+    "grunt-contrib-jshint": "latest",
+    "grunt-contrib-watch": "latest",
+    "rewire": "latest"
   }
 }

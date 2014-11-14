@@ -63,7 +63,8 @@ CREATE TABLE user (
     last text,
     preferred_layout text,
     picture text,
-    gender text
+    gender text,
+    create_time timestamp
 );
 CREATE INDEX user_email ON user(email);
 CREATE INDEX user_display_name ON user(display_name);
@@ -73,7 +74,9 @@ CREATE TABLE layout (
     description text,
     for text,
     layout text,
-    title text
+    title text,
+    create_time timestamp
+
 );
 
 CREATE TABLE event (
@@ -84,9 +87,11 @@ CREATE TABLE event (
     start_time timestamp,
     summary_statistics text,
     type text,
+    subtype text,
     bounding_circle map<text,double>,
     bounding_box map<text,double>,
-    gps_lock map<text,int>
+    gps_lock map<text,int>,
+    create_time timestamp
 );
 CREATE INDEX event_dataset ON event (dataset);
 CREATE INDEX event_end_time ON event (end_time);

@@ -1,5 +1,8 @@
+"use strict";
+
 var Boom = require('boom');
 var nconf = require('nconf');
+var _ = require('underscore')._;
 /**
  *
  * @param providedUser with keys:
@@ -99,7 +102,7 @@ exports.init = function (server, resources) {
                 checkUserAuthentication(resources, normalizedUser, function (err, validUser) {
                     var callbackUrl = nconf.get('defaultCallbackUrl');
                     if (request.auth.credentials.query.callbackUrl) {
-                        callbackUrl = decodeURIComponent(request.auth.credentials.query.callbackUrl)
+                        callbackUrl = decodeURIComponent(request.auth.credentials.query.callbackUrl);
                     }
 
                     if (typeof validUser !== 'undefined') {
@@ -145,7 +148,7 @@ exports.init = function (server, resources) {
             handler: function (request, reply) {
                 //console.log('Credentials: ');
                 //console.dir(request.auth.credentials);
-                if (typeof request.auth.credentials === 'undefined') {
+                if (_.isNull(request.auth.credentials)) {
                     reply(Boom.unauthorized('Not logged in.'));
                 } else {
                     reply({

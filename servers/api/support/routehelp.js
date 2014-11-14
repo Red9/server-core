@@ -1,3 +1,5 @@
+"use strict";
+
 var stream = require('stream');
 var Joi = require('joi');
 var _ = require('underscore')._;
@@ -46,7 +48,7 @@ exports.createListResponse = function (findFunction) {
         );
 
         reply(outputStream);
-    }
+    };
 };
 
 // This second regex (after the OR) is a legacy option!!! As it turns out, I haven't been using version 4
