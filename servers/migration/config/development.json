@@ -4,7 +4,7 @@
   "cassandraUsername": "cassandra",
   "cassandraPassword": "cassandra",
   "panelDataPath": "/home/clewis/Downloads/RNC",
-  "panelInputDir": "/home/clewis/Downloads/migration/combinedRNC_temp",
+  "panelInputDir": "/home/clewis/Downloads/migration/combinedRNC",
   "asyncLimit": 10,
   "migrationMapPath": "/home/clewis/Downloads/migrationMap.json"
 }

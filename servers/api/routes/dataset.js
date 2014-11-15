@@ -1,14 +1,10 @@
 "use strict";
 
-//var panel = require('red9panel').panelReader(panelReaderConfig);
 var Joi = require('joi');
 var _ = require('underscore')._;
 var nconf = require('nconf');
+var Boom = require('boom');
 
-//var panelConfig = {
-//    dataPath: nconf.get('rncDataPath')
-//};
-//var panel = require('red9panel').panelReader(panelConfig);
 
 exports.init = function (server, resource) {
     // Convenient handles
@@ -106,39 +102,131 @@ exports.init = function (server, resource) {
         }
     });
 
+    //server.route({
+    //    method: 'GET',
+    //    path: '/dataset/{id}/json',
+    //    handler: function (request, reply) {
+    //        var options = {
+    //            rows: request.query.rows,
+    //            panel: {},
+    //            properties: {},
+    //            statistics: {}
+    //        };
+    //
+    //        if (_.has(request.query, 'startTime') && _.has(request.query, 'endTime')) {
+    //            options.startTime = request.query.startTime;
+    //            options.endTime = request.query.endTime;
+    //        }
+    //
+    //        resource.panel.readPanelJSON(request.params.id, options, function (err, result) {
+    //            reply(result);
+    //        });
+    //    },
+    //    config: {
+    //        validate: {
+    //            params: {
+    //                id: model.id.required()
+    //            },
+    //            query: {
+    //                startTime: model.startTime,
+    //                endTime: model.endTime,
+    //                rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.')
+    //                //axes: Joi.string(),
+    //                //minmax: Joi.boolean()
+    //                // TODO (SRLM): Add
+    //                // - parts: panel, spectral, fft, distribution, comparison, ...
+    //            }
+    //        },
+    //        description: 'Get JSON panel',
+    //        notes: 'Request a "processed" JSON panel. You can specify multiple algorithms to run, and each will be added under their own key. Note that if your frequency is too low then the result panel can be very large.',
+    //        tags: ['api']
+    //    }
+    //});
+
+
+    var getPanelBounded = function (id, rows, startTime, endTime, callback) {
+        var options = {
+            rows: rows,
+            panel: {},
+            properties: {},
+            startTime: startTime,
+            endTime: endTime
+        };
+        resource.panel.readPanelJSON(id, options, callback);
+    };
+
+
+    var getPanel = function (resourceType, id, rows, callback) {
+        var datasetIdKey = {
+            event: 'datasetId',
+            dataset: 'id'
+        };
+
+        var resourceTemp;
+        resource[resourceType].find({id: id}, {},
+            function (resourceTemp_) {
+                resourceTemp = resourceTemp_;
+            },
+            function (err, resultRows) {
+                if (resultRows !== 1) {
+                    callback(Boom.notFound());
+                } else {
+                    getPanelBounded(resourceTemp[datasetIdKey[resourceType]],
+                        rows,
+                        resourceTemp.startTime,
+                        resourceTemp.endTime,
+                        callback);
+                }
+            });
+    };
+    server.method('getPanel', getPanel, {cache: nconf.get('panelCacheOptions')});
+
+
     server.route({
         method: 'GET',
-        path: '/dataset/{id}/json',
+        path: '/{resourceType}/{id}/json',
         handler: function (request, reply) {
-            var options = {
-                rows: request.query.rows,
-                panel: {},
-                properties: {},
-                statistics: {}
+            var finalHandler = function (err, result) {
+                if (err) {
+                    reply(err);
+                } else {
+                    reply(result);
+                }
             };
 
-            if (_.has(request.query, 'startTime') && _.has(request.query, 'endTime')) {
-                options.startTime = request.query.startTime;
-                options.endTime = request.query.endTime;
-            }
+            if (request.query.startTime && request.query.endTime && request.params.resourceType === 'dataset') {
+                var rows = nconf.get('panelSizeMap')[request.query.size];
+                if (request.query.rows) {
+                    rows = request.query.rows;
+                }
 
-            resource.panel.readPanelJSON(request.params.id, options, function (err, result) {
-                reply(result);
-            });
+                getPanelBounded(
+                    request.params.id,
+                    rows,
+                    request.query.startTime,
+                    request.query.endTime,
+                    finalHandler
+                );
+            } else {
+                server.methods.getPanel(
+                    request.params.resourceType,
+                    request.params.id,
+                    nconf.get('panelSizeMap')[request.query.size],
+                    finalHandler
+                );
+            }
         },
         config: {
             validate: {
                 params: {
+                    resourceType: Joi.string().valid(['dataset', 'event']).description('The resource type to get a panel for.'),
                     id: model.id.required()
                 },
                 query: {
+                    size: Joi.string().valid(Object.keys(nconf.get('panelSizeMap'))).description('The resolution (result size) of the panel.'),
+                    rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.'),
                     startTime: model.startTime,
-                    endTime: model.endTime,
-                    rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.')
-                    //axes: Joi.string(),
-                    //minmax: Joi.boolean()
-                    // TODO (SRLM): Add
-                    // - parts: panel, spectral, fft, distribution, comparison, ...
+                    endTime: model.endTime
                 }
             },
             description: 'Get JSON panel',
@@ -146,4 +234,5 @@ exports.init = function (server, resource) {
             tags: ['api']
         }
     });
-};
+}
+;

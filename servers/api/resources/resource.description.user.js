@@ -140,7 +140,6 @@ module.exports = {
     },
     expand: function (parameters, user, callback) {
         if (_.isNull(user.picture)) {
-            console.log('Cookie domain: ' + nconf.get('authorizationCookieDomain'));
             user.picture = nconf.get('defaultUserPicture');
         }
         callback(null, user);

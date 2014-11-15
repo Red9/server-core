@@ -12,7 +12,7 @@ nconf
 
 var panelInputDir = nconf.get('panelInputDir');
 
-var resource = require('red9resource');
+var resource = require('../api/resources/index');
 
 var path = require('path');
 var async = require('async');
@@ -148,8 +148,6 @@ function migrateUsers(doneCallback) {
                     memo[key] = idMap.layout[value];
                     return memo;
                 }, {});
-
-                console.dir(user);
 
                 resource.user.create(user, function (err, createdUser) {
                     if (err) {

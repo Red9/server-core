@@ -11,5 +11,8 @@
   "authorizationCookieDomain": ".betaapi.redninesensor.com",
   "logFilePath": "/home/ubuntu/log/apiserver",
   "authorizationCookieName": "r9session",
-  "defaultUserPicture": "http://betadata.redninesensor.com/static/images/profile-default.png"
+  "defaultUserPicture": "http://betadata.redninesensor.com/static/images/profile-default.png",
+  "panelCacheOptions": {
+    "expiresIn": 1000000
+  }
 }
