@@ -2,17 +2,21 @@
 
 var Joi = require('joi');
 var validators = require('./validators');
+var nconf = require('nconf');
+var _ = require('underscore')._;
 
 var basicModel = {
     id: validators.id,
+    createTime: validators.createTime,
     email: Joi.string().email().description('user email address. Used as "second" primary key for authentication'),
     displayName: Joi.string().description("user's preferred public handle"),
     givenName: Joi.string().description('first name'),
     familyName: Joi.string().description('last name'),
     preferredLayout: Joi.object().options({className: 'preferredLayout'}).default({}).description('layouts for user'),
     picture: Joi.string().description('link to a profile picture.'),
-    gender: Joi.string().valid('male', 'female', 'unknown').description('gender')
-    //affiliations: Joi.array().includes(Joi.string()).description('organization affiliations of this user'),
+    gender: Joi.string().valid('male', 'female', 'other').description('gender'),
+    affiliations: Joi.array().includes(Joi.string()).description('organization affiliations of this user'),
+    characteristics: Joi.array().includes(Joi.string()).description('user self-defined characteristics')
 };
 
 var resourceName = 'user';
@@ -27,16 +31,16 @@ module.exports = {
         create: Joi.object({
             email: basicModel.email.required(),
             displayName: basicModel.displayName.required(),
-            givenName: basicModel.givenName.required(),
-            familyName: basicModel.familyName.required(),
-            preferredLayout: basicModel.preferredLayout
+            preferredLayout: basicModel.preferredLayout,
+            affiliations: basicModel.affiliations,
+            characteristics: basicModel.characteristics
         }).options({className: resourceName + '.create'}),
         update: Joi.object({
-            email: basicModel.email,
+            //email: basicModel.email, // Can't update email, since that's a "primary key"
             displayName: basicModel.displayName,
-            givenName: basicModel.givenName,
-            familyName: basicModel.familyName,
-            preferredLayout: basicModel.preferredLayout
+            preferredLayout: basicModel.preferredLayout,
+            affiliations: basicModel.affiliations,
+            characteristics: basicModel.characteristics
         }).options({className: resourceName + '.update'}),
         resultModel: Joi.object({
             id: basicModel.id.required(),
@@ -46,7 +50,10 @@ module.exports = {
             familyName: basicModel.familyName.required(),
             preferredLayout: basicModel.preferredLayout,
             picture: basicModel.picture.required(),
-            gender: basicModel.gender.required()
+            gender: basicModel.gender.required(),
+            createTime: basicModel.createTime.required(),
+            affiliations: basicModel.affiliations.required(),
+            characteristics: basicModel.characteristics.required()
         }).options({className: resourceName}),
         search: {
             id: validators.idCSV,
@@ -83,7 +90,7 @@ module.exports = {
         },
         {
             cassandraKey: 'preferred_layout',
-            cassandraType: 'varchar',
+            cassandraType: 'map<text,text>',
             jsKey: 'preferredLayout',
             jsType: 'object'
         },
@@ -104,6 +111,24 @@ module.exports = {
             cassandraType: 'varchar',
             jsKey: 'gender',
             jsType: 'string'
+        },
+        {
+            cassandraKey: 'create_time',
+            cassandraType: 'timestamp',
+            jsKey: 'createTime',
+            jsType: 'timestamp'
+        },
+        {
+            cassandraKey: 'affiliations',
+            cassandraType: 'set<text>',
+            jsKey: 'affiliations',
+            jsType: 'array'
+        },
+        {
+            cassandraKey: 'characteristics',
+            cassandraType: 'set<text>',
+            jsKey: 'characteristics',
+            jsType: 'array'
         }
     ],
 
@@ -114,6 +139,9 @@ module.exports = {
         callback(null, user);
     },
     expand: function (parameters, user, callback) {
+        if (_.isNull(user.picture)) {
+            user.picture = nconf.get('defaultUserPicture');
+        }
         callback(null, user);
     }
 };

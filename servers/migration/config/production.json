@@ -5,5 +5,6 @@
   "cassandraPassword": "e798169e-768b-4ba5-a6a0-1366909cc3f5",
   "panelDataPath": "/home/ubuntu/RNC",
   "panelInputDir": "/home/ubuntu/RNCsrc",
-  "datasetAsyncLimit": 5
+  "asyncLimit": 5,
+  "migrationMapPath": "/home/ubuntu/migrationMap.json"
 }

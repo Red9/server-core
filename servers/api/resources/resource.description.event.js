@@ -12,18 +12,20 @@ var eventSource = Joi.object({
 }).description('describes what created this event').options({className: 'eventSource'});
 
 
-var model = {
+var basicModel = {
     id: validators.id,
     startTime: validators.timestamp,
     endTime: validators.timestamp,
     duration: validators.duration,
     datasetId: validators.id,
     type: Joi.string().description('The event type, free form string'),
+    subtype: Joi.string().description('The event sub type, free form string'),
     summaryStatistics: validators.summaryStatistics,
     source: eventSource,
     boundingCircle: Joi.object(),
     boundingBox: Joi.object(),
-    gpsLock: Joi.object()
+    gpsLock: Joi.object(),
+    createTime: validators.createTime
 };
 
 
@@ -35,55 +37,52 @@ module.exports = {
     tableName: 'event',
 
     models: {
-        model: model,
+        model: basicModel,
         create: Joi.object({
-            startTime: model.startTime.required(),
-            endTime: model.endTime.required(),
-            type: model.type.required(),
-            datasetId: model.datasetId.required(),
-            source: model.source.required()
+            startTime: basicModel.startTime.required(),
+            endTime: basicModel.endTime.required(),
+            type: basicModel.type.required(),
+            subtype: basicModel.subtype,
+            datasetId: basicModel.datasetId.required(),
+            source: basicModel.source.required()
         }).options({className: resourceName + '.create'}),
         update: Joi.object({
-            startTime: model.startTime,
-            endTime: model.endTime,
-            type: model.type,
-            datasetId: model.datasetId,
-            source: model.source
+            startTime: basicModel.startTime,
+            endTime: basicModel.endTime,
+            type: basicModel.type,
+            subtype: basicModel.subtype,
+            datasetId: basicModel.datasetId,
+            source: basicModel.source
         }).options({className: resourceName + '.update'}),
         resultModel: Joi.object({
-            id: model.id.required(),
-            startTime: model.startTime.required(),
-            endTime: model.endTime.required(),
-            duration: model.duration.required(),
-            type: model.type.required(),
-            datasetId: model.datasetId.required(),
-            source: model.source.required(),
-            summaryStatistics: model.summaryStatistics.required(),
-            boundingCircle: model.boundingCircle,
-            boundingBox: model.boundingBox,
-            gpsLock: model.gpsLock
+            id: basicModel.id.required(),
+            startTime: basicModel.startTime.required(),
+            endTime: basicModel.endTime.required(),
+            duration: basicModel.duration.required(),
+            type: basicModel.type.required(),
+            subtype: basicModel.subtype,
+            datasetId: basicModel.datasetId.required(),
+            source: basicModel.source.required(),
+            summaryStatistics: basicModel.summaryStatistics.required(),
+            boundingCircle: basicModel.boundingCircle,
+            boundingBox: basicModel.boundingBox,
+            gpsLock: basicModel.gpsLock,
+            createTime: basicModel.createTime.required()
         }).options({className: resourceName}),
         search: {
             'id': validators.idCSV,
             'idList': validators.idCSV,
-            'startTime': model.startTime,
-            'startTime.gt': model.startTime.description('Select events whose timestamp is greater than'),
-            'startTime.lt': model.startTime.description('Select events whose timestamp is less than'),
-            'endTime': model.endTime,
-            'endTime.gt': model.endTime,
-            'endTime.lt': model.endTime,
+            'startTime': basicModel.startTime,
+            'startTime.gt': basicModel.startTime.description('Select events whose timestamp is greater than'),
+            'startTime.lt': basicModel.startTime.description('Select events whose timestamp is less than'),
+            'endTime': basicModel.endTime,
+            'endTime.gt': basicModel.endTime,
+            'endTime.lt': basicModel.endTime,
             'datasetId': validators.idCSV,
-            'type': model.type
+            'type': basicModel.type,
+            'subtype': basicModel.subtype
         }
     },
-
-    model: Joi.object(model).options({
-        className: 'event'
-    }),
-    createModel: Joi.object(model).options({
-        className: 'create-event'
-    }),
-
     mapping: [
         {
             cassandraKey: 'id',
@@ -108,6 +107,12 @@ module.exports = {
             cassandraKey: 'type',
             cassandraType: 'varchar',
             jsKey: 'type',
+            jsType: 'string'
+        },
+        {
+            cassandraKey: 'subtype',
+            cassandraType: 'varchar',
+            jsKey: 'subtype',
             jsType: 'string'
         },
         {
@@ -145,6 +150,13 @@ module.exports = {
             cassandraType: 'map<text, int>',
             jsKey: 'gpsLock',
             jsType: 'object'
+        },
+        {
+            cassandraKey: 'create_time',
+            cassandraType: 'timestamp',
+            jsKey: 'createTime',
+            jsType: 'timestamp'
+
         }
     ],
 

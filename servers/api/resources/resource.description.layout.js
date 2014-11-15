@@ -5,6 +5,7 @@ var validators = require('./validators');
 
 var basicModel = {
     id: validators.id,
+    createTime: validators.createTime,
     title: Joi.string().description('A short title for this layout'),
     description: Joi.string().description('Human readable description of this layout'),
     for: Joi.array().includes(Joi.string()).description('Routes that this layout is applicable for'),
@@ -37,7 +38,8 @@ module.exports = {
             title: basicModel.title.required(),
             description: basicModel.description.required(),
             for: basicModel.for.required(),
-            layout: basicModel.layout.required()
+            layout: basicModel.layout.required(),
+            createTime: basicModel.createTime.required()
         }).options({className: resourceName}),
         search: {
             id: validators.idCSV,
@@ -75,6 +77,13 @@ module.exports = {
             cassandraType: 'varchar',
             jsKey: 'layout',
             jsType: 'object'
+        },
+        {
+            cassandraKey: 'create_time',
+            cassandraType: 'timestamp',
+            jsKey: 'createTime',
+            jsType: 'timestamp'
+
         }
     ],
 

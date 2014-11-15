@@ -1,114 +1,112 @@
+"use strict";
+
 var eventTypes = [
     {
-        "name": "Default"
+        name: "Default"
     },
     {
-        "name": "Wave: Left"
+        name: "Wave",
+        subtype: [
+            {name: 'Left'},
+            {name: 'Right'}
+        ]
     },
     {
-        "name": "Wave: Right"
+        name: "Drop In"
     },
     {
-        "name": "Wave"
+        name: "Bottom Turn"
     },
     {
-        "name": "Drop In"
+        name: "Snap",
+        subtype: [
+            {name: 'Closeout'}
+        ]
     },
     {
-        "name": "Bottom Turn"
+        name: "Turn"
     },
     {
-        "name": "Snap"
+        name: "Air Drop"
     },
     {
-        "name": "Snap: Closeout"
+        name: "Cutback"
     },
     {
-        "name": "Turn"
+        name: "Floater"
     },
     {
-        "name": "Air Drop"
+        name: "Carve"
     },
     {
-        "name": "Cutback"
+        name: "Tail Slide"
     },
     {
-        "name": "Floater"
+        name: "Pump"
     },
     {
-        "name": "Carve"
+        name: "360"
     },
     {
-        "name": "Tail Slide"
+        name: "Reverse"
     },
     {
-        "name": "Pump"
+        name: "Air"
     },
     {
-        "name": "360"
+        name: "Paddle for Wave"
     },
     {
-        "name": "Reverse"
+        name: "Paddle Out"
     },
     {
-        "name": "Air"
+        name: "Paddle In"
     },
     {
-        "name": "Paddle for Wave"
+        name: "Paddle Left"
     },
     {
-        "name": "Paddle Out"
+        name: "Paddle Right"
     },
     {
-        "name": "Paddle In"
+        name: "Paddle"
     },
     {
-        "name": "Paddle Left"
+        name: "Duck Dive"
     },
     {
-        "name": "Paddle Right"
+        name: "Wipe out"
     },
     {
-        "name": "Paddle"
+        name: "Pearling"
     },
     {
-        "name": "Duck Dive"
+        name: "Session"
     },
     {
-        "name": "Wipe out"
+        name: "Walk"
     },
     {
-        "name": "Pearling"
+        name: "Run"
     },
     {
-        "name": "Session"
+        name: "Stationary"
     },
     {
-        "name": "Walk"
+        name: "Dolphin"
     },
     {
-        "name": "Run"
+        name: "Tap"
     },
     {
-        "name": "Stationary"
+        name: "Swimming"
     },
     {
-        "name": "Dolphin"
-    },
-    {
-        "name": "Tap"
-    },
-    {
-        "name": "Swimming"
-    },
-    {
-        "name": "Sync"
-    },
-    {
-        "name": "Sync: In"
-    },
-    {
-        "name": "Sync: Out"
+        name: "Sync",
+        subtype: [
+            {name: 'In'},
+            {name: 'Out'}
+        ]
     }
 ];
 

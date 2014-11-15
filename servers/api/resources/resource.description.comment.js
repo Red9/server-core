@@ -10,10 +10,10 @@ var basicModel = {
     startTime: validators.timestamp,
     endTime: validators.timestamp,
     resourceType: Joi.string().valid(['dataset']).description('The resource type that this comment applies to'),
-    resource: validators.id,
-    author: validators.id,
+    resourceId: validators.id,
+    authorId: validators.id,
     body: Joi.string().description('The body of the comment, in markdown format'),
-    createTime: validators.timestamp,
+    createTime: validators.createTime,
     bodyHtml: Joi.string().description('The body of the comment, parsed as markdown and converted to HTML (response only)')
 };
 
@@ -29,16 +29,16 @@ module.exports = {
             startTime: basicModel.startTime.default(0),
             endTime: basicModel.endTime.default(0),
             resourceType: basicModel.resourceType.required(),
-            resource: basicModel.resource.required(),
-            author: basicModel.author.required(),
+            resourceId: basicModel.resourceId.required(),
+            authorId: basicModel.authorId.required(),
             body: basicModel.body.required()
         }).options({className: resourceName + '.create'}),
         update: Joi.object({
             startTime: basicModel.startTime,
             endTime: basicModel.endTime,
             resourceType: basicModel.resourceType,
-            resource: basicModel.resource,
-            author: basicModel.author,
+            resourceId: basicModel.resourceId,
+            authorId: basicModel.authorId,
             body: basicModel.body
         }).options({className: resourceName + '.update'}),
         resultModel: Joi.object({
@@ -46,8 +46,8 @@ module.exports = {
             startTime: basicModel.startTime,
             endTime: basicModel.endTime,
             resourceType: basicModel.resourceType.required(),
-            resource: basicModel.resource.required(),
-            author: basicModel.author.required(),
+            resourceId: basicModel.resourceId.required(),
+            authorId: basicModel.authorId.required(),
             body: basicModel.body.required(),
             createTime: basicModel.createTime.required(),
             bodyHtml: basicModel.bodyHtml.required()
@@ -55,12 +55,11 @@ module.exports = {
         search: {
             id: validators.idCSV,
             idList: validators.idCSV,
-            author: basicModel.author,
+            authorId: basicModel.authorId,
             resourceType: basicModel.resourceType,
-            resource: basicModel.resource
+            resourceId: basicModel.resourceId
         }
     },
-
     mapping: [
         {
             cassandraKey: 'id',
@@ -89,13 +88,13 @@ module.exports = {
         {
             cassandraKey: 'resource',
             cassandraType: 'uuid',
-            jsKey: 'resource',
+            jsKey: 'resourceId',
             jsType: 'string'
         },
         {
             cassandraKey: 'author',
             cassandraType: 'uuid',
-            jsKey: 'author',
+            jsKey: 'authorId',
             jsType: 'string',
         },
         {

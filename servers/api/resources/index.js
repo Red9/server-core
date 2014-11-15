@@ -9,16 +9,16 @@ var _ = require('underscore')._;
 
 var crud = require('./resource.crud.js');
 
-var eventDescription = require('./resource.description.event');
-var userDescription = require('./resource.description.user');
-var commentDescription = require('./resource.description.comment');
-var videoDescription = require('./resource.description.video');
-var layoutDescription = require('./resource.description.layout');
-var datasetDescription = require('./resource.description.dataset');
+var eventDescription = require('./resource.description.event.js');
+var userDescription = require('./resource.description.user.js');
+var commentDescription = require('./resource.description.comment.js');
+var videoDescription = require('./resource.description.video.js');
+var layoutDescription = require('./resource.description.layout.js');
+var datasetDescription = require('./resource.description.dataset.js');
 
 var panel = require('./panel');
 
-var collection = require('./resource.common.collection.set');
+var collection = require('./resource.common.collection.set.js');
 var Boom = require('boom');
 
 /**

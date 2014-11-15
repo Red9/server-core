@@ -1,5 +1,8 @@
+"use strict";
+
 var Boom = require('boom');
 var nconf = require('nconf');
+var _ = require('underscore')._;
 /**
  *
  * @param providedUser with keys:
@@ -48,7 +51,20 @@ exports.init = function (server, resources) {
         domain: nconf.get('authorizationCookieDomain'),
         validateFunc: function (session, callback) {
             // TODO: Check cassandra here for valid session (as opposed to just a valid user)
-            callback(null, session);
+            var user;
+            resources.user.find({id: session.id}, {},
+                function (user_) {
+                    user = user_;
+                },
+                function (err, rowCount) {
+                    if (err) {
+                        callback(err, false);
+                    } else if (rowCount !== 1) {
+                        callback(null, false);
+                    } else {
+                        callback(null, true, user);
+                    }
+                });
         }
     });
 
@@ -99,11 +115,11 @@ exports.init = function (server, resources) {
                 checkUserAuthentication(resources, normalizedUser, function (err, validUser) {
                     var callbackUrl = nconf.get('defaultCallbackUrl');
                     if (request.auth.credentials.query.callbackUrl) {
-                        callbackUrl = decodeURIComponent(request.auth.credentials.query.callbackUrl)
+                        callbackUrl = decodeURIComponent(request.auth.credentials.query.callbackUrl);
                     }
 
                     if (typeof validUser !== 'undefined') {
-                        request.auth.session.set(validUser);
+                        request.auth.session.set({id: validUser.id});
                         reply.redirect(callbackUrl);
                     } else {
                         request.auth.session.clear();
@@ -145,7 +161,7 @@ exports.init = function (server, resources) {
             handler: function (request, reply) {
                 //console.log('Credentials: ');
                 //console.dir(request.auth.credentials);
-                if (typeof request.auth.credentials === 'undefined') {
+                if (_.isNull(request.auth.credentials)) {
                     reply(Boom.unauthorized('Not logged in.'));
                 } else {
                     reply({

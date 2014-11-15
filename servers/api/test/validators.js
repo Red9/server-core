@@ -12,7 +12,7 @@ var before = lab.before;
 var after = lab.after;
 var expect = Code.expect;
 
-var requirePath = '../lib/validators.js';
+var requirePath = '../resources/validators.js';
 
 describe('id', function () {
     var sut = require(requirePath).id;
@@ -25,9 +25,9 @@ describe('id', function () {
         });
     });
 
-    it('handles Red9 legacy values correctly', function (done) {
-        sut.validate('988996bb-497b-f923-85e9-987c029e334c', function (err, result) {
-            expect(err).to.be.null();
+    it('rejects Red9 legacy IDs', function (done) {
+        sut.validate('1cea42df-fbaa-e7a3-4c90-7379c3360b31', function (err, result) {
+            expect(err).to.not.be.null();
             done();
         });
     });

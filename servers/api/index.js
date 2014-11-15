@@ -1,3 +1,5 @@
+"use strict";
+
 // default to development environment
 if (typeof process.env.NODE_ENV === 'undefined') {
     process.env.NODE_ENV = 'development';
@@ -14,7 +16,7 @@ nconf
 var Hapi = require('hapi');
 var Joi = require('joi');
 
-var resources = require('red9resource');
+var resources = require('./resources/index');
 var routeHelp = require('./support/routehelp');
 
 var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {

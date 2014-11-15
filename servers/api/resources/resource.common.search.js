@@ -3,7 +3,7 @@
 var _ = require('underscore')._;
 var Boom = require('boom');
 
-var common = require('./resource.common');
+var common = require('./resource.common.js');
 
 
 function isEmbeddedDocument(key) {
@@ -32,7 +32,11 @@ function convertCassandraTypeToJSType(value, jsType, cassandraType) {
                 return {};
             }
         } else { // cassandraType map<***, ***>
-            return value;
+            if (_.isNull(value)) {
+                return {}
+            } else {
+                return value;
+            }
         }
     }
 

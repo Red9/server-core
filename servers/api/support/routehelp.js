@@ -1,3 +1,5 @@
+"use strict";
+
 var stream = require('stream');
 var Joi = require('joi');
 var _ = require('underscore')._;
@@ -46,7 +48,7 @@ exports.createListResponse = function (findFunction) {
         );
 
         reply(outputStream);
-    }
+    };
 };
 
 // This second regex (after the OR) is a legacy option!!! As it turns out, I haven't been using version 4
@@ -55,7 +57,7 @@ exports.createListResponse = function (findFunction) {
 
 exports.createCRUDRoutes = function (server, resource, routesToCreate) {
     if (typeof routesToCreate === 'undefined') {
-        routesToCreate = ['create', 'read', 'update', 'delete', 'search'];
+        routesToCreate = ['create', 'read', 'update', 'updateCollection', 'delete', 'search'];
     }
 
     var listResponse = exports.createListResponse(resource.find);

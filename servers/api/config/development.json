@@ -6,9 +6,13 @@
   "cassandraUsername": "cassandra",
   "cassandraPassword": "cassandra",
   "rncDataPath": "/home/clewis/Downloads/RNC",
-  "defaultCallbackUrl" : "http://localhost:9532",
+  "defaultCallbackUrl": "http://localhost:9532",
   "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated",
   "authorizationCookieDomain": null,
   "logFilePath": "/home/clewis/Downloads/apiserver/apiserver",
-  "authorizationCookieName": "r9session"
+  "authorizationCookieName": "r9session",
+  "defaultUserPicture": "http://localhost:9532/static/images/profile-default.png",
+  "panelCacheOptions": {
+    "expiresIn": 10000
+  }
 }
