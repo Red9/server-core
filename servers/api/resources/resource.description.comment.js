@@ -4,6 +4,9 @@ var _ = require('underscore')._;
 var markdown = require('markdown').markdown;
 var Joi = require('joi');
 var validators = require('./validators');
+var async = require('async');
+
+var expandOptions = ['author'];
 
 var basicModel = {
     id: validators.id,
@@ -18,6 +21,8 @@ var basicModel = {
 };
 
 var resourceName = 'comment';
+
+var resources; // Dynamically filled with links to the other resources.
 
 module.exports = {
     name: resourceName,
@@ -41,6 +46,9 @@ module.exports = {
             authorId: basicModel.authorId,
             body: basicModel.body
         }).options({className: resourceName + '.update'}),
+        resultOptions: {
+            expand: Joi.array().includes(Joi.string().valid(expandOptions)).description('Expand a resource into the comment. Options are ' + expandOptions.join(', ')),
+        },
         resultModel: Joi.object({
             id: basicModel.id.required(),
             startTime: basicModel.startTime,
@@ -109,7 +117,7 @@ module.exports = {
             jsKey: 'createTime',
             jsType: 'timestamp'
 
-        },
+        }
     ],
 
     checkResource: function (comment, callback) {
@@ -123,18 +131,32 @@ module.exports = {
          */
         callback(null, comment);
     },
-    expand: function (parameters, comment, callback) {
+    setResources: function (resources_) {
+        resources = resources_;
+    },
+    expand: function (parameters, comment, doneCallback) {
         comment.bodyHtml = markdown.toHTML(comment.body);
-        callback(null, comment);
-//        var expandFunctions = {
-//            author: function(resource, expandCallback) {
-//                userResource.get({id: resource.author}, function(userList) {
-//                    if (userList.length === 1) {
-//                        resource.author = userList[0];
-//                    }
-//                    expandCallback();
-//                });
-//            }
-//        };
+
+        if (_.isArray(parameters)) {
+            async.each(parameters, function (parameter, callback) {
+                if (parameter === 'author') {
+                    resources.user.find({id: comment.authorId}, {},
+                        function (user) {
+                            comment.author = user;
+                        }, function (err) {
+                            if (err) {
+                                console.log('Author expand: ' + err);
+                            }
+                            callback(null);
+                        });
+                } else {
+                    callback(null);
+                }
+            }, function (err) {
+                doneCallback(null, comment);
+            });
+        } else {
+            doneCallback(null, comment);
+        }
     }
 };
