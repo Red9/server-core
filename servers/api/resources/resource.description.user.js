@@ -9,12 +9,12 @@ var basicModel = {
     id: validators.id,
     createTime: validators.createTime,
     email: Joi.string().email().description('user email address. Used as "second" primary key for authentication'),
-    displayName: Joi.string().description("user's preferred public handle"),
-    givenName: Joi.string().description('first name'),
-    familyName: Joi.string().description('last name'),
+    displayName: Joi.string().description("user's preferred public handle. If set to 'unknown', it will automatically be updated with their Google display name."),
+    givenName: Joi.string().description('first name. Set from Google'),
+    familyName: Joi.string().description('last name. Set from Google.'),
     preferredLayout: Joi.object().options({className: 'preferredLayout'}).default({}).description('layouts for user'),
-    picture: Joi.string().description('link to a profile picture.'),
-    gender: Joi.string().valid('male', 'female', 'other').description('gender'),
+    picture: Joi.string().description('link to a profile picture. Set from Google.'),
+    gender: Joi.string().valid('male', 'female', 'other').description('gender. Set from Google.'),
     affiliations: Joi.array().includes(Joi.string()).description('organization affiliations of this user'),
     characteristics: Joi.array().includes(Joi.string()).description('user self-defined characteristics')
 };
@@ -30,7 +30,7 @@ module.exports = {
         model: basicModel,
         create: Joi.object({
             email: basicModel.email.required(),
-            displayName: basicModel.displayName.required(),
+            displayName: basicModel.displayName,
             preferredLayout: basicModel.preferredLayout,
             affiliations: basicModel.affiliations,
             characteristics: basicModel.characteristics
