@@ -3,7 +3,7 @@
 command="./build/rncprocessor"
 #TMPDIR=`mktemp`
 
-testdir="test-data"
+testdir="../test-data"
 testfile_a="$testdir/data_a.RNC"
 testfile_b="$testdir/data_b.RNC"
 testfile_c="$testdir/data_c.RNC"
