@@ -89,15 +89,15 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     var keyParts = key.split('.');
                     if (keyParts.length === 1) {
                         if (key === 'expand') {
-                            options['$expand'] = value;
+                            options.$expand = value;
                         } else if (_.isArray(value)) {
                             if (!_.has(filters, '$and')) {
-                                filters['$and'] = [];
+                                filters.$and = [];
                             }
                             _.each(value, function (v) {
                                 var t = {};
                                 t[key] = v;
-                                filters['$and'].push(t);
+                                filters.$and.push(t);
                             });
                         } else if (value.split(',').length > 1) {
                             if (key === 'id') { // Cassandra limitation: we can only IN on primary key. See issue CASSANDRA-4386
@@ -106,12 +106,12 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                                 };
                             } else {
                                 if (!_.has(filters, '$or')) {
-                                    filters['$or'] = [];
+                                    filters.$or = [];
                                 }
                                 _.each(value.split(','), function (v) {
                                     var t = {};
                                     t[key] = v;
-                                    filters['$or'].push(t);
+                                    filters.$or.push(t);
                                 });
                             }
                         } else {
@@ -122,9 +122,9 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                             filters[keyParts[0]] = {};
                         }
                         if (keyParts[1] === 'lt') {
-                            filters[keyParts[0]]['$lt'] = value;
+                            filters[keyParts[0]].$lt = value;
                         } else if (keyParts[1] === 'gt') {
-                            filters[keyParts[0]]['$gt'] = value;
+                            filters[keyParts[0]].$gt = value;
                         }
                     }
                 });
@@ -151,7 +151,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 var result;
                 var options = {};
                 if (_.has(request.query, 'expand')) {
-                    options['$expand'] = request.query.expand;
+                    options.$expand = request.query.expand;
                 }
                 
                 resource.find({id: request.params.id}, options,

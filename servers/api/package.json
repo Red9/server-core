@@ -29,6 +29,7 @@
     "grunt-lab": "latest",
     "grunt-contrib-jshint": "latest",
     "grunt-contrib-watch": "latest",
+    "grunt-shell": "latest",
     "rewire": "latest"
   }
 }

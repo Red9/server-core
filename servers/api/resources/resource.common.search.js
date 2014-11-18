@@ -33,7 +33,7 @@ function convertCassandraTypeToJSType(value, jsType, cassandraType) {
             }
         } else { // cassandraType map<***, ***>
             if (_.isNull(value)) {
-                return {}
+                return {};
             } else {
                 return value;
             }

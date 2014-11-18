@@ -27,8 +27,6 @@ exports.init = function (server, resource) {
                 parse: true
             },
             handler: function (request, reply) {
-                var filename = request.payload['rnc'].hapi.filename;
-
                 var newDataset = {
                     title: request.payload.title,
                     ownerId: request.payload.ownerId

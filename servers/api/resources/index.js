@@ -135,7 +135,7 @@ var createUpdateRetryCount = 25;
 var retryDelay = 250;
 var async = require('async');
 
-exports['helpers'] = {
+exports.helpers = {
     /** Takes care of the details of handling a panel and a dataset.
      *
      * @param newDataset The dataset object to store in the DB

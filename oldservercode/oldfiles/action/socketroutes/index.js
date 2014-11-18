@@ -1,3 +1,0 @@
-
-exports.connection = function(socket){
-};

@@ -14,5 +14,9 @@
   "defaultUserPicture": "http://localhost:9532/static/images/profile-default.png",
   "panelCacheOptions": {
     "expiresIn": 10000
+  },
+  "RNCTools": {
+    "processorPath": "/home/clewis/consulting/red9/server-core/servers/api/panel/rnctools/build/rncprocessor",
+    "correctPath": "/home/clewis/consulting/red9/server-core/servers/api/panel/rnctools/build/correctrnc"
   }
 }
