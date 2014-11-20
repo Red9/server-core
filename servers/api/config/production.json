@@ -14,5 +14,9 @@
   "defaultUserPicture": "http://betadata.redninesensor.com/static/images/profile-default.png",
   "panelCacheOptions": {
     "expiresIn": 1000000
+  },
+  "RNCTools": {
+    "processorPath": "/home/ubuntu/server-core/rnctools/build/rncprocessor",
+    "correctPath": "/home/ubuntu/server-core/rnctools/build/correctrnc"
   }
 }

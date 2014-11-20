@@ -16,7 +16,7 @@
     "expiresIn": 10000
   },
   "RNCTools": {
-    "processorPath": "/home/clewis/consulting/red9/server-core/servers/api/panel/rnctools/build/rncprocessor",
-    "correctPath": "/home/clewis/consulting/red9/server-core/servers/api/panel/rnctools/build/correctrnc"
+    "processorPath": "/home/clewis/consulting/red9/server-core/rnctools/build/rncprocessor",
+    "correctPath": "/home/clewis/consulting/red9/server-core/rnctools/build/correctrnc"
   }
 }

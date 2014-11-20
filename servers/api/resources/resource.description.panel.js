@@ -6,7 +6,7 @@ var path = require('path');
 var fs = require('fs');
 var _ = require('underscore')._;
 var nconf = require('nconf');
-var Boom = require('Boom');
+var Boom = require('boom');
 
 
 function createFilename(id) {
