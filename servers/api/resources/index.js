@@ -19,6 +19,7 @@ var layoutDescription = require('./resource.description.layout');
 var datasetDescription = require('./resource.description.dataset');
 var panel = require('./resource.description.panel');
 exports.panel = panel;
+panel.resources = exports;
 
 var createUpdateRetryCount = 25;
 var retryDelay = 250;

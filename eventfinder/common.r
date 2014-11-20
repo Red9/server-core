@@ -179,6 +179,7 @@ readPanel <- function(f,rowCount) {
         }
 
         # Is this the last row?
+        # SRLM note: this should be in the while test, not here.
         if(rowCtr == rowCount){
             # Break if it's the last row.
             break;

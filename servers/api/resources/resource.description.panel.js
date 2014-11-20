@@ -1,5 +1,6 @@
 "use strict";
 
+var stream = require('stream');
 var spawn = require('child_process').spawn;
 var execFile = require('child_process').execFile;
 var path = require('path');
@@ -7,6 +8,10 @@ var fs = require('fs');
 var _ = require('underscore')._;
 var nconf = require('nconf');
 var Boom = require('boom');
+var async = require('async');
+
+// Set dynamically. Very hacky.
+exports.resources = {};
 
 
 function createFilename(id) {
@@ -89,7 +94,7 @@ exports.createPanel = function (id, inputStream, callback) {
  *
  * @param id {string}
  * @param options {object}
- * @param callback {function}
+ * @param callback {function} (err, ReadableStream)
  */
 exports.readPanelCSV = function (id, options, callback) {
     checkForPanelHelper(id, callback, function () {
@@ -105,7 +110,8 @@ exports.readPanelCSV = function (id, options, callback) {
             parameters.push('--csPeriod');
             parameters.push(options.csPeriod);
         } else {
-            return Boom.badImplementation('Must provide a csPeriod');
+            callback(Boom.badImplementation('Must provide a csPeriod'));
+            return;
         }
 
         if (_.has(options, 'startTime') && _.has(options, 'endTime')) {
@@ -132,7 +138,55 @@ exports.readPanelCSV = function (id, options, callback) {
             throw Boom.wrap(err, 500, 'Something went wrong with the streams.');
         });
 
-        callback(null, reader.stdout);
+        if (_.has(options, 'axes')) {
+            var outputStream = stream.Readable();
+            outputStream._read = function (size) {
+            };
+
+            var firstLine = true;
+            var indexMap = [];
+
+            var buffer = '';
+
+            reader.stdout.on('data', function (chunk) {
+                buffer += chunk;
+                var lines = buffer.split('\n');
+
+                function createIndexMap(column) {
+                    if (_.indexOf(options.axes, column) !== -1) {
+                        indexMap.push(true);
+                    } else {
+                        indexMap.push(false);
+                    }
+                }
+
+                function indexMapFilter(value, index) {
+                    return indexMap[index];
+                }
+
+                while (lines.length > 1) {
+                    var line = lines.shift().split(',');
+
+                    if (firstLine) {
+                        firstLine = false;
+                        _.each(line, createIndexMap);
+                    }
+
+                    outputStream.push(_.filter(line, indexMapFilter).join(',') + '\n');
+
+                }
+                buffer = lines.join('\n');
+            });
+
+            reader.stdout.on('end', function () {
+                outputStream.push(null);
+            });
+
+            callback(null, outputStream);
+        } else {
+            // Pass through un-modified.
+            callback(null, reader.stdout);
+        }
     });
 };
 
@@ -256,7 +310,173 @@ exports.deletePanel = function (id, callback) {
     });
 };
 
+var eventFinderAxes = [
+    'time',
+    'acceleration:x',
+    'acceleration:z',
+    'rotationrate:x',
+    'rotationrate:y',
+    'magneticfield:x',
+    'gps:speed'
+];
 
+var eventFinderCommands = [
+    {
+        command: 'wave',
+        parameters: {
+            eventType: 'Wave',
+            strictness: 1,
+            windowSize: 256,
+            overlapStep: 50,
+            wThresholdDirection: 'above',
+            pThresholdDirection: 'below',
+            tThresholdDirection: 'below',
+            wThreshold: 0.8,
+            pThreshold: 1.5,
+            tThreshold: 1.5,
+            wMergeThreshold: 500,
+            pMergeThreshold: 200,
+            tMergeThreshold: 200,
+            ampThreshold: 0.1,
+            accThreshold: 0.7,
+            g: 10,
+            minLength: 5,
+            maxAcc: 11,
+            maxAcc2: 15,
+            speedThresh: 0.2,
+            accPortion1: 0.6,
+            accPortion2: 0.3,
+            accPortion3: 0.15
+        }
+    },
+    {
+        command: 'paddle',
+        parameters: {
+            eventType: 'Paddle',
+            windowSize: 256,
+            overlapStep: 50,
+            pThresholdDirection: 'below',
+            pThreshold: 1.5,
+            pMergeThreshold: 200,
+            minLength: 5
+        }
+    },
+    {
+        command: 'duckdive',
+        parameters: {
+            eventType: 'Duck Dive',
+            windowSize: 256,
+            overlapStep: 50,
+            dThresholdDirection: 'above',
+            dThreshold: 0.8,
+            dMergeThreshold: 100,
+            lowThX: 0.4,
+            hiThX: 0.3,
+            lowThZ: 0.3,
+            hiThZ: 0.5,
+            minLengthX: 30,
+            varLength: 10,
+            minLengthZ: 20
+        }
+    },
+    {
+        command: "exit"
+    }
+];
+
+/**
+ *
+ * @param id
+ * @param startTime
+ * @param endTime
+ * @param doneCallback {function} (err)
+ */
+exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
+    checkForPanelHelper(id, doneCallback, function () {
+        var parameters = [
+            nconf.get('eventFinderMainFile')
+        ];
+
+
+        var process = execFile('Rscript', parameters, {
+            cwd: nconf.get('eventFinderPath'),
+            maxBuffer: 1024 * 1024 * 1024,
+            timeout: 1200000 /* timeout in milliseconds */
+        }, function (err, stdout, stderr) {
+            if (err) {
+                console.log(err);
+            } else {
+                var resultLines = stdout.trim().split('\n');
+                if (resultLines.length !== eventFinderCommands.length - 1) {
+                    console.log(Boom.badImplementation('Incorrect number of result lines on stdout', stdout));
+                } else {
+
+                    var eventList =
+                        _.chain(resultLines)
+                            .map(function (line) {
+                                try {
+                                    return JSON.parse(line).results;
+                                } catch (e) {
+                                    return null;
+                                }
+                            })
+                            .flatten()
+                            .filter(_.isObject)
+                            .map(function (event) {
+                                event.datasetId = id;
+                                event.source = {
+                                    type: 'auto',
+                                    algorithm: 'eventfinder'
+                                };
+                                return event;
+                            })
+                            .value();
+                    async.mapSeries(eventList,
+                        exports.resources.event.create,
+                        function (err, results) {
+                            console.log('Made ' + results.length + ' events');
+                        });
+                }
+            }
+        });
+
+        var maximumLines = Math.floor((endTime - startTime) / 10) - 100;
+        var totalLines = -1; // Account for header line
+        var csvOptions = {
+            axes: eventFinderAxes,
+            csPeriod: 10,
+            startTime: startTime,
+            endTime: endTime
+        };
+
+        process.stdin.write(JSON.stringify({
+            rowCount: maximumLines
+        }) + '\n');
+
+        exports.readPanelCSV(id, csvOptions, function (err, stream) {
+            var previousChunk = '';
+            stream.on('data', function (chunk) {
+                chunk = previousChunk + chunk;
+                var lines = chunk.split('\n');
+
+                // Save the last (possibly incomplete) line for the next time around.
+                while (totalLines < maximumLines && lines.length > 1) {
+                    process.stdin.write(lines.shift() + '\n');
+                    totalLines++;
+                }
+                previousChunk = lines.join('\n');
+
+            });
+
+            stream.on('end', function () {
+                _.each(eventFinderCommands, function (command) {
+                    process.stdin.write(JSON.stringify(command) + '\n');
+                });
+            });
+        });
+        doneCallback(null);
+    });
+};
 
 
 
