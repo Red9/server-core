@@ -27,8 +27,6 @@ exports.init = function (server, resource) {
                 parse: true
             },
             handler: function (request, reply) {
-                var filename = request.payload['rnc'].hapi.filename;
-
                 var newDataset = {
                     title: request.payload.title,
                     ownerId: request.payload.ownerId
@@ -74,6 +72,9 @@ exports.init = function (server, resource) {
                 options.startTime = request.query.startTime;
                 options.endTime = request.query.endTime;
             }
+            if (_.has(request.query, 'axes')) {
+                options.axes = request.query.axes.split(',');
+            }
 
             resource.panel.readPanelCSV(request.params.id, options, function (err, resultStream) {
                 if (err) {
@@ -93,7 +94,8 @@ exports.init = function (server, resource) {
                     startTime: model.startTime,
                     endTime: model.endTime,
                     csPeriod: Joi.number().integer().min(1).default(10).description('Period of the rows, in milliseconds'),
-                    frequency: Joi.number().integer().min(1).max(1000).description('Frequency in Hz. Rounded to the nearest even millisecond period.')
+                    frequency: Joi.number().integer().min(1).max(1000).description('Frequency in Hz. Rounded to the nearest even millisecond period.'),
+                    axes: Joi.string().description('CSV list of axes to return.')
                 }
             },
             description: 'Get CSV panel',
@@ -234,5 +236,39 @@ exports.init = function (server, resource) {
             tags: ['api']
         }
     });
-}
-;
+
+    server.route({
+        method: 'POST',
+        path: '/dataset/{id}/eventfind',
+        handler: function (request, reply) {
+            var dataset;
+            console.log('Running event finder');
+            resource.dataset.find({id: request.params.id}, {},
+                function (dataset_) {
+                    dataset = dataset_;
+                },
+                function (err, rowCount) {
+                    if (err) {
+                        reply(err);
+                    } else {
+                        resource.panel.runEventFinder(dataset.id, dataset.startTime, dataset.endTime,
+                            function (err, createdEvents) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            });
+                        reply({message: 'processing started.'});
+                    }
+                });
+        },
+        config: {
+            validate: {
+                params: {
+                    id: model.id.required()
+                }
+            }
+        }
+    });
+
+
+};

@@ -6,32 +6,33 @@
  *
  */
 var _ = require('underscore')._;
+var Boom = require('boom');
+var async = require('async');
 
 var crud = require('./resource.crud.js');
-
-var eventDescription = require('./resource.description.event.js');
-var userDescription = require('./resource.description.user.js');
-var commentDescription = require('./resource.description.comment.js');
-var videoDescription = require('./resource.description.video.js');
-var layoutDescription = require('./resource.description.layout.js');
-var datasetDescription = require('./resource.description.dataset.js');
-
-var panel = require('./panel');
-
 var collection = require('./resource.common.collection.set.js');
-var Boom = require('boom');
+var eventDescription = require('./resource.description.event');
+var userDescription = require('./resource.description.user');
+var commentDescription = require('./resource.description.comment');
+var videoDescription = require('./resource.description.video');
+var layoutDescription = require('./resource.description.layout');
+var datasetDescription = require('./resource.description.dataset');
+var panel = require('./resource.description.panel');
+exports.panel = panel;
+panel.resources = exports;
+
+var createUpdateRetryCount = 25;
+var retryDelay = 250;
 
 /**
  *
- * @param config With the following keys:
- * - cassandraHosts (array of IP/URL:PORTs),
- * - cassandraKeyspace (string)
- * @param callback {err}
+ * @param config {object} With the following keys:
+ * - cassandraHosts {array of IP/URL:PORTs},
+ * - cassandraKeyspace {string}
+ * @param callback {function} (err)
  *
  */
 exports.init = function (config, callback) {
-    panel.init(config);
-    exports.panel = panel.panel;
     require('./cassandra').init(config, callback);
 };
 
@@ -130,12 +131,7 @@ exports[videoDescription.name] = addResource(videoDescription);
 exports[layoutDescription.name] = addResource(layoutDescription);
 exports[datasetDescription.name] = addResource(datasetDescription);
 
-
-var createUpdateRetryCount = 25;
-var retryDelay = 250;
-var async = require('async');
-
-exports['helpers'] = {
+exports.helpers = {
     /** Takes care of the details of handling a panel and a dataset.
      *
      * @param newDataset The dataset object to store in the DB
@@ -148,13 +144,13 @@ exports['helpers'] = {
             if (err) {
                 console.log(err);
             }
-            exports.panel.createPanel(createdDataset.id, panelStream, function (err) {
+            panel.createPanel(createdDataset.id, panelStream, function (err) {
                 if (err) {
                     console.log(err);
                     callback(err);
                 } else {
                     setTimeout(function () {
-                        panel.panel.readPanelJSON(createdDataset.id, {
+                        panel.readPanelJSON(createdDataset.id, {
                             properties: {},
                             statistics: {}
                         }, function (err, result) {
