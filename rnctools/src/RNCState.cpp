@@ -106,19 +106,23 @@ void RNCState::setDocument(rapidjson::Document *d_) {
     d = d_;
 }
 
-rapidjson::Document * RNCState::getDocument(){
+rapidjson::Document *RNCState::getDocument() {
     return d;
 }
 
 void RNCState::addEpochTime(int64_t scadTime, int64_t gpsTime) {
-    if (firstEpochTime) {
-        scadTimes[0] = scadTime;
-        gpsTimes[0] = gpsTime;
-        firstEpochTime = false;
-    }
+    // -1 is the "NAN" of int64_t
+    // We need to make sure that we're not including it into our results here.
+    if (scadTime != -1 && gpsTime != -1) {
+        if (firstEpochTime) {
+            scadTimes[0] = scadTime;
+            gpsTimes[0] = gpsTime;
+            firstEpochTime = false;
+        }
 
-    scadTimes[1] = scadTime;
-    gpsTimes[1] = gpsTime;
+        scadTimes[1] = scadTime;
+        gpsTimes[1] = gpsTime;
+    }
 }
 
 int64_t RNCState::estimateCorrectedBasetime(int64_t fallbackTime) {

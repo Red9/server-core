@@ -86,7 +86,7 @@ private:
             }
 
             time = -1;
-            epochTime = -1;;
+            epochTime = -1;
         }
 
 

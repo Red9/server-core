@@ -55,7 +55,7 @@ void buildOptions(ez::ezOptionParser &opt) {
             1,
             1,
             0,
-            "Default timestamp if one is not set and there is no GPS lock.",
+            "Default timestamp in microseconds from epoch if one is not set and there is no GPS lock.",
             "--default"
     );
 
@@ -64,7 +64,7 @@ void buildOptions(ez::ezOptionParser &opt) {
             0,
             0,
             0,
-            "Correct CLKFREQ based on GPS readings.",
+            "Correct CLKFREQ based on GPS readings. Default false.",
             "--correctClkfreq"
     );
 
