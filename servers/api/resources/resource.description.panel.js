@@ -408,6 +408,7 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
         }, function (err, stdout, stderr) {
             if (err) {
                 console.log(err);
+                console.log(stderr);
                 doneCallback(err);
             } else {
                 var resultLines = stdout.trim().split('\n');
@@ -465,7 +466,13 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
             endTime: endTime
         };
 
-        process.stdin.write(JSON.stringify({
+        function writeToStdin(data) {
+            if (process.stdin.writable) {
+                process.stdin.write(data);
+            }
+        }
+
+        writeToStdin(JSON.stringify({
             rowCount: maximumLines
         }) + '\n');
 
@@ -477,7 +484,7 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
 
                 // Save the last (possibly incomplete) line for the next time around.
                 while (totalLines < maximumLines && lines.length > 1) {
-                    process.stdin.write(lines.shift() + '\n');
+                    writeToStdin(lines.shift() + '\n');
                     totalLines++;
                 }
                 previousChunk = lines.join('\n');
@@ -486,7 +493,7 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
 
             stream.on('end', function () {
                 _.each(eventFinderCommands, function (command) {
-                    process.stdin.write(JSON.stringify(command) + '\n');
+                    writeToStdin(JSON.stringify(command) + '\n');
                 });
             });
         });
