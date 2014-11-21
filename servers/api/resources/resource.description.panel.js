@@ -13,6 +13,8 @@ var async = require('async');
 // Set dynamically. Very hacky.
 exports.resources = {};
 
+var maximumEventsCreatedInParallel = 4;
+
 
 function createFilename(id) {
     return path.join(nconf.get('rncDataPath'), id) + '.RNC';
@@ -392,6 +394,7 @@ var eventFinderCommands = [
  * @param doneCallback {function} (err)
  */
 exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
+    var functionStartTime = new Date().getTime();
     checkForPanelHelper(id, doneCallback, function () {
         var parameters = [
             nconf.get('eventFinderMainFile')
@@ -405,6 +408,7 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
         }, function (err, stdout, stderr) {
             if (err) {
                 console.log(err);
+                doneCallback(err);
             } else {
                 var resultLines = stdout.trim().split('\n');
                 if (resultLines.length !== eventFinderCommands.length - 1) {
@@ -431,10 +435,22 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
                                 return event;
                             })
                             .value();
-                    async.mapSeries(eventList,
+
+                    var rscriptStopTime = new Date().getTime();
+                    console.log('Rscript execution time: ' + ( (rscriptStopTime - functionStartTime) / 1000));
+
+                    async.mapLimit(eventList, maximumEventsCreatedInParallel,
                         exports.resources.event.create,
                         function (err, results) {
-                            console.log('Made ' + results.length + ' events');
+                            if (err) {
+                                doneCallback(err);
+                            } else {
+                                console.log('Made ' + results.length + ' events');
+                                var functionEndTime = new Date().getTime();
+                                console.log('Event creation execution time: ' + ( (functionEndTime - rscriptStopTime) / 1000));
+                                console.log('Total execution time: ' + ( (functionEndTime - functionStartTime) / 1000));
+                                doneCallback(null, results);
+                            }
                         });
                 }
             }
@@ -474,7 +490,6 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
                 });
             });
         });
-        doneCallback(null);
     });
 };
 

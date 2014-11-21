@@ -242,21 +242,23 @@ exports.init = function (server, resource) {
         path: '/dataset/{id}/eventfind',
         handler: function (request, reply) {
             var dataset;
+            console.log('Running event finder');
             resource.dataset.find({id: request.params.id}, {},
                 function (dataset_) {
                     dataset = dataset_;
                 },
                 function (err, rowCount) {
-                    resource.panel.runEventFinder(dataset.id, dataset.startTime, dataset.endTime,
-                        function (err) {
-                            if (err) {
-                                reply(err);
-                            } else {
-                                reply({
-                                    message: "We're working on it..."
-                                });
-                            }
-                        });
+                    if (err) {
+                        reply(err);
+                    } else {
+                        resource.panel.runEventFinder(dataset.id, dataset.startTime, dataset.endTime,
+                            function (err, createdEvents) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            });
+                        reply({message: 'processing started.'});
+                    }
                 });
         },
         config: {
