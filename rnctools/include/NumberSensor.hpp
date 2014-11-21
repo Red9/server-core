@@ -8,6 +8,7 @@
 class NumberSensor : public Sensor {
 public:
     std::vector<double> scale;
+    bool processedScale;
     int bitsPerAxis;
     int bytesPerAxis;
     bool scalable;
@@ -17,6 +18,9 @@ public:
     Element *parse(RNCState *state, std::istream *input);
 
     bool allowEmptyValues();
+
+    NumberSensor();
+
 };
 
 #endif // RED9_SRLM_NUMBERSENSOR_HPP__
