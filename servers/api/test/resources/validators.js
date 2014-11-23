@@ -12,7 +12,7 @@ var before = lab.before;
 var after = lab.after;
 var expect = Code.expect;
 
-var requirePath = '../resources/validators.js';
+var requirePath = '../../resources/validators.js';
 
 describe('id', function () {
     var sut = require(requirePath).id;

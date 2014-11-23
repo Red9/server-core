@@ -185,7 +185,16 @@ exports.update = function (resourceDescription, originalResource, updatedResourc
 exports.delete = function (resourceDescription, id, callback) {
     cassandra.execute({
         query: common.createDeleteQuery(resourceDescription.tableName, id),
-        callback: callback
+        callback: function (err) {
+            if (err) {
+                callback(err);
+
+            } else if (_.has(resourceDescription, 'remove')) {
+                resourceDescription.remove(id, callback);
+            } else {
+                callback(null);
+            }
+        }
     });
 };
 

@@ -10,7 +10,7 @@ var before = lab.before;
 var after = lab.after;
 var expect = Code.expect;
 
-var requirePath = '../resources/resource.common';
+var requirePath = '../../resources/resource.common';
 var sut = require(requirePath);
 
 describe('generateUUID', function () {

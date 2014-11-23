@@ -161,24 +161,18 @@ module.exports = {
     ],
 
     checkResource: function (event, callback) {
-
-
         if (event.startTime >= event.endTime) {
-            callback(Boom.conflict('event startTime ' + event.startTime + ' is greater than or equal to event endTime ' + event.endTime));
+            callback(Boom.badRequest('event startTime ' + event.startTime + ' is greater than or equal to event endTime ' + event.endTime));
             return;
         }
 
-        var dataset;
-        resources.dataset.find({id: event.datasetId}, {},
-            function (dataset_) {
-                dataset = dataset_;
-            },
-            function (err) {
+        resources.dataset.findById(event.datasetId,
+            function (err, dataset) {
                 if (dataset) {
-                    if (event.startTime < dataset.startTime || event.startTime > dataset.endTime) {
-                        callback(Boom.conflict('Event startTime not in dataset range: ' + dataset.startTime + ' < ' + event.startTime + ' < ' + dataset.endTime));
-                    } else if (event.endTime < dataset.startTime || event.endTime > dataset.endTime) {
-                        callback(Boom.conflict('Event endTime not in dataset range: ' + dataset.startTime + ' < ' + event.endTime + ' < ' + dataset.endTime));
+                    if (event.startTime < dataset.startTime) {
+                        callback(Boom.badRequest('Event startTime not in dataset range: ' + dataset.startTime + ' < ' + event.startTime + ' < ' + dataset.endTime));
+                    } else if (event.endTime > dataset.endTime) {
+                        callback(Boom.badRequest('Event endTime not in dataset range: ' + dataset.startTime + ' < ' + event.endTime + ' < ' + dataset.endTime));
                     } else {
                         resources.panel.readPanelJSON(event.datasetId, {
                             statistics: {},
@@ -186,44 +180,19 @@ module.exports = {
                             startTime: event.startTime,
                             endTime: event.endTime,
                             csPeriod: 10000
-                        }, function (err, panelResult) {
-                            if (err) {
-                                console.log('Event.checkResource error: ' + err);
-                            }
+                        }, function (err2, panelResult) {
                             event.summaryStatistics = panelResult.summaryStatistics;
                             event.boundingBox = panelResult.boundingBox;
                             event.boundingCircle = panelResult.boundingCircle;
                             event.gpsLock = panelResult.gpsLock;
-                            callback(null, event);
+                            callback(err2, event);
                         });
                     }
                 } else {
-                    callback(Boom.conflict('Dataset ' + event.datasetId + ' not found.'));
+                    callback(Boom.badRequest('Dataset ' + event.datasetId + ' not found.'));
                 }
 
             });
-        /*
-         // TODO(SRLM): This code is waiting until the dataset resource is completed.
-         var dataset;
-         resource.dataset.find({id: event.datasetId}, null,
-         function (foundDataset) {
-         // Store it here so that we don't have to worry about calling callback multiple times
-         dataset = foundDataset;
-         },
-         function (err, rowCount) {
-         if (err) {
-         callback(err);
-         }else if(rowCount !== 1){
-         callback(new VError('No dataset match (%s)', rowCount);
-         } else if (event.startTime < dataset.startTime) {
-         callback(new VError('Event startTime %s is less than dataset start time %s', event.startTime, event.endTime));
-         } else if (event.endTime > dataset.endTime) {
-         callback(new VError('Event endTime %s is more than dataset end time %s', event.endTime, dataset.endTime));
-         } else {
-         callback(null);
-         }
-         });
-         */
     },
     setResources: function (resources_) {
         resources = resources_;

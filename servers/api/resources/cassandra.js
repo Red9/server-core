@@ -5,14 +5,15 @@ var cassandra;
 var cassandraDriver = require('cassandra-driver');
 var async = require('async');
 var Boom = require('boom');
+var nconf = require('nconf');
 
-exports.init = function (config, callback) {
+exports.init = function (callback) {
     cassandra = new cassandraDriver.Client({
-        contactPoints: config.cassandraHosts,
-        keyspace: config.cassandraKeyspace,
+        contactPoints: nconf.get('cassandraHosts'),
+        keyspace: nconf.get('cassandraKeyspace'),
         authProvider: new cassandraDriver.auth.PlainTextAuthProvider(
-            config.cassandraUsername,
-            config.cassandraPassword
+            nconf.get('cassandraUsername'),
+            nconf.get('cassandraPassword')
         )
     });
 

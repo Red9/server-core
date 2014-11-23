@@ -104,48 +104,6 @@ exports.init = function (server, resource) {
         }
     });
 
-    //server.route({
-    //    method: 'GET',
-    //    path: '/dataset/{id}/json',
-    //    handler: function (request, reply) {
-    //        var options = {
-    //            rows: request.query.rows,
-    //            panel: {},
-    //            properties: {},
-    //            statistics: {}
-    //        };
-    //
-    //        if (_.has(request.query, 'startTime') && _.has(request.query, 'endTime')) {
-    //            options.startTime = request.query.startTime;
-    //            options.endTime = request.query.endTime;
-    //        }
-    //
-    //        resource.panel.readPanelJSON(request.params.id, options, function (err, result) {
-    //            reply(result);
-    //        });
-    //    },
-    //    config: {
-    //        validate: {
-    //            params: {
-    //                id: model.id.required()
-    //            },
-    //            query: {
-    //                startTime: model.startTime,
-    //                endTime: model.endTime,
-    //                rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.')
-    //                //axes: Joi.string(),
-    //                //minmax: Joi.boolean()
-    //                // TODO (SRLM): Add
-    //                // - parts: panel, spectral, fft, distribution, comparison, ...
-    //            }
-    //        },
-    //        description: 'Get JSON panel',
-    //        notes: 'Request a "processed" JSON panel. You can specify multiple algorithms to run, and each will be added under their own key. Note that if your frequency is too low then the result panel can be very large.',
-    //        tags: ['api']
-    //    }
-    //});
-
-
     var getPanelBounded = function (id, rows, startTime, endTime, callback) {
         var options = {
             rows: rows,
@@ -242,7 +200,6 @@ exports.init = function (server, resource) {
         path: '/dataset/{id}/eventfind',
         handler: function (request, reply) {
             var dataset;
-            console.log('Running event finder');
             resource.dataset.find({id: request.params.id}, {},
                 function (dataset_) {
                     dataset = dataset_;

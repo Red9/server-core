@@ -30,6 +30,8 @@
     "grunt-contrib-jshint": "latest",
     "grunt-contrib-watch": "latest",
     "grunt-shell": "latest",
-    "rewire": "latest"
+    "rewire": "latest",
+    "form-data": "latest",
+    "stream-to-promise": "latest"
   }
 }

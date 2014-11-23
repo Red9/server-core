@@ -15,7 +15,11 @@ exports.resources = {};
 
 var maximumEventsCreatedInParallel = 4;
 
-
+/**
+ *
+ * @param id {string}
+ * @returns {string}
+ */
 function createFilename(id) {
     return path.join(nconf.get('rncDataPath'), id) + '.RNC';
 }
@@ -26,9 +30,9 @@ function createFilename(id) {
  *
  * This function will call the error callback if the file doesn't exist or some other filesystem error.
  *
- * @param id
- * @param errorCallback Called if there is an error. This should go back to the client.
- * @param successCallback {} Called if there's no errors
+ * @param id {string}
+ * @param errorCallback {function} Called if there is an error. This should go back to the client.
+ * @param successCallback {function} Called if there's no errors
  */
 function checkForPanelHelper(id, errorCallback, successCallback) {
     fs.stat(createFilename(id), function (err, stats) {
@@ -44,9 +48,9 @@ function checkForPanelHelper(id, errorCallback, successCallback) {
 
 /**
  *
- * @param inputFilename
- * @param outputFilename
- * @param callback
+ * @param inputFilename {string}
+ * @param outputFilename {string}
+ * @param callback {function} (err)
  */
 function correctFile(inputFilename, outputFilename, callback) {
     // Open up the RNC and look at the start time. If it's valid, then do nothing
@@ -76,7 +80,7 @@ function correctFile(inputFilename, outputFilename, callback) {
  *
  * @param id {string} The id of the dataset that this panel belongs to.
  * @param inputStream {stream} The file, as a stream. This will be written directly to disk.
- * @param callback {function} (err) Called once the file is written, or if an error occurs.
+ * @param callback {function} (err) Called once the file is written and corrected, or if an error occurs.
  */
 exports.createPanel = function (id, inputStream, callback) {
     var uploadFilename = createFilename(id + '.upload');
@@ -195,8 +199,8 @@ exports.readPanelCSV = function (id, options, callback) {
 
 /** Get the JSON representation of the panel.
  *
- * @param id
- * @param options supported options are:
+ * @param id {string}
+ * @param options {object} supported options are:
  *
  *  csPeriod: the number of milliseconds to set the cross section to
  *  rows: the approximate number of output rows
@@ -206,7 +210,7 @@ exports.readPanelCSV = function (id, options, callback) {
  *  panel: an object. Specify if you want panel output.
  *  statistics: an object. Specify if you want panel summary statistics.
  *
- * @param callback {err, result} result is a JSON object.
+ * @param callback {function} (err, result) result is a JSON object.
  */
 exports.readPanelJSON = function (id, options, callback) {
     // Check parameters
@@ -290,7 +294,7 @@ exports.readPanelJSON = function (id, options, callback) {
 /**
  *
  * @param id {string}
- * @param callback {function}
+ * @param callback {Function} (err)
  */
 exports.deletePanel = function (id, callback) {
     checkForPanelHelper(id, callback, function () {
@@ -388,9 +392,9 @@ var eventFinderCommands = [
 
 /**
  *
- * @param id
- * @param startTime
- * @param endTime
+ * @param id {string}
+ * @param startTime {number}
+ * @param endTime {number}
  * @param doneCallback {function} (err)
  */
 exports.runEventFinder = function (id, startTime, endTime, doneCallback) {

@@ -25,15 +25,11 @@ var createUpdateRetryCount = 25;
 var retryDelay = 250;
 
 /**
- *
- * @param config {object} With the following keys:
- * - cassandraHosts {array of IP/URL:PORTs},
- * - cassandraKeyspace {string}
  * @param callback {function} (err)
  *
  */
-exports.init = function (config, callback) {
-    require('./cassandra').init(config, callback);
+exports.init = function (callback) {
+    require('./cassandra').init(callback);
 };
 
 /**
@@ -69,6 +65,22 @@ function addResource(resourceDescription) {
     result.find = function (query, options, rowCallback, doneCallback) {
         crud.find(resourceDescription, query, options, rowCallback, doneCallback);
     };
+
+    /** Handy function to get a single resource of a specified type
+     *
+     * @param id {string}
+     * @param doneCallback {function} (err, resultResource)
+     */
+    result.findById = function (id, doneCallback) {
+        var result = null;
+        crud.find(resourceDescription, {id: id}, {},
+            function (result_) {
+                result = result_;
+            }, function (err, resultCount) {
+                doneCallback(err, result);
+            });
+    };
+
 
     /**
      *
@@ -134,63 +146,60 @@ exports[datasetDescription.name] = addResource(datasetDescription);
 exports.helpers = {
     /** Takes care of the details of handling a panel and a dataset.
      *
-     * @param newDataset The dataset object to store in the DB
-     * @param panelStream A stream representing the panel data
-     * @param callback {err, updatedDataset}
-     * @param bool never set to true. Leave undefined.
+     * @param newDataset {object} The dataset object to store in the DB
+     * @param panelStream {ReadableStream} A stream representing the panel data
+     * @param callback {function} (err, updatedDataset)
+     * @param {bool} never set to true. Leave undefined.
      */
     createDataset: function createDataset(newDataset, panelStream, callback, deepMigrate) {
         exports.dataset.create(newDataset, function (err, createdDataset) {
             if (err) {
-                console.log(err);
+                callback(err);
+                return;
             }
             panel.createPanel(createdDataset.id, panelStream, function (err) {
                 if (err) {
-                    console.log(err);
                     callback(err);
-                } else {
-                    setTimeout(function () {
-                        panel.readPanelJSON(createdDataset.id, {
-                            properties: {},
-                            statistics: {}
-                        }, function (err, result) {
-                            if (err) {
-                                console.log(err);
-                                callback(err);
-                            } else {
-                                // There's a tendency to fail on the update if we're doing alot of updates
-                                // at the same time, and right after a create. Therefore, we want to retry
-                                // a few times. In my migration scripts most only needed 1 retry, and a few
-                                // needed up to 3 retries. None failed permanently. -SRLM
-                                async.retry(createUpdateRetryCount, function (retryCallback) {
-                                    var updateTemp = {
-                                        startTime: result.startTime,
-                                        endTime: result.endTime,
-                                        summaryStatistics: result.summaryStatistics,
-                                        boundingBox: result.boundingBox,
-                                        boundingCircle: result.boundingCircle,
-                                        gpsLock: result.gpsLock,
-                                        source: {
-                                            scad: result.source
-                                        }
-                                    };
-                                    //console.dir(updateTemp);
-                                    exports.dataset.update(createdDataset.id, updateTemp,
-                                        function (err, updatedDataset) {
-                                            if (err) {
-                                                console.log('Error on update: ' + err);
-                                                setTimeout(function () {
-                                                    retryCallback(err);
-                                                }, retryDelay);
-                                            } else {
-                                                retryCallback(null, updatedDataset);
-                                            }
-                                        });
-                                }, callback);
-                            }
-                        });
-                    }, 500);
+                    return;
                 }
+                panel.readPanelJSON(createdDataset.id, {
+                    properties: {},
+                    statistics: {}
+                }, function (err, result) {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    // There's a tendency to fail on the update if we're doing alot of updates
+                    // at the same time, and right after a create. Therefore, we want to retry
+                    // a few times. In my migration scripts most only needed 1 retry, and a few
+                    // needed up to 3 retries. None failed permanently. -SRLM
+                    async.retry(createUpdateRetryCount, function (retryCallback) {
+                        var updateTemp = {
+                            startTime: result.startTime,
+                            endTime: result.endTime,
+                            summaryStatistics: result.summaryStatistics,
+                            boundingBox: result.boundingBox,
+                            boundingCircle: result.boundingCircle,
+                            gpsLock: result.gpsLock,
+                            source: {
+                                scad: result.source
+                            }
+                        };
+                        //console.dir(updateTemp);
+                        exports.dataset.update(createdDataset.id, updateTemp,
+                            function (err, updatedDataset) {
+                                if (err) {
+                                    console.log('Error on update: ' + err);
+                                    setTimeout(function () {
+                                        retryCallback(err);
+                                    }, retryDelay);
+                                } else {
+                                    retryCallback(null, updatedDataset);
+                                }
+                            });
+                    }, callback);
+                });
             });
         }, deepMigrate);
     }

@@ -11,17 +11,24 @@ var before = lab.before;
 var after = lab.after;
 var expect = Code.expect;
 
-var requirePath = '../resources/cassandra';
+var requirePath = '../../resources/cassandra';
+
+var nconfMock = {
+    get: function (key) {
+        var config = {
+            cassandraHosts: ['localhost'],
+            cassandraKeyspace: 'test',
+            cassandraUsername: 'cassandra',
+            cassandraPassword: 'cassandra'
+        };
+        return config[key];
+    }
+};
+
 
 describe('init', function () {
     var sut = rewire(requirePath);
-
-    var config = {
-        cassandraHosts: ['localhost'],
-        cassandraKeyspace: 'test',
-        cassandraUsername: 'cassandra',
-        cassandraPassword: 'cassandra'
-    };
+    sut.__set__('nconf', nconfMock);
 
     var error = false;
     var cassandraDriverMock = {
@@ -47,7 +54,7 @@ describe('init', function () {
     it('works without error', function (done) {
         error = false;
 
-        sut.init(config, function (err) {
+        sut.init(function (err) {
             expect(err).to.be.null();
             done();
         });
@@ -56,7 +63,7 @@ describe('init', function () {
     it('wraps a boom error on error', function (done) {
         error = true;
 
-        sut.init(config, function (err) {
+        sut.init(function (err) {
             expect(err).to.include('isBoom').and.to.not.be.null();
             done();
         });

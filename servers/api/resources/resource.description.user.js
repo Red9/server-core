@@ -4,6 +4,8 @@ var Joi = require('joi');
 var validators = require('./validators');
 var nconf = require('nconf');
 var _ = require('underscore')._;
+var Boom = require('boom');
+var async = require('async');
 
 var basicModel = {
     id: validators.id,
@@ -21,6 +23,7 @@ var basicModel = {
 
 var resourceName = 'user';
 
+var resources; // Dynamically filled with links to the other resources.
 
 module.exports = {
     name: resourceName,
@@ -131,12 +134,36 @@ module.exports = {
             jsType: 'array'
         }
     ],
+    setResources: function (resources_) {
+        resources = resources_;
+    },
 
-    checkResource: function (user, callback) {
+    checkResource: function (user, doneCallback) {
         // TODO(SRLM): Add some checks here:
-        // - email does not exist
+        // - layouts exist
 
-        callback(null, user);
+        async.series([
+                function (callback) { // Make sure that we enforce unique emails
+                    var foundUser;
+                    resources.user.find({email: user.email}, {},
+                        function (foundUser_) {
+                            foundUser = foundUser_;
+                        },
+                        function (err, resultCount) {
+                            if (resultCount === 1 && foundUser.id !== user.id) {
+                                callback(Boom.badRequest('Email already exists under a different id.'));
+                            } else {
+                                callback(null);
+                            }
+                        });
+                }
+            ],
+            function (err) { // done
+                doneCallback(err, user);
+            }
+        );
+
+
     },
     expand: function (parameters, user, callback) {
         if (_.isNull(user.picture)) {

@@ -31,23 +31,23 @@ exports.createListResponse = function (findFunction) {
         };
 
         var firstLine = true;
-        outputStream.push('[\n');
+        outputStream.push('[');
         findFunction(filters, options,
             function (resource) {
                 if (!firstLine) {
-                    outputStream.push(',\n');
+                    outputStream.push(',');
                 } else {
                     firstLine = false;
                 }
-                outputStream.push(JSON.stringify(resource, null, 4));
+                outputStream.push(JSON.stringify(resource));
             },
             function (err, rowCount) {
-                outputStream.push('\n]');
+                outputStream.push(']');
                 outputStream.push(null);
             }
         );
 
-        reply(outputStream);
+        reply(outputStream).header('content-type', 'application/json; charset=utf-8');
     };
 };
 
@@ -251,7 +251,6 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 path: '/' + resource.name + '/{id}/' + key,
                 handler: function (request, reply) {
                     resource.collection.add(request.params.id, key, request.payload[key], function (err) {
-                        console.log(err);
                         reply(err);
                     });
                 },
@@ -271,7 +270,6 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 path: '/' + resource.name + '/{id}/' + key,
                 handler: function (request, reply) {
                     resource.collection.remove(request.params.id, key, request.payload[key], function (err) {
-                        console.log(err);
                         reply(err);
                     });
                 },
