@@ -11,7 +11,7 @@ var basicModel = {
     host: Joi.string().valid(['YouTube']).description('The hosting service for this video'),
     hostId: Joi.string().description('The hosting service identifier for this video.'),
     datasetId: validators.id,
-    createTime: validators.createTime,
+    createTime: validators.createTime
 };
 
 var resourceName = 'video';

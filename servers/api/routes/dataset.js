@@ -4,7 +4,7 @@ var Joi = require('joi');
 var _ = require('underscore')._;
 var nconf = require('nconf');
 var Boom = require('boom');
-
+var validators = require('../resources/validators');
 
 exports.init = function (server, resource) {
     // Convenient handles
@@ -46,7 +46,7 @@ exports.init = function (server, resource) {
                     // dataset resource create model and the file validation
                     // together they didn't both come through. So, we have
                     // to hard code the requirements.
-                    rnc: Joi.required(),
+                    rnc: validators.stream,
                     title: model.title.required(),
                     ownerId: model.ownerId.required()
                 }

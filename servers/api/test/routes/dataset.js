@@ -103,6 +103,25 @@ describe('dataset resource basics', function () {
         });
     });
 
+    it('returns error if validation fails', function (done) {
+        var form = new FormData();
+        form.append('title', 'test');
+        form.append('ownerId', createdUser.id);
+        form.append('rnc', 'my file here, should fail since it is a string');
+        streamToPromise(form).then(function (payload) {
+            server.inject({
+                method: 'POST',
+                url: '/dataset/',
+                payload: payload,
+                headers: form.getHeaders()
+            }, function (response) {
+                expect(response.statusCode).to.equal(400);
+                done();
+            });
+        });
+    });
+
+
     it('can get a dataset', function (done) {
         server.inject({
             method: 'GET',

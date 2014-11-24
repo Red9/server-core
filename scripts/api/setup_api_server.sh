@@ -38,8 +38,6 @@ wget http://cran.r-project.org/src/contrib/signal_0.7-4.tar.gz
 sudo R CMD INSTALL signal_0.7-4.tar.gz
 
 
-
-
 echo "$SSHKEY" > /home/ubuntu/.ssh/id_rsa
 chmod 700 /home/ubuntu/.ssh/id_rsa
 chown ubuntu:ubuntu /home/ubuntu/.ssh/id_rsa

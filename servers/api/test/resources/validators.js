@@ -2,6 +2,8 @@
 
 var rewire = require('rewire');
 
+var async = require('async');
+
 var Code = require('code');
 var Lab = require('lab');
 var lab = exports.lab = Lab.script();
@@ -108,7 +110,7 @@ describe('multiArray', function () {
         });
     });
 
-    it('catches errors', function(done){
+    it('catches errors', function (done) {
         var values = [
             '52439733-e2eb-469c-8704-27ef879fae68',
             'Wat?',
@@ -120,6 +122,74 @@ describe('multiArray', function () {
         });
     });
 });
+
+describe('Stream validation', function () {
+    var sut = require(requirePath).stream;
+
+    it('works with a basic streams', function (done) {
+        async.parallel([
+            function (callback) {
+                var Readable = require('stream').Readable;
+                var rs = new Readable();
+                sut.validate(rs, function (err, result) {
+                    expect(err).to.be.null();
+                    callback();
+                });
+            },
+            function (callback) {
+                var fs = require('fs');
+                var rs = fs.createReadStream('/proc/cpuinfo');
+                sut.validate(rs, function (err, result) {
+                    expect(err).to.be.null();
+                    callback();
+                });
+            }
+        ], function (err) {
+            expect(err).to.be.undefined();
+            done();
+        });
+    });
+
+    it('rejects non stream options', function (done) {
+        async.parallel([
+            function (callback) {
+                sut.validate('abc', function (err, result) {
+                    expect(err).to.not.be.null();
+                    callback();
+                });
+            },
+            function (callback) {
+                sut.validate(123, function (err, result) {
+                    expect(err).to.not.be.null();
+                    callback();
+                });
+            },
+            function (callback) {
+                sut.validate({}, function (err, result) {
+                    expect(err).to.not.be.null();
+                    callback();
+                });
+            }
+        ], function (err) {
+            expect(err).to.be.undefined();
+            done();
+        });
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
