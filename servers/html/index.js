@@ -1,3 +1,5 @@
+"use strict";
+
 // default to development environment
 if (typeof process.env.NODE_ENV === 'undefined') {
     process.env.NODE_ENV = 'development';
@@ -14,12 +16,13 @@ nconf
 // Standard modules that we need:
 var express = require('express');
 var http = require('http');
+var path = require('path');
 
 // Express and Connect stuff
 var app = express();
 app.set('port', nconf.get('port'));
 
-app.use(require('serve-favicon')(nconf.get('faviconPath')));
+app.use(require('serve-favicon')(path.join(nconf.get('srcPath'), nconf.get('faviconPath'))));
 app.use(require('morgan')('dev')); // Logger
 
 app.use(require('compression')());
@@ -30,7 +33,11 @@ app.get('/static/config.js', function (req, res, next) {
 });
 
 
-app.use('/static', express.static(nconf.get('staticPath'), { maxAge: nconf.get('cacheMaxAge')*1000 }));
+app.use('/static', express.static(
+    path.join(nconf.get('srcPath'), nconf.get('staticPath')),
+    {
+        maxAge: nconf.get('cacheMaxAge') * 1000
+    }));
 // Catch all the requests for non-existant static resources.
 // If we don't go through this hoop then the 404 redirect to the fancy
 // html page will mess up our passport authorization and prevent
@@ -45,7 +52,7 @@ app.use('/static/:anything?*', function (req, res, next) {
 // ----------------------------------------------------------------------------
 function sendIndex(req, res, next) {
     res.setHeader('Cache-Control', 'public, max-age=' + nconf.get('cacheMaxAge'));
-    res.sendFile(nconf.get('applicationPagePath'));
+    res.sendFile(path.join(nconf.get('srcPath'), nconf.get('applicationPagePath')));
 }
 
 // ----------------------------------------------------------------------------
@@ -54,7 +61,7 @@ function sendIndex(req, res, next) {
 // ----------------------------------------------------------------------------
 function sendDataPage(req, res, next) {
     res.setHeader('Cache-Control', 'public, max-age=' + nconf.get('cacheMaxAge'));
-    res.sendFile(nconf.get('dataPagePath'));
+    res.sendFile(path.join(nconf.get('srcPath'), nconf.get('dataPagePath')));
 }
 
 app.get('/dataset/:id', sendDataPage);

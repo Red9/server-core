@@ -16,7 +16,7 @@ var Hapi = require('hapi');
 var Joi = require('joi');
 
 var resources = require('./resources/index');
-var routeHelp = require('./support/routehelp');
+var routeTemplate = require('./support/routetemplate');
 
 exports.init = function (testing, doneCallback) {
 
@@ -88,12 +88,12 @@ exports.init = function (testing, doneCallback) {
                 require('./routes/authentication').init(server, resources); // Needs to be first
             }
 
-            routeHelp.createCRUDRoutes(server, resources.user);
-            routeHelp.createCRUDRoutes(server, resources.event);
-            routeHelp.createCRUDRoutes(server, resources.comment);
-            routeHelp.createCRUDRoutes(server, resources.video);
-            routeHelp.createCRUDRoutes(server, resources.layout);
-            routeHelp.createCRUDRoutes(server, resources.dataset, ['read', 'update', 'delete', 'search', 'updateCollection']);
+            routeTemplate.createCRUDRoutes(server, resources.user);
+            routeTemplate.createCRUDRoutes(server, resources.event);
+            routeTemplate.createCRUDRoutes(server, resources.comment);
+            routeTemplate.createCRUDRoutes(server, resources.video);
+            routeTemplate.createCRUDRoutes(server, resources.layout);
+            routeTemplate.createCRUDRoutes(server, resources.dataset, ['read', 'update', 'delete', 'search', 'updateCollection']);
 
             require('./routes/dataset').init(server, resources);
             require('./routes/eventtype').init(server);

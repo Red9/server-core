@@ -222,6 +222,67 @@ describe('dataset resource basics', function () {
     });
 
     // -----------------------------------------------------
+    // General stuff
+    // -----------------------------------------------------
+
+    it('works with fields option', function (done) {
+        async.parallel([
+            // Single resource
+            function (callback) {
+                server.inject({
+                    method: 'GET',
+                    url: '/dataset/' + createdDataset.id + '?fields=id,createTime'
+                }, function (response) {
+                    expect(response.result).to.only.include(['id', 'createTime']);
+                    callback();
+                });
+            },
+            // Multiple resources
+            function (callback) {
+                server.inject({
+                    method: 'GET',
+                    url: '/dataset/?idList=' + createdDataset.id + '&fields=id,createTime'
+                }, function (response) {
+                    var payload = JSON.parse(response.payload);
+                    expect(payload[0]).to.only.include(['id', 'createTime']);
+                    callback();
+                });
+            },
+            // Nested resources
+            function (callback) {
+                server.inject({
+                    method: 'GET',
+                    url: '/dataset/?idList=' + createdDataset.id + '&fields=id,createTime,boundingCircle(latitude,longitude)'
+                }, function (response) {
+                    var payload = JSON.parse(response.payload);
+                    expect(payload[0]).to.only.include(['id', 'createTime', 'boundingCircle']);
+                    callback();
+                });
+            },
+            // glob
+            function (callback) {
+                server.inject({
+                    method: 'GET',
+                    url: '/dataset/?idList=' + createdDataset.id + '&fields=*'
+                }, function (response) {
+                    var payload = JSON.parse(response.payload);
+                    expect(payload[0]).to.include(Object.keys(createdDataset));
+                    callback();
+                });
+            }
+
+            // TODO: Add tests for:
+            // array list of results
+            // glob inside parens ex. key(*)
+        ], function (err) {
+            expect(err).to.be.undefined();
+            done();
+        });
+    });
+
+
+
+    // -----------------------------------------------------
     // Panel stuff
     // -----------------------------------------------------
 

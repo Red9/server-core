@@ -5,6 +5,7 @@ var _ = require('underscore')._;
 var nconf = require('nconf');
 var Boom = require('boom');
 var validators = require('../resources/validators');
+var routeHelp = require('../support/routehelp');
 
 exports.init = function (server, resource) {
     // Convenient handles
@@ -146,11 +147,13 @@ exports.init = function (server, resource) {
         method: 'GET',
         path: '/{resourceType}/{id}/json',
         handler: function (request, reply) {
+            var fields = routeHelp.getFieldsFromQuery(request.query);
+
             var finalHandler = function (err, result) {
                 if (err) {
                     reply(err);
                 } else {
-                    reply(result);
+                    reply(routeHelp.filterFields(fields, result));
                 }
             };
 
@@ -186,7 +189,8 @@ exports.init = function (server, resource) {
                     size: Joi.string().valid(Object.keys(nconf.get('panelSizeMap'))).description('The resolution (result size) of the panel.'),
                     rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.'),
                     startTime: model.startTime,
-                    endTime: model.endTime
+                    endTime: model.endTime,
+                    fields: validators.fields
                 }
             },
             description: 'Get JSON panel',

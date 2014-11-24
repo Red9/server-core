@@ -12,7 +12,7 @@ module.exports = function (grunt) {
         },
         lab: {
             files: ['test/**/*.js', '!test/utilities.js'],
-            coverage: true,
+            //coverage: true,
             color: true
         },
         watch: {
