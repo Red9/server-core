@@ -5,6 +5,7 @@ var common = require('./resource.common.js');
 var validators = require('./validators');
 var aggregateStatistics = require('./resource.aggregatestatistics.js');
 var async = require('async');
+var Boom = require('boom');
 
 var Joi = require('joi');
 
@@ -16,6 +17,8 @@ var datasetSource = Joi.object().description('the RNC source information').optio
 
 var tagSingle = Joi.string();
 var expandOptions = ['owner', 'event', 'video', 'comment', 'count'];
+
+var deleteEachLimit = 5;
 
 var basicModel = {
     id: validators.id,
@@ -132,7 +135,7 @@ module.exports = {
             cassandraKey: 'owner',
             cassandraType: 'uuid',
             jsKey: 'ownerId',
-            jsType: 'string',
+            jsType: 'string'
         },
         {
             cassandraKey: 'source',
@@ -172,120 +175,115 @@ module.exports = {
         }
     ],
     checkResource: function (dataset, callback) {
-        // TODO(SRLM): Need to check:
-        // - owner is valid
-        callback(null, dataset);
+        resources.user.findById(dataset.ownerId, function (err, user) {
+            if (!user) {
+                callback(Boom.badRequest('Owner does not exist'));
+            } else {
+                callback(err, dataset);
+            }
+        });
     },
     setResources: function (resources_) {
         resources = resources_;
     },
     expand: function (parameters, dataset, doneCallback) {
         dataset.duration = dataset.endTime - dataset.startTime;
-        if (_.isArray(parameters)) {
-            // Assume for now that there is only one expandable:
-            // owner
-            //console.dir(resources);
-            async.each(parameters, function (parameter, callback) {
-                if (parameter === 'owner') {
-                    resources.user.find({id: dataset.ownerId}, {},
-                        function (user) {
-                            dataset.owner = user;
-                        }, function (err) {
-                            if (err) {
-                                console.log('Dataset expand: ' + err);
-                            }
-                            callback(null);
-                        });
-                } else if (parameter === 'event') {
-                    dataset.event = [];
-                    resources.event.find({datasetId: dataset.id}, {},
-                        function (event) {
-                            dataset.event.push(event);
-                        }, function (err) {
-                            if (err) {
-                                console.log('Dataset expand, event: ' + err);
-                            }
-                            dataset.aggregateStatistics = aggregateStatistics.calculate(dataset.event);
-                            callback(null);
-                        });
-
-                } else if (parameter === 'video') {
-                    dataset.video = [];
-                    resources.video.find({datasetId: dataset.id}, {},
-                        function (event) {
-                            dataset.video.push(event);
-                        }, function (err) {
-                            if (err) {
-                                console.log('Dataset expand, video: ' + err);
-                            }
-                            callback(null);
-                        });
-
-                } else if (parameter === 'comment') {
-                    dataset.comment = [];
-                    resources.comment.find({resourceId: dataset.id}, {},
-                        function (event) {
-                            dataset.comment.push(event);
-                        }, function (err) {
-                            if (err) {
-                                console.log('Dataset expand, comment: ' + err);
-                            }
-                            callback(null);
-                        });
-
-                } else if (parameter === 'count') {
-                    cassandra.getDatasetCount(dataset.id, function (err, result) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            dataset.count = result;
-                        }
-                        callback(null);
-                    });
-                } else {
-                    callback(null);
-                }
-            }, function (err) {
-                doneCallback(null, dataset);
-            });
-        } else {
-            doneCallback(null, dataset);
+        if (!_.isArray(parameters)) {
+            parameters = [];
         }
+
+        async.each(parameters, function (parameter, callback) {
+            if (parameter === 'owner') {
+                resources.user.find({id: dataset.ownerId}, {},
+                    function (user) {
+                        dataset.owner = user;
+                    }, callback);
+            } else if (parameter === 'event') {
+                dataset.event = [];
+                resources.event.find({datasetId: dataset.id}, {},
+                    function (event) {
+                        dataset.event.push(event);
+                    }, function (err) {
+                        dataset.aggregateStatistics = aggregateStatistics.calculate(dataset.event);
+                        callback(err);
+                    });
+
+            } else if (parameter === 'video') {
+                dataset.video = [];
+                resources.video.find({datasetId: dataset.id}, {},
+                    function (event) {
+                        dataset.video.push(event);
+                    }, callback);
+
+            } else if (parameter === 'comment') {
+                dataset.comment = [];
+                resources.comment.find({resourceId: dataset.id}, {},
+                    function (event) {
+                        dataset.comment.push(event);
+                    }, callback);
+
+            } else { // parameter === 'count' // Default. Should never be anything but count, but just in case.
+                cassandra.getDatasetCount(dataset.id, function (err, result) {
+                    dataset.count = result;
+                    callback(err);
+                });
+            }
+        }, function (err) {
+            doneCallback(err, dataset);
+        });
+    },
+    remove: function (id, doneCallback) {
+
+        /**
+         *
+         * @param resource {Object}
+         * @param idList {Array} A list of IDs to delete
+         * @param callback {Function} (err)
+         */
+        function deleteList(resource, idList, callback) {
+            async.eachLimit(idList, deleteEachLimit,
+                function (id, cb) {
+                    resource.delete(id, cb);
+                },
+                callback);
+        }
+
+        /**
+         *
+         * @param resource {Object}
+         * @param datasetId {string}
+         * @param datasetIdKey {string}
+         * @returns {Function} (callback)
+         */
+        function deleteAllByType(resource, datasetId, datasetIdKey) {
+            return function (callback) {
+                var idList = [];
+                var query = {};
+                query[datasetIdKey] = datasetId;
+                resource.find(query, {},
+                    function (r) {
+                        idList.push(r.id);
+                    },
+                    function (err) {
+                        if (err) { // How can I get code coverage of this if?
+                            callback(err);
+                        } else {
+                            deleteList(resource, idList, callback);
+                        }
+                    });
+            };
+        }
+
+        async.parallel([
+            deleteAllByType(resources.event, id, 'datasetId'),
+            deleteAllByType(resources.video, id, 'datasetId'),
+            deleteAllByType(resources.comment, id, 'resourceId'),
+            function (callback) {
+                resources.panel.deletePanel(id, callback);
+            }
+        ], function (err) {
+            doneCallback(err);
+        });
     }
-
-//        function getRelatedCount(id, callback) {
-//            cassandraCustom.getDatasetCount(id, function(count) {
-//                callback(count);
-//            });
-//        }
-//        exports.getRelatedCount = getRelatedCount;
-//        }
 };
-
-
-//var eventResource = requireFromRoot('support/resources/event');
-//var panelResource = requireFromRoot('support/resources/panel');
-//var log = requireFromRoot('support/logger').log;
-//var deletePre = function (id, continueCallback) {
-//    exports.get({id: id}, function (datasets) {
-//        if (datasets.length === 1) {
-//            // Clean up associated resources
-//            var dataset = datasets[0];
-//            eventResource.deleteEventByDataset(id, function (errEvent) {
-//                panelResource.delete(dataset.headPanelId, function (errPanel) {
-//                    if (errEvent || errPanel) {
-//                        log.error('Could error deleting associated resources with dataset ' + id + ': ' + errEvent + ', ' + errPanel);
-//                        continueCallback(false);
-//                    } else {
-//                        continueCallback();
-//                    }
-//                });
-//            });
-//
-//        } else {
-//            log.debug('Invalid dataset id ' + id + ': gave ' + datasets.length + ' responses');
-//            continueCallback(false);
-//        }
-//    });
-//};
 

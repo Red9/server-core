@@ -20,3 +20,9 @@ exports.summaryStatistics = Joi.object().description('numerically summarizes a p
     className: 'summaryStatistics'
 });
 
+// Taken from here: https://github.com/hapijs/joi/issues/472
+exports.stream = Joi.object({
+    pipe: Joi.func().required()
+}).unknown().description('A file stream');
+
+exports.fields = Joi.string().description('specify a CSV list of the object keys that you want returned');

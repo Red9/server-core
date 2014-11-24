@@ -1,8 +1,5 @@
 {
   "port": 8080,
-  "faviconPath": "/home/ubuntu/clients-core/data-client/release/src/static/images/favicon.ico",
-  "staticPath": "/home/ubuntu/clients-core/data-client/release/src/static",
-  "applicationPagePath": "/home/ubuntu/clients-core/data-client/release/src/index.html",
-  "dataPagePath": "/home/ubuntu/clients-core/data-client/release/src/data.html",
+  "srcPath": "/home/ubuntu/clients-core/data-client/release/src/",
   "cacheMaxAge": 3600
 }

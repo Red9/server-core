@@ -1,8 +1,7 @@
 "use strict";
 
-// default to development environment
 if (typeof process.env.NODE_ENV === 'undefined') {
-    process.env.NODE_ENV = 'development';
+    throw new Error('Must provide a NODE_ENV');
 }
 
 var nconf = require('nconf');
@@ -17,88 +16,107 @@ var Hapi = require('hapi');
 var Joi = require('joi');
 
 var resources = require('./resources/index');
-var routeHelp = require('./support/routehelp');
+var routeTemplate = require('./support/routetemplate');
 
-var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {
-    cors: {
-        origin: [
-            nconf.get('htmlOrigin')
-        ],
-        credentials: true
-    }
-});
+exports.init = function (testing, doneCallback) {
+
+    var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {
+        cors: {
+            origin: [
+                nconf.get('htmlOrigin')
+            ],
+            credentials: true
+        }
+    });
 
 
-resources.init({
-    cassandraHosts: nconf.get('cassandraHosts'),
-    cassandraKeyspace: nconf.get('cassandraKeyspace'),
-    cassandraUsername: nconf.get('cassandraUsername'),
-    cassandraPassword: nconf.get('cassandraPassword'),
-    dataPath: nconf.get('rncDataPath')
-}, function (err) {
+    resources.init(server, function (err) {
+        if (err) {
+            server.log(['error'], 'Resources error: ' + err);
+            process.exit(1);
+        }
 
-    if (err) {
-        console.log('Cassandra error: ' + err);
-        process.exit(1);
-    }
-
-    server.pack.register([
-        require('bell'),
-        require('hapi-auth-cookie'),
-        {
-            plugin: require('good'),
-            options: {
-                reporters: [
-                    {
-                        reporter: require('good-console'),
-                        args: [{
-                            log: '*',
-                            request: '*',
-                            error: '*'
-                        }]
-                    },
-                    {
-                        reporter: require('good-file'),
-                        args: [
-                            nconf.get('logFilePath'),
-                            {
+        var plugins = [
+            require('bell'),
+            require('hapi-auth-cookie'),
+            {
+                plugin: require('good'),
+                options: {
+                    reporters: [
+                        {
+                            reporter: require('good-console'),
+                            args: [{
                                 log: '*',
                                 request: '*',
                                 error: '*'
                             }]
-                    }
-                ]
+                        },
+                        {
+                            reporter: require('good-file'),
+                            args: [
+                                nconf.get('logFilePath'),
+                                {
+                                    log: '*',
+                                    request: '*',
+                                    error: '*'
+                                }]
+                        }
+                    ]
+                }
+            },
+            {
+                plugin: require('hapi-swagger'),
+                options: {
+                    apiVersion: nconf.get("apiVersion"),
+                    payloadType: 'form'
+                }
             }
-        },
-        {
-            plugin: require('hapi-swagger'),
-            options: {
-                apiVersion: nconf.get("apiVersion"),
-                payloadType: 'form'
-            }
+
+        ];
+
+        if (testing) {
+            plugins = [];
         }
 
-    ], function (err) {
-        if (err) {
-            console.log('plugin err: ' + err);
-        }
+        server.pack.register(plugins, function (err) {
+            if (err) {
+                doneCallback(err);
+                return;
+            }
 
-        require('./routes/authentication').init(server, resources); // Needs to be first
+            if (!testing) {
+                require('./routes/authentication').init(server, resources); // Needs to be first
+            }
 
-        routeHelp.createCRUDRoutes(server, resources.user);
-        routeHelp.createCRUDRoutes(server, resources.event);
-        routeHelp.createCRUDRoutes(server, resources.comment);
-        routeHelp.createCRUDRoutes(server, resources.video);
-        routeHelp.createCRUDRoutes(server, resources.layout);
-        routeHelp.createCRUDRoutes(server, resources.dataset, ['read', 'update', 'delete', 'search', 'updateCollection']);
+            routeTemplate.createCRUDRoutes(server, resources.user);
+            routeTemplate.createCRUDRoutes(server, resources.event);
+            routeTemplate.createCRUDRoutes(server, resources.comment);
+            routeTemplate.createCRUDRoutes(server, resources.video);
+            routeTemplate.createCRUDRoutes(server, resources.layout);
+            routeTemplate.createCRUDRoutes(server, resources.dataset, ['read', 'update', 'delete', 'search', 'updateCollection']);
 
-        require('./routes/dataset').init(server, resources);
-        require('./routes/eventtype').init(server);
+            require('./routes/dataset').init(server, resources);
+            require('./routes/eventtype').init(server);
 
-
-        server.start(function () {
-            console.log('Server running at:', server.info.uri);
+            if (!testing) {
+                server.start(function () {
+                    server.log(['debug'], 'Server running at: ' + server.info.uri);
+                    doneCallback(null, server);
+                });
+            } else {
+                doneCallback(null, server);
+            }
         });
     });
+};
 
-});
+if (!module.parent) {
+    exports.init(false, function (err) {
+        if (err) {
+            console.log('Unknown error: ' + err);
+            process.exit(1);
+        }
+    });
+}
+
+

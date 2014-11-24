@@ -13,7 +13,7 @@ var before = lab.before;
 var after = lab.after;
 var expect = Code.expect;
 
-var requirePath = '../resources/resource.crud';
+var requirePath = '../../resources/resource.crud';
 
 var cassandraMock = {
     execute: function (options) {

@@ -12,7 +12,7 @@ var before = lab.before;
 var after = lab.after;
 var expect = Code.expect;
 
-var requirePath = '../resources/resource.common.collection.set';
+var requirePath = '../../resources/resource.common.collection.set';
 
 describe('createAddQuery', function () {
     var sutFunction = rewire(requirePath).__get__('createUpdateQuery');

@@ -4,7 +4,8 @@ var Joi = require('joi');
 var _ = require('underscore')._;
 var nconf = require('nconf');
 var Boom = require('boom');
-
+var validators = require('../resources/validators');
+var routeHelp = require('../support/routehelp');
 
 exports.init = function (server, resource) {
     // Convenient handles
@@ -46,7 +47,7 @@ exports.init = function (server, resource) {
                     // dataset resource create model and the file validation
                     // together they didn't both come through. So, we have
                     // to hard code the requirements.
-                    rnc: Joi.required(),
+                    rnc: validators.stream,
                     title: model.title.required(),
                     ownerId: model.ownerId.required()
                 }
@@ -104,48 +105,6 @@ exports.init = function (server, resource) {
         }
     });
 
-    //server.route({
-    //    method: 'GET',
-    //    path: '/dataset/{id}/json',
-    //    handler: function (request, reply) {
-    //        var options = {
-    //            rows: request.query.rows,
-    //            panel: {},
-    //            properties: {},
-    //            statistics: {}
-    //        };
-    //
-    //        if (_.has(request.query, 'startTime') && _.has(request.query, 'endTime')) {
-    //            options.startTime = request.query.startTime;
-    //            options.endTime = request.query.endTime;
-    //        }
-    //
-    //        resource.panel.readPanelJSON(request.params.id, options, function (err, result) {
-    //            reply(result);
-    //        });
-    //    },
-    //    config: {
-    //        validate: {
-    //            params: {
-    //                id: model.id.required()
-    //            },
-    //            query: {
-    //                startTime: model.startTime,
-    //                endTime: model.endTime,
-    //                rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.')
-    //                //axes: Joi.string(),
-    //                //minmax: Joi.boolean()
-    //                // TODO (SRLM): Add
-    //                // - parts: panel, spectral, fft, distribution, comparison, ...
-    //            }
-    //        },
-    //        description: 'Get JSON panel',
-    //        notes: 'Request a "processed" JSON panel. You can specify multiple algorithms to run, and each will be added under their own key. Note that if your frequency is too low then the result panel can be very large.',
-    //        tags: ['api']
-    //    }
-    //});
-
-
     var getPanelBounded = function (id, rows, startTime, endTime, callback) {
         var options = {
             rows: rows,
@@ -188,11 +147,13 @@ exports.init = function (server, resource) {
         method: 'GET',
         path: '/{resourceType}/{id}/json',
         handler: function (request, reply) {
+            var fields = routeHelp.getFieldsFromQuery(request.query);
+
             var finalHandler = function (err, result) {
                 if (err) {
                     reply(err);
                 } else {
-                    reply(result);
+                    reply(routeHelp.filterFields(fields, result));
                 }
             };
 
@@ -228,7 +189,8 @@ exports.init = function (server, resource) {
                     size: Joi.string().valid(Object.keys(nconf.get('panelSizeMap'))).description('The resolution (result size) of the panel.'),
                     rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.'),
                     startTime: model.startTime,
-                    endTime: model.endTime
+                    endTime: model.endTime,
+                    fields: validators.fields
                 }
             },
             description: 'Get JSON panel',
@@ -242,7 +204,6 @@ exports.init = function (server, resource) {
         path: '/dataset/{id}/eventfind',
         handler: function (request, reply) {
             var dataset;
-            console.log('Running event finder');
             resource.dataset.find({id: request.params.id}, {},
                 function (dataset_) {
                     dataset = dataset_;
@@ -254,7 +215,7 @@ exports.init = function (server, resource) {
                         resource.panel.runEventFinder(dataset.id, dataset.startTime, dataset.endTime,
                             function (err, createdEvents) {
                                 if (err) {
-                                    console.log(err);
+                                    request.log(['error'], 'runEventFinder error: ' + err);
                                 }
                             });
                         reply({message: 'processing started.'});
@@ -266,9 +227,10 @@ exports.init = function (server, resource) {
                 params: {
                     id: model.id.required()
                 }
-            }
+            },
+            description: 'Red9 Event Finding Algorithm',
+            notes: 'Run Red9 event finding algorithms on the given dataset. Since this operation typically takes quite a while (up to 500 seconds), this route gives a reply after some basic checks (panel exists, etc.) but before prcoessing has finished.',
+            tags: ['api']
         }
     });
-
-
 };

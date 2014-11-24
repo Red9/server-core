@@ -5,6 +5,9 @@ var markdown = require('markdown').markdown;
 var Joi = require('joi');
 var validators = require('./validators');
 var async = require('async');
+var Boom = require('boom');
+
+var common = require('./resource.common');
 
 var expandOptions = ['author'];
 
@@ -120,16 +123,39 @@ module.exports = {
         }
     ],
 
-    checkResource: function (comment, callback) {
-        /* TODO(CHECK):
-         startTime <= endTime
-         author invalid
-         body is empty
-         resourceType is invalid
-         resource does not exist
-         if startTime and endTime are defined then must be valid for dataset
-         */
-        callback(null, comment);
+    checkResource: function (comment, doneCallback) {
+        if (comment.startTime > comment.endTime) {
+            doneCallback(Boom.badRequest('if provided, startTime must be less than or equal to endTime'));
+            return;
+        }
+
+        async.series([
+                function (callback) {
+                    resources.user.findById(comment.authorId, function (err, user) {
+                        if (!user) {
+                            callback(Boom.badRequest('user ' + comment.authorId + ' does not exist.'));
+                        } else {
+                            callback(err);
+                        }
+                    });
+                },
+                function (callback) {
+                    resources[comment.resourceType].findById(comment.resourceId, function (err, resource) {
+                        if (!resource) {
+                            callback(Boom.badRequest(comment.resourceType + ' ' + comment.resourceId + ' does not exist.'));
+                        } else if (comment.startTime !== 0 && comment.startTime < resource.startTime) {
+                            callback(Boom.badRequest('startTime before resource startTime'));
+                        } else if (comment.endTime !== 0 && comment.endTime > resource.endTime) {
+                            callback(Boom.badRequest('endTime after resource endTime'));
+                        } else {
+                            callback(err); // Subtle issue here: will this err ever really be set, and can we get here? resource will probably be null, so the early if statement get's caught
+                        }
+                    });
+                }
+            ],
+            function (err) {
+                doneCallback(err, comment);
+            });
     },
     setResources: function (resources_) {
         resources = resources_;
@@ -139,21 +165,13 @@ module.exports = {
 
         if (_.isArray(parameters)) {
             async.each(parameters, function (parameter, callback) {
-                if (parameter === 'author') {
-                    resources.user.find({id: comment.authorId}, {},
-                        function (user) {
-                            comment.author = user;
-                        }, function (err) {
-                            if (err) {
-                                console.log('Author expand: ' + err);
-                            }
-                            callback(null);
-                        });
-                } else {
-                    callback(null);
-                }
+                // Assume expand is just author.
+                resources.user.findById(comment.authorId, function (err, user) {
+                    comment.author = user;
+                    callback(err);
+                });
             }, function (err) {
-                doneCallback(null, comment);
+                doneCallback(err, comment);
             });
         } else {
             doneCallback(null, comment);

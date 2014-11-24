@@ -1,8 +1,3 @@
-CREATE KEYSPACE development WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
-USE development;
-
-CREATE KEYSPACE production WITH REPLICATION = {'class': 'NetworkTopologyStrategy', 'us-east': 3};
-USE production;
 
 CREATE TABLE comment (
     id uuid PRIMARY KEY,

@@ -1,0 +1,25 @@
+{
+  "port": "3000",
+  "listenIp": "0.0.0.0",
+  "cassandraHosts": ["localhost"],
+  "cassandraKeyspace": "test",
+  "cassandraUsername": "cassandra",
+  "cassandraPassword": "cassandra",
+  "rncDataPath": "/home/clewis/Downloads/testRNC",
+  "defaultCallbackUrl": "http://localhost:9532",
+  "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated",
+  "authorizationCookieDomain": null,
+  "logFilePath": "/home/clewis/Downloads/apiserver/apiserver",
+  "authorizationCookieName": "r9session",
+  "defaultUserPicture": "http://localhost:9532/static/images/profile-default.png",
+  "panelCacheOptions": {
+    "expiresIn": 10000
+  },
+  "RNCTools": {
+    "processorPath": "/home/clewis/consulting/red9/server-core/rnctools/build/rncprocessor",
+    "correctPath": "/home/clewis/consulting/red9/server-core/rnctools/build/correctrnc"
+  },
+  "eventFinderPath": "/home/clewis/consulting/red9/server-core/eventfinder",
+  "eventFinderMainFile": "main.r",
+  "testDataPath": "/home/clewis/consulting/red9/test-data"
+}

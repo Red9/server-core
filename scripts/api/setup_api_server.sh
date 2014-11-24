@@ -28,6 +28,16 @@ ioH8I/Q4XrmO1X2WqyMs6uC4m2sCYbJ8BAv03kwsDJ9k5Id4ukmi7isEeCp5i8fD
 c5TDNVLnT+NjePEi3ziCBQZRXBYuBvM3A6pEvEgcs7t564NR47tXaA==
 -----END RSA PRIVATE KEY-----"
 
+sudo apt-get install r-base-core
+# Install R packages
+# Warning: this might be brittle when versions change...
+cd /tmp
+wget http://cran.r-project.org/src/contrib/jsonlite_0.9.13.tar.gz
+sudo R CMD INSTALL jsonlite_0.9.13.tar.gz
+wget http://cran.r-project.org/src/contrib/signal_0.7-4.tar.gz
+sudo R CMD INSTALL signal_0.7-4.tar.gz
+
+
 echo "$SSHKEY" > /home/ubuntu/.ssh/id_rsa
 chmod 700 /home/ubuntu/.ssh/id_rsa
 chown ubuntu:ubuntu /home/ubuntu/.ssh/id_rsa
@@ -47,5 +57,4 @@ git clone git@bitbucket.org:rednine/server-core.git
 cd /home/ubuntu/server-core/servers/api
 npm install
 grunt
-
 

@@ -1,3 +1,6 @@
 {
-
+  "faviconPath": "static/images/favicon.ico",
+  "staticPath": "static",
+  "applicationPagePath": "index.html",
+  "dataPagePath": "data.html"
 }
