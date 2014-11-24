@@ -1,10 +1,17 @@
 "use strict";
 
-
-/** Master file to provide access to resources
+/**
+ * @file Master file to provide access to resources.
  *
+ * This is the file that you'll want to require whne you need access to a resource.
  *
  */
+
+
+var createUpdateRetryCount = 25;
+var retryDelay = 250;
+
+
 var _ = require('underscore')._;
 var Boom = require('boom');
 var async = require('async');
@@ -17,25 +24,28 @@ var commentDescription = require('./resource.description.comment');
 var videoDescription = require('./resource.description.video');
 var layoutDescription = require('./resource.description.layout');
 var datasetDescription = require('./resource.description.dataset');
+
 var panel = require('./resource.description.panel');
 exports.panel = panel;
-panel.resources = exports;
+panel.setResources(exports);
 
-var createUpdateRetryCount = 25;
-var retryDelay = 250;
 
+var server; // Populated on init.
 /**
- * @param callback {function} (err)
  *
+ * @param server_ {Object}
+ * @param callback {Function} (err)
  */
-exports.init = function (callback) {
+exports.init = function (server_, callback) {
+    server = server_;
+    panel.setServer(server);
     require('./cassandra').init(callback);
 };
 
 /**
  *
- * @param resourceDescription
- * @returns {{}}
+ * @param resourceDescription {Object}
+ * @returns {Object}
  */
 function addResource(resourceDescription) {
     var result = {};
@@ -47,9 +57,9 @@ function addResource(resourceDescription) {
      *
      * Assumes all input is valid.
      *
-     * @param newResource {object} resource to create
-     * @param callback {function} (err, createdResource)
-     * @param [deepMigrate] {bool} Ignore almost always. Set to true to prevent some defaults from being created.
+     * @param newResource {Object} resource to create
+     * @param callback {Function} (err, createdResource)
+     * @param [deepMigrate] {Boolean} Almost never use this. Set to true to prevent some defaults from being created.
      */
     result.create = function (newResource, callback, deepMigrate) {
         crud.create(resourceDescription, newResource, callback, deepMigrate);
@@ -57,10 +67,10 @@ function addResource(resourceDescription) {
 
     /**
      *
-     * @param query {object}
-     * @param [options] {object}
-     * @param [rowCallback] {function} (resource)
-     * @param doneCallback {function} (err, rowCount)
+     * @param query {Object}
+     * @param [options] {Object}
+     * @param [rowCallback] {Function} (resource)
+     * @param doneCallback {Function} (err, rowCount)
      */
     result.find = function (query, options, rowCallback, doneCallback) {
         crud.find(resourceDescription, query, options, rowCallback, doneCallback);
@@ -68,8 +78,8 @@ function addResource(resourceDescription) {
 
     /** Handy function to get a single resource of a specified type
      *
-     * @param id {string}
-     * @param doneCallback {function} (err, resultResource)
+     * @param id {String}
+     * @param doneCallback {Function} (err, resultResource)
      */
     result.findById = function (id, doneCallback) {
         var result = null;
@@ -82,11 +92,11 @@ function addResource(resourceDescription) {
     };
 
 
-    /**
+    /** Update a resource's fields
      *
-     * @param id {string}
-     * @param resourceUpdate {object}
-     * @param callback {function} (err, updatedResource)
+     * @param id {String}
+     * @param resourceUpdate {Object}
+     * @param callback {Function} (err, updatedResource)
      */
     result.update = function (id, resourceUpdate, callback) {
         // We need the full resource so that we can do validation checks.
@@ -104,26 +114,41 @@ function addResource(resourceDescription) {
             });
     };
 
-    /** DELETE from database
+    /** Delete a resource instance from the database
      *
      * No error if resource doesn't exist.
      *
      * @param id
-     * @param callback {function} (err)
+     * @param callback {Function} (err)
      */
     result.delete = function (id, callback) {
         crud.delete(resourceDescription, id, callback);
     };
 
-    result.collection = {
-        add: function (id, key, values, callback) {
-            collection.add(resourceDescription, id, key, values, callback);
-        },
+    result.collection = {};
 
-        remove: function (id, key, values, callback) {
-            collection.remove(resourceDescription, id, key, values, callback);
-        }
+    /**
+     *
+     * @param id {String} Resource UUID
+     * @param key {String} Collection key (ex. tags)
+     * @param values {Array.<String>} New values to add
+     * @param callback {Function} (err)
+     */
+    result.collection.add = function (id, key, values, callback) {
+        collection.add(resourceDescription, id, key, values, callback);
     };
+
+    /**
+     *
+     * @param id {String} Resource UUID
+     * @param key {String} Collection key (ex. tags}
+     * @param values {Array.<String>} New values to remove
+     * @param callback {Function} (err)
+     */
+    result.collection.remove = function (id, key, values, callback) {
+        collection.remove(resourceDescription, id, key, values, callback);
+    };
+
 
     // Give resourceDescription access to other resources
     //resourceDescription.resource = exports;
@@ -143,66 +168,65 @@ exports[videoDescription.name] = addResource(videoDescription);
 exports[layoutDescription.name] = addResource(layoutDescription);
 exports[datasetDescription.name] = addResource(datasetDescription);
 
-exports.helpers = {
-    /** Takes care of the details of handling a panel and a dataset.
-     *
-     * @param newDataset {object} The dataset object to store in the DB
-     * @param panelStream {ReadableStream} A stream representing the panel data
-     * @param callback {function} (err, updatedDataset)
-     * @param {bool} never set to true. Leave undefined.
-     */
-    createDataset: function createDataset(newDataset, panelStream, callback, deepMigrate) {
-        exports.dataset.create(newDataset, function (err, createdDataset) {
+exports.helpers = {};
+/** Takes care of the details of handling a panel and a dataset.
+ *
+ * @param newDataset {Object} The dataset object to store in the DB
+ * @param panelStream {ReadableStream} A stream representing the panel data
+ * @param callback {Function} (err, updatedDataset)
+ * @param deepMigrate {Boolean} never set to true. Leave undefined in alsmost all cases.
+ */
+exports.helpers.createDataset = function createDataset(newDataset, panelStream, callback, deepMigrate) {
+    exports.dataset.create(newDataset, function (err, createdDataset) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        panel.createPanel(createdDataset.id, panelStream, function (err) {
             if (err) {
                 callback(err);
                 return;
             }
-            panel.createPanel(createdDataset.id, panelStream, function (err) {
+            panel.readPanelJSON(createdDataset.id, {
+                properties: {},
+                statistics: {}
+            }, function (err, result) {
                 if (err) {
                     callback(err);
                     return;
                 }
-                panel.readPanelJSON(createdDataset.id, {
-                    properties: {},
-                    statistics: {}
-                }, function (err, result) {
-                    if (err) {
-                        callback(err);
-                        return;
-                    }
-                    // There's a tendency to fail on the update if we're doing alot of updates
-                    // at the same time, and right after a create. Therefore, we want to retry
-                    // a few times. In my migration scripts most only needed 1 retry, and a few
-                    // needed up to 3 retries. None failed permanently. -SRLM
-                    async.retry(createUpdateRetryCount, function (retryCallback) {
-                        var updateTemp = {
-                            startTime: result.startTime,
-                            endTime: result.endTime,
-                            summaryStatistics: result.summaryStatistics,
-                            boundingBox: result.boundingBox,
-                            boundingCircle: result.boundingCircle,
-                            gpsLock: result.gpsLock,
-                            source: {
-                                scad: result.source
+                // There's a tendency to fail on the update if we're doing alot of updates
+                // at the same time, and right after a create. Therefore, we want to retry
+                // a few times. In my migration scripts most only needed 1 retry, and a few
+                // needed up to 3 retries. None failed permanently. -SRLM
+                async.retry(createUpdateRetryCount, function (retryCallback) {
+                    var updateTemp = {
+                        startTime: result.startTime,
+                        endTime: result.endTime,
+                        summaryStatistics: result.summaryStatistics,
+                        boundingBox: result.boundingBox,
+                        boundingCircle: result.boundingCircle,
+                        gpsLock: result.gpsLock,
+                        source: {
+                            scad: result.source
+                        }
+                    };
+                    //console.dir(updateTemp);
+                    exports.dataset.update(createdDataset.id, updateTemp,
+                        function (err, updatedDataset) {
+                            if (err) {
+                                server.log(['warning'], 'Error on update: ' + err);
+                                setTimeout(function () {
+                                    retryCallback(err);
+                                }, retryDelay);
+                            } else {
+                                retryCallback(null, updatedDataset);
                             }
-                        };
-                        //console.dir(updateTemp);
-                        exports.dataset.update(createdDataset.id, updateTemp,
-                            function (err, updatedDataset) {
-                                if (err) {
-                                    console.log('Error on update: ' + err);
-                                    setTimeout(function () {
-                                        retryCallback(err);
-                                    }, retryDelay);
-                                } else {
-                                    retryCallback(null, updatedDataset);
-                                }
-                            });
-                    }, callback);
-                });
+                        });
+                }, callback);
             });
-        }, deepMigrate);
-    }
+        });
+    }, deepMigrate);
 };
 
 

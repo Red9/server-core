@@ -105,6 +105,13 @@ describe('video resource basics', function () {
                 host: 'YouTube',
                 hostId: 'ABC',
                 datasetId: 'c853692c-7a3c-40f9-a05f-d0a01acab43b'
+            },
+            {
+                // Bad startTime
+                startTime: createdDataset.endTime + 100,
+                host: 'YouTube',
+                hostId: 'ABC',
+                datasetId: createdDataset.id
             }
         ];
 
@@ -112,7 +119,7 @@ describe('video resource basics', function () {
             function (newVideo, callback) {
                 server.inject({
                     method: 'POST',
-                    url: '/event/',
+                    url: '/video/',
                     payload: newVideo
                 }, function (response) {
                     expect(response.statusCode).to.equal(400);

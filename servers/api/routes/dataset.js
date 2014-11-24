@@ -211,7 +211,7 @@ exports.init = function (server, resource) {
                         resource.panel.runEventFinder(dataset.id, dataset.startTime, dataset.endTime,
                             function (err, createdEvents) {
                                 if (err) {
-                                    console.log(err);
+                                    request.log(['error'], 'runEventFinder error: ' + err);
                                 }
                             });
                         reply({message: 'processing started.'});
@@ -223,9 +223,10 @@ exports.init = function (server, resource) {
                 params: {
                     id: model.id.required()
                 }
-            }
+            },
+            description: 'Red9 Event Finding Algorithm',
+            notes: 'Run Red9 event finding algorithms on the given dataset. Since this operation typically takes quite a while (up to 500 seconds), this route gives a reply after some basic checks (panel exists, etc.) but before prcoessing has finished.',
+            tags: ['api']
         }
     });
-
-
 };

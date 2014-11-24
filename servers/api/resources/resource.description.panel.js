@@ -11,7 +11,15 @@ var Boom = require('boom');
 var async = require('async');
 
 // Set dynamically. Very hacky.
-exports.resources = {};
+var server;
+var resources;
+exports.setResources = function (resources_) {
+    resources = resources_;
+};
+exports.setServer = function (server_) {
+    server = server_;
+};
+
 
 var maximumEventsCreatedInParallel = 4;
 
@@ -199,18 +207,17 @@ exports.readPanelCSV = function (id, options, callback) {
 
 /** Get the JSON representation of the panel.
  *
- * @param id {string}
- * @param options {object} supported options are:
+ * @param id {String}
+ * @param options {Object} supported options are:
+ * @param [options.csPeriod] {Number} the number of milliseconds to set the cross section to
+ * @param [options.rows] {Number} the approximate number of output rows
+ * @param [options.startTime] {Number} output rows whose timestamp is equal to or greater than this time
+ * @param [options.endTime] {Number} output rows whose timestamp is equal to or less than this time
+ * @param [options.properties] {Object} Specify if you want properties of the panel.
+ * @param [options.panel] {Object} Specify if you want panel output.
+ * @param [options.statistics] {Object} an object. Specify if you want panel summary statistics.
  *
- *  csPeriod: the number of milliseconds to set the cross section to
- *  rows: the approximate number of output rows
- *  startTime: output rows whose timestamp is equal to or greater than this time
- *  endTime: output rows whose timestamp is equal to or less than this time
- *  properties: an object. Specify if you want properties of the panel.
- *  panel: an object. Specify if you want panel output.
- *  statistics: an object. Specify if you want panel summary statistics.
- *
- * @param callback {function} (err, result) result is a JSON object.
+ * @param callback {Function} (err, result) result is a JSON object.
  */
 exports.readPanelJSON = function (id, options, callback) {
     // Check parameters
@@ -282,7 +289,7 @@ exports.readPanelJSON = function (id, options, callback) {
                 try {
                     output = JSON.parse(stdout);
                 } catch (e) {
-                    console.log('readPanelJSON parsing error: ' + e);
+                    server.log(['error'], 'readPanelJSON parsing error: ' + e);
                 }
                 callback(null, output);
             }
@@ -411,13 +418,12 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
             timeout: 1200000 /* timeout in milliseconds */
         }, function (err, stdout, stderr) {
             if (err) {
-                console.log(err);
-                console.log(stderr);
+                server.log(['warning'], 'Rscript error: ' + err + ', stderr: ' + stderr);
                 doneCallback(err);
             } else {
                 var resultLines = stdout.trim().split('\n');
                 if (resultLines.length !== eventFinderCommands.length - 1) {
-                    console.log(Boom.badImplementation('Incorrect number of result lines on stdout', stdout));
+                    server.log(['error'], Boom.badImplementation('Incorrect number of result lines on stdout', stdout));
                 } else {
 
                     var eventList =
@@ -442,18 +448,18 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
                             .value();
 
                     var rscriptStopTime = new Date().getTime();
-                    console.log('Rscript execution time: ' + ( (rscriptStopTime - functionStartTime) / 1000));
+                    server.log(['debug'], 'Rscript execution time: ' + ( (rscriptStopTime - functionStartTime) / 1000));
 
                     async.mapLimit(eventList, maximumEventsCreatedInParallel,
-                        exports.resources.event.create,
+                        resources.event.create,
                         function (err, results) {
                             if (err) {
                                 doneCallback(err);
                             } else {
-                                console.log('Made ' + results.length + ' events');
+                                server.log(['debug'], 'Made ' + results.length + ' events');
                                 var functionEndTime = new Date().getTime();
-                                console.log('Event creation execution time: ' + ( (functionEndTime - rscriptStopTime) / 1000));
-                                console.log('Total execution time: ' + ( (functionEndTime - functionStartTime) / 1000));
+                                server.log(['debug'], 'Event creation execution time: ' + ( (functionEndTime - rscriptStopTime) / 1000));
+                                server.log(['debug'], 'Total execution time: ' + ( (functionEndTime - functionStartTime) / 1000));
                                 doneCallback(null, results);
                             }
                         });

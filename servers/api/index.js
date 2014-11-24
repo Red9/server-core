@@ -30,9 +30,9 @@ exports.init = function (testing, doneCallback) {
     });
 
 
-    resources.init(function (err) {
+    resources.init(server, function (err) {
         if (err) {
-            console.log('Resources error: ' + err);
+            server.log(['error'], 'Resources error: ' + err);
             process.exit(1);
         }
 
@@ -113,7 +113,7 @@ exports.init = function (testing, doneCallback) {
 if (!module.parent) {
     exports.init(false, function (err) {
         if (err) {
-            console.log(err);
+            console.log('Unknown error: ' + err);
             process.exit(1);
         }
     });

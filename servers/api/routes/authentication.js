@@ -3,20 +3,15 @@
 var Boom = require('boom');
 var nconf = require('nconf');
 var _ = require('underscore')._;
+
+
 /**
- *
- * @param providedUser with keys:
- *
- * email
- * givenName
- * familyName
- * displayName
- *
- *
- *
- * @param callback {err, validUserObject}
+ * @param request {Object}
+ * @param resources {Object}
+ * @param providedUser {Object} with keys that match the user resource. At a minimum, it should have email.
+ * @param callback {Function} (err, validUserObject)
  */
-function checkUserAuthentication(resources, providedUser, callback) {
+function checkUserAuthentication(request, resources, providedUser, callback) {
     var user;
     resources.user.find({email: providedUser.email}, {},
         function (user_) {
@@ -24,9 +19,9 @@ function checkUserAuthentication(resources, providedUser, callback) {
         },
         function (err) {
             if (err) {
-                console.log('Error in user login: ' + err);
-            }
-            if (typeof user === 'undefined') {
+                request.log(['error'], 'Error in user login: ' + err);
+                callback(err);
+            } else if (typeof user === 'undefined') {
                 callback(null);
             } else {
                 // Found a user.
@@ -112,7 +107,7 @@ exports.init = function (server, resources) {
                     picture: request.auth.credentials.profile.raw.picture
                 };
 
-                checkUserAuthentication(resources, normalizedUser, function (err, validUser) {
+                checkUserAuthentication(request, resources, normalizedUser, function (err, validUser) {
                     var callbackUrl = nconf.get('defaultCallbackUrl');
                     if (request.auth.credentials.query.callbackUrl) {
                         callbackUrl = decodeURIComponent(request.auth.credentials.query.callbackUrl);
