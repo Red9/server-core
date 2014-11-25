@@ -21,6 +21,14 @@ module.exports = {
     name: resourceName,
     tableName: 'video',
 
+    scopes: {
+        create: 'admin',
+        read: 'basic',
+        search: 'basic',
+        update: 'admin',
+        remove: 'admin'
+    },
+
     models: {
         model: basicModel,
         create: Joi.object({

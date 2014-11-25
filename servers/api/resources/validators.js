@@ -27,5 +27,4 @@ exports.stream = Joi.object({
 
 exports.fields = Joi.string().description('specify a CSV list of the object keys that you want returned');
 
-exports.scope = Joi.array().includes(Joi.string().valid('public', 'basic', 'admin')).description('The permission scope for this user');
-
+exports.scope = Joi.array().includes(Joi.string().valid('basic', 'trusted', 'admin')).description('The permission scope for this user');

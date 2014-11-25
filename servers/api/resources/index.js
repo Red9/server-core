@@ -52,6 +52,7 @@ function addResource(resourceDescription) {
 
     result.name = resourceDescription.name;
     result.models = resourceDescription.models;
+    result.scopes = resourceDescription.scopes;
 
     /**
      *

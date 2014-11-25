@@ -45,6 +45,18 @@ module.exports = {
     name: resourceName,
     tableName: 'dataset',
 
+    scopes: {
+        create: 'admin',
+        read: 'basic',
+        search: 'basic',
+        update: 'admin',
+        remove: 'admin',
+        collection: {
+            update: 'admin',
+            remove: 'admin'
+        }
+    },
+
     models: {
         model: basicModel,
         create: Joi.object({ /// Important: be sure to change the model in the dataset route as well.

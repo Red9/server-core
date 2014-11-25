@@ -70,7 +70,6 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
     var resultModel = models.resultModel;
     var resultModelList = Joi.array().includes(resultModel).options({className: resource.name + 'List'});
 
-
     if (routesToCreate.indexOf('search') !== -1) {
         server.route({
             method: 'GET',
@@ -143,7 +142,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 notes: 'Gets all ' + resource.name + 's that matches the parameters',
                 tags: ['api'],
                 auth: {
-                    scope: ['basic', 'admin']
+                    scope: resource.scopes.search
                 }
                 //response: {schema: resultModelList}
             }
@@ -197,8 +196,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     failAction: 'log'
                 },
                 auth: {
-                    mode: 'try',
-                    scope: ['public', 'basic', 'admin']
+                    scope: resource.scopes.read
                 }
             }
         });
@@ -225,7 +223,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 notes: 'Create new ' + resource.name,
                 tags: ['api'],
                 auth: {
-                    scope: ['admin']
+                    scope: resource.scopes.create
                 }
             }
         });
@@ -253,7 +251,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 notes: 'Update one or more fields of a single ' + resource.name,
                 tags: ['api'],
                 auth: {
-                    scope: ['admin']
+                    scope: resource.scopes.update
                 }
             }
         });
@@ -282,7 +280,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     notes: 'Add items to collection ' + key + ' on ' + resource.name,
                     tags: ['api'],
                     auth: {
-                        scope: ['admin']
+                        scope: resource.scopes.collection.update
                     }
                 }
             });
@@ -304,7 +302,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     notes: 'Remove items from collection ' + key + ' on ' + resource.name + '. Note the method is PATCH.',
                     tags: ['api'],
                     auth: {
-                        scope: ['admin']
+                        scope: resource.scopes.collection.remove
                     }
                 }
             });
@@ -334,7 +332,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 notes: 'Delete a single ' + resource.name,
                 tags: ['api'],
                 auth: {
-                    scope: ['admin']
+                    scope: resource.scopes.remove
                 }
             }
         });

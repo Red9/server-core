@@ -122,8 +122,7 @@ exports.init = function (server) {
             notes: 'A list of predefined event types. This route is not stable, and will change in the future.',
             tags: ['api'],
             auth: {
-                mode: 'try',
-                scope: ['public', 'basic', 'admin']
+                scope: 'public'
             }
         }
     });

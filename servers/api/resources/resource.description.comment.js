@@ -30,6 +30,13 @@ var resources; // Dynamically filled with links to the other resources.
 module.exports = {
     name: resourceName,
     tableName: 'comment',
+    scopes: {
+        create: 'trusted',
+        read: 'basic',
+        search: 'basic',
+        update: 'admin',
+        remove: 'admin'
+    },
 
     models: {
         model: basicModel,

@@ -35,6 +35,13 @@ var resources; // Dynamically filled with links to the other resources.
 module.exports = {
     name: resourceName,
     tableName: 'event',
+    scopes: {
+        create: 'admin',
+        read: 'basic',
+        search: 'basic',
+        update: 'admin',
+        remove: 'admin'
+    },
 
     models: {
         model: basicModel,

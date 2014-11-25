@@ -7,7 +7,7 @@
     "test": "grunt"
   },
   "dependencies": {
-    "hapi": "latest",
+    "hapi": "7.x.x",
     "good": "latest",
     "good-console": "latest",
     "good-file": "latest",
@@ -20,7 +20,8 @@
     "nconf": "latest",
     "async": "latest",
     "markdown": "latest",
-    "cassandra-driver": "latest"
+    "cassandra-driver": "latest",
+    "hoek": "latest"
   },
   "devDependencies": {
     "grunt": "latest",

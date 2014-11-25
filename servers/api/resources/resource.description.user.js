@@ -30,6 +30,18 @@ module.exports = {
     name: resourceName,
     tableName: 'user',
 
+    scopes: {
+        create: 'admin',
+        read: 'basic',
+        search: 'trusted',
+        update: 'admin',
+        remove: 'admin',
+        collection: {
+            update: 'admin',
+            remove: 'admin'
+        }
+    },
+
     models: {
         model: basicModel,
         create: Joi.object({
