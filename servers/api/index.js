@@ -39,7 +39,6 @@ exports.init = function (testing, doneCallback) {
         var plugins = [
             require('bell'),
             require('hapi-auth-cookie'),
-            require('hapi-auth-bearer-token'),
             {
                 plugin: require('good'),
                 options: {
