@@ -70,7 +70,6 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
     var resultModel = models.resultModel;
     var resultModelList = Joi.array().includes(resultModel).options({className: resource.name + 'List'});
 
-
     if (routesToCreate.indexOf('search') !== -1) {
         server.route({
             method: 'GET',
@@ -141,7 +140,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Get ' + resource.name + 's',
                 notes: 'Gets all ' + resource.name + 's that matches the parameters',
-                tags: ['api']
+                tags: ['api'],
+                auth: {
+                    scope: resource.scopes.search
+                }
                 //response: {schema: resultModelList}
             }
         });
@@ -192,6 +194,9 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     schema: resultModel,
                     sample: 1,
                     failAction: 'log'
+                },
+                auth: {
+                    scope: resource.scopes.read
                 }
             }
         });
@@ -216,7 +221,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Create new ' + resource.name,
                 notes: 'Create new ' + resource.name,
-                tags: ['api']
+                tags: ['api'],
+                auth: {
+                    scope: resource.scopes.create
+                }
             }
         });
     }
@@ -241,7 +249,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Update ' + resource.name,
                 notes: 'Update one or more fields of a single ' + resource.name,
-                tags: ['api']
+                tags: ['api'],
+                auth: {
+                    scope: resource.scopes.update
+                }
             }
         });
     }
@@ -267,7 +278,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     },
                     description: 'Add ' + resource.name + ' ' + key,
                     notes: 'Add items to collection ' + key + ' on ' + resource.name,
-                    tags: ['api']
+                    tags: ['api'],
+                    auth: {
+                        scope: resource.scopes.collection.update
+                    }
                 }
             });
 
@@ -286,7 +300,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     },
                     description: 'Remove ' + resource.name + ' ' + key,
                     notes: 'Remove items from collection ' + key + ' on ' + resource.name + '. Note the method is PATCH.',
-                    tags: ['api']
+                    tags: ['api'],
+                    auth: {
+                        scope: resource.scopes.collection.remove
+                    }
                 }
             });
 
@@ -313,7 +330,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Delete ' + resource.name,
                 notes: 'Delete a single ' + resource.name,
-                tags: ['api']
+                tags: ['api'],
+                auth: {
+                    scope: resource.scopes.remove
+                }
             }
         });
     }

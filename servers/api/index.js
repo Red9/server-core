@@ -39,6 +39,7 @@ exports.init = function (testing, doneCallback) {
         var plugins = [
             require('bell'),
             require('hapi-auth-cookie'),
+            require('hapi-auth-bearer-token'),
             {
                 plugin: require('good'),
                 options: {
@@ -88,8 +89,8 @@ exports.init = function (testing, doneCallback) {
                 require('./routes/authentication').init(server, resources); // Needs to be first
             }
 
-            routeTemplate.createCRUDRoutes(server, resources.user);
             routeTemplate.createCRUDRoutes(server, resources.event);
+            routeTemplate.createCRUDRoutes(server, resources.user);
             routeTemplate.createCRUDRoutes(server, resources.comment);
             routeTemplate.createCRUDRoutes(server, resources.video);
             routeTemplate.createCRUDRoutes(server, resources.layout);

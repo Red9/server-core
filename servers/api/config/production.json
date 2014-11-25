@@ -19,6 +19,6 @@
     "processorPath": "/home/ubuntu/server-core/rnctools/build/rncprocessor",
     "correctPath": "/home/ubuntu/server-core/rnctools/build/correctrnc"
   },
-  "eventFinderPath": "/home/clewis/consulting/red9/server-core/eventfinder",
+  "eventFinderPath": "/home/ubuntu/server-core/eventfinder",
   "eventFinderMainFile": "main.r"
 }

@@ -61,10 +61,12 @@ CREATE TABLE user (
     gender text,
     create_time timestamp,
     affiliations set<text>,
-    characteristics set<text>
+    characteristics set<text>,
+    scope set<text>
 );
 CREATE INDEX user_email ON user(email);
 CREATE INDEX user_display_name ON user(display_name);
+CREATE INDEX user_scope ON user(scope);
 
 CREATE TABLE layout (
     id uuid PRIMARY KEY,

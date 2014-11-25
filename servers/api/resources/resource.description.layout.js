@@ -19,6 +19,14 @@ module.exports = {
     name: resourceName,
     tableName: 'layout',
 
+    scopes: {
+        create: 'admin',
+        read: 'basic',
+        search: 'basic',
+        update: 'admin',
+        remove: 'admin'
+    },
+
     models: {
         model: basicModel,
         create: Joi.object({
@@ -90,7 +98,7 @@ module.exports = {
     checkResource: function (layout, callback) {
         callback(null, layout);
     },
-    expand: function(parameters, layout, callback){
+    expand: function (parameters, layout, callback) {
         callback(null, layout);
     }
 };
