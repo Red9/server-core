@@ -46,20 +46,15 @@ exports.init = function (server, resources) {
         domain: nconf.get('authorizationCookieDomain'),
         validateFunc: function (session, callback) {
             // TODO: Check cassandra here for valid session (as opposed to just a valid user)
-            var user;
-            resources.user.find({id: session.id}, {},
-                function (user_) {
-                    user = user_;
-                },
-                function (err, rowCount) {
-                    if (err) {
-                        callback(err, false);
-                    } else if (rowCount !== 1) {
-                        callback(null, false);
-                    } else {
-                        callback(null, true, user);
-                    }
-                });
+            resources.user.findById(session.id, function (err, user) {
+                if (err) {
+                    callback(err, false);
+                } else if (!user) {
+                    callback(null, false);
+                } else {
+                    callback(null, true, user);
+                }
+            });
         }
     });
 

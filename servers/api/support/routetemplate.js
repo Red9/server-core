@@ -141,7 +141,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Get ' + resource.name + 's',
                 notes: 'Gets all ' + resource.name + 's that matches the parameters',
-                tags: ['api']
+                tags: ['api'],
+                auth: {
+                    scope: ['basic', 'admin']
+                }
                 //response: {schema: resultModelList}
             }
         });
@@ -192,6 +195,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     schema: resultModel,
                     sample: 1,
                     failAction: 'log'
+                },
+                auth: {
+                    mode: 'try',
+                    scope: ['public', 'basic', 'admin']
                 }
             }
         });
@@ -216,7 +223,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Create new ' + resource.name,
                 notes: 'Create new ' + resource.name,
-                tags: ['api']
+                tags: ['api'],
+                auth: {
+                    scope: ['admin']
+                }
             }
         });
     }
@@ -241,7 +251,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Update ' + resource.name,
                 notes: 'Update one or more fields of a single ' + resource.name,
-                tags: ['api']
+                tags: ['api'],
+                auth: {
+                    scope: ['admin']
+                }
             }
         });
     }
@@ -267,7 +280,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     },
                     description: 'Add ' + resource.name + ' ' + key,
                     notes: 'Add items to collection ' + key + ' on ' + resource.name,
-                    tags: ['api']
+                    tags: ['api'],
+                    auth: {
+                        scope: ['admin']
+                    }
                 }
             });
 
@@ -286,7 +302,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                     },
                     description: 'Remove ' + resource.name + ' ' + key,
                     notes: 'Remove items from collection ' + key + ' on ' + resource.name + '. Note the method is PATCH.',
-                    tags: ['api']
+                    tags: ['api'],
+                    auth: {
+                        scope: ['admin']
+                    }
                 }
             });
 
@@ -313,7 +332,10 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 description: 'Delete ' + resource.name,
                 notes: 'Delete a single ' + resource.name,
-                tags: ['api']
+                tags: ['api'],
+                auth: {
+                    scope: ['admin']
+                }
             }
         });
     }

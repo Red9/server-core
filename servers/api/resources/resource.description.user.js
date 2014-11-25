@@ -18,7 +18,8 @@ var basicModel = {
     picture: Joi.string().description('link to a profile picture. Set from Google.'),
     gender: Joi.string().valid('male', 'female', 'other').description('gender. Set from Google.'),
     affiliations: Joi.array().includes(Joi.string()).description('organization affiliations of this user'),
-    characteristics: Joi.array().includes(Joi.string()).description('user self-defined characteristics')
+    characteristics: Joi.array().includes(Joi.string()).description('user self-defined characteristics'),
+    scope: validators.scope
 };
 
 var resourceName = 'user';
@@ -36,14 +37,16 @@ module.exports = {
             displayName: basicModel.displayName,
             preferredLayout: basicModel.preferredLayout,
             affiliations: basicModel.affiliations,
-            characteristics: basicModel.characteristics
+            characteristics: basicModel.characteristics,
+            scope: basicModel.scope
         }).options({className: resourceName + '.create'}),
         update: Joi.object({
             //email: basicModel.email, // Can't update email, since that's a "primary key"
             displayName: basicModel.displayName,
             preferredLayout: basicModel.preferredLayout,
             affiliations: basicModel.affiliations,
-            characteristics: basicModel.characteristics
+            characteristics: basicModel.characteristics,
+            scope: basicModel.scope
         }).options({className: resourceName + '.update'}),
         resultModel: Joi.object({
             id: basicModel.id.required(),
@@ -56,13 +59,15 @@ module.exports = {
             gender: basicModel.gender.required(),
             createTime: basicModel.createTime.required(),
             affiliations: basicModel.affiliations.required(),
-            characteristics: basicModel.characteristics.required()
+            characteristics: basicModel.characteristics.required(),
+            scope: basicModel.scope.required()
         }).options({className: resourceName}),
         search: {
             id: validators.idCSV,
             idList: validators.idCSV,
             email: basicModel.email,
-            displayName: basicModel.displayName
+            displayName: basicModel.displayName,
+            scope: validators.multiArray(basicModel.scope)
         }
     },
 
@@ -131,6 +136,12 @@ module.exports = {
             cassandraKey: 'characteristics',
             cassandraType: 'set<text>',
             jsKey: 'characteristics',
+            jsType: 'array'
+        },
+        {
+            cassandraKey: 'scope',
+            cassandraType: 'set<text>',
+            jsKey: 'scope',
             jsType: 'array'
         }
     ],

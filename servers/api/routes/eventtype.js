@@ -120,7 +120,11 @@ exports.init = function (server) {
             },
             description: 'Get predefined event types',
             notes: 'A list of predefined event types. This route is not stable, and will change in the future.',
-            tags: ['api']
+            tags: ['api'],
+            auth: {
+                mode: 'try',
+                scope: ['public', 'basic', 'admin']
+            }
         }
     });
 };

@@ -54,7 +54,10 @@ exports.init = function (server, resource) {
             },
             description: 'Create new dataset',
             notes: 'Upload an RNC and generate a new dataset.',
-            tags: ['api']
+            tags: ['api'],
+            auth: {
+                scope: ['admin']
+            }
         }
     });
 
@@ -101,7 +104,10 @@ exports.init = function (server, resource) {
             },
             description: 'Get CSV panel',
             notes: 'Request a "raw" CSV panel. Note that transfer sizes can be very large (thousands of rows, in the MB)',
-            tags: ['api']
+            tags: ['api'],
+            auth: {
+                scope: ['basic', 'admin']
+            }
         }
     });
 
@@ -195,7 +201,11 @@ exports.init = function (server, resource) {
             },
             description: 'Get JSON panel',
             notes: 'Request a "processed" JSON panel. You can specify multiple algorithms to run, and each will be added under their own key. Note that if your frequency is too low then the result panel can be very large.',
-            tags: ['api']
+            tags: ['api'],
+            auth: {
+                mode: 'try',
+                scope: ['public', 'basic', 'admin']
+            }
         }
     });
 
@@ -230,7 +240,10 @@ exports.init = function (server, resource) {
             },
             description: 'Red9 Event Finding Algorithm',
             notes: 'Run Red9 event finding algorithms on the given dataset. Since this operation typically takes quite a while (up to 500 seconds), this route gives a reply after some basic checks (panel exists, etc.) but before prcoessing has finished.',
-            tags: ['api']
+            tags: ['api'],
+            auth: {
+                scope: ['admin']
+            }
         }
     });
 };
