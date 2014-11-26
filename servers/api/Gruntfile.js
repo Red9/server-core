@@ -21,7 +21,7 @@ module.exports = function (grunt) {
         },
         shell: {
             prepareCassandra: {
-                command: 'cat ../../scripts/cassandra/create_database_test.cql ../../scripts/cassandra/create_database_common.cql | cqlsh -u cassandra -p cassandra'
+                command: 'cat ../../scripts/cassandra/create_database_test.cql ../../scripts/cassandra/create_database_common.cql ../../scripts/cassandra/test_additional.cql | cqlsh -u cassandra -p cassandra'
             },
             cleanupCassandra: {
                 command: 'cat ../../scripts/cassandra/drop_database_test.cql | cqlsh -u cassandra -p cassandra'

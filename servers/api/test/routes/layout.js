@@ -13,6 +13,8 @@ var expect = Code.expect;
 var requirePath = '../../index';
 var sut = require(requirePath);
 
+var utilities = require('../utilities');
+
 describe('layout resource', function () {
     var server;
     before(function (done) {
@@ -37,7 +39,8 @@ describe('layout resource', function () {
         server.inject({
             method: 'POST',
             url: '/layout/',
-            payload: newLayout
+            payload: newLayout,
+            credentials: utilities.credentials.admin
         }, function (response) {
 
             expect(response.result).to.deep.include(newLayout);
@@ -51,7 +54,8 @@ describe('layout resource', function () {
     it('can get a layout', function (done) {
         server.inject({
             method: 'GET',
-            url: '/layout/?idList=' + createdLayout.id
+            url: '/layout/?idList=' + createdLayout.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.be.array().and.to.have.length(1).and.to.deep.include(createdLayout);
@@ -62,7 +66,8 @@ describe('layout resource', function () {
     it('can get a specific layout', function (done) {
         server.inject({
             method: 'GET',
-            url: '/layout/' + createdLayout.id
+            url: '/layout/' + createdLayout.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.be.deep.equal(createdLayout);
@@ -73,7 +78,8 @@ describe('layout resource', function () {
     it('does not get non-existent layouts', function (done) {
         server.inject({
             method: 'GET',
-            url: '/layout/c853692c-7a3c-40f9-a05f-d0a01acab43b'
+            url: '/layout/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
             expect(response.statusCode).to.be.equal(404);
@@ -87,7 +93,8 @@ describe('layout resource', function () {
             url: '/layout/' + createdLayout.id,
             payload: {
                 title: 'ABC'
-            }
+            },
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result.title).to.equal('ABC');
             done();
@@ -97,7 +104,8 @@ describe('layout resource', function () {
     it('can delete a layout', function (done) {
         server.inject({
             method: 'DELETE',
-            url: '/layout/' + createdLayout.id
+            url: '/layout/' + createdLayout.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             done();

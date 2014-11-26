@@ -46,7 +46,8 @@ describe('video resource basics', function () {
         server.inject({
             method: 'POST',
             url: '/video/',
-            payload: newVideo
+            payload: newVideo,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.deep.include(newVideo);
             expect(response.result.id).to.exist();
@@ -59,7 +60,8 @@ describe('video resource basics', function () {
     it('can get a video', function (done) {
         server.inject({
             method: 'GET',
-            url: '/video/?idList=' + createdVideo.id
+            url: '/video/?idList=' + createdVideo.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.be.array();
@@ -72,7 +74,8 @@ describe('video resource basics', function () {
     it('can get a specific video', function (done) {
         server.inject({
             method: 'GET',
-            url: '/video/' + createdVideo.id
+            url: '/video/' + createdVideo.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.deep.include(createdVideo);
             done();
@@ -82,7 +85,8 @@ describe('video resource basics', function () {
     it('does not get non-existent videos', function (done) {
         server.inject({
             method: 'GET',
-            url: '/video/c853692c-7a3c-40f9-a05f-d0a01acab43b'
+            url: '/video/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
             expect(response.statusCode).to.be.equal(404);
@@ -120,7 +124,8 @@ describe('video resource basics', function () {
                 server.inject({
                     method: 'POST',
                     url: '/video/',
-                    payload: newVideo
+                    payload: newVideo,
+                    credentials: utilities.credentials.admin
                 }, function (response) {
                     expect(response.statusCode).to.equal(400);
                     callback();
@@ -140,7 +145,8 @@ describe('video resource basics', function () {
             url: '/video/' + createdVideo.id,
             payload: {
                 hostId: 'DEF'
-            }
+            },
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result.hostId).to.equal('DEF');
             done();
@@ -150,7 +156,8 @@ describe('video resource basics', function () {
     it('can delete videos', function (done) {
         server.inject({
             method: 'DELETE',
-            url: '/video/' + createdVideo.id
+            url: '/video/' + createdVideo.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             done();

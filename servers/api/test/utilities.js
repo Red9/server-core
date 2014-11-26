@@ -9,6 +9,26 @@ var streamToPromise = require('stream-to-promise');
 
 var rncName = 'data_a.RNC';
 
+var credentials = {
+    admin: {
+        id: '69d6fe95-823d-44b8-bd17-b8850772956e',
+        email: 'admin@test.com',
+        scope: ['basic', 'trusted', 'admin']
+    },
+    trusted: {
+        id: '7851f7e7-2828-4332-a755-056c42e18e3a',
+        email: 'trusted@test.com',
+        scope: ['basic', 'trusted']
+    },
+    basic: {
+        id: '980f5258-1774-4d5e-bfdb-9c868e571eab',
+        email: 'basic@test.com',
+        socpe: ['basic']
+    }
+
+};
+exports.credentials = credentials;
+
 
 exports.createDataset = function (server, userId, doneCallback) {
     var rncStream = fs.createReadStream(path.join(nconf.get('testDataPath'), rncName));
@@ -22,11 +42,13 @@ exports.createDataset = function (server, userId, doneCallback) {
             method: 'POST',
             url: '/dataset/',
             payload: payload,
-            headers: form.getHeaders()
+            headers: form.getHeaders(),
+            credentials: credentials.admin
         }, function (response) {
             server.inject({
                 method: 'GET',
-                url: '/dataset/' + response.result.id
+                url: '/dataset/' + response.result.id,
+                credentials: credentials.admin
             }, function (response2) {
                 doneCallback(null, response2.result);
             });
@@ -45,11 +67,13 @@ function createResource(server, resourceURL, newResource, callback) {
     server.inject({
         method: 'POST',
         url: resourceURL,
-        payload: newResource
+        payload: newResource,
+        credentials: credentials.admin
     }, function (response) {
         server.inject({
             method: 'GET',
-            url: resourceURL + response.result.id
+            url: resourceURL + response.result.id,
+            credentials: credentials.admin
         }, function (response2) {
             callback(null, response2.result);
         });

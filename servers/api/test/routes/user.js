@@ -34,7 +34,8 @@ describe('user resource basics', function () {
         server.inject({
             method: 'POST',
             url: '/user/',
-            payload: newUser
+            payload: newUser,
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.deep.include(newUser);
@@ -49,7 +50,8 @@ describe('user resource basics', function () {
     it('can get a user', function (done) {
         server.inject({
             method: 'GET',
-            url: '/user/?idList=' + createdUser.id
+            url: '/user/?idList=' + createdUser.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.be.array();
@@ -62,7 +64,8 @@ describe('user resource basics', function () {
     it('can get a specific user', function (done) {
         server.inject({
             method: 'GET',
-            url: '/user/' + createdUser.id
+            url: '/user/' + createdUser.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.deep.include(createdUser);
@@ -73,7 +76,8 @@ describe('user resource basics', function () {
     it('does not get non-existent users', function (done) {
         server.inject({
             method: 'GET',
-            url: '/user/c853692c-7a3c-40f9-a05f-d0a01acab43b'
+            url: '/user/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.include('statusCode');
@@ -88,7 +92,8 @@ describe('user resource basics', function () {
             url: '/user/' + createdUser.id,
             payload: {
                 displayName: 'Jon'
-            }
+            },
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result.displayName).to.equal('Jon');
             done();
@@ -98,7 +103,8 @@ describe('user resource basics', function () {
     it('can delete users', function (done) {
         server.inject({
             method: 'DELETE',
-            url: '/user/' + createdUser.id
+            url: '/user/' + createdUser.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             done();
@@ -123,14 +129,16 @@ describe('user detailed tests', function () {
         server.inject({
             method: 'POST',
             url: '/user/',
-            payload: newUser
+            payload: newUser,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
 
             server.inject({
                 method: 'POST',
                 url: '/user/',
-                payload: newUser
+                payload: newUser,
+                credentials: utilities.credentials.admin
             }, function (response2) {
                 expect(response2.statusCode).to.equal(400);
                 done();

@@ -66,7 +66,8 @@ describe('dataset resource basics', function () {
                 method: 'POST',
                 url: '/dataset/',
                 payload: payload,
-                headers: form.getHeaders()
+                headers: form.getHeaders(),
+                credentials: utilities.credentials.admin
             }, function (response) {
                 expect(response.result.id).to.exist();
                 expect(response.result.createTime).to.exist();
@@ -113,7 +114,8 @@ describe('dataset resource basics', function () {
                 method: 'POST',
                 url: '/dataset/',
                 payload: payload,
-                headers: form.getHeaders()
+                headers: form.getHeaders(),
+                credentials: utilities.credentials.admin
             }, function (response) {
                 expect(response.statusCode).to.equal(400);
                 done();
@@ -125,7 +127,8 @@ describe('dataset resource basics', function () {
     it('can get a dataset', function (done) {
         server.inject({
             method: 'GET',
-            url: '/dataset/?idList=' + createdDataset.id
+            url: '/dataset/?idList=' + createdDataset.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.be.array();
@@ -138,7 +141,8 @@ describe('dataset resource basics', function () {
     it('can get a specific dataset', function (done) {
         server.inject({
             method: 'GET',
-            url: '/dataset/' + createdDataset.id
+            url: '/dataset/' + createdDataset.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include(Object.keys(createdDataset));
             done();
@@ -148,7 +152,8 @@ describe('dataset resource basics', function () {
     it('does not get non-existent datasets', function (done) {
         server.inject({
             method: 'GET',
-            url: '/dataset/c853692c-7a3c-40f9-a05f-d0a01acab43b'
+            url: '/dataset/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
             expect(response.statusCode).to.be.equal(404);
@@ -168,7 +173,8 @@ describe('dataset resource basics', function () {
                 method: 'POST',
                 url: '/dataset/',
                 payload: payload,
-                headers: form.getHeaders()
+                headers: form.getHeaders(),
+                credentials: utilities.credentials.admin
             }, function (response) {
                 expect(response.statusCode).to.equal(400);
                 done();
@@ -179,7 +185,8 @@ describe('dataset resource basics', function () {
     it('can expand properly', function (done) {
         server.inject({
             method: 'GET',
-            url: '/dataset/' + createdDataset.id + '?expand=owner&expand=event&expand=video&expand=comment&expand=count'
+            url: '/dataset/' + createdDataset.id + '?expand=owner&expand=event&expand=video&expand=comment&expand=count',
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include(Object.keys(createdDataset));
             expect(response.result.owner).to.deep.include(createdUser);
@@ -201,7 +208,8 @@ describe('dataset resource basics', function () {
             url: '/dataset/' + createdDataset.id + '/tags',
             payload: {
                 tags: ['hello']
-            }
+            },
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             done();
@@ -214,7 +222,8 @@ describe('dataset resource basics', function () {
             url: '/dataset/' + createdDataset.id + '/tags',
             payload: {
                 tags: ['hello']
-            }
+            },
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             done();
@@ -231,7 +240,8 @@ describe('dataset resource basics', function () {
             function (callback) {
                 server.inject({
                     method: 'GET',
-                    url: '/dataset/' + createdDataset.id + '?fields=id,createTime'
+                    url: '/dataset/' + createdDataset.id + '?fields=id,createTime',
+                    credentials: utilities.credentials.admin
                 }, function (response) {
                     expect(response.result).to.only.include(['id', 'createTime']);
                     callback();
@@ -241,7 +251,8 @@ describe('dataset resource basics', function () {
             function (callback) {
                 server.inject({
                     method: 'GET',
-                    url: '/dataset/?idList=' + createdDataset.id + '&fields=id,createTime'
+                    url: '/dataset/?idList=' + createdDataset.id + '&fields=id,createTime',
+                    credentials: utilities.credentials.admin
                 }, function (response) {
                     var payload = JSON.parse(response.payload);
                     expect(payload[0]).to.only.include(['id', 'createTime']);
@@ -252,7 +263,8 @@ describe('dataset resource basics', function () {
             function (callback) {
                 server.inject({
                     method: 'GET',
-                    url: '/dataset/?idList=' + createdDataset.id + '&fields=id,createTime,boundingCircle(latitude,longitude)'
+                    url: '/dataset/?idList=' + createdDataset.id + '&fields=id,createTime,boundingCircle(latitude,longitude)',
+                    credentials: utilities.credentials.admin
                 }, function (response) {
                     var payload = JSON.parse(response.payload);
                     expect(payload[0]).to.only.include(['id', 'createTime', 'boundingCircle']);
@@ -263,7 +275,8 @@ describe('dataset resource basics', function () {
             function (callback) {
                 server.inject({
                     method: 'GET',
-                    url: '/dataset/?idList=' + createdDataset.id + '&fields=*'
+                    url: '/dataset/?idList=' + createdDataset.id + '&fields=*',
+                    credentials: utilities.credentials.admin
                 }, function (response) {
                     var payload = JSON.parse(response.payload);
                     expect(payload[0]).to.include(Object.keys(createdDataset));
@@ -289,7 +302,8 @@ describe('dataset resource basics', function () {
     it('can read panel CSV with no special options', function (done) {
         server.inject({
             method: 'GET',
-            url: '/dataset/' + createdDataset.id + '/csv'
+            url: '/dataset/' + createdDataset.id + '/csv',
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             expect(_.isString(response.result)).to.be.true();
@@ -304,7 +318,8 @@ describe('dataset resource basics', function () {
             url: '/dataset/' + createdDataset.id
             + '/csv?csPeriod=1000&axes=' + axes.join(',')
             + '&startTime=' + (createdDataset.startTime + 1500)
-            + '&endTime=' + (createdDataset.endTime - 1500)
+            + '&endTime=' + (createdDataset.endTime - 1500),
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             expect(_.isString(response.result)).to.be.true();
@@ -337,7 +352,8 @@ describe('dataset resource basics', function () {
             url: '/dataset/' + createdDataset.id,
             payload: {
                 title: 'chances'
-            }
+            },
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result.title).to.equal('chances');
             done();
@@ -348,7 +364,8 @@ describe('dataset resource basics', function () {
 
         server.inject({
             method: 'DELETE',
-            url: '/dataset/' + createdDataset.id
+            url: '/dataset/' + createdDataset.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
 
@@ -360,7 +377,8 @@ describe('dataset resource basics', function () {
                 ], function (url, callback) {
                     server.inject({
                         method: 'GET',
-                        url: url
+                        url: url,
+                        credentials: utilities.credentials.admin
                     }, function (response) {
                         expect(response.statusCode).to.equal(404);
                         callback(null);

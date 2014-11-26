@@ -48,7 +48,8 @@ describe('event resource basics', function () {
         server.inject({
             method: 'POST',
             url: '/event/',
-            payload: newEvent
+            payload: newEvent,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.deep.include(newEvent);
             expect(response.result.id).to.exist();
@@ -61,7 +62,8 @@ describe('event resource basics', function () {
     it('can get a event', function (done) {
         server.inject({
             method: 'GET',
-            url: '/event/?idList=' + createdEvent.id
+            url: '/event/?idList=' + createdEvent.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.be.array();
@@ -74,7 +76,8 @@ describe('event resource basics', function () {
     it('can get a specific event', function (done) {
         server.inject({
             method: 'GET',
-            url: '/event/' + createdEvent.id
+            url: '/event/' + createdEvent.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include(Object.keys(createdEvent));
             expect(response.result).to.include('duration');
@@ -85,7 +88,8 @@ describe('event resource basics', function () {
     it('does not get non-existent events', function (done) {
         server.inject({
             method: 'GET',
-            url: '/event/c853692c-7a3c-40f9-a05f-d0a01acab43b'
+            url: '/event/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
             expect(response.statusCode).to.be.equal(404);
@@ -143,7 +147,8 @@ describe('event resource basics', function () {
                 server.inject({
                     method: 'POST',
                     url: '/event/',
-                    payload: newEvent
+                    payload: newEvent,
+                    credentials: utilities.credentials.admin
                 }, function (response) {
                     expect(response.statusCode).to.equal(400);
                     callback();
@@ -163,7 +168,8 @@ describe('event resource basics', function () {
             url: '/event/' + createdEvent.id,
             payload: {
                 type: 'chances'
-            }
+            },
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result.type).to.equal('chances');
             done();
@@ -173,7 +179,8 @@ describe('event resource basics', function () {
     it('can delete events', function (done) {
         server.inject({
             method: 'DELETE',
-            url: '/event/' + createdEvent.id
+            url: '/event/' + createdEvent.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             done();
