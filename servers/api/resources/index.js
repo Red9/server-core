@@ -15,6 +15,7 @@ var retryDelay = 250;
 var _ = require('underscore')._;
 var Boom = require('boom');
 var async = require('async');
+var nconf = require('nconf');
 
 var crud = require('./resource.crud.js');
 var collection = require('./resource.common.collection.set.js');
@@ -39,6 +40,14 @@ var server; // Populated on init.
 exports.init = function (server_, callback) {
     server = server_;
     panel.setServer(server);
+
+    exports[eventDescription.name] = addResource(eventDescription);
+    exports[userDescription.name] = addResource(userDescription);
+    exports[commentDescription.name] = addResource(commentDescription);
+    exports[videoDescription.name] = addResource(videoDescription);
+    exports[layoutDescription.name] = addResource(layoutDescription);
+    exports[datasetDescription.name] = addResource(datasetDescription);
+
     require('./cassandra').init(callback);
 };
 
@@ -77,19 +86,28 @@ function addResource(resourceDescription) {
         crud.find(resourceDescription, query, options, rowCallback, doneCallback);
     };
 
+
+    function findById(id, callback) {
+        var result = null;
+        crud.find(resourceDescription, {id: id}, {},
+            function (result_) {
+                result = result_;
+            }, function (err, resultCount) {
+                callback(err, result);
+            });
+    }
+
+    server.method('resources.' + result.name + '.getById', findById, {
+        cache: nconf.get('cache:getById')
+    });
+
     /** Handy function to get a single resource of a specified type
      *
      * @param id {String}
      * @param doneCallback {Function} (err, resultResource)
      */
     result.findById = function (id, doneCallback) {
-        var result = null;
-        crud.find(resourceDescription, {id: id}, {},
-            function (result_) {
-                result = result_;
-            }, function (err, resultCount) {
-                doneCallback(err, result);
-            });
+        server.methods.resources[result.name].getById(id, doneCallback);
     };
 
 
@@ -160,14 +178,6 @@ function addResource(resourceDescription) {
     // Add to the list of resources
     return result;
 }
-
-
-exports[eventDescription.name] = addResource(eventDescription);
-exports[userDescription.name] = addResource(userDescription);
-exports[commentDescription.name] = addResource(commentDescription);
-exports[videoDescription.name] = addResource(videoDescription);
-exports[layoutDescription.name] = addResource(layoutDescription);
-exports[datasetDescription.name] = addResource(datasetDescription);
 
 exports.helpers = {};
 /** Takes care of the details of handling a panel and a dataset.
