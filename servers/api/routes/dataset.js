@@ -47,7 +47,7 @@ exports.init = function (server, resource) {
                     // dataset resource create model and the file validation
                     // together they didn't both come through. So, we have
                     // to hard code the requirements.
-                    rnc: validators.stream,
+                    rnc: validators.stream.required(),
                     title: model.title.required(),
                     ownerId: model.ownerId.required()
                 }
@@ -188,7 +188,7 @@ exports.init = function (server, resource) {
         config: {
             validate: {
                 params: {
-                    resourceType: Joi.string().valid(['dataset', 'event']).description('The resource type to get a panel for.'),
+                    resourceType: Joi.string().valid(['dataset', 'event']).required().description('The resource type to get a panel for.'),
                     id: model.id.required()
                 },
                 query: {

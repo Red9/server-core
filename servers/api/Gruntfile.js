@@ -3,7 +3,7 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         jshint: {
-            files: ['Gruntfile.js', 'index.js', 'routes/**/*.js', 'support/**/*.js', 'test/**/*.js', 'resources/**/*.js', 'panel/*.js'],
+            files: ['Gruntfile.js', 'index.js', 'routes/**/*.js', 'support/**/*.js', 'test/**/*.js', 'resources/**/*.js', 'panel/*.js', 'views/**/*.js'],
             options: {
                 // options here to override JSHint defaults
                 laxbreak: true, // don't warn about putting operators on the next line.

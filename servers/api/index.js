@@ -22,9 +22,7 @@ exports.init = function (testing, doneCallback) {
 
     var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {
         cors: {
-            origin: [
-                nconf.get('htmlOrigin')
-            ],
+            origin: nconf.get('htmlOrigin'),
             credentials: true
         }
     });
@@ -95,6 +93,7 @@ exports.init = function (testing, doneCallback) {
 
             require('./routes/dataset').init(server, resources);
             require('./routes/eventtype').init(server);
+            require('./routes/fcpxml').init(server);
 
             doneCallback(null, server);
         });

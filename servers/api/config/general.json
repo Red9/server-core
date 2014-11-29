@@ -9,7 +9,7 @@
     "xl": 5000
   },
   "cache": {
-    "getById": {
+    "findById": {
       "expiresIn": 1000
     }
   }

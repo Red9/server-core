@@ -180,7 +180,7 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             config: {
                 validate: {
                     params: {
-                        id: model.id
+                        id: model.id.required()
                     },
                     query: _.extend({}, models.resultOptions, {fields: validators.fields})
                 },
@@ -244,7 +244,9 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             },
             config: {
                 validate: {
-                    params: {id: model.id},
+                    params: {
+                        id: model.id.required()
+                    },
                     payload: models.update
                 },
                 description: 'Update ' + resource.name,
@@ -273,7 +275,9 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 config: {
                     validate: {
-                        params: {id: model.id},
+                        params: {
+                            id: model.id.required()
+                        },
                         payload: payloadValidation
                     },
                     description: 'Add ' + resource.name + ' ' + key,
@@ -295,7 +299,9 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
                 },
                 config: {
                     validate: {
-                        params: {id: model.id},
+                        params: {
+                            id: model.id.required()
+                        },
                         payload: payloadValidation
                     },
                     description: 'Remove ' + resource.name + ' ' + key,
@@ -326,7 +332,9 @@ exports.createCRUDRoutes = function (server, resource, routesToCreate) {
             },
             config: {
                 validate: {
-                    params: {id: model.id}
+                    params: {
+                        id: model.id.required()
+                    }
                 },
                 description: 'Delete ' + resource.name,
                 notes: 'Delete a single ' + resource.name,

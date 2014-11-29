@@ -87,18 +87,22 @@ function addResource(resourceDescription) {
     };
 
 
-    function findById(id, callback) {
+    function findById(id, options, callback) {
         var result = null;
-        crud.find(resourceDescription, {id: id}, {},
+        crud.find(resourceDescription, {id: id}, options,
             function (result_) {
                 result = result_;
             }, function (err, resultCount) {
-                callback(err, result);
+                if (resultCount === 0) {
+                    callback(Boom.notFound());
+                } else {
+                    callback(err, result);
+                }
             });
     }
 
-    server.method('resources.' + result.name + '.getById', findById, {
-        cache: nconf.get('cache:getById')
+    server.method('resources.' + result.name + '.findById', findById, {
+        cache: nconf.get('cache:findById')
     });
 
     /** Handy function to get a single resource of a specified type
@@ -107,8 +111,10 @@ function addResource(resourceDescription) {
      * @param doneCallback {Function} (err, resultResource)
      */
     result.findById = function (id, doneCallback) {
-        server.methods.resources[result.name].getById(id, doneCallback);
+        server.methods.resources[result.name].findById(id, {}, doneCallback);
     };
+
+    result.findByIdOptions = findById;
 
 
     /** Update a resource's fields

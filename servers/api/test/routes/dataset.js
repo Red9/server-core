@@ -294,6 +294,40 @@ describe('dataset resource basics', function () {
     });
 
 
+    // -----------------------------------------------------
+    // FCPXML stuff
+    // -----------------------------------------------------
+
+    it('fails if no dataset exists', function (done) {
+        server.inject({
+            method: 'GET',
+            url: '/dataset/c853692c-7a3c-40f9-a05f-d0a01acab43b/fcpxml'
+            + '?videoType=GoPro_720p_59.94hz'
+            + '&files=a/b/c'
+            + '&eventType=Wave'
+            + '&template=original',
+            credentials: utilities.credentials.admin
+        }, function (response) {
+            expect(response.statusCode).to.equal(404);
+            done();
+        });
+    });
+
+    it('can get a basic FCPXML file', function (done) {
+        server.inject({
+            method: 'GET',
+            url: '/dataset/' + createdDataset.id + '/fcpxml'
+            + '?videoType=GoPro_720p_59.94hz'
+            + '&files=a/b/c'
+            + '&eventType=Wave'
+            + '&template=original',
+            credentials: utilities.credentials.admin
+        }, function (response) {
+            expect(response.statusCode).to.equal(200);
+            done();
+        });
+    });
+
 
     // -----------------------------------------------------
     // Panel stuff
