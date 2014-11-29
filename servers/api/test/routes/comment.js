@@ -22,7 +22,6 @@ describe('comment resource basics', function () {
     var createdUser;
     var createdDataset;
 
-
     before(function (done) {
         sut.init(true, function (err, server_) {
             server = server_;
@@ -46,7 +45,8 @@ describe('comment resource basics', function () {
         server.inject({
             method: 'POST',
             url: '/comment/',
-            payload: newComment
+            payload: newComment,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             expect(response.result).to.deep.include(newComment);
@@ -60,7 +60,8 @@ describe('comment resource basics', function () {
     it('can get a comment', function (done) {
         server.inject({
             method: 'GET',
-            url: '/comment/?idList=' + createdComment.id
+            url: '/comment/?idList=' + createdComment.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
             expect(payload).to.be.array();
@@ -73,7 +74,8 @@ describe('comment resource basics', function () {
     it('can get a specific comment', function (done) {
         server.inject({
             method: 'GET',
-            url: '/comment/' + createdComment.id
+            url: '/comment/' + createdComment.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.deep.include(createdComment);
             expect(response.result).to.include('bodyHtml');
@@ -84,7 +86,8 @@ describe('comment resource basics', function () {
     it('does not get non-existent comments', function (done) {
         server.inject({
             method: 'GET',
-            url: '/comment/c853692c-7a3c-40f9-a05f-d0a01acab43b'
+            url: '/comment/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
             expect(response.statusCode).to.be.equal(404);
@@ -149,7 +152,8 @@ describe('comment resource basics', function () {
                 server.inject({
                     method: 'POST',
                     url: '/comment/',
-                    payload: badComments
+                    payload: badComments,
+                    credentials: utilities.credentials.admin
                 }, function (response) {
                     expect(response.statusCode).to.equal(400);
                     callback();
@@ -163,7 +167,8 @@ describe('comment resource basics', function () {
     it('can expand properly', function (done) {
         server.inject({
             method: 'GET',
-            url: '/comment/' + createdComment.id + '?expand[]=author'
+            url: '/comment/' + createdComment.id + '?expand[]=author',
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.deep.include(createdComment);
             expect(response.result.author).to.deep.include(createdUser);
@@ -181,7 +186,8 @@ describe('comment resource basics', function () {
             url: '/comment/' + createdComment.id,
             payload: {
                 body: 'chances'
-            }
+            },
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result.body).to.equal('chances');
             done();
@@ -191,7 +197,8 @@ describe('comment resource basics', function () {
     it('can delete comments', function (done) {
         server.inject({
             method: 'DELETE',
-            url: '/comment/' + createdComment.id
+            url: '/comment/' + createdComment.id,
+            credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             done();

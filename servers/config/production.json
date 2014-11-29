@@ -1,5 +1,5 @@
 {
   "apiUrl": "betaapi.redninesensor.com",
   "htmlUrl": "betadata.redninesensor.com",
-  "htmlOrigin": "http://betadata.redninesensor.com"
+  "htmlOrigin": ["http://betadata.redninesensor.com", "http://localhost:9532"]
 }

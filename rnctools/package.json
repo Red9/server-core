@@ -11,6 +11,7 @@
   "devDependencies": {
     "grunt": "latest",
     "grunt-contrib-watch": "latest",
-    "grunt-shell": "latest"
+    "grunt-shell": "latest",
+    "underscore": "latest"
   }
 }

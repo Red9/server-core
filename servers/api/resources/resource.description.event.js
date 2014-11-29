@@ -25,7 +25,9 @@ var basicModel = {
     boundingCircle: Joi.object(),
     boundingBox: Joi.object(),
     gpsLock: Joi.object(),
-    createTime: validators.createTime
+    createTime: validators.createTime,
+    ordinalRank: validators.id.description('Link to previous (lower) event. This is a linked list within a single dataset'),
+    cardinalRank: Joi.number().integer().min(0).max(5).description('The event cardinal ranking (absolute score). 0 indicates no rank')
 };
 
 

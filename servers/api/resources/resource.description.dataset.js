@@ -206,10 +206,10 @@ module.exports = {
 
         async.each(parameters, function (parameter, callback) {
             if (parameter === 'owner') {
-                resources.user.find({id: dataset.ownerId}, {},
-                    function (user) {
-                        dataset.owner = user;
-                    }, callback);
+                resources.user.findById(dataset.ownerId, function (err, user) {
+                    dataset.owner = user;
+                    callback();
+                });
             } else if (parameter === 'event') {
                 dataset.event = [];
                 resources.event.find({datasetId: dataset.id}, {},

@@ -22,9 +22,7 @@ exports.init = function (testing, doneCallback) {
 
     var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {
         cors: {
-            origin: [
-                nconf.get('htmlOrigin')
-            ],
+            origin: nconf.get('htmlOrigin'),
             credentials: true
         }
     });
@@ -40,6 +38,18 @@ exports.init = function (testing, doneCallback) {
             require('bell'),
             require('hapi-auth-cookie'),
             {
+                plugin: require('hapi-swagger'),
+                options: {
+                    apiVersion: nconf.get("apiVersion"),
+                    payloadType: 'form'
+                }
+            }
+
+        ];
+
+        if (!testing) {
+            // Add in the plugins that we do not want to test with
+            plugins.push({
                 plugin: require('good'),
                 options: {
                     reporters: [
@@ -63,19 +73,7 @@ exports.init = function (testing, doneCallback) {
                         }
                     ]
                 }
-            },
-            {
-                plugin: require('hapi-swagger'),
-                options: {
-                    apiVersion: nconf.get("apiVersion"),
-                    payloadType: 'form'
-                }
-            }
-
-        ];
-
-        if (testing) {
-            plugins = [];
+            });
         }
 
         server.pack.register(plugins, function (err) {
@@ -84,9 +82,7 @@ exports.init = function (testing, doneCallback) {
                 return;
             }
 
-            if (!testing) {
-                require('./routes/authentication').init(server, resources); // Needs to be first
-            }
+            require('./routes/authentication').init(server, resources); // Needs to be first
 
             routeTemplate.createCRUDRoutes(server, resources.event);
             routeTemplate.createCRUDRoutes(server, resources.user);
@@ -97,24 +93,22 @@ exports.init = function (testing, doneCallback) {
 
             require('./routes/dataset').init(server, resources);
             require('./routes/eventtype').init(server);
+            require('./routes/fcpxml').init(server);
 
-            if (!testing) {
-                server.start(function () {
-                    server.log(['debug'], 'Server running at: ' + server.info.uri);
-                    doneCallback(null, server);
-                });
-            } else {
-                doneCallback(null, server);
-            }
+            doneCallback(null, server);
         });
     });
 };
 
 if (!module.parent) {
-    exports.init(false, function (err) {
+    exports.init(false, function (err, server) {
         if (err) {
             console.log('Unknown error: ' + err);
             process.exit(1);
+        } else {
+            server.start(function () {
+                server.log(['debug'], 'Server running at: ' + server.info.uri);
+            });
         }
     });
 }

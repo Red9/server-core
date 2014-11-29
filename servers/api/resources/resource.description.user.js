@@ -19,6 +19,7 @@ var basicModel = {
     gender: Joi.string().valid('male', 'female', 'other').description('gender. Set from Google.'),
     affiliations: Joi.array().includes(Joi.string()).description('organization affiliations of this user'),
     characteristics: Joi.array().includes(Joi.string()).description('user self-defined characteristics'),
+    location: Joi.string().description('the "home" location'),
     scope: validators.scope
 };
 
@@ -50,6 +51,7 @@ module.exports = {
             preferredLayout: basicModel.preferredLayout,
             affiliations: basicModel.affiliations,
             characteristics: basicModel.characteristics,
+            location: basicModel.location,
             scope: basicModel.scope
         }).options({className: resourceName + '.create'}),
         update: Joi.object({
@@ -58,6 +60,7 @@ module.exports = {
             preferredLayout: basicModel.preferredLayout,
             affiliations: basicModel.affiliations,
             characteristics: basicModel.characteristics,
+            location: basicModel.location,
             scope: basicModel.scope
         }).options({className: resourceName + '.update'}),
         resultModel: Joi.object({
@@ -72,6 +75,7 @@ module.exports = {
             createTime: basicModel.createTime.required(),
             affiliations: basicModel.affiliations.required(),
             characteristics: basicModel.characteristics.required(),
+            location: basicModel.location.required(),
             scope: basicModel.scope.required()
         }).options({className: resourceName}),
         search: {
@@ -149,6 +153,12 @@ module.exports = {
             cassandraType: 'set<text>',
             jsKey: 'characteristics',
             jsType: 'array'
+        },
+        {
+            cassandraKey: 'location',
+            cassandraType: 'varchar',
+            jsKey: 'location',
+            jsType: 'string'
         },
         {
             cassandraKey: 'scope',

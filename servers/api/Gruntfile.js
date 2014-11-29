@@ -3,7 +3,7 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         jshint: {
-            files: ['Gruntfile.js', 'index.js', 'routes/**/*.js', 'support/**/*.js', 'test/**/*.js', 'resources/**/*.js', 'panel/*.js'],
+            files: ['Gruntfile.js', 'index.js', 'routes/**/*.js', 'support/**/*.js', 'test/**/*.js', 'resources/**/*.js', 'panel/*.js', 'views/**/*.js'],
             options: {
                 // options here to override JSHint defaults
                 laxbreak: true, // don't warn about putting operators on the next line.
@@ -21,7 +21,7 @@ module.exports = function (grunt) {
         },
         shell: {
             prepareCassandra: {
-                command: 'cat ../../scripts/cassandra/create_database_test.cql ../../scripts/cassandra/create_database_common.cql | cqlsh -u cassandra -p cassandra'
+                command: 'cat ../../scripts/cassandra/create_database_test.cql ../../scripts/cassandra/create_database_common.cql ../../scripts/cassandra/test_additional.cql | cqlsh -u cassandra -p cassandra'
             },
             cleanupCassandra: {
                 command: 'cat ../../scripts/cassandra/drop_database_test.cql | cqlsh -u cassandra -p cassandra'
