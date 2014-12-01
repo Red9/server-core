@@ -56,7 +56,6 @@ exports.init = function (testing, doneCallback) {
                         {
                             reporter: require('good-console'),
                             args: [{
-                                log: '*',
                                 request: '*',
                                 error: '*'
                             }]
