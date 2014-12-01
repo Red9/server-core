@@ -109,7 +109,7 @@ exports.init = function (server) {
                     dataset
                 );
 
-                reply.view(request.params.template, fcpParameters)
+                reply.view(request.query.template, fcpParameters)
                     .header('content-disposition', 'attachment; filename=' + dataset.id + '.xml')
                     .header('content-type', 'text/xml; charset=utf-8');
             });
