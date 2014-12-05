@@ -102,7 +102,7 @@ function addResource(resourceDescription) {
     }
 
     server.method('resources.' + result.name + '.findById', findById, {
-        cache: nconf.get('cache:findById')
+        //cache: nconf.get('cache:findById')
     });
 
     /** Handy function to get a single resource of a specified type
