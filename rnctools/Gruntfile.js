@@ -4,7 +4,7 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON('package.json'),
         shell: {
             runUnitTests: {
-                command: "cd build; cmake ..; make check; make" // This last make is to prepare for the later tests.
+                command: "mkdir -p build; cd build; cmake ..; make check; make" // This last make is to prepare for the later tests.
             },
             runIntegrationTests: {
                 command: "./bats/bin/bats --pretty tests-integration/rncprocessor.sh"

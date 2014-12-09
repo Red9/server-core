@@ -307,17 +307,18 @@ exports.deletePanel = function (id, callback) {
     checkForPanelHelper(id, callback, function () {
         // For some reason it appears that unlink doesn't call it's callback.
         // So, we'll just assume things went peachy.
-        fs.unlink(createFilename(id, function (err) {
+        // Or, maybe it was a bad paren placement? This comment may be out of date.
+        fs.unlink(createFilename(id), function (err) {
             if (err) {
                 throw Boom.wrap(err, 500, 'The unexpected happened: fs.unlink gave an error!');
             }
-        }));
+        });
 
-        fs.unlink(createFilename(id + '.upload', function (err) {
+        fs.unlink(createFilename(id + '.upload'), function (err) {
             if (err) {
                 throw Boom.wrap(err, 500, 'The unexpected happened: fs.unlink gave an error! On .upload');
             }
-        }));
+        });
 
         callback(null);
     });
@@ -418,6 +419,7 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
             timeout: 1200000 /* timeout in milliseconds */
         }, function (err, stdout, stderr) {
             if (err) {
+                console.log('Rscript error: ' + err + ', stderr: ' + stderr);
                 server.log(['warning'], 'Rscript error: ' + err + ', stderr: ' + stderr);
                 doneCallback(err);
             } else {

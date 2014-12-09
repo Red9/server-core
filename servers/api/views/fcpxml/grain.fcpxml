@@ -21,10 +21,10 @@
                             {{#if title}}
                             <title name="{{event.type}} {{index}} of {{total}}" lane="1" offset="{{title.offset}}/{{denominator}}s" ref="r2" duration="{{title.duration}}/{{denominator}}s">
                                 <text>
-                                    <text-style ref="{{title.textARef}}">avg {{convert event.summaryStatistics.gps.speed.average 2 "mph"}}mph   max {{convert event.summaryStatistics.gps.speed.maximum 2 "mph"}}mph</text-style>
+                                    <text-style ref="{{title.textBRef}}">{{convert event.summaryStatistics.distance.path 0 "ft"}} feet</text-style>
                                 </text>
                                 <text>
-                                    <text-style ref="{{title.textBRef}}">{{convert event.summaryStatistics.distance.path 2 "ft"}} feet</text-style>
+                                    <text-style ref="{{title.textARef}}">{{convert event.summaryStatistics.gps.speed.average 1 "mph"}} mph avg     {{convert event.summaryStatistics.gps.speed.maximum 1 "mph"}} mph max</text-style>
                                 </text>
                                 <text-style-def id="{{title.textARef}}">
                                     <text-style font="Helvetica Neue" fontSize="66" fontFace="Regular" fontColor="0.986246 0.00712073 0.0274342 1" strokeColor="1 0.999974 0.999991 1" strokeWidth="1"/>

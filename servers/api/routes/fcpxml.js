@@ -185,6 +185,12 @@ function calculateParameters(videoDefinition, files, titleDurationGiven, eventTy
                     return asset.start <= startFramesTotal;
                 });
 
+                if(!asset){
+                    // If we can't find a valid asset then we can't make
+                    // a clip. Most likely it's because the event is before the
+                    // first video.
+                    return;
+                }
                 var startFrames = startFramesTotal - asset.start;
 
                 var distance = 'unknown';
@@ -216,6 +222,9 @@ function calculateParameters(videoDefinition, files, titleDurationGiven, eventTy
 
                 runningOffset += durationFrames;
                 return result;
+            })
+            .filter(function(val){
+                return val;
             })
             .value();
 

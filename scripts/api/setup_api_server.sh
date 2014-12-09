@@ -28,12 +28,15 @@ ioH8I/Q4XrmO1X2WqyMs6uC4m2sCYbJ8BAv03kwsDJ9k5Id4ukmi7isEeCp5i8fD
 c5TDNVLnT+NjePEi3ziCBQZRXBYuBvM3A6pEvEgcs7t564NR47tXaA==
 -----END RSA PRIVATE KEY-----"
 
-sudo apt-get install r-base-core
+sudo apt-get install r-base-core gcc cmake
 # Install R packages
 # Warning: this might be brittle when versions change...
+# TODO: either make sure that we can actually get this package and
+# throw an error if we can't, or figure out where they keep the old
+# stuff.
 cd /tmp
-wget http://cran.r-project.org/src/contrib/jsonlite_0.9.13.tar.gz
-sudo R CMD INSTALL jsonlite_0.9.13.tar.gz
+wget http://cran.r-project.org/src/contrib/jsonlite_0.9.14.tar.gz
+sudo R CMD INSTALL jsonlite_0.9.14.tar.gz
 wget http://cran.r-project.org/src/contrib/signal_0.7-4.tar.gz
 sudo R CMD INSTALL signal_0.7-4.tar.gz
 
