@@ -20,13 +20,8 @@
                             <video ref="{{video.ref}}" duration="{{video.duration}}/{{denominator}}s"></video>
                             {{#if title}}
                             <title name="{{event.type}} {{index}} of {{total}}" lane="1" offset="{{title.offset}}/{{denominator}}s" ref="r2" duration="{{title.duration}}/{{denominator}}s">
-                                <text>
-                                    {{convert event.summaryStatistics.distance.path 0 "ft"}} feet
-                                </text>
-                                <text>
-                                    {{convert event.summaryStatistics.gps.speed.average 1 "mph"}} mph avg     {{convert event.summaryStatistics.gps.speed.maximum 1 "mph"}} mph max
-                                </text>
-
+                                <text>{{convert event.summaryStatistics.distance.path 0 "ft"}} feet</text>
+                                <text>{{convert event.summaryStatistics.gps.speed.average 1 "mph"}} mph avg     {{convert event.summaryStatistics.gps.speed.maximum 1 "mph"}} mph max</text>
                             </title>
                             {{/if}}
                         </clip>
