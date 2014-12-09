@@ -4,7 +4,7 @@
 <fcpxml version="1.4">
     <resources>
         <format id="r1" frameDuration="{{numerator}}/{{denominator}}s" width="{{pixels.width}}" height="{{pixels.height}}"/>
-        <effect id="r2" name="Basic Lower Third" uid=".../Titles.localized/Lower Thirds.localized/Basic Lower Third.localized/Basic Lower Third.moti"/>
+        <effect id="r2" name="R9 Title" uid="~/Titles.localized/Bumper:Opener.localized/R9 Title/R9 Title.moti"/>
         {{#each asset}}
         <asset id="{{ref}}" src="file://{{source}}">
         </asset>
@@ -21,17 +21,12 @@
                             {{#if title}}
                             <title name="{{event.type}} {{index}} of {{total}}" lane="1" offset="{{title.offset}}/{{denominator}}s" ref="r2" duration="{{title.duration}}/{{denominator}}s">
                                 <text>
-                                    <text-style ref="{{title.textARef}}">avg {{round event.summaryStatistics.gps.speed.average 2}}m/s   max {{round event.summaryStatistics.gps.speed.maximum 2}}m/s</text-style>
+                                    {{round event.summaryStatistics.gps.speed.average 2}} m/s avg     {{round event.summaryStatistics.gps.speed.maximum 2}} m/s max
                                 </text>
                                 <text>
-                                    <text-style ref="{{title.textBRef}}">{{round event.summaryStatistics.distance.path 2}} meters</text-style>
+                                    {{round event.summaryStatistics.distance.path 2}} meters
                                 </text>
-                                <text-style-def id="{{title.textARef}}">
-                                    <text-style font="Helvetica Neue" fontSize="66" fontFace="Regular" fontColor="0.986246 0.00712073 0.0274342 1" strokeColor="1 0.999974 0.999991 1" strokeWidth="1"/>
-                                </text-style-def>
-                                <text-style-def id="{{title.textBRef}}">
-                                    <text-style font="Helvetica Neue" fontSize="48" fontFace="Medium" fontColor="0.986246 0.00712073 0.0274342 1" strokeColor="1 0.999974 0.999991 1" strokeWidth="1"/>
-                                </text-style-def>
+
                             </title>
                             {{/if}}
                         </clip>
