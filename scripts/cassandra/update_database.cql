@@ -3,5 +3,11 @@
 ALTER TABLE user ADD scope set<text>;
 CREATE INDEX user_scope ON user(scope);
 
-ALTER TABLE user ADD location varchar;
+ALTER TABLE user ADD height float;
+ALTER TABLE user ADD weight float;
+ALTER TABLE user ADD tagline varchar;
+ALTER TABLE user ADD city varchar;
+ALTER TABLE user ADD state varchar;
+ALTER TABLE user ADD sport text;
+
 

@@ -60,8 +60,12 @@ CREATE TABLE user (
     picture text,
     gender text,
     create_time timestamp,
-    affiliations set<text>,
-    characteristics set<text>,
+    height float,
+    weight float,
+    tagline text,
+    city text,
+    state text,
+    sport text,
     scope set<text>
 );
 CREATE INDEX user_email ON user(email);
