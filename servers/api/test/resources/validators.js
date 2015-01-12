@@ -105,7 +105,7 @@ describe('multiArray', function () {
         ];
         sut.validate(values, function (err, result) {
             expect(err).to.be.null();
-            expect(result).to.equal(values);
+            expect(result).to.deep.equal(values);
             done();
         });
     });
