@@ -10,4 +10,6 @@ ALTER TABLE user ADD city varchar;
 ALTER TABLE user ADD state varchar;
 ALTER TABLE user ADD sport text;
 
-
+ALTER TABLE user DROP location;
+ALTER TABLE user DROP characteristics;
+ALTER TABLE user DROP affiliations;
