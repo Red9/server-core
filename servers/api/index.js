@@ -15,8 +15,7 @@ nconf
 var Hapi = require('hapi');
 var Joi = require('joi');
 
-var resources = require('./resources/index');
-var routeTemplate = require('./support/routetemplate');
+var models = require('./models');
 
 exports.init = function (testing, doneCallback) {
 
@@ -28,75 +27,55 @@ exports.init = function (testing, doneCallback) {
     });
 
 
-    resources.init(server, function (err) {
-        if (err) {
-            server.log(['error'], 'Resources error: ' + err);
-            process.exit(1);
+    var plugins = [
+        require('bell'),
+        require('hapi-auth-cookie'),
+        {
+            plugin: require('hapi-swagger'),
+            options: {
+                apiVersion: nconf.get("apiVersion"),
+                payloadType: 'form'
+            }
         }
 
-        var plugins = [
-            require('bell'),
-            require('hapi-auth-cookie'),
-            {
-                plugin: require('hapi-swagger'),
-                options: {
-                    apiVersion: nconf.get("apiVersion"),
-                    payloadType: 'form'
-                }
-            }
+    ];
 
-        ];
-
-        if (!testing) {
-            // Add in the plugins that we do not want to test with
-            plugins.push({
-                plugin: require('good'),
-                options: {
-                    reporters: [
-                        {
-                            reporter: require('good-console'),
-                            args: [{
+    if (!testing) {
+        // Add in the plugins that we do not want to test with
+        plugins.push({
+            plugin: require('good'),
+            options: {
+                reporters: [
+                    {
+                        reporter: require('good-console'),
+                        args: [{
+                            log: '*',
+                            request: '*',
+                            error: '*'
+                        }]
+                    },
+                    {
+                        reporter: require('good-file'),
+                        args: [
+                            nconf.get('logFilePath'),
+                            {
                                 log: '*',
                                 request: '*',
                                 error: '*'
                             }]
-                        },
-                        {
-                            reporter: require('good-file'),
-                            args: [
-                                nconf.get('logFilePath'),
-                                {
-                                    log: '*',
-                                    request: '*',
-                                    error: '*'
-                                }]
-                        }
-                    ]
-                }
-            });
-        }
-
-        server.pack.register(plugins, function (err) {
-            if (err) {
-                doneCallback(err);
-                return;
+                    }
+                ]
             }
-
-            require('./routes/authentication').init(server, resources); // Needs to be first
-
-            routeTemplate.createCRUDRoutes(server, resources.event);
-            routeTemplate.createCRUDRoutes(server, resources.user);
-            routeTemplate.createCRUDRoutes(server, resources.comment);
-            routeTemplate.createCRUDRoutes(server, resources.video);
-            routeTemplate.createCRUDRoutes(server, resources.layout);
-            routeTemplate.createCRUDRoutes(server, resources.dataset, ['read', 'update', 'delete', 'search', 'updateCollection']);
-
-            require('./routes/dataset').init(server, resources);
-            require('./routes/eventtype').init(server);
-            require('./routes/fcpxml').init(server);
-
-            doneCallback(null, server);
         });
+    }
+
+    server.pack.register(plugins, function (err) {
+        if (err) {
+            doneCallback(err);
+        } else {
+            require('./routes').init(server, models);
+            doneCallback(null, server);
+        }
     });
 };
 
@@ -112,5 +91,3 @@ if (!module.parent) {
         }
     });
 }
-
-

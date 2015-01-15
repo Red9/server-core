@@ -1,13 +1,14 @@
 "use strict";
 
-var resources = require('../resources/index');
 var Joi = require('joi');
-var validators = require('../resources/validators');
+var validators = require('../../support/validators');
 var _ = require('underscore')._;
 var Boom = require('boom');
 var nconf = require('nconf');
 
 var fs = require('fs');
+
+var datasetRoute = require('../models/dataset');
 
 var videoTypes = {
     'GoPro_720p_59.94hz': {
@@ -42,7 +43,7 @@ var videoTypes = {
     }
 };
 
-exports.init = function (server) {
+exports.init = function (server, models) {
     server.views({
         engines: {
             fcpxml: require('handlebars')
@@ -59,6 +60,7 @@ exports.init = function (server) {
         method: 'GET',
         path: '/dataset/{id}/fcpxml/options',
         handler: function (request, reply) {
+            // TODO(SRLM): Update this to use sequelize
             resources.dataset.findByIdOptions(request.params.id, {$expand: ['event', 'video']}, function (err, dataset) {
                 reply({
                     template: templates,
@@ -70,15 +72,15 @@ exports.init = function (server) {
         config: {
             validate: {
                 params: {
-                    id: resources.dataset.models.model.id.required()
+                    id: datasetRoute.model.id.required()
                 }
             },
             description: 'Get FCXML options',
             notes: 'Get the detailed options that are available to a GET /dataset/{id}/fcpxml',
-            tags: ['api'],
+            tags: ['api']/*,
             auth: {
                 scope: 'admin'
-            }
+            }*/
 
         }
     });
@@ -87,6 +89,7 @@ exports.init = function (server) {
         method: 'GET',
         path: '/dataset/{id}/fcpxml',
         handler: function (request, reply) {
+            // TODO(SRLM): Update this to use sequelize
             resources.dataset.findByIdOptions(request.params.id, {$expand: ['event', 'video']}, function (err, dataset) {
                 if (err) {
                     reply(err);
@@ -118,7 +121,7 @@ exports.init = function (server) {
         config: {
             validate: {
                 params: {
-                    id: resources.dataset.models.model.id.required()
+                    id: datasetRoute.model.id.required()
                 },
                 query: {
                     template: Joi.string().valid(templates).required().description('The template to use for output'),
@@ -130,10 +133,10 @@ exports.init = function (server) {
             },
             description: 'Dataset defined FCPXML file',
             notes: 'Get an FCPXML video file for this dataset.',
-            tags: ['api'],
+            tags: ['api']/*,
             auth: {
                 scope: 'admin'
-            }
+            }*/
         }
     });
 };
