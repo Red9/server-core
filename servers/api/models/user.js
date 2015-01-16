@@ -17,7 +17,7 @@ module.exports = function (sequelize, DataTypes) {
         tagline: {type: DataTypes.STRING},
         city: {type: DataTypes.STRING},
         state: {type: DataTypes.STRING},
-        sport: helpers.createJSONField(DataTypes, 'preferredLayout'),
+        sport: helpers.createJSONField(DataTypes, 'sport'),
         scope: {type: DataTypes.ARRAY(DataTypes.STRING)},
         createdAt: helpers.touchTimestamp(DataTypes, 'createdAt'),
         updatedAt: helpers.touchTimestamp(DataTypes, 'updatedAt')

@@ -30,6 +30,7 @@ module.exports.init = function (server, models) {
     require('./extra/panel').init(server, models);
     require('./extra/eventtype').init(server);
     require('./extra/fcpxml').init(server, models);
+    require('./extra/authentication').init(server, models);
 
     console.log('Loaded routes...');
 };

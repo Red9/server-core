@@ -7,21 +7,16 @@ var _ = require('underscore')._;
 
 /**
  * @param request {Object}
- * @param resources {Object}
+ * @param models {Object}
  * @param providedUser {Object} with keys that match the user resource. At a minimum, it should have email.
  * @param callback {Function} (err, validUserObject)
  */
-function checkUserAuthentication(request, resources, providedUser, callback) {
-    var user;
-    resources.user.find({email: providedUser.email}, {},
-        function (user_) {
-            user = user_;
-        },
-        function (err) {
-            if (err) {
-                request.log(['error'], 'Error in user login: ' + err);
-                callback(err);
-            } else if (typeof user === 'undefined') {
+function checkUserAuthentication(request, models, providedUser, callback) {
+
+    models.user
+        .findOne({where: {email: providedUser.email}})
+        .then(function (user) {
+            if (typeof user === 'undefined') {
                 callback(null);
             } else {
                 // Found a user.
@@ -30,13 +25,25 @@ function checkUserAuthentication(request, resources, providedUser, callback) {
                 if (user.displayName !== 'unknown') {
                     delete providedUser.displayName;
                 }
-                resources.user.update(user.id, providedUser, callback);
+
+                user.gender = providedUser.gender;
+                user.picture = providedUser.picture;
+                user.givenName = providedUser.givenName;
+                user.familyName = providedUser.familyName;
+
+                user.save().then(function () {
+                    callback(null, user);
+                });
             }
+        })
+        .catch(function (err) {
+            request.log(['error'], 'Error in user login: ' + err);
+            callback(err);
         });
 }
 
 
-exports.init = function (server, resources) {
+exports.init = function (server, models) {
     server.auth.strategy('session', 'cookie', {
         password: '867cfa6cal5-c80eouwvvrl-4aba4ad-92atueh2-e4c737otauh76e129a', // random string
         cookie: nconf.get('authorizationCookieName'),
@@ -46,15 +53,17 @@ exports.init = function (server, resources) {
         domain: nconf.get('authorizationCookieDomain'),
         validateFunc: function (session, callback) {
             // TODO: Check cassandra here for valid session (as opposed to just a valid user)
-            resources.user.findById(session.id, function (err, user) {
-                if (err) {
+            models.user.findOne({where: {id: session.id}})
+                .then(function (user) {
+                    if (!user) {
+                        callback(null, false);
+                    } else {
+                        callback(null, true, user);
+                    }
+                })
+                .catch(function (err) {
                     callback(err, false);
-                } else if (!user) {
-                    callback(null, false);
-                } else {
-                    callback(null, true, user);
-                }
-            });
+                });
         }
     });
 
@@ -102,7 +111,7 @@ exports.init = function (server, resources) {
                     picture: request.auth.credentials.profile.raw.picture
                 };
 
-                checkUserAuthentication(request, resources, normalizedUser, function (err, validUser) {
+                checkUserAuthentication(request, models, normalizedUser, function (err, validUser) {
                     var callbackUrl = nconf.get('defaultCallbackUrl');
                     if (request.auth.credentials.query.callbackUrl) {
                         callbackUrl = decodeURIComponent(request.auth.credentials.query.callbackUrl);

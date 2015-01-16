@@ -1,55 +1,24 @@
 "use strict";
 
-var request = require('request');
-var _ = require('underscore')._;
-var fs = require('fs');
 var nconf = require('nconf');
 nconf
     .argv()
     .env()
-    .file('general', {file: 'config/general.json'})
     .file('deployment', {file: 'config/' + process.env.NODE_ENV + '.json'});
 
 var panelInputDir = nconf.get('panelInputDir');
 
-var resource = require('../api/resources/index');
+console.log('panelDataPath: ' + nconf.get('panelDataPath'));
 
+var models = require('../api/models');
+
+var request = require('request');
+var _ = require('underscore')._;
+var fs = require('fs');
 var path = require('path');
 var async = require('async');
 
 var defaultCreateTime = (new Date()).getTime();
-
-
-/** Taken from red9resource, and put here for convenience
- * Generates a GUID string, according to RFC4122 standards.
- *
- * Modified by SRLM to generate a version 4 UUID.
- *
- * @returns {String} The generated GUID.
- * @example af8a8416-6e18-a307-bd9c-f2c947bbb3aa
- * @author Slavik Meltser (slavik@meltser.info).
- * @link http://slavik.meltser.info/?p=142
- */
-function generateUUID() {
-    function _p8() {
-        return (Math.random().toString(16) + "000000000").substr(2, 8);
-    }
-
-    var setB = _p8();
-    var setC = _p8();
-
-    var t = ['8', '9', 'a', 'b'];
-    var single = t[Math.floor(Math.random() * t.length)];
-
-    return _p8() + '-' + setB.substr(0, 4) + '-4' + setB.substr(4, 3) + '-'
-        + single + setC.substr(0, 3) + '-' + setC.substr(4, 4) + _p8();
-}
-
-function adjustId(idMap, oldId) {
-    var newId = generateUUID();
-    idMap[oldId] = newId;
-    return newId;
-}
 
 var idMap = {
     layout: {},
@@ -58,6 +27,10 @@ var idMap = {
     event: {},
     comment: {},
     video: {}
+};
+
+var requestHeaders = {
+    Cookie: 'r9session=Fe26.2**d9865022a42fb72fffa2266cdc1031fa17984f68400679ac05344b680d9a089b*fEyFH5dRru0pjDxG0Ol4wA*cHwehP9Rp5qrc69j7i_7-p4-xFcah8S-S0jOqKfPyht-2aGRrAWkqjOUL-b_Xw0s**478862d8ba385b278608f237de97a9ec0b2e32b5bdfb167702c82daeeeca8547*VPKd6ejEJPbLfb5L5Nrwe45dgiwIur6UotNLq_w7TWg;'
 };
 
 
@@ -69,33 +42,42 @@ var idMap = {
 function loadDatasets(datasetList, doneCallback) {
     var migratedDatasets = {};
 
+    var panel = require('../api/support/panel');
+    panel.init(nconf);
+
     function loadDataset(oldDataset, callback) {
         console.log('Uploading ' + oldDataset.id);
-        var readStream = fs.createReadStream(path.join(panelInputDir, oldDataset.id + '.RNC'));
+        var readStream = fs.createReadStream(path.join(panelInputDir, oldDataset.id + '.upload.RNC'));
 
-        // Key change from "owner" to "ownerId"
-        oldDataset.ownerId = idMap.user[oldDataset.owner];
-        oldDataset.id = adjustId(idMap.dataset, oldDataset.id);
+        // Key change from "ownerId" to "userId"
+        oldDataset.userId = idMap.user[oldDataset.ownerId];
 
-        resource.helpers.createDataset(oldDataset, readStream, function (err, createdDataset) {
+        var oldId = oldDataset.id;
+        delete oldDataset.id;
+
+        var newDataset = {
+            userId: oldDataset.userId,
+            title: oldDataset.title
+        };
+
+        panel.create(null, models, newDataset, readStream, function (err, createdDataset) {
             if (err) {
+                console.log('Error: ' + err);
+                console.log(err.stack);
                 callback(err);
             } else {
-                if (!_.has(createdDataset, 'startTime') || !_.has(createdDataset, 'endTime')) {
-                    console.log('ERROR: dataset ' + createdDataset.id + ' missing startTime or endTime');
-                    process.exit(1);
-                }
+                idMap.dataset[oldId] = createdDataset.id;
 
-                migratedDatasets[oldDataset.id] = {
+                migratedDatasets[createdDataset.id] = {
                     old: oldDataset,
                     new: createdDataset
                 };
-                process.nextTick(callback);
+                setImmediate(callback);
             }
         }, true);
     }
 
-    async.eachLimit(datasetList, nconf.get('asyncLimit'), loadDataset, function (err) {
+    async.eachSeries(datasetList, loadDataset, function (err) {
         doneCallback(err, migratedDatasets);
     });
 }
@@ -108,22 +90,30 @@ function mapTime(newDatasetStart, oldDatasetStart, oldTime) {
 function migrateLayouts(doneCallback) {
     var migratedLayouts = [];
     request({
-        url: 'http://api.redninesensor.com/layout/',
+        url: 'http://betaapi.redninesensor.com/layout/',
+        headers: requestHeaders,
         json: true
     }, function (err, response, layoutList) {
-        async.eachLimit(layoutList, 20,
-            function (layout, callback) {
-                layout.createTime = defaultCreateTime;
-                layout.id = adjustId(idMap.layout, layout.id);
 
-                resource.layout.create(layout, function (err, createdLayout) {
-                    if (err) {
-                        console.log(err);
-                    } else {
+        layoutList = _.sortBy(layoutList, 'createTime');
+
+        async.eachSeries(layoutList,
+            function (layout, callback) {
+
+                var oldId = layout.id;
+                delete layout.id;
+                models.layout.create(layout)
+                    .then(function (createdLayout) {
+                        idMap.layout[oldId] = createdLayout.id;
                         migratedLayouts.push(createdLayout.id);
-                    }
-                    process.nextTick(callback);
-                }, true);
+                    })
+                    .catch(function (err) {
+                        console.log('Error: ' + err);
+                    })
+                    .finally(function () {
+                        setImmediate(callback);
+                    });
+
             }, function (err) {
                 console.log('Migrated ' + _.size(migratedLayouts) + ' layouts');
                 doneCallback(null, migratedLayouts);
@@ -135,13 +125,38 @@ function migrateLayouts(doneCallback) {
 function migrateUsers(doneCallback) {
     var migratedUsers = [];
     request({
-        url: 'http://api.redninesensor.com/user/',
+        url: 'http://betaapi.redninesensor.com/user/',
+        headers: requestHeaders,
         json: true
     }, function (err, response, userList) {
-        async.eachLimit(userList, 20,
+
+        // A bit of a vanity list here... Give the single digit IDs to core people.
+        var priorities = {
+            'srlm@srlmproductions.com': 1,
+            'mike.olson@redninesensor.com': 2,
+            'mica.parks@redninesensor.com': 3,
+            'jeff.olson@redninesensor.com': 4,
+            'akhil.rao@redninesensor.com': 5,
+            'shyama.dorbala@redninesensor.com': 6,
+            'jaysen.kim@redninesensor.com': 7,
+            'merwan.rodriguez@redninesensor.com': 8,
+            'juan.bobillo@redninesensor.com': 9,
+            'paul.olson@redninesensor.com': 10
+        };
+
+        userList = _.sortBy(userList, 'createTime');
+        userList = _.sortBy(userList, function (user) {
+            if (priorities.hasOwnProperty(user.email)) {
+                return priorities[user.email];
+            } else {
+                return 999;
+            }
+        });
+
+        async.eachSeries(userList,
             function (user, callback) {
-                user.createTime = defaultCreateTime;
-                user.id = adjustId(idMap.user, user.id);
+                var oldId = user.id;
+                delete user.id;
 
                 // map from the old layout id's to the new layout id's.
                 user.preferredLayout = _.reduce(user.preferredLayout, function (memo, value, key) {
@@ -149,14 +164,18 @@ function migrateUsers(doneCallback) {
                     return memo;
                 }, {});
 
-                resource.user.create(user, function (err, createdUser) {
-                    if (err) {
-                        console.log(err);
-                    } else {
+                models.user
+                    .create(user)
+                    .then(function (createdUser) {
+                        idMap.user[oldId] = createdUser.id;
                         migratedUsers.push(createdUser.id);
-                    }
-                    process.nextTick(callback);
-                }, true);
+                    })
+                    .catch(function (err) {
+                        console.log('Error: ' + err);
+                    })
+                    .finally(function () {
+                        setImmediate(callback);
+                    });
             }, function (err) {
                 console.log('Migrated ' + _.size(migratedUsers) + ' users');
                 doneCallback(null, migratedUsers);
@@ -168,37 +187,42 @@ function migrateVideos(datasets, doneCallback) {
     var unmigratedVideos = [];
     var migratedVideos = [];
     request({
-        url: 'http://api.redninesensor.com/video/',
+        url: 'http://betaapi.redninesensor.com/video/',
+        headers: requestHeaders,
         json: true
     }, function (err, response, videoList) {
-        async.eachLimit(videoList, 20,
+
+        videoList = _.sortBy(videoList, 'createTime');
+
+        async.eachSeries(videoList,
             function (video, callback) {
+                if (_.has(idMap.dataset, video.datasetId)) {
 
-                // Key change from "dataset" to "datasetId"
-                video.datasetId = idMap.dataset[video.dataset];
-                delete video.dataset;
+                    video.datasetId = idMap.dataset[video.datasetId];
 
-                if (_.has(datasets, video.datasetId)) {
-                    // update id here because we only want to change it if we can successfully migrate.
-                    video.id = adjustId(idMap.video, video.id);
-
+                    var oldId = video.id;
+                    delete video.id;
 
                     video.startTime = mapTime(datasets[video.datasetId].new.startTime,
-                        datasets[video.datasetId].old.headPanel.startTime,
+                        datasets[video.datasetId].old.startTime,
                         video.startTime);
                     video.datasetId = datasets[video.datasetId].new.id;
 
-                    resource.video.create(video, function (err, createdVideo) {
-                        if (err) {
-                            console.log(err);
-                        } else {
+                    models.video
+                        .create(video)
+                        .then(function (createdVideo) {
+                            idMap.video[oldId] = createdVideo.id;
                             migratedVideos.push(createdVideo.id);
-                        }
-                        process.nextTick(callback);
-                    }, true);
+                        })
+                        .catch(function (err) {
+                            console.log(err);
+                        })
+                        .finally(function () {
+                            setImmediate(callback);
+                        });
                 } else {
                     unmigratedVideos.push(video.id);
-                    process.nextTick(callback);
+                    setImmediate(callback);
                 }
 
             }, function (err) {
@@ -213,43 +237,52 @@ function migrateComments(datasets, doneCallback) {
     var unmigratedComments = [];
     var migratedComments = [];
     request({
-        url: 'http://api.redninesensor.com/comment/',
+        url: 'http://betaapi.redninesensor.com/comment/',
+        headers: requestHeaders,
         json: true
     }, function (err, response, commentList) {
-        async.eachLimit(commentList, 20,
+
+        commentList = _.sortBy(commentList, 'createTime');
+
+        async.eachSeries(commentList,
             function (comment, callback) {
 
-                // Key change from "resource" to "resourceId"
-                comment.resourceId = idMap.dataset[comment.resource];
-                comment.authorId = idMap.user[comment.author];
-                delete comment.resource;
+                // Get rid of the generic "resourceId". We're going for comments on datasets only.
+                comment.datasetId = idMap.dataset[comment.resourceId];
 
-                if (_.has(datasets, comment.resourceId)) {
-                    comment.id = adjustId(idMap.comment, comment.id);
+                if (_.has(datasets, comment.datasetId)) {
 
+                    var oldId = comment.id;
+                    delete comment.id;
+
+                    comment.userId = idMap.user[comment.authorId];
 
                     if (comment.startTime !== 0) {
-                        comment.startTime = mapTime(datasets[comment.resourceId].new.startTime,
-                            datasets[comment.resourceId].old.headPanel.startTime,
+                        comment.startTime = mapTime(datasets[comment.datasetId].new.startTime,
+                            datasets[comment.datasetId].old.startTime,
                             comment.startTime);
                     }
                     if (comment.endTime !== 0) {
-                        comment.endTime = mapTime(datasets[comment.resourceId].new.startTime,
-                            datasets[comment.resourceId].old.headPanel.startTime,
+                        comment.endTime = mapTime(datasets[comment.datasetId].new.startTime,
+                            datasets[comment.datasetId].old.startTime,
                             comment.endTime);
                     }
 
-                    resource.comment.create(comment, function (err, createdComment) {
-                        if (err) {
-                            console.log(err);
-                        } else {
+                    models.comment
+                        .create(comment)
+                        .then(function (createdComment) {
+                            idMap.comment[oldId] = createdComment.id;
                             migratedComments.push(createdComment.id);
-                        }
-                        process.nextTick(callback);
-                    }, true);
+                        })
+                        .catch(function (err) {
+                            console.log(err);
+                        })
+                        .finally(function () {
+                            setImmediate(callback);
+                        });
                 } else {
                     unmigratedComments.push(comment.id);
-                    process.nextTick(callback);
+                    setImmediate(callback);
                 }
 
             }, function (err) {
@@ -264,42 +297,46 @@ function migrateEvents(datasets, doneCallback) {
     var unmigratedEvents = [];
     var migratedEvents = [];
     request({
-        url: 'http://api.redninesensor.com/event/',
+        url: 'http://betaapi.redninesensor.com/event/',
+        headers: requestHeaders,
         json: true
     }, function (err, response, eventList) {
-        async.eachLimit(eventList, nconf.get('asyncLimit'),
+
+        eventList = _.sortBy(eventList, 'createTime');
+
+        async.eachLimit(eventList, 10,
             function (event, callback) {
-                event.createTime = defaultCreateTime;
+
                 event.datasetId = idMap.dataset[event.datasetId];
 
                 if (_.has(datasets, event.datasetId)) {
-                    event.id = adjustId(idMap.event, event.id);
+                    var oldId = event.id;
+                    delete event.id;
+
                     event.startTime = mapTime(datasets[event.datasetId].new.startTime,
-                        datasets[event.datasetId].old.headPanel.startTime,
+                        datasets[event.datasetId].old.startTime,
                         event.startTime);
                     event.endTime = mapTime(datasets[event.datasetId].new.startTime,
-                        datasets[event.datasetId].old.headPanel.startTime,
+                        datasets[event.datasetId].old.startTime,
                         event.endTime);
 
-                    var temp = event.type.split(': ');
-                    if(temp.length === 2){
-                        event.type = temp[0];
-                        event.subtype = temp[1];
-                    }
-
-                    resource.event.create(event, function (err, createdEvent) {
-                        if (err) {
-                            console.log('Could not migrate event ' + event.id + ': ' + err);
-                        } else {
+                    models.event
+                        .create(event)
+                        .then(function (createdEvent) {
+                            idMap[oldId] = createdEvent.id;
                             migratedEvents.push(createdEvent.id);
-                        }
-                        process.nextTick(callback);
-                    }, true);
+                            console.log('Migrated event ' + createdEvent.id);
+                        })
+                        .catch(function (err) {
+                            console.log('Could not migrate event ' + event.id + ': ' + err);
+                        })
+                        .finally(function () {
+                            setImmediate(callback);
+                        });
                 } else {
                     unmigratedEvents.push(event.id);
-                    process.nextTick(callback);
+                    setImmediate(callback);
                 }
-
             }, function (err) {
                 console.log('Migrated ' + _.size(migratedEvents) + ' events');
                 console.log('Could not migrate ' + unmigratedEvents.length + ' events');
@@ -319,7 +356,8 @@ function getUploadableDatasets(callback) {
 
 
     request({
-        url: 'http://api.redninesensor.com/dataset/?expand=headPanel',
+        url: 'http://betaapi.redninesensor.com/dataset/',
+        headers: requestHeaders,
         json: true
     }, function (err, response, datasetList) {
         if (err) {
@@ -328,7 +366,7 @@ function getUploadableDatasets(callback) {
 
         // Figure out which datasets from the database have a local RNC panel
         _.chain(datasetList).sortBy(function (dataset) {
-            return -dataset.createTime;
+            return dataset.createTime;
         }).each(function (dataset, index) {
             var outputLine = index + ': ' + dataset.id;
             if (panelList.indexOf(dataset.id) !== -1) {
@@ -347,30 +385,17 @@ function getUploadableDatasets(callback) {
     });
 }
 
-
-resource.init({
-    "cassandraHosts": nconf.get('cassandraHosts'),
-    "cassandraKeyspace": nconf.get('cassandraKeyspace'),
-    "cassandraUsername": nconf.get('cassandraUsername'),
-    "cassandraPassword": nconf.get('cassandraPassword'),
-    dataPath: nconf.get('panelDataPath')
-}, function (err) {
-    if (err) {
-        console.log(err);
-    }
-    migrateLayouts(function (err, migratedLayouts) {
-        migrateUsers(function (err, migratedUsers) {
-            getUploadableDatasets(function (err, uploadableDatasets, unmigratedDatasets) {
-                loadDatasets(uploadableDatasets, function (err, migratedDatasets) {
-                    console.log('Migrated ' + _.size(migratedDatasets) + ' datasets');
-                    console.log('Could not migrate ' + unmigratedDatasets.length + ' datasets');
-                    migrateVideos(migratedDatasets, function (err, migratedVideos, unmigratedVideos) {
-                        migrateComments(migratedDatasets, function (err, migratedComments, unmigratedComments) {
-                            migrateEvents(migratedDatasets, function (err, migratedEvents, unmigratedEvents) {
-
-                                fs.writeFileSync(nconf.get('migrationMapPath'), JSON.stringify(idMap, null, 4), {flag: 'w'});
-                                process.exit(0);
-                            });
+migrateLayouts(function (err, migratedLayouts) {
+    migrateUsers(function (err, migratedUsers) {
+        getUploadableDatasets(function (err, uploadableDatasets, unmigratedDatasets) {
+            loadDatasets(uploadableDatasets, function (err, migratedDatasets) {
+                console.log('Migrated ' + _.size(migratedDatasets) + ' datasets');
+                console.log('Could not migrate ' + unmigratedDatasets.length + ' datasets');
+                migrateVideos(migratedDatasets, function (err, migratedVideos, unmigratedVideos) {
+                    migrateComments(migratedDatasets, function (err, migratedComments, unmigratedComments) {
+                        migrateEvents(migratedDatasets, function (err, migratedEvents, unmigratedEvents) {
+                            fs.writeFileSync(nconf.get('migrationMapPath'), JSON.stringify(idMap, null, 4), {flag: 'w'});
+                            process.exit(0);
                         });
                     });
                 });

@@ -5,7 +5,7 @@
   "cassandraKeyspace": "production",
   "cassandraUsername": "client",
   "cassandraPassword": "e798169e-768b-4ba5-a6a0-1366909cc3f5",
-  "rncDataPath": "/home/ubuntu/RNC",
+  "panelDataPath": "/home/ubuntu/RNC",
   "defaultCallbackUrl" : "http://betadata.redninesensor.com",
   "unauthorizedCallbackUrl": "http://betadata.redninesensor.com/page/unauthenticated",
   "authorizationCookieDomain": ".betaapi.redninesensor.com",

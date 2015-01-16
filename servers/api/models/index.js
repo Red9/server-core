@@ -12,7 +12,8 @@ var sequelize = new Sequelize(
     {
         host: 'localhost',
         dialect: 'postgres',
-        omitNull: true
+        omitNull: true,
+        logging: false
     }
 );
 
@@ -34,7 +35,8 @@ Object.keys(db).forEach(function (modelName) {
 });
 
 console.log('WARNING!!! REMOVE OR CHECK sync FUNCTION BEFORE PRODUCTION');
-sequelize.sync({force: true});
+//sequelize.sync({force: true});
+sequelize.sync();
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

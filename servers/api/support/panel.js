@@ -1,14 +1,19 @@
 "use strict";
 
+var nconf; // = require('nconf');
+
 var stream = require('stream');
 var spawn = require('child_process').spawn;
 var execFile = require('child_process').execFile;
 var path = require('path');
 var fs = require('fs');
 var _ = require('underscore')._;
-var nconf = require('nconf');
 var Boom = require('boom');
 var async = require('async');
+
+exports.init = function (nconf_) {
+    nconf = nconf_;
+};
 
 /**
  *
@@ -16,7 +21,7 @@ var async = require('async');
  * @returns {String}
  */
 function createFilename(id) {
-    return path.join(nconf.get('rncDataPath'), '' + id) + '.RNC';
+    return path.join(nconf.get('panelDataPath'), '' + id) + '.RNC';
 }
 
 /** A little helper function that makes it easier to always check for a panel before doing something.

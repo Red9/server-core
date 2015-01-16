@@ -1,10 +1,9 @@
 {
-  "cassandraHosts": ["localhost"],
-  "cassandraKeyspace": "development",
-  "cassandraUsername": "cassandra",
-  "cassandraPassword": "cassandra",
-  "panelDataPath": "/home/clewis/Downloads/RNC",
-  "panelInputDir": "/home/clewis/Downloads/migration/combinedRNC",
-  "asyncLimit": 10,
-  "migrationMapPath": "/home/clewis/Downloads/migrationMap.json"
+  "panelDataPath": "/home/clewis/consulting/red9/panels",
+  "panelInputDir": "/home/clewis/consulting/red9/panels-migration_small",
+  "migrationMapPath": "/home/clewis/consulting/red9/migrationMap.json",
+  "RNCTools": {
+    "processorPath": "/home/clewis/consulting/red9/server-core/rnctools/build/rncprocessor",
+    "correctPath": "/home/clewis/consulting/red9/server-core/rnctools/build/correctrnc"
+  }
 }
