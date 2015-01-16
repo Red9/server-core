@@ -13,17 +13,26 @@ nconf
     .file('common', {file: '../config/' + process.env.NODE_ENV + '.json'});
 
 var Hapi = require('hapi');
+
 var Joi = require('joi');
 
 var models = require('./models');
 
 exports.init = function (testing, doneCallback) {
 
-    var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {
-        cors: {
-            origin: nconf.get('htmlOrigin'),
-            credentials: true
+    var server = new Hapi.Server({
+        connections: {
+            routes: {
+                cors: {
+                    origin: nconf.get('htmlOrigin'),
+                    credentials: true
+                }
+            }
         }
+    });
+    server.connection({
+        host: nconf.get('listenIp'),
+        port: nconf.get('port')
     });
 
 
@@ -31,7 +40,7 @@ exports.init = function (testing, doneCallback) {
         require('bell'),
         require('hapi-auth-cookie'),
         {
-            plugin: require('hapi-swagger'),
+            register: require('hapi-swagger'),
             options: {
                 apiVersion: nconf.get("apiVersion"),
                 payloadType: 'form'
@@ -43,7 +52,7 @@ exports.init = function (testing, doneCallback) {
     if (!testing) {
         // Add in the plugins that we do not want to test with
         plugins.push({
-            plugin: require('good'),
+            register: require('good'),
             options: {
                 reporters: [
                     {
@@ -69,7 +78,7 @@ exports.init = function (testing, doneCallback) {
         });
     }
 
-    server.pack.register(plugins, function (err) {
+    server.register(plugins, function (err) {
         if (err) {
             doneCallback(err);
         } else {

@@ -176,10 +176,6 @@ function addRoute(server, models, route) {
                             filters[keyParts[0]] = {};
                         }
 
-                        console.log('Key metadata:');
-                        console.dir(route.operations.search[key].describe().meta);
-                        console.log('Is it a timestamp? ' + route.operations.search[key].describe().meta[0].timestamp === true);
-
                         // See note above about meta, index, and timestamp.
                         if (route.operations.search[key].describe().meta > 0 &&
                             route.operations.search[key].describe().meta[0].timestamp === true) {

@@ -52,7 +52,7 @@ exports.init = function (server, models) {
         isSecure: false,
         domain: nconf.get('authorizationCookieDomain'),
         validateFunc: function (session, callback) {
-            // TODO: Check cassandra here for valid session (as opposed to just a valid user)
+            // TODO: Check database here for valid session (as opposed to just a valid user)
             models.user.findOne({where: {id: session.id}})
                 .then(function (user) {
                     if (!user) {
