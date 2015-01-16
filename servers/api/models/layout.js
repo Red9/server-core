@@ -6,8 +6,8 @@ module.exports = function (sequelize, DataTypes) {
     var layout = sequelize.define('layout', {
         title: {type: DataTypes.STRING},
         description: {type: DataTypes.TEXT},
-        for: helpers.createJSONField(DataTypes, 'for'),
-        layout: helpers.createJSONField(DataTypes, 'layout')
+        for: DataTypes.JSON,
+        layout: DataTypes.JSON
     }, {
         freezeTableName: true,
         classMethods: {

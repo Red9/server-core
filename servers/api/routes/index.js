@@ -8,6 +8,16 @@ var fs = require("fs");
 var path = require("path");
 var routes = {};
 
+function extractExpandOption(request, models) {
+    var expand = [];
+    _.each(request.query.expand, function (e) {
+        expand.push(models[e]);
+    });
+    delete request.query.expand;
+    return expand;
+}
+
+
 /** Scan current folder and add all other .js files as routes.
  *
  * @param server
@@ -42,7 +52,12 @@ function addRoute(server, models, route) {
         method: 'GET',
         path: '/' + route.name + '/{id}',
         handler: function (request, reply) {
-            models[route.name].find({where: {id: request.params.id}})
+            var expand = extractExpandOption(request, models);
+            models[route.name].find(
+                {
+                    include: expand,
+                    where: {id: request.params.id}
+                })
                 .then(function (resource) {
                     reply(resource);
                 })
@@ -55,7 +70,7 @@ function addRoute(server, models, route) {
                 params: {
                     id: route.model.id.required()
                 },
-                query: _.extend({}, models.resultOptions, {fields: validators.fields})
+                query: _.extend({}, route.resultOptions, {fields: validators.fields})
             },
             description: 'Get a single ' + route.name,
             notes: 'Gets a single ' + route.name + ' that matches the given id',
@@ -117,7 +132,8 @@ function addRoute(server, models, route) {
             path: '/' + route.name + '/',
             handler: function (request, reply) {
                 var filters = {};
-                var options = {};
+
+                var expand = extractExpandOption(request, models);
 
                 _.each(request.query, function (value, key) {
                     // This little hack works around the fact that we could have two named
@@ -130,10 +146,10 @@ function addRoute(server, models, route) {
 
                     var keyParts = key.split('.');
                     if (keyParts.length === 1) {
-                        if (key === 'expand') {
-                            // TODO: fill in here
-                        } else if (_.isArray(value)) {
-                            // TODO: do we actually use this?
+                        if (_.isArray(value)) {
+                            filters[key] = {
+                                overlap: value
+                            };
                         } else if (_.isString(value) && value.split(',').length > 1) { // CSV list
                             if (!filters.hasOwnProperty(key)) {
                                 filters[key] = {};
@@ -179,7 +195,11 @@ function addRoute(server, models, route) {
                 console.log('---------------------------------------');
                 console.dir(filters);
 
-                models[route.name].findAll({where: filters})
+                models[route.name].findAll(
+                    {
+                        include: expand,
+                        where: filters
+                    })
                     .then(function (resource) {
                         reply(resource);
                     })
@@ -189,7 +209,7 @@ function addRoute(server, models, route) {
             },
             config: {
                 validate: {
-                    query: _.extend({}, route.operations.search, route.operations.resultOptions, {fields: validators.fields})
+                    query: _.extend({}, route.operations.search, route.resultOptions, {fields: validators.fields})
                 },
                 description: 'Get ' + route.name + 's',
                 notes: 'Gets all ' + route.name + 's that matches the parameters',
@@ -274,60 +294,90 @@ function addRoute(server, models, route) {
     }
 
 
-    //if (route.operations.hasOwnProperty('updateCollection')) {
-    //    _.each(models.updateCollection, function (validator, key) {
-    //        var payloadValidation = {};
-    //        payloadValidation[key] = validator.required();
-    //
-    //        server.route({
-    //            method: 'PUT',
-    //            path: '/' + route.name + '/{id}/' + key,
-    //            handler: function (request, reply) {
-    //                resource.collection.add(request.params.id, key, request.payload[key], function (err) {
-    //                    reply(err);
-    //                });
-    //            },
-    //            config: {
-    //                validate: {
-    //                    params: {
-    //                        id: route.operations.model.id.required()
-    //                    },
-    //                    payload: payloadValidation
-    //                },
-    //                description: 'Add ' + route.name + ' ' + key,
-    //                notes: 'Add items to collection ' + key + ' on ' + route.name,
-    //                tags: ['api']/*,
-    //                 auth: {
-    //                 scope: resource.scopes.collection.update
-    //                 }*/
-    //            }
-    //        });
-    //
-    //        server.route({
-    //            method: 'PATCH',
-    //            path: '/' + route.name + '/{id}/' + key,
-    //            handler: function (request, reply) {
-    //                resource.collection.remove(request.params.id, key, request.payload[key], function (err) {
-    //                    reply(err);
-    //                });
-    //            },
-    //            config: {
-    //                validate: {
-    //                    params: {
-    //                        id: route.operations.model.id.required()
-    //                    },
-    //                    payload: payloadValidation
-    //                },
-    //                description: 'Remove ' + route.name + ' ' + key,
-    //                notes: 'Remove items from collection ' + key + ' on ' + route.name + '. Note the method is PATCH.',
-    //                tags: ['api']/*,
-    //                 auth: {
-    //                 scope: resource.scopes.collection.remove
-    //                 }*/
-    //            }
-    //        });
-    //
-    //    });
-    //}
+    if (route.operations.hasOwnProperty('updateCollection')) {
+        _.each(route.operations.updateCollection, function (validator, key) {
+            var payloadValidation = {};
+            payloadValidation[key] = validator.required();
+
+            server.route({
+                method: 'PUT',
+                path: '/' + route.name + '/{id}/' + key,
+                handler: function (request, reply) {
+                    models[route.name]
+                        .findOne({where: {id: request.params.id}})
+                        .then(function (resource) {
+                            if (!resource) {
+                                reply(Boom.notFound(route.name + ' ' + request.params.id + ' not found'));
+                            } else {
+
+                                resource[key] = resource[key].concat(request.payload[key]);
+
+                                console.log('New array: ' + resource[key]);
+                                resource.save();
+
+                                reply({});
+                            }
+                        })
+                        .catch(function (err) {
+                            reply(Boom.badRequest(err));
+                        });
+
+                },
+                config: {
+                    validate: {
+                        params: {
+                            id: route.model.id.required()
+                        },
+                        payload: payloadValidation
+                    },
+                    description: 'Add ' + route.name + ' ' + key,
+                    notes: 'Add items to collection ' + key + ' on ' + route.name,
+                    tags: ['api']/*,
+                     auth: {
+                     scope: resource.scopes.collection.update
+                     }*/
+                }
+            });
+
+            server.route({
+                method: 'PATCH',
+                path: '/' + route.name + '/{id}/' + key,
+                handler: function (request, reply) {
+                    models[route.name]
+                        .findOne({where: {id: request.params.id}})
+                        .then(function (resource) {
+                            if (!resource) {
+                                reply(Boom.notFound(route.name + ' ' + request.params.id + ' not found'));
+                            } else {
+                                resource[key] = _.difference(resource[key], request.payload[key])
+
+                                console.log('New array: ' + resource[key]);
+                                resource.save();
+
+                                reply({});
+                            }
+                        })
+                        .catch(function (err) {
+                            reply(Boom.badRequest(err));
+                        });
+                },
+                config: {
+                    validate: {
+                        params: {
+                            id: route.model.id.required()
+                        },
+                        payload: payloadValidation
+                    },
+                    description: 'Remove ' + route.name + ' ' + key,
+                    notes: 'Remove items from collection ' + key + ' on ' + route.name + '. Note the method is PATCH.',
+                    tags: ['api']/*,
+                     auth: {
+                     scope: resource.scopes.collection.remove
+                     }*/
+                }
+            });
+
+        });
+    }
 
 }

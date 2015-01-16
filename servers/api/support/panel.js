@@ -1,6 +1,6 @@
 "use strict";
 
-var nconf; // = require('nconf');
+var nconf = require('nconf');
 
 var stream = require('stream');
 var spawn = require('child_process').spawn;

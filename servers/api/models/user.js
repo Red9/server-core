@@ -9,7 +9,7 @@ module.exports = function (sequelize, DataTypes) {
         displayName: {type: DataTypes.STRING},
         givenName: {type: DataTypes.STRING},
         familyName: {type: DataTypes.STRING},
-        preferredLayout: helpers.createJSONField(DataTypes, 'preferredLayout'),
+        preferredLayout: DataTypes.JSON,
         picture: {type: DataTypes.STRING},
         gender: {type: DataTypes.STRING},
         height: {type: DataTypes.FLOAT},
@@ -17,16 +17,16 @@ module.exports = function (sequelize, DataTypes) {
         tagline: {type: DataTypes.STRING},
         city: {type: DataTypes.STRING},
         state: {type: DataTypes.STRING},
-        sport: helpers.createJSONField(DataTypes, 'sport'),
-        scope: {type: DataTypes.ARRAY(DataTypes.STRING)},
+        sport: DataTypes.JSON,
+        scope: {type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: []},
         createdAt: helpers.touchTimestamp(DataTypes, 'createdAt'),
         updatedAt: helpers.touchTimestamp(DataTypes, 'updatedAt')
     }, {
         freezeTableName: true,
         classMethods: {
             associate: function (models) {
-                //User.hasMany(models.Dataset, {constraints: false});
-                //User.hasMany(models.Event, {constraints: false});
+                user.hasMany(models.dataset, {constraints: false});
+                user.hasMany(models.comment, {constraints: false});
             }
         }
 

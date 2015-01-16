@@ -8,7 +8,7 @@ var datasetSource = Joi.object().description('the RNC source information').optio
 // TODO: Add axes here
 
 var tagSingle = Joi.string();
-var expandOptions = ['owner', 'event', 'video', 'comment', 'count'];
+var expandOptions = ['user', 'event', 'video', 'comment'];
 
 var basicModel = {
     id: validators.id,
@@ -34,7 +34,7 @@ module.exports = {
 
     model: basicModel,
     resultOptions: {
-        expand: Joi.array().includes(Joi.string().valid(expandOptions)).description('Expand a resource into the dataset. Options are ' + expandOptions.join(', ')),
+        expand: Joi.array().includes(Joi.string().valid(expandOptions)).single().description('Expand a resource into the dataset. Options are ' + expandOptions.join(', ')),
     },
     resultModel: Joi.object(basicModel).options({className: resourceName}),
 

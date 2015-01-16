@@ -1,18 +1,5 @@
 "use strict";
 
-
-module.exports.createJSONField = function (DataTypes, key) {
-    return {
-        type: DataTypes.TEXT,
-        set: function (v) {
-            this.setDataValue(key, JSON.stringify(v));
-        },
-        get: function () {
-            return JSON.parse(this.getDataValue(key));
-        }
-    };
-};
-
 module.exports.createTimeField = function (DataTypes, key) {
     return {
         type: DataTypes.DATE,

@@ -60,14 +60,22 @@ exports.init = function (server, models) {
         method: 'GET',
         path: '/dataset/{id}/fcpxml/options',
         handler: function (request, reply) {
-            // TODO(SRLM): Update this to use sequelize
-            resources.dataset.findByIdOptions(request.params.id, {$expand: ['event', 'video']}, function (err, dataset) {
-                reply({
-                    template: templates,
-                    videoType: videoTypes,
-                    eventType: _.chain(dataset.event).pluck('type').uniq().value()
+
+            models.dataset
+                .findOne({
+                    include: [models.event, models.video],
+                    where: {id: request.params.id}
+                })
+                .then(function (dataset) {
+                    reply({
+                        template: templates,
+                        videoType: videoTypes,
+                        eventType: _.chain(dataset.events).pluck('type').uniq().value()
+                    });
+                })
+                .catch(function (err) {
+                    request.log(['error'], 'Error in fcpxml options: ' + err);
                 });
-            });
         },
         config: {
             validate: {
@@ -78,9 +86,9 @@ exports.init = function (server, models) {
             description: 'Get FCXML options',
             notes: 'Get the detailed options that are available to a GET /dataset/{id}/fcpxml',
             tags: ['api']/*,
-            auth: {
-                scope: 'admin'
-            }*/
+             auth: {
+             scope: 'admin'
+             }*/
 
         }
     });
@@ -134,9 +142,9 @@ exports.init = function (server, models) {
             description: 'Dataset defined FCPXML file',
             notes: 'Get an FCPXML video file for this dataset.',
             tags: ['api']/*,
-            auth: {
-                scope: 'admin'
-            }*/
+             auth: {
+             scope: 'admin'
+             }*/
         }
     });
 };

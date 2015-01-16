@@ -5,7 +5,7 @@
   "cassandraKeyspace": "development",
   "cassandraUsername": "cassandra",
   "cassandraPassword": "cassandra",
-  "panelDataPath": "/home/clewis/Downloads/RNC",
+  "panelDataPath": "/home/clewis/consulting/red9/panels",
   "defaultCallbackUrl": "http://localhost:9532",
   "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated",
   "authorizationCookieDomain": null,

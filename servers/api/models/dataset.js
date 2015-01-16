@@ -7,13 +7,13 @@ module.exports = function (sequelize, DataTypes) {
         startTime: helpers.createTimeField(DataTypes, 'startTime'),
         endTime: helpers.createTimeField(DataTypes, 'endTime'),
         title: {type: DataTypes.STRING},
-        summaryStatistics: helpers.createJSONField(DataTypes, 'summaryStatistics'),
+        summaryStatistics: DataTypes.JSON,
         timezone: {type: DataTypes.STRING},
-        source: helpers.createJSONField(DataTypes, 'source'),
-        boundingCircle: helpers.createJSONField(DataTypes, 'boundingCircle'),
-        boundingBox: helpers.createJSONField(DataTypes, 'boundingBox'),
-        gpsLock: helpers.createJSONField(DataTypes, 'gpsLock'),
-        tags: {type: DataTypes.ARRAY(DataTypes.STRING)},
+        source: DataTypes.JSON,
+        boundingCircle: DataTypes.JSON,
+        boundingBox: DataTypes.JSON,
+        gpsLock: DataTypes.JSON,
+        tags: {type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: []},
         createdAt: helpers.touchTimestamp(DataTypes, 'createdAt'),
         updatedAt: helpers.touchTimestamp(DataTypes, 'updatedAt')
     }, {
@@ -27,6 +27,8 @@ module.exports = function (sequelize, DataTypes) {
                     }
                 });
                 dataset.hasMany(models.event, {constraints: true});
+                dataset.hasMany(models.comment, {constraints: true});
+                dataset.hasMany(models.video, {constraints: true});
             }
         }
     });

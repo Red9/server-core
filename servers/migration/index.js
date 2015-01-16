@@ -68,6 +68,10 @@ function loadDatasets(datasetList, doneCallback) {
             } else {
                 idMap.dataset[oldId] = createdDataset.id;
 
+                // Make sure that we copy the tags over...
+                createdDataset.tags = oldDataset.tags;
+                createdDataset.save();
+
                 migratedDatasets[createdDataset.id] = {
                     old: oldDataset,
                     new: createdDataset
