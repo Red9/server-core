@@ -20,6 +20,8 @@ var models = require('./models');
 
 exports.init = function (testing, doneCallback) {
 
+    models.init(nconf);
+
     var server = new Hapi.Server({
         connections: {
             routes: {

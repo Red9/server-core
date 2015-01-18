@@ -1,10 +1,6 @@
 {
   "port": "3000",
   "listenIp": "0.0.0.0",
-  "cassandraHosts": ["localhost"],
-  "cassandraKeyspace": "development",
-  "cassandraUsername": "cassandra",
-  "cassandraPassword": "cassandra",
   "panelDataPath": "/home/clewis/consulting/red9/panels",
   "defaultCallbackUrl": "http://localhost:9532",
   "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated",
@@ -20,5 +16,11 @@
     "correctPath": "/home/clewis/consulting/red9/server-core/rnctools/build/correctrnc"
   },
   "eventFinderPath": "/home/clewis/consulting/red9/server-core/eventfinder",
-  "eventFinderMainFile": "main.r"
+  "eventFinderMainFile": "main.r",
+  "postgresql": {
+    "database": "development",
+    "username": "development",
+    "password": "development",
+    "host": "localhost"
+  }
 }

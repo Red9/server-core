@@ -1,9 +1,4 @@
 {
-  "panelDataPath": "/home/clewis/consulting/red9/panels",
   "panelInputDir": "/home/clewis/consulting/red9/panels-migration_small",
-  "migrationMapPath": "/home/clewis/consulting/red9/migrationMap.json",
-  "RNCTools": {
-    "processorPath": "/home/clewis/consulting/red9/server-core/rnctools/build/rncprocessor",
-    "correctPath": "/home/clewis/consulting/red9/server-core/rnctools/build/correctrnc"
-  }
+  "migrationMapPath": "/home/clewis/consulting/red9/migrationMap.json"
 }

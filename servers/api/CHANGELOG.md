@@ -1,5 +1,9 @@
 ### 2015-01-18
 
+- The `fields` option is temporarily removed.
+
+### 2015-01-17
+
 - Changes to all resources:
     - Changed `id` from a UUID to an incrementing integer in all resources. Important: this means that clients can no longer assumer that `id` is a string. Instead, it may be an integer.
     - Changed key `createTime` to `createdAt` in all resources

@@ -4,13 +4,15 @@ var nconf = require('nconf');
 nconf
     .argv()
     .env()
-    .file('deployment', {file: 'config/' + process.env.NODE_ENV + '.json'});
+    .file('migration', {file: 'config/' + process.env.NODE_ENV + '.json'})
+    .file('api', {file: '../api/config/' + process.env.NODE_ENV + '.json'});
 
 var panelInputDir = nconf.get('panelInputDir');
 
 console.log('panelDataPath: ' + nconf.get('panelDataPath'));
 
 var models = require('../api/models');
+models.init(nconf);
 
 var request = require('request');
 var _ = require('underscore')._;
@@ -30,7 +32,7 @@ var idMap = {
 };
 
 var requestHeaders = {
-    Cookie: 'r9session=Fe26.2**d9865022a42fb72fffa2266cdc1031fa17984f68400679ac05344b680d9a089b*fEyFH5dRru0pjDxG0Ol4wA*cHwehP9Rp5qrc69j7i_7-p4-xFcah8S-S0jOqKfPyht-2aGRrAWkqjOUL-b_Xw0s**478862d8ba385b278608f237de97a9ec0b2e32b5bdfb167702c82daeeeca8547*VPKd6ejEJPbLfb5L5Nrwe45dgiwIur6UotNLq_w7TWg;'
+    Cookie: nconf.get('cookie')
 };
 
 
