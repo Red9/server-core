@@ -5,12 +5,18 @@ var Joi = require('joi');
 
 
 var basicModel = {
+    // Auto created keys
     id: validators.id,
+    createdAt: validators.createdAt,
+    updatedAt: validators.updatedAt,
+
+    // Foreign keys
+    datasetId: validators.id,
+
+    // Core keys
     startTime: validators.timestamp,
     host: Joi.string().valid(['YouTube']).description('The hosting service for this video'),
-    hostId: Joi.string().description('The hosting service identifier for this video.'),
-    datasetId: validators.id,
-    createTime: validators.createTime
+    hostId: Joi.string().description('The hosting service identifier for this video.')
 };
 
 var resourceName = 'video';

@@ -30,11 +30,21 @@ exports.init = function (testing, doneCallback) {
             }
         }
     });
+
     server.connection({
         host: nconf.get('listenIp'),
         port: nconf.get('port')
     });
 
+    server.views({
+        path: 'views',
+        engines: {
+            html: require('handlebars'),
+            fcpxml: require('handlebars')
+        },
+        helpersPath: 'views/helpers',
+        isCached: false
+    });
 
     var plugins = [
         require('bell'),
@@ -43,35 +53,37 @@ exports.init = function (testing, doneCallback) {
             register: require('hapi-swagger'),
             options: {
                 apiVersion: nconf.get("apiVersion"),
-                payloadType: 'form'
+                payloadType: 'form',
+                enableDocumentationPage: false
             }
         }
 
     ];
 
     if (!testing) {
-        // Add in the plugins that we do not want to test with
         plugins.push({
             register: require('good'),
             options: {
+                opsInterval: 1000,
                 reporters: [
                     {
                         reporter: require('good-console'),
                         args: [{
                             log: '*',
-                            request: '*',
+                            response: '*',
                             error: '*'
                         }]
                     },
                     {
                         reporter: require('good-file'),
                         args: [
-                            nconf.get('logFilePath'),
+                            {path: nconf.get('logFilePath')},
                             {
                                 log: '*',
-                                request: '*',
+                                response: '*',
                                 error: '*'
-                            }]
+                            }
+                        ]
                     }
                 ]
             }
@@ -95,6 +107,10 @@ if (!module.parent) {
             process.exit(1);
         } else {
             server.start(function () {
+                if (err) {
+                    console.log('Error starting goodConsole: ' + err);
+                }
+
                 server.log(['debug'], 'Server running at: ' + server.info.uri);
             });
         }

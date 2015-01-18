@@ -16,8 +16,12 @@ var sport = {
 };
 
 var basicModel = {
+    // Auto created keys
     id: validators.id,
-    createTime: validators.createTime,
+    createdAt: validators.createdAt,
+    updatedAt: validators.updatedAt,
+
+    // Core keys
     email: Joi.string().email().description('user email address. Used as "second" primary key for authentication'),
     displayName: Joi.string().description("user's preferred public handle. If set to 'unknown', it will automatically be updated with their Google display name."),
     givenName: Joi.string().description('first name. Set from Google'),

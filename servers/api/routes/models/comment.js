@@ -4,17 +4,24 @@
 var Joi = require('joi');
 var validators = require('../../support/validators');
 
-var expandOptions = ['author'];
+var expandOptions = ['user'];
 
 var basicModel = {
+    // Auto created keys
     id: validators.id,
+    createdAt: validators.createdAt,
+    updatedAt: validators.updatedAt,
+
+    // Foreign keys
+    datasetId: validators.id,
+    userId: validators.id,
+
+    // Core keys
     startTime: validators.timestamp,
     endTime: validators.timestamp,
-    resourceType: Joi.string().valid(['dataset']).description('The resource type that this comment applies to'),
-    resourceId: validators.id,
-    authorId: validators.id,
     body: Joi.string().description('The body of the comment, in markdown format'),
-    createTime: validators.createTime,
+
+    // Virtual keys
     bodyHtml: Joi.string().description('The body of the comment, parsed as markdown and converted to HTML (response only)')
 };
 
@@ -40,27 +47,26 @@ module.exports = {
     operations: {
 
         create: Joi.object({
+            datasetId: basicModel.datasetId.required(),
+            userId: basicModel.userId.required(),
+
             startTime: basicModel.startTime.default(0),
             endTime: basicModel.endTime.default(0),
-            resourceType: basicModel.resourceType.required(),
-            resourceId: basicModel.resourceId.required(),
-            authorId: basicModel.authorId.required(),
             body: basicModel.body.required()
         }).options({className: resourceName + '.create'}),
         update: Joi.object({
+            datasetId: basicModel.datasetId,
+            userId: basicModel.userId,
+
             startTime: basicModel.startTime,
             endTime: basicModel.endTime,
-            resourceType: basicModel.resourceType,
-            resourceId: basicModel.resourceId,
-            authorId: basicModel.authorId,
             body: basicModel.body
         }).options({className: resourceName + '.update'}),
         search: {
             id: validators.idCSV,
             idList: validators.idCSV,
-            authorId: basicModel.authorId,
-            resourceType: basicModel.resourceType,
-            resourceId: basicModel.resourceId
+            userId: basicModel.userId,
+            datasetId: basicModel.datasetId
         }
     }
 };

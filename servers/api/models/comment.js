@@ -1,11 +1,12 @@
 "use strict";
 
 var markdown = require('markdown').markdown;
+var helpers = require('../support/helpers');
 
 module.exports = function (sequelize, DataTypes) {
     var comment = sequelize.define('comment', {
-            startTime: {type: DataTypes.DATE},
-            endTime: {type: DataTypes.DATE},
+            startTime: helpers.createTimeField(DataTypes, 'startTime'),
+            endTime: helpers.createTimeField(DataTypes, 'endTime'),
             body: {type: DataTypes.TEXT}
         },
         {

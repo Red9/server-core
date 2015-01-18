@@ -11,12 +11,17 @@ var tagSingle = Joi.string();
 var expandOptions = ['user', 'event', 'video', 'comment'];
 
 var basicModel = {
+    // Auto created keys
     id: validators.id,
-    createTime: validators.createTime,
+    createdAt: validators.createdAt,
+    updatedAt: validators.updatedAt,
+
+    // Foreign keys
+    userId: validators.id,
+
+    // Core keys
     startTime: validators.timestamp,
     endTime: validators.timestamp,
-    duration: validators.duration,
-    userId: validators.id,
     title: Joi.string().description('the human readable title of this dataset'),
     summaryStatistics: validators.summaryStatistics,
     timezone: Joi.string().description('timezone information. Not used at this time.'),
@@ -24,7 +29,10 @@ var basicModel = {
     boundingCircle: Joi.object(),
     boundingBox: Joi.object(),
     gpsLock: Joi.object(),
-    tags: Joi.array().includes(tagSingle)
+    tags: Joi.array().includes(tagSingle),
+
+    // Dynamic keys
+    duration: validators.duration
 };
 
 var resourceName = 'dataset';
@@ -51,6 +59,7 @@ module.exports = {
     },
 
     operations: {
+        // No create, since that's a special case
         update: Joi.object({
             userId: basicModel.userId,
             title: basicModel.title
@@ -61,18 +70,21 @@ module.exports = {
         search: {
             id: validators.idCSV,
             idList: validators.idCSV,
-            startTime: basicModel.startTime,
+
             userId: validators.idCSV,
             title: basicModel.title,
-            tags: validators.multiArray(tagSingle),
+            tags: basicModel.tags,
+
+            startTime: basicModel.startTime,
             'startTime.gt': basicModel.startTime.description('Select datasets that begin after a given time'),
             'startTime.lt': basicModel.startTime.description('Select datasets that begin before a given time'),
             endTime: basicModel.endTime,
             'endTime.gt': basicModel.endTime.description('Select datasets that end after a given time'),
             'endTime.lt': basicModel.endTime.description('Select datasets that end before a given time'),
-            createTime: basicModel.createTime,
-            'createTime.gt': basicModel.createTime.description('Select datasets that were created after a given time'),
-            'createTime.lt': basicModel.createTime.description('Select datasets that were created before a given time')
+
+            createdAt: basicModel.createdAt,
+            'createdAt.gt': basicModel.createdAt.description('Select datasets that were created after a given time'),
+            'createdAt.lt': basicModel.createdAt.description('Select datasets that were created before a given time')
         }
     }
 };

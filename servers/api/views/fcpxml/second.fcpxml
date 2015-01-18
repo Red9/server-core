@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE fcpxml>
+
+<fcpxml version="1.4">
+    <resources>
+        <format id="r1" frameDuration="{{numerator}}/{{denominator}}s" width="{{pixels.width}}" height="{{pixels.height}}"/>
+        <effect id="r2" name="R9 Title" uid="~/Titles.localized/Bumper:Opener.localized/R9 Title/R9 Title.moti"/>
+        {{#each asset}}
+        <asset id="{{ref}}" src="file://{{source}}">
+        </asset>
+        {{/each}}
+    </resources>
+    <library>
+        <event name="{{dataset.title}}">
+            <project name="{{eventType}} highlight reel">
+                <sequence format="r1" tcFormat="DF">
+                    <spine>
+                        {{#each clip}}
+                        <clip name="{{event.type}} {{event.id}}" offset="{{offsetFrames}}/{{denominator}}s" duration="{{durationFrames}}/{{denominator}}s" start="{{startFrames}}/{{denominator}}s" tcFormat="DF">
+                            <video ref="{{video.ref}}" duration="{{video.duration}}/{{denominator}}s"></video>
+                            {{#if title}}
+                            <title name="{{event.type}} {{index}} of {{total}}" lane="1" offset="{{title.offset}}/{{denominator}}s" ref="r2" duration="{{title.duration}}/{{denominator}}s">
+                                <text>{{round event.summaryStatistics.gps.speed.average 2}} m/s avg     {{round event.summaryStatistics.gps.speed.maximum 2}} m/s max</text>
+                                <text>{{round event.summaryStatistics.distance.path 2}} meters</text>
+                            </title>
+                            {{/if}}
+                        </clip>
+                        {{/each}}
+                    </spine>
+                </sequence>
+            </project>
+        </event>
+    </library>
+</fcpxml>

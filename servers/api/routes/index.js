@@ -24,6 +24,13 @@ function extractExpandOption(request, models) {
  * @param models
  */
 module.exports.init = function (server, models) {
+
+    require('./extra/authentication').init(server, models);
+    require('./extra/panel').init(server, models);
+    require('./extra/eventtype').init(server);
+    require('./extra/fcpxml').init(server, models);
+    require('./extra/documentation').init(server, models);
+
     fs
         .readdirSync(path.join(__dirname, 'models'))
         .filter(function (file) {
@@ -36,11 +43,6 @@ module.exports.init = function (server, models) {
             console.log('Creating route ' + route.name);
             routes[route.name] = route;
         });
-
-    require('./extra/panel').init(server, models);
-    require('./extra/eventtype').init(server);
-    require('./extra/fcpxml').init(server, models);
-    require('./extra/authentication').init(server, models);
 
     console.log('Loaded routes...');
 };
@@ -74,18 +76,18 @@ function addRoute(server, models, route) {
             },
             description: 'Get a single ' + route.name,
             notes: 'Gets a single ' + route.name + ' that matches the given id',
-            tags: ['api']/*,
-             response: {
-             // The response validation is set so that Hapi Swagger can pull it
-             // for documentation, but we don't actually want it to validate.
-             // Why no validate? Because we'd have to add in all the expand keys...
-             schema: resultModel,
-             sample: 1,
-             failAction: 'log'
-             },
-             auth: {
-             scope: resource.scopes.read
-             }*/
+            tags: ['api'],
+            //response: {
+            //// The response validation is set so that Hapi Swagger can pull it
+            //// for documentation, but we don't actually want it to validate.
+            //// Why no validate? Because we'd have to add in all the expand keys...
+            //schema: resultModel,
+            //sample: 1,
+            //failAction: 'log'
+            //},
+            auth: {
+                scope: route.scopes.read
+            }
         }
     });
 
@@ -119,10 +121,10 @@ function addRoute(server, models, route) {
             },
             description: 'Delete ' + route.name,
             notes: 'Delete a single ' + route.name,
-            tags: ['api']/*,
-             auth: {
-             scope: resource.scopes.remove
-             }*/
+            tags: ['api'],
+            auth: {
+                scope: route.scopes.remove
+            }
         }
     });
 
@@ -177,7 +179,7 @@ function addRoute(server, models, route) {
                         }
 
                         // See note above about meta, index, and timestamp.
-                        if (route.operations.search[key].describe().meta > 0 &&
+                        if (route.operations.search[key].describe().meta &&
                             route.operations.search[key].describe().meta[0].timestamp === true) {
                             filters[keyParts[0]][keyParts[1]] = new Date(value);
                         } else {
@@ -187,9 +189,6 @@ function addRoute(server, models, route) {
                     }
 
                 });
-
-                console.log('---------------------------------------');
-                console.dir(filters);
 
                 models[route.name].findAll(
                     {
@@ -209,10 +208,10 @@ function addRoute(server, models, route) {
                 },
                 description: 'Get ' + route.name + 's',
                 notes: 'Gets all ' + route.name + 's that matches the parameters',
-                tags: ['api']
-                //auth: {
-                //    scope: resource.scopes.search
-                //}
+                tags: ['api'],
+                auth: {
+                    scope: route.scopes.search
+                }
                 //response: {schema: resultModelList}
             }
         });
@@ -237,10 +236,10 @@ function addRoute(server, models, route) {
                 },
                 description: 'Create new ' + route.name,
                 notes: 'Create new ' + route.name,
-                tags: ['api']/*,
-                 auth: {
-                 scope: resource.scopes.create
-                 }*/
+                tags: ['api'],
+                auth: {
+                    scope: route.scopes.create
+                }
             }
         });
     }
@@ -281,10 +280,10 @@ function addRoute(server, models, route) {
                 },
                 description: 'Update ' + route.name,
                 notes: 'Update one or more fields of a single ' + route.name,
-                tags: ['api']/*,
-                 auth: {
-                 scope: route.scopes.update
-                 }*/
+                tags: ['api'],
+                auth: {
+                    scope: route.scopes.update
+                }
             }
         });
     }
@@ -305,12 +304,8 @@ function addRoute(server, models, route) {
                             if (!resource) {
                                 reply(Boom.notFound(route.name + ' ' + request.params.id + ' not found'));
                             } else {
-
                                 resource[key] = resource[key].concat(request.payload[key]);
-
-                                console.log('New array: ' + resource[key]);
                                 resource.save();
-
                                 reply({});
                             }
                         })
@@ -328,10 +323,10 @@ function addRoute(server, models, route) {
                     },
                     description: 'Add ' + route.name + ' ' + key,
                     notes: 'Add items to collection ' + key + ' on ' + route.name,
-                    tags: ['api']/*,
-                     auth: {
-                     scope: resource.scopes.collection.update
-                     }*/
+                    tags: ['api'],
+                    auth: {
+                        scope: route.scopes.collection.update
+                    }
                 }
             });
 
@@ -346,10 +341,7 @@ function addRoute(server, models, route) {
                                 reply(Boom.notFound(route.name + ' ' + request.params.id + ' not found'));
                             } else {
                                 resource[key] = _.difference(resource[key], request.payload[key])
-
-                                console.log('New array: ' + resource[key]);
                                 resource.save();
-
                                 reply({});
                             }
                         })
@@ -366,10 +358,10 @@ function addRoute(server, models, route) {
                     },
                     description: 'Remove ' + route.name + ' ' + key,
                     notes: 'Remove items from collection ' + key + ' on ' + route.name + '. Note the method is PATCH.',
-                    tags: ['api']/*,
-                     auth: {
-                     scope: resource.scopes.collection.remove
-                     }*/
+                    tags: ['api'],
+                    auth: {
+                        scope: route.scopes.collection.remove
+                    }
                 }
             });
 
