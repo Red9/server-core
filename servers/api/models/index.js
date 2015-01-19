@@ -38,7 +38,6 @@ db.init = function (nconf) {
     });
 
     console.log('WARNING!!! REMOVE OR CHECK sync FUNCTION BEFORE PRODUCTION');
-    //sequelize.sync({force: true});
     sequelize.sync();
 
     db.sequelize = sequelize;

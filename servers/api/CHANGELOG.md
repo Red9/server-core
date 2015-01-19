@@ -9,6 +9,7 @@
     - Changed key `createTime` to `createdAt` in all resources
     - Added key `updatedAt` to all resources
 - Changes to the dataset resource:
+    - Removed the `count` expand option
     - Changed key `ownerId` in dataset to `userId`
     - Changed key `owner` in dataset expand to `user`
     - Added plural to expand options that return a list:
