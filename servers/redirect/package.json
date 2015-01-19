@@ -1,0 +1,14 @@
+{
+  "name": "rednineredirect",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "nodejs index.js"
+  },
+  "dependencies": {
+    "hapi": "latest",
+    "good": "latest",
+    "good-console": "latest",
+    "nconf": "latest"
+  }
+}

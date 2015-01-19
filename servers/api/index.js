@@ -13,90 +13,92 @@ nconf
     .file('common', {file: '../config/' + process.env.NODE_ENV + '.json'});
 
 var Hapi = require('hapi');
+
 var Joi = require('joi');
 
-var resources = require('./resources/index');
-var routeTemplate = require('./support/routetemplate');
+var models = require('./models');
 
 exports.init = function (testing, doneCallback) {
 
-    var server = Hapi.createServer(nconf.get('listenIp'), nconf.get('port'), {
-        cors: {
-            origin: nconf.get('htmlOrigin'),
-            credentials: true
+    models.init(nconf);
+
+    var server = new Hapi.Server({
+        connections: {
+            routes: {
+                cors: {
+                    origin: nconf.get('htmlOrigin'),
+                    credentials: true
+                }
+            }
         }
     });
 
+    server.connection({
+        host: nconf.get('listenIp'),
+        port: nconf.get('port')
+    });
 
-    resources.init(server, function (err) {
-        if (err) {
-            server.log(['error'], 'Resources error: ' + err);
-            process.exit(1);
+    server.views({
+        path: 'views',
+        engines: {
+            html: require('handlebars'),
+            fcpxml: require('handlebars')
+        },
+        helpersPath: 'views/helpers',
+        isCached: false
+    });
+
+    var plugins = [
+        require('bell'),
+        require('hapi-auth-cookie'),
+        {
+            register: require('hapi-swagger'),
+            options: {
+                apiVersion: nconf.get("apiVersion"),
+                payloadType: 'form',
+                enableDocumentationPage: false
+            }
         }
 
-        var plugins = [
-            require('bell'),
-            require('hapi-auth-cookie'),
-            {
-                plugin: require('hapi-swagger'),
-                options: {
-                    apiVersion: nconf.get("apiVersion"),
-                    payloadType: 'form'
-                }
-            }
+    ];
 
-        ];
-
-        if (!testing) {
-            // Add in the plugins that we do not want to test with
-            plugins.push({
-                plugin: require('good'),
-                options: {
-                    reporters: [
-                        {
-                            reporter: require('good-console'),
-                            args: [{
+    if (!testing) {
+        plugins.push({
+            register: require('good'),
+            options: {
+                opsInterval: 1000,
+                reporters: [
+                    {
+                        reporter: require('good-console'),
+                        args: [{
+                            log: '*',
+                            response: '*',
+                            error: '*'
+                        }]
+                    },
+                    {
+                        reporter: require('good-file'),
+                        args: [
+                            {path: nconf.get('logFilePath')},
+                            {
                                 log: '*',
-                                request: '*',
+                                response: '*',
                                 error: '*'
-                            }]
-                        },
-                        {
-                            reporter: require('good-file'),
-                            args: [
-                                nconf.get('logFilePath'),
-                                {
-                                    log: '*',
-                                    request: '*',
-                                    error: '*'
-                                }]
-                        }
-                    ]
-                }
-            });
-        }
-
-        server.pack.register(plugins, function (err) {
-            if (err) {
-                doneCallback(err);
-                return;
+                            }
+                        ]
+                    }
+                ]
             }
-
-            require('./routes/authentication').init(server, resources); // Needs to be first
-
-            routeTemplate.createCRUDRoutes(server, resources.event);
-            routeTemplate.createCRUDRoutes(server, resources.user);
-            routeTemplate.createCRUDRoutes(server, resources.comment);
-            routeTemplate.createCRUDRoutes(server, resources.video);
-            routeTemplate.createCRUDRoutes(server, resources.layout);
-            routeTemplate.createCRUDRoutes(server, resources.dataset, ['read', 'update', 'delete', 'search', 'updateCollection']);
-
-            require('./routes/dataset').init(server, resources);
-            require('./routes/eventtype').init(server);
-            require('./routes/fcpxml').init(server);
-
-            doneCallback(null, server);
         });
+    }
+
+    server.register(plugins, function (err) {
+        if (err) {
+            doneCallback(err);
+        } else {
+            require('./routes').init(server, models);
+            doneCallback(null, server);
+        }
     });
 };
 
@@ -107,10 +109,12 @@ if (!module.parent) {
             process.exit(1);
         } else {
             server.start(function () {
+                if (err) {
+                    console.log('Error starting goodConsole: ' + err);
+                }
+
                 server.log(['debug'], 'Server running at: ' + server.info.uri);
             });
         }
     });
 }
-
-

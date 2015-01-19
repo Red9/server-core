@@ -1,17 +1,13 @@
 {
   "port": "8080",
   "listenIp": "0.0.0.0",
-  "cassandraHosts": ["54.82.82.55"],
-  "cassandraKeyspace": "production",
-  "cassandraUsername": "client",
-  "cassandraPassword": "e798169e-768b-4ba5-a6a0-1366909cc3f5",
-  "rncDataPath": "/home/ubuntu/RNC",
-  "defaultCallbackUrl" : "http://betadata.redninesensor.com",
-  "unauthorizedCallbackUrl": "http://betadata.redninesensor.com/page/unauthenticated",
-  "authorizationCookieDomain": ".betaapi.redninesensor.com",
+  "panelDataPath": "/ebs0/data/rnc",
+  "defaultCallbackUrl" : "http://my.redninesensor.com",
+  "unauthorizedCallbackUrl": "http://my.redninesensor.com/page/unauthenticated",
+  "authorizationCookieDomain": ".api.redninesensor.com",
   "logFilePath": "/home/ubuntu/log/apiserver",
   "authorizationCookieName": "r9session",
-  "defaultUserPicture": "http://betadata.redninesensor.com/static/images/profile-default.png",
+  "defaultUserPicture": "http://my.redninesensor.com/static/images/profile-default.png",
   "panelCacheOptions": {
     "expiresIn": 1000000
   },
@@ -20,5 +16,11 @@
     "correctPath": "/home/ubuntu/server-core/rnctools/build/correctrnc"
   },
   "eventFinderPath": "/home/ubuntu/server-core/eventfinder",
-  "eventFinderMainFile": "main.r"
+  "eventFinderMainFile": "main.r",
+  "postgresql": {
+    "database": "production",
+    "username": "api",
+    "password": "likefirehorizon",
+    "host": "production-database-1.c4keqqx9b75i.us-east-1.rds.amazonaws.com"
+  }
 }

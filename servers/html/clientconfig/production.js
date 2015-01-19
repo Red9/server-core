@@ -1,4 +1,4 @@
 var red9config = {
-    apiUrl: 'http://betaapi.redninesensor.com',
+    apiUrl: 'http://api.redninesensor.com',
     htmlUrl: 'http://betadata.redninesensor.com'
 };

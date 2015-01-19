@@ -7,8 +7,6 @@
   },
   "main": "build/rncvalidate",
   "dependencies": {
-  },
-  "devDependencies": {
     "grunt": "latest",
     "grunt-contrib-watch": "latest",
     "grunt-shell": "latest",

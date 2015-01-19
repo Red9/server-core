@@ -26,7 +26,7 @@
                                     <text-style ref="{{title.textARef}}">unknown stars</text-style>
                                 </text>
                                 <text>
-                                    <text-style ref="{{title.textBRef}}">{{round event.summaryStatistics.distance.path}} meters</text-style>
+                                    <text-style ref="{{title.textBRef}}">{{round event.summaryStatistics.distance.path 2}} meters</text-style>
                                 </text>
                                 <text-style-def id="{{title.textARef}}">
                                     <text-style font="Helvetica Neue" fontSize="66" fontFace="Regular" fontColor="0.986246 0.00712073 0.0274342 1" strokeColor="1 0.999974 0.999991 1" strokeWidth="1"/>

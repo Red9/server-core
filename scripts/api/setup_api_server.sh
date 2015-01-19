@@ -28,12 +28,12 @@ ioH8I/Q4XrmO1X2WqyMs6uC4m2sCYbJ8BAv03kwsDJ9k5Id4ukmi7isEeCp5i8fD
 c5TDNVLnT+NjePEi3ziCBQZRXBYuBvM3A6pEvEgcs7t564NR47tXaA==
 -----END RSA PRIVATE KEY-----"
 
-sudo apt-get install r-base-core
+sudo apt-get -y --force-yes install r-base-core postgresql-client cmake
 # Install R packages
 # Warning: this might be brittle when versions change...
 cd /tmp
-wget http://cran.r-project.org/src/contrib/jsonlite_0.9.13.tar.gz
-sudo R CMD INSTALL jsonlite_0.9.13.tar.gz
+wget http://cran.r-project.org/src/contrib/jsonlite_0.9.14.tar.gz
+sudo R CMD INSTALL jsonlite_0.9.14.tar.gz
 wget http://cran.r-project.org/src/contrib/signal_0.7-4.tar.gz
 sudo R CMD INSTALL signal_0.7-4.tar.gz
 
@@ -47,14 +47,32 @@ ssh-add /home/ubuntu/.ssh/id_rsa
 
 echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> /home/ubuntu/.ssh/config
 
-# Create a place to put the RNCs
-mkdir -p /home/ubuntu/RNC
-
+cd /home/ubuntu/
+mkdir -p log/apiserver
 
 # Get our repository
-cd /home/ubuntu/
-git clone git@bitbucket.org:rednine/server-core.git
+git clone --recursive git@bitbucket.org:rednine/server-core.git
 cd /home/ubuntu/server-core/servers/api
 npm install
 grunt
+
+
+sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080
+sudo iptables-save
+
+
+
+
+# Format the attached EBS store
+# But comment out since we only want to do that the first time...
+# sudo mkfs -t ext4 /dev/xvdb 
+# Then mount. Again, we only want to do all this the first time.
+# sudo mkdir /ebs0
+# echo "/dev/xvdb /ebs0 ext4 defaults 1 2" | sudo tee -a /etc/fstab
+# sudo mount /ebs0
+# sudo chown -R ${USER}:${USER} /ebs0
+# sudo mkdir -p /ebs0/data/rnc
+# sudo chown -R ${USER}:${USER} /ebs0/data
+
+
 
