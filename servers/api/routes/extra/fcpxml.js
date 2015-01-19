@@ -1,13 +1,14 @@
 "use strict";
 
-var resources = require('../resources/index');
 var Joi = require('joi');
-var validators = require('../resources/validators');
+var validators = require('../../support/validators');
 var _ = require('underscore')._;
 var Boom = require('boom');
 var nconf = require('nconf');
 
 var fs = require('fs');
+
+var datasetRoute = require('../models/dataset');
 
 var videoTypes = {
     'GoPro_720p_59.94hz': {
@@ -42,14 +43,7 @@ var videoTypes = {
     }
 };
 
-exports.init = function (server) {
-    server.views({
-        engines: {
-            fcpxml: require('handlebars')
-        },
-        path: 'views/fcpxml',
-        helpersPath: 'views/helpers'
-    });
+exports.init = function (server, models) {
 
     var templates = _.map(fs.readdirSync('views/fcpxml'), function (filename) {
         return filename.substr(0, filename.lastIndexOf('.'));
@@ -59,26 +53,40 @@ exports.init = function (server) {
         method: 'GET',
         path: '/dataset/{id}/fcpxml/options',
         handler: function (request, reply) {
-            resources.dataset.findByIdOptions(request.params.id, {$expand: ['event', 'video']}, function (err, dataset) {
-                reply({
-                    template: templates,
-                    videoType: videoTypes,
-                    eventType: _.chain(dataset.event).pluck('type').uniq().value()
+
+            models.dataset
+                .findOne({
+                    include: [models.event, models.video],
+                    where: {id: request.params.id}
+                })
+                .then(function (dataset) {
+                    if (dataset) {
+                        reply({
+                            template: templates,
+                            videoType: videoTypes,
+                            eventType: _.chain(dataset.events).pluck('type').uniq().value()
+                        });
+                    } else {
+                        reply(Boom.notFound('dataset ' + request.params.id + ' not found'));
+                    }
+                })
+                .catch(function (err) {
+                    reply(Boom.badRequest('Error in fcpxml options' + err));
+
                 });
-            });
         },
         config: {
             validate: {
                 params: {
-                    id: resources.dataset.models.model.id.required()
+                    id: datasetRoute.model.id.required()
                 }
             },
             description: 'Get FCXML options',
             notes: 'Get the detailed options that are available to a GET /dataset/{id}/fcpxml',
-            tags: ['api'],
-            auth: {
-                scope: 'admin'
-            }
+            tags: ['api']/*,
+             auth: {
+             scope: 'admin'
+             }*/
 
         }
     });
@@ -87,38 +95,45 @@ exports.init = function (server) {
         method: 'GET',
         path: '/dataset/{id}/fcpxml',
         handler: function (request, reply) {
-            resources.dataset.findByIdOptions(request.params.id, {$expand: ['event', 'video']}, function (err, dataset) {
-                if (err) {
-                    reply(err);
-                    return;
-                } else if (dataset.video.length === 0) {
-                    reply(Boom.badRequest('No videos associated with this dataset. Cannot generate FCPXML.'));
-                    return;
-                } else if (dataset.event.length === 0) {
-                    reply(Boom.badRequest('No events associated with this dataset. Cannot generate FCPXML.'));
-                    return;
-                }
+            models.dataset
+                .findOne({
+                    include: [models.event, models.video],
+                    where: {id: request.params.id}
+                })
+                .then(function (dataset) {
+                    if (dataset) {
+                        if (dataset.videos.length === 0) {
+                            reply(Boom.badRequest('No videos associated with this dataset. Cannot generate FCPXML.'));
+                        } else if (dataset.events.length === 0) {
+                            reply(Boom.badRequest('No events associated with this dataset. Cannot generate FCPXML.'));
+                        } else {
+                            var fcpParameters = calculateParameters(
+                                videoTypes[request.query.videoType],
+                                request.query.files.split(','),
+                                request.query.titleDuration,
+                                request.query.eventType,
+                                dataset.events,
+                                dataset.videos[0], // Hard coded for now, but should we really always use the first video?
+                                dataset
+                            );
 
-                var fcpParameters = calculateParameters(
-                    videoTypes[request.query.videoType],
-                    request.query.files.split(','),
-                    request.query.titleDuration,
-                    request.query.eventType,
-                    dataset.event,
-                    dataset.video[0],
-                    dataset
-                );
+                            reply.view('fcpxml/' + request.query.template + '.fcpxml', fcpParameters)
+                                .header('content-disposition', 'attachment; filename=' + dataset.id + '.xml')
+                                .header('content-type', 'text/xml; charset=utf-8');
+                        }
 
-                reply.view(request.query.template, fcpParameters)
-                    .header('content-disposition', 'attachment; filename=' + dataset.id + '.xml')
-                    .header('content-type', 'text/xml; charset=utf-8');
-            });
-
+                    } else {
+                        reply(Boom.notFound('dataset ' + request.params.id + ' not found'));
+                    }
+                })
+                .catch(function (err) {
+                    reply(Boom.badRequest('Error in fcpxml ' + err));
+                });
         },
         config: {
             validate: {
                 params: {
-                    id: resources.dataset.models.model.id.required()
+                    id: datasetRoute.model.id.required()
                 },
                 query: {
                     template: Joi.string().valid(templates).required().description('The template to use for output'),
@@ -185,7 +200,7 @@ function calculateParameters(videoDefinition, files, titleDurationGiven, eventTy
                     return asset.start <= startFramesTotal;
                 });
 
-                if(!asset){
+                if (!asset) {
                     // If we can't find a valid asset then we can't make
                     // a clip. Most likely it's because the event is before the
                     // first video.
@@ -223,7 +238,7 @@ function calculateParameters(videoDefinition, files, titleDurationGiven, eventTy
                 runningOffset += durationFrames;
                 return result;
             })
-            .filter(function(val){
+            .filter(function (val) {
                 return val;
             })
             .value();

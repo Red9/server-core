@@ -1,5 +1,5 @@
 {
-  "apiVersion": "0.5.0",
+  "apiVersion": "0.6.0",
   "sessionCookie:duration": 86400000,
   "sessionCookie:activeDuration": 300000,
   "panelSizeMap": {

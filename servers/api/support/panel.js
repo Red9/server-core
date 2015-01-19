@@ -1,35 +1,32 @@
 "use strict";
 
+var nconf = require('nconf');
+
 var stream = require('stream');
 var spawn = require('child_process').spawn;
 var execFile = require('child_process').execFile;
 var path = require('path');
 var fs = require('fs');
 var _ = require('underscore')._;
-var nconf = require('nconf');
 var Boom = require('boom');
 var async = require('async');
 
-// Set dynamically. Very hacky.
-var server;
-var resources;
-exports.setResources = function (resources_) {
-    resources = resources_;
-};
-exports.setServer = function (server_) {
-    server = server_;
-};
-
-
 var maximumEventsCreatedInParallel = 4;
+
+// We need this export for the migration. Otherwise, since the nconf that the
+// migration script gets and the nconf that this file gets are different, we
+// won't have valid nconf values to use.
+exports.init = function (nconf_) {
+    nconf = nconf_;
+};
 
 /**
  *
- * @param id {string}
- * @returns {string}
+ * @param id {String}
+ * @returns {String}
  */
 function createFilename(id) {
-    return path.join(nconf.get('rncDataPath'), id) + '.RNC';
+    return path.join(nconf.get('panelDataPath'), '' + id) + '.RNC';
 }
 
 /** A little helper function that makes it easier to always check for a panel before doing something.
@@ -90,7 +87,7 @@ function correctFile(inputFilename, outputFilename, callback) {
  * @param inputStream {stream} The file, as a stream. This will be written directly to disk.
  * @param callback {function} (err) Called once the file is written and corrected, or if an error occurs.
  */
-exports.createPanel = function (id, inputStream, callback) {
+function createPanel(id, inputStream, callback) {
     var uploadFilename = createFilename(id + '.upload');
     var filename = createFilename(id);
 
@@ -101,6 +98,68 @@ exports.createPanel = function (id, inputStream, callback) {
     inputStream.on('error', function (err) {
         callback(err);
     });
+}
+
+/** Takes care of the details of handling a panel and a dataset.
+ *
+ * @param server {Object}
+ * @param models {Object}
+ * @param newDataset {Object} The dataset object to store in the DB
+ * @param panelStream {ReadableStream} A stream representing the panel data
+ * @param callback {Function} (err, updatedDataset)
+ */
+exports.create = function (server, models, newDataset, panelStream, callback) {
+    console.dir(newDataset);
+    models.dataset
+        .create(newDataset)
+        .then(function (createdDataset) {
+            createPanel(createdDataset.id, panelStream, function (err) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                exports.readPanelJSON(server, createdDataset.id, {
+                    properties: {},
+                    statistics: {}
+                }, function (err, result) {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+
+                    var updateTemp = {
+                        startTime: result.startTime,
+                        endTime: result.endTime,
+                        summaryStatistics: result.summaryStatistics,
+                        boundingBox: result.boundingBox,
+                        boundingCircle: result.boundingCircle,
+                        gpsLock: result.gpsLock,
+                        source: {
+                            scad: result.source
+                        }
+                    };
+
+                    models.dataset
+                        .update(updateTemp,
+                        {
+                            returning: true,
+                            where: {id: createdDataset.id}
+                        })
+                        .then(function (updatedDataset) {
+                            // A bit of a hack to hard code these indicies, but that's how sequelize works with returning: true
+                            callback(null, updatedDataset[1][0]);
+                        })
+                        .catch(function (err) {
+                            server.log(['warning'], 'Error on update: ' + err);
+                            callback(Boom.badRequest(err));
+                        });
+
+                });
+            });
+        })
+        .catch(function (err) {
+            callback(Boom.badRequest(err));
+        });
 };
 
 
@@ -207,6 +266,7 @@ exports.readPanelCSV = function (id, options, callback) {
 
 /** Get the JSON representation of the panel.
  *
+ * @param server {Object} optionally null.
  * @param id {String}
  * @param options {Object} supported options are:
  * @param [options.csPeriod] {Number} the number of milliseconds to set the cross section to
@@ -219,7 +279,7 @@ exports.readPanelCSV = function (id, options, callback) {
  *
  * @param callback {Function} (err, result) result is a JSON object.
  */
-exports.readPanelJSON = function (id, options, callback) {
+exports.readPanelJSON = function (server, id, options, callback) {
     // Check parameters
     if (_.has(options, 'csPeriod') && _.has(options, 'rows')) {
         callback(Boom.badImplementation('Must provide only one of csPeriod or rows.'));
@@ -289,7 +349,13 @@ exports.readPanelJSON = function (id, options, callback) {
                 try {
                     output = JSON.parse(stdout);
                 } catch (e) {
-                    server.log(['error'], 'readPanelJSON parsing error: ' + e);
+                    if (server) {
+                        server.log(['error'], 'readPanelJSON parsing error: ' + e);
+                    } else {
+                        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                        console.log('readPanelJSON parsing error: ' + e);
+                        console.log('------------------------------------');
+                    }
                 }
                 callback(null, output);
             }
@@ -345,7 +411,7 @@ var eventFinderCommands = [
             wThresholdDirection: 'above',
             pThresholdDirection: 'below',
             tThresholdDirection: 'below',
-            wThreshold: 0.8,
+            wThreshold: 0.7,
             pThreshold: 1.5,
             tThreshold: 1.5,
             wMergeThreshold: 500,
@@ -399,13 +465,14 @@ var eventFinderCommands = [
 ];
 
 /**
- *
+ * @param server {Object}
+ * @param models {Object}
  * @param id {string}
  * @param startTime {number}
  * @param endTime {number}
  * @param doneCallback {function} (err)
  */
-exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
+exports.runEventFinder = function (server, models, id, startTime, endTime, doneCallback) {
     var functionStartTime = new Date().getTime();
     checkForPanelHelper(id, doneCallback, function () {
         var parameters = [
@@ -453,7 +520,14 @@ exports.runEventFinder = function (id, startTime, endTime, doneCallback) {
                     server.log(['debug'], 'Rscript execution time: ' + ( (rscriptStopTime - functionStartTime) / 1000));
 
                     async.mapLimit(eventList, maximumEventsCreatedInParallel,
-                        resources.event.create,
+                        function (event, cb) {
+                            models.event
+                                .create(event)
+                                .then(function (createdEvent) {
+                                    cb(null, createdEvent);
+                                })
+                                .catch(cb);
+                        },
                         function (err, results) {
                             if (err) {
                                 doneCallback(err);

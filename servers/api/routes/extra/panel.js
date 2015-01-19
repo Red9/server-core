@@ -4,15 +4,15 @@ var Joi = require('joi');
 var _ = require('underscore')._;
 var nconf = require('nconf');
 var Boom = require('boom');
-var validators = require('../resources/validators');
-var routeHelp = require('../support/routehelp');
+var validators = require('../../support/validators');
+//var routeHelp = require('../support/routehelp');
 
-exports.init = function (server, resource) {
-    // Convenient handles
-    var models = resource.dataset.models;
-    var model = models.model;
-    var resultModel = models.resultModel;
 
+var panel = require('../../support/panel');
+
+var datasetRoute = require('./../models/dataset');
+
+exports.init = function (server, models) {
     // ------------------------------------------------------------------------
     // Panel operations
     // ------------------------------------------------------------------------
@@ -30,10 +30,10 @@ exports.init = function (server, resource) {
             handler: function (request, reply) {
                 var newDataset = {
                     title: request.payload.title,
-                    ownerId: request.payload.ownerId
+                    userId: request.payload.userId
                 };
 
-                resource.helpers.createDataset(newDataset, request.payload.rnc, function (err, createdDataset) {
+                panel.create(server, models, newDataset, request.payload.rnc, function (err, createdDataset) {
                     if (err) {
                         reply(err);
                     } else {
@@ -48,8 +48,8 @@ exports.init = function (server, resource) {
                     // together they didn't both come through. So, we have
                     // to hard code the requirements.
                     rnc: validators.stream.required(),
-                    title: model.title.required(),
-                    ownerId: model.ownerId.required()
+                    title: datasetRoute.model.title.required(),
+                    userId: datasetRoute.model.userId.required()
                 }
             },
             description: 'Create new dataset',
@@ -80,7 +80,7 @@ exports.init = function (server, resource) {
                 options.axes = request.query.axes.split(',');
             }
 
-            resource.panel.readPanelCSV(request.params.id, options, function (err, resultStream) {
+            panel.readPanelCSV(request.params.id, options, function (err, resultStream) {
                 if (err) {
                     reply(err);
                 } else {
@@ -92,11 +92,11 @@ exports.init = function (server, resource) {
         config: {
             validate: {
                 params: {
-                    id: model.id.required()
+                    id: datasetRoute.model.id.required()
                 },
                 query: {
-                    startTime: model.startTime,
-                    endTime: model.endTime,
+                    startTime: datasetRoute.model.startTime,
+                    endTime: datasetRoute.model.endTime,
                     csPeriod: Joi.number().integer().min(1).default(10).description('Period of the rows, in milliseconds'),
                     frequency: Joi.number().integer().min(1).max(1000).description('Frequency in Hz. Rounded to the nearest even millisecond period.'),
                     axes: Joi.string().description('CSV list of axes to return.')
@@ -119,7 +119,7 @@ exports.init = function (server, resource) {
             startTime: startTime,
             endTime: endTime
         };
-        resource.panel.readPanelJSON(id, options, callback);
+        panel.readPanelJSON(server, id, options, callback);
     };
 
 
@@ -129,21 +129,21 @@ exports.init = function (server, resource) {
             dataset: 'id'
         };
 
-        var resourceTemp;
-        resource[resourceType].find({id: id}, {},
-            function (resourceTemp_) {
-                resourceTemp = resourceTemp_;
-            },
-            function (err, resultRows) {
-                if (resultRows !== 1) {
-                    callback(Boom.notFound());
-                } else {
-                    getPanelBounded(resourceTemp[datasetIdKey[resourceType]],
+        models.dataset
+            .findOne({where: {id: id}})
+            .then(function (resource) {
+                if (resource) {
+                    getPanelBounded(resource[datasetIdKey[resourceType]],
                         rows,
-                        resourceTemp.startTime,
-                        resourceTemp.endTime,
+                        resource.startTime,
+                        resource.endTime,
                         callback);
+                } else {
+                    callback(Boom.notFound());
                 }
+            })
+            .catch(function (err) {
+                callback(Boom.badRequest(err));
             });
     };
     server.method('getPanel', getPanel, {cache: nconf.get('panelCacheOptions')});
@@ -153,13 +153,11 @@ exports.init = function (server, resource) {
         method: 'GET',
         path: '/{resourceType}/{id}/json',
         handler: function (request, reply) {
-            var fields = routeHelp.getFieldsFromQuery(request.query);
-
             var finalHandler = function (err, result) {
                 if (err) {
                     reply(err);
                 } else {
-                    reply(routeHelp.filterFields(fields, result));
+                    reply(result);
                 }
             };
 
@@ -189,13 +187,13 @@ exports.init = function (server, resource) {
             validate: {
                 params: {
                     resourceType: Joi.string().valid(['dataset', 'event']).required().description('The resource type to get a panel for.'),
-                    id: model.id.required()
+                    id: datasetRoute.model.id.required()
                 },
                 query: {
                     size: Joi.string().valid(Object.keys(nconf.get('panelSizeMap'))).description('The resolution (result size) of the panel.'),
                     rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.'),
-                    startTime: model.startTime,
-                    endTime: model.endTime,
+                    startTime: datasetRoute.model.startTime,
+                    endTime: datasetRoute.model.endTime,
                     fields: validators.fields
                 }
             },
@@ -212,29 +210,32 @@ exports.init = function (server, resource) {
         method: 'POST',
         path: '/dataset/{id}/eventfind',
         handler: function (request, reply) {
-            var dataset;
-            resource.dataset.find({id: request.params.id}, {},
-                function (dataset_) {
-                    dataset = dataset_;
-                },
-                function (err, rowCount) {
-                    if (err) {
-                        reply(err);
-                    } else {
-                        resource.panel.runEventFinder(dataset.id, dataset.startTime, dataset.endTime,
+
+            models.dataset
+                .findOne({where: {id: request.params.id}})
+                .then(function (dataset) {
+
+                    if (dataset) {
+                        panel.runEventFinder(server, models, dataset.id, dataset.startTime, dataset.endTime,
                             function (err, createdEvents) {
                                 if (err) {
                                     request.log(['error'], 'runEventFinder error: ' + err);
                                 }
                             });
                         reply({message: 'processing started.'});
+                    } else {
+                        reply(Boom.notFound('dataset ' + request.params.id + ' not found'));
                     }
+                })
+                .catch(function (err) {
+                    reply(err);
                 });
+
         },
         config: {
             validate: {
                 params: {
-                    id: model.id.required()
+                    id: datasetRoute.model.id.required()
                 }
             },
             description: 'Red9 Event Finding Algorithm',

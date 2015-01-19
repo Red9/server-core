@@ -12,7 +12,8 @@ apt-get update
 
 apt-get -y --force-yes install iotop git nodejs htop tmux
 
-npm install -g grunt
+sudo npm install -g grunt-cli
+
 # Make sure to clean up the mess that npm leaves
 rm -rf /home/ubuntu/tmp
 
