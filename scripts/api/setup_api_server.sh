@@ -28,7 +28,7 @@ ioH8I/Q4XrmO1X2WqyMs6uC4m2sCYbJ8BAv03kwsDJ9k5Id4ukmi7isEeCp5i8fD
 c5TDNVLnT+NjePEi3ziCBQZRXBYuBvM3A6pEvEgcs7t564NR47tXaA==
 -----END RSA PRIVATE KEY-----"
 
-sudo apt-get install r-base-core postgresql-client cmake
+sudo apt-get -y --force-yes install r-base-core postgresql-client cmake
 # Install R packages
 # Warning: this might be brittle when versions change...
 cd /tmp
