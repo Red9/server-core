@@ -48,11 +48,11 @@ First, you'll need to get your cookie value.* To do that follow these steps:
 
 \* The cookie shown below is an example, and expired. You'll need to use your own cookie.
 
-1. Using Chrome, log into [http://betadata.redninesensor.com/](http://betadata.redninesensor.com/)
-2. Go to [http://betaapi.redninesensor.com/documentation](http://betaapi.redninesensor.com/documentation) (this page)
+1. Using Chrome, log into [http://my.redninesensor.com/](http://my.redninesensor.com/)
+2. Go to [http://api.redninesensor.com/documentation](http://api.redninesensor.com/documentation) (this page)
 3. Press CTRL+SHIFT+I to open developer tools
 4. Click on the resources tab
-5. On the left, open the Cookies drop down, select betaapi.redninesensor.com
+5. On the left, open the Cookies drop down, select api.redninesensor.com
 6. On the list of cookies find the "r9session" line. Click to highlight.
 7. Press CTRL+C to copy.
 8. Use that cookie value stored in your clipboard for your programatic access to the API.
@@ -310,7 +310,7 @@ The temporal component of aggregate statistics describes the time relation of th
     cookies = ParseCookie(args)
 
     # Specify the API domain to connect to.
-    host = 'http://betaapi.redninesensor.com'
+    host = 'http://api.redninesensor.com'
 
     # Make the HTTP request
     r = requests.get(host + '/dataset/' + datasetId, cookies=cookies)

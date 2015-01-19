@@ -329,7 +329,7 @@ function migrateEvents(datasets, doneCallback) {
                     models.event
                         .create(event)
                         .then(function (createdEvent) {
-                            idMap[oldId] = createdEvent.id;
+                            idMap.event[oldId] = createdEvent.id;
                             migratedEvents.push(createdEvent.id);
                             console.log('Migrated event ' + createdEvent.id);
                         })
@@ -391,23 +391,27 @@ function getUploadableDatasets(callback) {
     });
 }
 
-migrateLayouts(function (err, migratedLayouts) {
-    migrateUsers(function (err, migratedUsers) {
-        getUploadableDatasets(function (err, uploadableDatasets, unmigratedDatasets) {
-            loadDatasets(uploadableDatasets, function (err, migratedDatasets) {
-                console.log('Migrated ' + _.size(migratedDatasets) + ' datasets');
-                console.log('Could not migrate ' + unmigratedDatasets.length + ' datasets');
-                migrateVideos(migratedDatasets, function (err, migratedVideos, unmigratedVideos) {
-                    migrateComments(migratedDatasets, function (err, migratedComments, unmigratedComments) {
-                        migrateEvents(migratedDatasets, function (err, migratedEvents, unmigratedEvents) {
-                            fs.writeFileSync(nconf.get('migrationMapPath'), JSON.stringify(idMap, null, 4), {flag: 'w'});
-                            process.exit(0);
+// Need to set timeout for remote server, since there isn't enough time from the instant
+// that the tables are created until we start bombarding it with requsets.
+setTimeout(function() {
+    migrateLayouts(function (err, migratedLayouts) {
+        migrateUsers(function (err, migratedUsers) {
+            getUploadableDatasets(function (err, uploadableDatasets, unmigratedDatasets) {
+                loadDatasets(uploadableDatasets, function (err, migratedDatasets) {
+                    console.log('Migrated ' + _.size(migratedDatasets) + ' datasets');
+                    console.log('Could not migrate ' + unmigratedDatasets.length + ' datasets');
+                    migrateVideos(migratedDatasets, function (err, migratedVideos, unmigratedVideos) {
+                        migrateComments(migratedDatasets, function (err, migratedComments, unmigratedComments) {
+                            migrateEvents(migratedDatasets, function (err, migratedEvents, unmigratedEvents) {
+                                fs.writeFileSync(nconf.get('migrationMapPath'), JSON.stringify(idMap, null, 4), {flag: 'w'});
+                                process.exit(0);
+                            });
                         });
                     });
                 });
             });
         });
     });
-});
+}, 5000);
 
 
