@@ -4,6 +4,8 @@ var Boom = require('boom');
 var Joi = require('joi');
 var validators = require('../../support/validators');
 
+var expandOptions = ['dataset'];
+
 var eventSource = Joi.object({
     type: Joi.string().valid(['manual', 'auto']).default('auto').description('The type of the entity that made this event'),
     createTime: validators.timestamp, // This is required on result, but not on input.
@@ -45,6 +47,15 @@ module.exports = {
     model: basicModel,
     resultModel: Joi.object(basicModel).options({className: resourceName}),
 
+    resultOptions: {
+        expand: Joi.array().includes(Joi.string().valid(expandOptions)).single().description('Expand a resource into the dataset. Options are ' + expandOptions.join(', ')),
+    },
+
+    metaOptions: {
+        aggregateStatistics: Joi.boolean().description('include aggregate statistics on the result set'),
+        aggregateStatisticsGroupBy: Joi.string().valid(Object.keys(basicModel)).description('Optionally calculate aggregate statistics for each group')
+    },
+
     scopes: {
         create: 'admin',
         read: 'basic',
@@ -69,6 +80,8 @@ module.exports = {
             datasetId: validators.idCSV,
             type: basicModel.type,
             subtype: basicModel.subtype,
+
+            'dataset.userId': Joi.any(),
 
             startTime: basicModel.startTime,
             'startTime.gt': basicModel.startTime.description('Select events whose timestamp is greater than'),

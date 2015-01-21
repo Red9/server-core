@@ -149,20 +149,36 @@ function calculateTemporalStatistics(resourceList) {
     };
 }
 
+function calculateForList(resourceList) {
+    var resourcesSorted = _.sortBy(resourceList, 'startTime');
+    return {
+        compound: calculateCompoundStatistics(resourcesSorted),
+        temporal: calculateTemporalStatistics(resourcesSorted),
+        count: resourcesSorted.length,
+        idList: _.pluck(resourcesSorted, 'id')
+    };
+}
+
+function calculateGroupedBy(resourceList, groupByKey) {
+    return _.chain(resourceList).groupBy(groupByKey).reduce(function (memo, resources, eventType) {
+        memo[eventType] = calculateForList(resources);
+        return memo;
+    }, {}).value();
+}
+
 /**
  *  // TODO: This does a group by type, which is event specific
+ * @param resourceType
  * @param resourceList
  * @returns {*}
  */
-exports.calculate = function (resourceList) {
-    return _.chain(resourceList).groupBy('type').reduce(function (memo, resources, eventType) {
-        var resourcesSorted = _.sortBy(resources, 'startTime');
-        memo[eventType] = {
-            compound: calculateCompoundStatistics(resourcesSorted),
-            temporal: calculateTemporalStatistics(resourcesSorted),
-            count: resourcesSorted.length,
-            idList: _.pluck(resourcesSorted, 'id')
+module.exports = function (resourceType, resourceList, groupByKey) {
+    if (groupByKey) {
+        return {
+            groupedBy: calculateGroupedBy(resourceList, groupByKey),
+            all: calculateForList(resourceList)
         };
-        return memo;
-    }, {}).value();
+    } else {
+        return calculateForList(resourceList);
+    }
 };

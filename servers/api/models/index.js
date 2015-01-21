@@ -15,8 +15,8 @@ db.init = function (nconf) {
         {
             host: nconf.get('postgresql:host'),
             dialect: 'postgres',
-            omitNull: true,
-            logging: false
+            logging: false,
+            omitNull: true
         }
     );
 
@@ -37,7 +37,6 @@ db.init = function (nconf) {
         }
     });
 
-    console.log('WARNING!!! REMOVE OR CHECK sync FUNCTION BEFORE PRODUCTION');
     sequelize.sync();
 
     db.sequelize = sequelize;

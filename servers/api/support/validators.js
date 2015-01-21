@@ -13,6 +13,8 @@ exports.createdAt = exports.timestamp.description('The time that this resource w
 exports.updatedAt = exports.timestamp.description('The time that this resource was last touched.');
 exports.duration = Joi.number().integer().min(1).unit('milliseconds').description('The length (in millisenconds) of this resource');
 
+exports.metaformat = Joi.string().valid('none', 'default', 'only').default('default').description('Set the response format with or without metadata');
+
 exports.multiArray = function (single) {
     return Joi.alternatives(single, Joi.array().includes(single)).description('multiple key instances or array of ' + single._description);
 };

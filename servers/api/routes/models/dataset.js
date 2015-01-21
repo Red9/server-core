@@ -44,6 +44,10 @@ module.exports = {
     resultOptions: {
         expand: Joi.array().includes(Joi.string().valid(expandOptions)).single().description('Expand a resource into the dataset. Options are ' + expandOptions.join(', ')),
     },
+    metaOptions: {
+        aggregateStatistics: Joi.boolean().description('include aggregate statistics on the result set'),
+        aggregateStatisticsGroupBy: Joi.string().valid(Object.keys(basicModel)).description('Optionally calculate aggregate statistics for each group')
+    },
     resultModel: Joi.object(basicModel).options({className: resourceName}),
 
     scopes: {

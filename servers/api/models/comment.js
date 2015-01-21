@@ -1,6 +1,6 @@
 "use strict";
 
-var markdown = require('markdown').markdown;
+var marked = require('marked');
 var helpers = require('../support/helpers');
 
 module.exports = function (sequelize, DataTypes) {
@@ -30,7 +30,7 @@ module.exports = function (sequelize, DataTypes) {
             },
             getterMethods: {
                 bodyHtml: function () {
-                    return markdown.toHTML(this.body);
+                    return marked(this.body);
                 }
             }
         });

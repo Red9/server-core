@@ -18,11 +18,13 @@
     "hapi-auth-cookie": "latest",
     "nconf": "latest",
     "async": "latest",
-    "markdown": "latest",
+    "marked": "latest",
+    "highlight.js": "latest",
     "sequelize": "latest",
     "hoek": "latest",
     "handlebars": "latest",
     "pg": "latest",
+    "pg-hstore": "latest",
     "underscore": "latest"
   },
   "devDependencies": {

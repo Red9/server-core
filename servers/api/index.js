@@ -100,6 +100,16 @@ exports.init = function (testing, doneCallback) {
             doneCallback(null, server);
         }
     });
+
+    //server.ext('onPostHandler', function (request, reply) {
+    //
+    //    console.dir(request.response);
+    //
+    //    reply({
+    //        metadata: 'This is some metadata',
+    //        data: request.response
+    //    });
+    //});
 };
 
 if (!module.parent) {

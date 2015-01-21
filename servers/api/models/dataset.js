@@ -30,6 +30,11 @@ module.exports = function (sequelize, DataTypes) {
                 dataset.hasMany(models.comment, {constraints: true});
                 dataset.hasMany(models.video, {constraints: true});
             }
+        },
+        getterMethods: {
+            duration: function () {
+                return this.endTime - this.startTime;
+            }
         }
     });
 

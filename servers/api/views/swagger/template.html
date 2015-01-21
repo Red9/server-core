@@ -24,6 +24,7 @@
     <link href='{{hapiSwagger.documentationPath}}/css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
     <link rel="stylesheet" type="text/css" href="{{hapiSwagger.documentationPath}}/css/bootstrap.css"/>
     <link rel="stylesheet" type="text/css" href="{{hapiSwagger.documentationPath}}/css/bootstrap-theme.css"/>
+    <link rel="stylesheet" type="text/css" href="{{hapiSwagger.documentationPath}}/css/highlight.css"/>
 
     <script type="text/javascript">
         $(function () {
@@ -32,7 +33,7 @@
                 dom_id: "swagger-ui-container",
                 supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
                 onComplete: function (swaggerApi, swaggerUi) {
-                    log("Loaded SwaggerUI")
+                    log("Loaded SwaggerUI");
                     $('pre code').each(function (i, e) {
                         hljs.highlightBlock(e)
                     });
@@ -89,6 +90,7 @@
 
     <div class="row">
         <h1 class="entry-title">Changelog</h1>
+        <p>This section lists the most recent changes to the API. If a date has XX markings then that means that it is still in progress and not finalized.</p>
         {{{changelog}}}
     </div>
 
