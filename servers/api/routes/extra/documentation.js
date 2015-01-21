@@ -1,18 +1,30 @@
 "use strict";
 
 var fs = require('fs');
-var markdown = require('markdown').markdown;
+var marked = require('marked');
+var highlight = require('highlight.js');
 
 function getMarkDownHTML(path, callback) {
     fs.readFile(path, 'utf8', function (err, data) {
         if (!err) {
-            data = markdown.toHTML(data);
+            data = marked(data);
         }
         callback(err, data);
     });
 }
 
 module.exports.init = function (server) {
+
+    // Synchronous highlighting with highlight.js
+    marked.setOptions({
+        highlight: function (code, language) {
+            if (language) {
+                return highlight.highlight(language, code).value;
+            } else {
+                return code;
+            }
+        }
+    });
 
     server.route({
         method: 'GET',

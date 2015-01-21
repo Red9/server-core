@@ -8,6 +8,10 @@ var fs = require("fs");
 var path = require("path");
 var routes = {};
 
+var replyMetadata = require('../support/replyMetadata');
+
+var aggregateStatistics = require('../support/aggregatestatistics');
+
 function extractExpandOption(request, models) {
     var expand = [];
     _.each(request.query.expand, function (e) {
@@ -61,7 +65,7 @@ function addRoute(server, models, route) {
                     where: {id: request.params.id}
                 })
                 .then(function (resource) {
-                    reply(resource);
+                    replyMetadata(request, reply, resource, {});
                 })
                 .catch(function (err) {
                     reply(Boom.badRequest(err));
@@ -72,7 +76,12 @@ function addRoute(server, models, route) {
                 params: {
                     id: route.model.id.required()
                 },
-                query: _.extend({}, route.resultOptions, {fields: validators.fields})
+                query: _.extend({},
+                    route.resultOptions,
+                    {
+                        fields: validators.fields,
+                        metaformat: validators.metaformat
+                    })
             },
             description: 'Get a single ' + route.name,
             notes: 'Gets a single ' + route.name + ' that matches the given id',
@@ -106,7 +115,7 @@ function addRoute(server, models, route) {
                     if (deleteCount === 0) {
                         reply(Boom.notFound(route.name + ' ' + request.params.id + ' not found'));
                     } else {
-                        reply({});
+                        replyMetadata(request, reply, {});
                     }
                 })
                 .catch(function (err) {
@@ -137,7 +146,8 @@ function addRoute(server, models, route) {
 
                 var expand = extractExpandOption(request, models);
 
-                _.each(request.query, function (value, key) {
+                // Make sure that we only iterate over search keys
+                _.each(_.pick(request.query, _.keys(route.operations.search)), function (value, key) {
                     // This little hack works around the fact that we could have two named
                     // id path parameters: /resource/:id, and ?id=...
                     // It's mostly a server side hack for Angular's $Resource.
@@ -146,57 +156,77 @@ function addRoute(server, models, route) {
                         key = 'id';
                     }
 
+                    // Search queries to Sequelize require Dates
+                    // for the timestamps. So we need to pull the metadata
+                    // about the search key and see if it's a timestamp. If it
+                    // is we'll preemptively convert it to a date here.
+                    // It's a bit hacky that we have to get index [0]. I suppose that's a
+                    // joi thing... We'll see if it bites me.
+
+                    var searchJoi = route.operations.search[key];
+                    if (searchJoi.describe().meta &&
+                        searchJoi.describe().meta[0].timestamp === true) {
+                        value = new Date(value);
+                    }
+
+                    var searchOptions = ['gt', 'lt', 'gte', 'lte', 'ne', 'like', 'nlike', 'ilike', 'nilike'];
+                    var searchComparison;
                     var keyParts = key.split('.');
-                    if (keyParts.length === 1) {
+                    if (searchOptions.indexOf(keyParts[keyParts.length - 1]) !== -1) {
+                        searchComparison = keyParts[keyParts.length - 1];
+                        key = keyParts.slice(0, -1).join('.');
+                    }
+
+                    if (!searchComparison) {
                         if (_.isArray(value)) {
                             filters[key] = {
                                 overlap: value
                             };
                         } else if (_.isString(value) && value.split(',').length > 1) { // CSV list
-                            if (!filters.hasOwnProperty(key)) {
-                                filters[key] = {};
-                            }
                             filters[key] = {
                                 in: value.split(',')
                             };
                         } else {
-                            // Search queries to Sequelize require Dates
-                            // for the timestamps. So we need to pull the metadata
-                            // about the search key and see if it's a timestamp. If it
-                            // is we'll preemptively convert it to a date here.
-                            // It's a bit hacky that we have to get index [0]. I suppose that's a
-                            // joi thing... We'll see if it bites me.
-                            if (route.operations.search[key].describe().meta && // make sure it's defined
-                                route.operations.search[key].describe().meta[0].timestamp === true) {
-                                filters[key] = new Date(value);
-                            } else {
-                                filters[key] = value;
-                            }
+                            filters[key] = value;
                         }
-                    } else if (keyParts.length === 2) {
-                        if (!filters.hasOwnProperty(keyParts[0])) {
-                            filters[keyParts[0]] = {};
+                    } else if (searchComparison) {
+                        if (!filters.hasOwnProperty(key)) {
+                            filters[key] = {};
                         }
-
-                        // See note above about meta, index, and timestamp.
-                        if (route.operations.search[key].describe().meta &&
-                            route.operations.search[key].describe().meta[0].timestamp === true) {
-                            filters[keyParts[0]][keyParts[1]] = new Date(value);
-                        } else {
-                            filters[keyParts[0]][keyParts[1]] = value;
-                        }
-
+                        filters[key][searchComparison] = value;
                     }
-
                 });
 
-                models[route.name].findAll(
-                    {
-                        include: expand,
-                        where: filters
+                console.dir(filters);
+
+                var resources;
+                var count;
+                var query = {
+                    include: expand,
+                    where: filters
+                };
+
+
+                models[route.name].findAll(query)
+                    .then(function (resources_) {
+                        resources = resources_;
+                        return models[route.name].count(query);
                     })
-                    .then(function (resource) {
-                        reply(resource);
+                    .then(function (count_) {
+                        count = count_;
+                        var meta = {
+                            total: count
+                        };
+
+                        if (request.query.aggregateStatistics === true) {
+                            meta.aggregateStatistics = aggregateStatistics(
+                                route.name,
+                                resources,
+                                request.query.aggregateStatisticsGroupBy
+                            );
+                        }
+
+                        replyMetadata(request, reply, resources, meta);
                     })
                     .catch(function (err) {
                         reply(Boom.badRequest(err));
@@ -204,7 +234,15 @@ function addRoute(server, models, route) {
             },
             config: {
                 validate: {
-                    query: _.extend({}, route.operations.search, route.resultOptions, {fields: validators.fields})
+                    query: _.extend({},
+                        route.operations.search,
+                        route.resultOptions,
+                        route.metaOptions,
+                        {
+                            fields: validators.fields,
+                            metaformat: validators.metaformat
+                        }
+                    )
                 },
                 description: 'Get ' + route.name + 's',
                 notes: 'Gets all ' + route.name + 's that matches the parameters',
@@ -224,7 +262,7 @@ function addRoute(server, models, route) {
             handler: function (request, reply) {
                 models[route.name].create(request.payload)
                     .then(function (resource) {
-                        reply(resource);
+                        replyMetadata(request, reply, resource);
                     })
                     .catch(function (err) {
                         reply(Boom.badRequest(err));
@@ -264,7 +302,7 @@ function addRoute(server, models, route) {
                         if (affectedCount === 0) {
                             reply(Boom.notFound(route.name + ' ' + request.params.id + ' does not exist.'));
                         } else {
-                            reply(affectedResource);
+                            replyMetadata(request, reply, affectedResource);
                         }
                     })
                     .catch(function (err) {
@@ -306,7 +344,7 @@ function addRoute(server, models, route) {
                             } else {
                                 resource[key] = resource[key].concat(request.payload[key]);
                                 resource.save();
-                                reply({});
+                                replyMetadata(request, reply, {});
                             }
                         })
                         .catch(function (err) {
@@ -342,7 +380,7 @@ function addRoute(server, models, route) {
                             } else {
                                 resource[key] = _.difference(resource[key], request.payload[key])
                                 resource.save();
-                                reply({});
+                                replyMetadata(request, reply, {});
                             }
                         })
                         .catch(function (err) {
