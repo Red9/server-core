@@ -163,14 +163,18 @@ function addRoute(server, models, route) {
                     // It's a bit hacky that we have to get index [0]. I suppose that's a
                     // joi thing... We'll see if it bites me.
 
+                    var searchOptions = ['gt', 'lt', 'gte', 'lte'];
+                    var searchComparison;
                     var searchJoi = route.operations.search[key];
-                    if (searchJoi.describe().meta &&
-                        searchJoi.describe().meta[0].timestamp === true) {
-                        value = new Date(value);
+                    if (searchJoi.describe().meta) {
+                        if (searchJoi.describe().meta[0].timestamp === true) {
+                            value = new Date(value);
+                        } else if (searchJoi.describe().meta[0].textSearch === true) {
+                            searchComparison = 'ilike';
+                            value = '%' + value + '%';
+                        }
                     }
 
-                    var searchOptions = ['gt', 'lt', 'gte', 'lte', 'ne', 'like', 'nlike', 'ilike', 'nilike'];
-                    var searchComparison;
                     var keyParts = key.split('.');
                     if (searchOptions.indexOf(keyParts[keyParts.length - 1]) !== -1) {
                         searchComparison = keyParts[keyParts.length - 1];
@@ -196,9 +200,7 @@ function addRoute(server, models, route) {
                         filters[key][searchComparison] = value;
                     }
                 });
-
-                console.dir(filters);
-
+                
                 var resources;
                 var count;
                 var query = {

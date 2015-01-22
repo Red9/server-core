@@ -22,9 +22,9 @@ var basicModel = {
     // Core keys
     startTime: validators.timestamp,
     endTime: validators.timestamp,
-    title: Joi.string().description('the human readable title of this dataset'),
+    title: Joi.string().description('the human readable title of this dataset. Comparisons are case insensitive with wild cards on either side').meta({textSearch: true}),
     summaryStatistics: validators.summaryStatistics,
-    timezone: Joi.string().description('timezone information. Not used at this time.'),
+    timezone: Joi.string().description('timezone information. Not used at this time'),
     source: datasetSource,
     boundingCircle: Joi.object(),
     boundingBox: Joi.object(),
