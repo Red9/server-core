@@ -1,5 +1,11 @@
-"use strict";
+'use strict';
 
+/** Create a timestamp column on a table.
+ *
+ * @param {Object} DataTypes
+ * @param {String} key - Column key.
+ * @returns {Object}
+ */
 module.exports.createTimeField = function (DataTypes, key) {
     return {
         type: DataTypes.DATE,
@@ -15,20 +21,21 @@ module.exports.createTimeField = function (DataTypes, key) {
             return t instanceof Date ? t.getTime() : t;
         }
     };
-
 };
 
-
 /**
- *
  * We want all timestamps to be in milliseconds since epoch. This will
  * convert a Date object to milliseconds.
  *
- * Taken from https://github.com/sequelize/sequelize/issues/2030#issuecomment-48571743
+ * This is just for the Sequelize createdAt and updatedAt fields.
  *
- * @param DataTypes
- * @param key
- * @returns definition
+ * Taken from
+ *  https://github.com/sequelize/sequelize/issues/2030#issuecomment-48571743
+ *
+ * @param {Object} DataTypes - Sequelize, renamed.
+ * @param {String} key - Column key. Must be one of createdAt or updatedAt.
+ * @returns {Object} definition - Sequelize definition made to work with Red9
+ *                                  timestamps
  */
 module.exports.touchTimestamp = function (DataTypes, key) {
     return {

@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 var _ = require('underscore')._;
 
-
-function calculateSingleCompound(statistics, sumDuration, resource, measurementKey, measurementValue) {
+function calculateSingleCompound(statistics, sumDuration, resource,
+                                 measurementKey, measurementValue) {
     if (!_.has(statistics, measurementKey)) {
         statistics[measurementKey] = {};
     }
@@ -25,14 +25,18 @@ function calculateSingleCompound(statistics, sumDuration, resource, measurementK
 
             axisStats = stats[axisKey]; // Convenience handle
 
-            if (axisValue.minimum !== Number.MAX_VALUE && (!_.has(axisStats, 'minimum') || axisStats.minimum.value > axisValue.minimum)) {
+            if (axisValue.minimum !== Number.MAX_VALUE &&
+                (!_.has(axisStats, 'minimum') ||
+                axisStats.minimum.value > axisValue.minimum)) {
                 axisStats.minimum = {
                     value: axisValue.minimum,
                     id: resource.id
                 };
             }
 
-            if (axisValue.maximum !== -Number.MAX_VALUE && (!_.has(axisStats, 'maximum') || axisStats.maximum.value > axisValue.maximum)) {
+            if (axisValue.maximum !== -Number.MAX_VALUE &&
+                (!_.has(axisStats, 'maximum') ||
+                axisStats.maximum.value > axisValue.maximum)) {
                 axisStats.maximum = {
                     value: axisValue.maximum,
                     id: resource.id
@@ -41,7 +45,9 @@ function calculateSingleCompound(statistics, sumDuration, resource, measurementK
 
             if (!_.isNull(axisStats.average)) {
                 var duration = resource.endTime - resource.startTime;
-                axisStats.average = (axisStats.average * sumDuration + axisValue.average * duration) / (sumDuration + duration);
+                axisStats.average =
+                    (axisStats.average * sumDuration +
+                    axisValue.average * duration) / (sumDuration + duration);
                 axisStats.count += axisValue.count;
             }
         } else { // discrete value
@@ -56,20 +62,24 @@ function calculateSingleCompound(statistics, sumDuration, resource, measurementK
 
                 axisStats = stats[axisKey]; // Convenience handle
 
-                if (!_.has(axisStats, 'minimum') || axisStats.minimum.value > axisValue) {
+                if (!_.has(axisStats, 'minimum') ||
+                    axisStats.minimum.value > axisValue) {
                     axisStats.minimum = {
                         value: axisValue,
                         id: resource.id
                     };
                 }
-                if (!_.has(axisStats, 'maximum') || axisStats.maximum.value < axisValue) {
+                if (!_.has(axisStats, 'maximum') ||
+                    axisStats.maximum.value < axisValue) {
                     axisStats.maximum = {
                         value: axisValue,
                         id: resource.id
                     };
                 }
 
-                axisStats.average = axisStats.average * axisStats.count + axisValue; // compute weighted average
+                // compute weighted average
+                axisStats.average =
+                    axisStats.average * axisStats.count + axisValue;
                 axisStats.count++;
                 axisStats.average /= axisStats.count;
                 axisStats.sum += axisValue;
@@ -77,7 +87,6 @@ function calculateSingleCompound(statistics, sumDuration, resource, measurementK
         }
     });
 }
-
 
 function testAndAddMinMax(object, id, value) {
     if (!_.has(object, 'minimum') || object.minimum.value > value) {
@@ -94,15 +103,19 @@ function testAndAddMinMax(object, id, value) {
     }
 }
 
-
 function calculateCompoundStatistics(resourceList) {
     var compoundStatistics = {};
 
     var sumDuration = 0;
     _.each(resourceList, function (resource) {
-        _.each(resource.summaryStatistics, function (statisticValue, statisticKey) {
-            calculateSingleCompound(compoundStatistics, sumDuration, resource, statisticKey, statisticValue);
-        });
+        _.each(resource.summaryStatistics,
+            function (statisticValue, statisticKey) {
+                calculateSingleCompound(compoundStatistics,
+                    sumDuration,
+                    resource,
+                    statisticKey,
+                    statisticValue);
+            });
         sumDuration += resource.endTime - resource.startTime;
     });
     return compoundStatistics;
@@ -126,14 +139,17 @@ function calculateTemporalStatistics(resourceList) {
         if (index !== 0) {
             var interval = resource.startTime - resourceList[index - 1].endTime;
             intervalStatistic.sum += interval;
-            testAndAddMinMax(intervalStatistic, [resource.id, resourceList[index - 1].id], interval);
+            testAndAddMinMax(intervalStatistic,
+                [resource.id, resourceList[index - 1].id], interval);
         }
     });
 
     durationStatistic.average = durationStatistic.sum / resourceList.length;
-    intervalStatistic.average = intervalStatistic.sum / (resourceList.length - 1);
+    intervalStatistic.average = intervalStatistic.sum /
+    (resourceList.length - 1);
 
-    var coveredTime = resourceList[resourceList.length - 1].endTime - resourceList[0].startTime;
+    var coveredTime = resourceList[resourceList.length - 1].endTime -
+        resourceList[0].startTime;
 
     if (resourceList.length < 2) {
         // Can't have an interval with less than 2 times
@@ -145,7 +161,8 @@ function calculateTemporalStatistics(resourceList) {
         duration: durationStatistic,
         coveredTime: coveredTime,
         dutyCycle: durationStatistic.sum / coveredTime,
-        frequency: resourceList.length / coveredTime / 1000 // Milliseconds to seconds, for Hz.
+        // Milliseconds to seconds, for Hz.
+        frequency: resourceList.length / coveredTime / 1000
     };
 }
 
@@ -164,19 +181,21 @@ function calculateForList(resourceList) {
 }
 
 function calculateGroupedBy(resourceList, groupByKey) {
-    return _.chain(resourceList).groupBy(groupByKey).reduce(function (memo, resources, eventType) {
-        memo[eventType] = calculateForList(resources);
-        return memo;
-    }, {}).value();
+    return _.chain(resourceList).groupBy(groupByKey).reduce(
+        function (memo, resources, eventType) {
+            memo[eventType] = calculateForList(resources);
+            return memo;
+        }, {}).value();
 }
 
-/**
- *  // TODO: This does a group by type, which is event specific
- * @param resourceType
- * @param resourceList
- * @returns {*}
+/** Calculate aggregate statistics.
+ *
+ * @param {Array} resourceList - Objects with summaryStatistics.
+ * @param {String} [groupByKey] - Calculate aggregate statistics for each set
+ *                                  in the group.
+ * @returns {Object}
  */
-module.exports = function (resourceType, resourceList, groupByKey) {
+module.exports = function (resourceList, groupByKey) {
     if (groupByKey) {
         return {
             groupedBy: calculateGroupedBy(resourceList, groupByKey),

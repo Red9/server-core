@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Code = require('code');
 var Lab = require('lab');
@@ -35,31 +35,25 @@ describe('dataset resource basics', function () {
     var createdComment;
     var createdVideo;
     var createdEvent;
-    var newDataset;
-
 
     before(function (done) {
         sut.init(true, function (err, server_) {
             server = server_;
             utilities.createUser(server, function (err, createdUser_) {
                 createdUser = createdUser_;
-                newDataset = {
-                    resourceType: 'dataset',
-                    resourceId: 'd21c7d0e-c2cd-43c4-b017-dc89ea99ebca',
-                    authorId: createdUser.id,
-                    body: 'Keeps the fire from burning out'
-                };
                 done();
             });
         });
     });
 
     it('can create a minimal dataset', function (done) {
-        var rncStream = fs.createReadStream(path.join(nconf.get('testDataPath'), rncName));
+        var rncStream = fs.createReadStream(
+            path.join(nconf.get('testDataPath'), rncName)
+        );
 
         var form = new FormData();
         form.append('title', 'test');
-        form.append('ownerId', createdUser.id);
+        form.append('userId', createdUser.id);
         form.append('rnc', rncStream);
         streamToPromise(form).then(function (payload) {
             server.inject({
@@ -69,9 +63,10 @@ describe('dataset resource basics', function () {
                 headers: form.getHeaders(),
                 credentials: utilities.credentials.admin
             }, function (response) {
-                expect(response.result.id).to.exist();
-                expect(response.result.createTime).to.exist();
-                createdDataset = response.result;
+                createdDataset = JSON.parse(response.payload).data;
+                expect(createdDataset.id).to.exist();
+                expect(createdDataset.createdAt).to.exist();
+                expect(createdDataset.updatedAt).to.exist();
 
                 // Go ahead and create some associated resources for use later
                 async.series([
@@ -107,7 +102,7 @@ describe('dataset resource basics', function () {
     it('returns error if validation fails', function (done) {
         var form = new FormData();
         form.append('title', 'test');
-        form.append('ownerId', createdUser.id);
+        form.append('userId', createdUser.id);
         form.append('rnc', 'my file here, should fail since it is a string');
         streamToPromise(form).then(function (payload) {
             server.inject({
@@ -123,14 +118,13 @@ describe('dataset resource basics', function () {
         });
     });
 
-
     it('can get a dataset', function (done) {
         server.inject({
             method: 'GET',
             url: '/dataset/?idList=' + createdDataset.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            var payload = JSON.parse(response.payload);
+            var payload = JSON.parse(response.payload).data;
             expect(payload).to.be.array();
             expect(payload).to.have.length(1);
             expect(payload[0]).to.deep.include(Object.keys(createdDataset));
@@ -144,7 +138,8 @@ describe('dataset resource basics', function () {
             url: '/dataset/' + createdDataset.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result).to.include(Object.keys(createdDataset));
+            var payload = JSON.parse(response.payload).data;
+            expect(payload).to.include(Object.keys(createdDataset));
             done();
         });
     });
@@ -152,7 +147,7 @@ describe('dataset resource basics', function () {
     it('does not get non-existent datasets', function (done) {
         server.inject({
             method: 'GET',
-            url: '/dataset/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            url: '/dataset/2',
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
@@ -161,12 +156,14 @@ describe('dataset resource basics', function () {
         });
     });
 
-    it('fails if owner id does not exist', function (done) {
-        var rncStream = fs.createReadStream(path.join(nconf.get('testDataPath'), rncName));
+    it('fails if user id does not exist', function (done) {
+        var rncStream = fs.createReadStream(
+            path.join(nconf.get('testDataPath'), rncName)
+        );
 
         var form = new FormData();
         form.append('title', 'test');
-        form.append('ownerId', 'c853692c-7a3c-40f9-a05f-d0a01acab43b');
+        form.append('userId', '2');
         form.append('rnc', rncStream);
         streamToPromise(form).then(function (payload) {
             server.inject({
@@ -185,19 +182,16 @@ describe('dataset resource basics', function () {
     it('can expand properly', function (done) {
         server.inject({
             method: 'GET',
-            url: '/dataset/' + createdDataset.id + '?expand=owner&expand=event&expand=video&expand=comment&expand=count',
+            url: '/dataset/' + createdDataset.id +
+            '?expand=user&expand=event&expand=video&expand=comment',
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result).to.include(Object.keys(createdDataset));
-            expect(response.result.owner).to.deep.include(createdUser);
-            expect(response.result.event).to.deep.include([createdEvent]); // Include instead of equal since the event has summary statistics, which (at this point in the testing time) is still being calculated.
-            expect(response.result.comment).to.deep.equal([createdComment]);
-            expect(response.result.video).to.deep.equal([createdVideo]);
-            expect(response.result.count).to.deep.equal({
-                event: 1,
-                video: 1,
-                comment: 1
-            });
+            var payload = JSON.parse(response.payload).data;
+            expect(payload).to.include(Object.keys(createdDataset));
+            expect(payload.user).to.deep.include(createdUser);
+            expect(payload.events).to.deep.equal([createdEvent]);
+            expect(payload.comments).to.deep.equal([createdComment]);
+            expect(payload.videos).to.deep.equal([createdVideo]);
             done();
         });
     });
@@ -234,65 +228,69 @@ describe('dataset resource basics', function () {
     // General stuff
     // -----------------------------------------------------
 
-    it('works with fields option', function (done) {
-        async.parallel([
-            // Single resource
-            function (callback) {
-                server.inject({
-                    method: 'GET',
-                    url: '/dataset/' + createdDataset.id + '?fields=id,createTime',
-                    credentials: utilities.credentials.admin
-                }, function (response) {
-                    expect(response.result).to.only.include(['id', 'createTime']);
-                    callback();
-                });
-            },
-            // Multiple resources
-            function (callback) {
-                server.inject({
-                    method: 'GET',
-                    url: '/dataset/?idList=' + createdDataset.id + '&fields=id,createTime',
-                    credentials: utilities.credentials.admin
-                }, function (response) {
-                    var payload = JSON.parse(response.payload);
-                    expect(payload[0]).to.only.include(['id', 'createTime']);
-                    callback();
-                });
-            },
-            // Nested resources
-            function (callback) {
-                server.inject({
-                    method: 'GET',
-                    url: '/dataset/?idList=' + createdDataset.id + '&fields=id,createTime,boundingCircle(latitude,longitude)',
-                    credentials: utilities.credentials.admin
-                }, function (response) {
-                    var payload = JSON.parse(response.payload);
-                    expect(payload[0]).to.only.include(['id', 'createTime', 'boundingCircle']);
-                    callback();
-                });
-            },
-            // glob
-            function (callback) {
-                server.inject({
-                    method: 'GET',
-                    url: '/dataset/?idList=' + createdDataset.id + '&fields=*',
-                    credentials: utilities.credentials.admin
-                }, function (response) {
-                    var payload = JSON.parse(response.payload);
-                    expect(payload[0]).to.include(Object.keys(createdDataset));
-                    callback();
-                });
-            }
+    /*it('works with fields option', function (done) {
+     async.parallel([
+     // Single resource
+     function (callback) {
+     server.inject({
+     method: 'GET',
+     url: '/dataset/' + createdDataset.id +
+     '?fields=id,createTime',
+     credentials: utilities.credentials.admin
+     }, function (response) {
+     expect(response.result).to.only
+     .include(['id', 'createTime']);
+     callback();
+     });
+     },
+     // Multiple resources
+     function (callback) {
+     server.inject({
+     method: 'GET',
+     url: '/dataset/?idList=' + createdDataset.id +
+     '&fields=id,createTime',
+     credentials: utilities.credentials.admin
+     }, function (response) {
+     var payload = JSON.parse(response.payload);
+     expect(payload[0]).to.only.include(['id', 'createTime']);
+     callback();
+     });
+     },
+     // Nested resources
+     function (callback) {
+     server.inject({
+     method: 'GET',
+     url: '/dataset/?idList=' + createdDataset.id +
+     '&fields=id,createTime,boundingCircle(latitude,longitude)',
+     credentials: utilities.credentials.admin
+     }, function (response) {
+     var payload = JSON.parse(response.payload);
+     expect(payload[0]).to.only
+     .include(['id', 'createTime', 'boundingCircle']);
+     callback();
+     });
+     },
+     // glob
+     function (callback) {
+     server.inject({
+     method: 'GET',
+     url: '/dataset/?idList=' + createdDataset.id + '&fields=*',
+     credentials: utilities.credentials.admin
+     }, function (response) {
+     var payload = JSON.parse(response.payload);
+     expect(payload[0]).to.include(Object.keys(createdDataset));
+     callback();
+     });
+     }
 
-            // TODO: Add tests for:
-            // array list of results
-            // glob inside parens ex. key(*)
-        ], function (err) {
-            expect(err).to.be.undefined();
-            done();
-        });
-    });
-
+     // TODO: Add tests for:
+     // array list of results
+     // glob inside parens ex. key(*)
+     ], function (err) {
+     expect(err).to.be.undefined();
+     done();
+     });
+     });*/
 
     // -----------------------------------------------------
     // FCPXML stuff
@@ -301,11 +299,11 @@ describe('dataset resource basics', function () {
     it('fails if no dataset exists', function (done) {
         server.inject({
             method: 'GET',
-            url: '/dataset/c853692c-7a3c-40f9-a05f-d0a01acab43b/fcpxml'
-            + '?videoType=GoPro_720p_59.94hz'
-            + '&files=a/b/c'
-            + '&eventType=Wave'
-            + '&template=original',
+            url: '/dataset/1234/fcpxml' +
+            '?videoType=GoPro_720p_59.94hz' +
+            '&files=a/b/c' +
+            '&eventType=Wave' +
+            '&template=original',
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(404);
@@ -316,18 +314,17 @@ describe('dataset resource basics', function () {
     it('can get a basic FCPXML file', function (done) {
         server.inject({
             method: 'GET',
-            url: '/dataset/' + createdDataset.id + '/fcpxml'
-            + '?videoType=GoPro_720p_59.94hz'
-            + '&files=a/b/c'
-            + '&eventType=Wave'
-            + '&template=original',
+            url: '/dataset/' + createdDataset.id + '/fcpxml' +
+            '?videoType=GoPro_720p_59.94hz' +
+            '&files=a/b/c' +
+            '&eventType=Wave' +
+            '&template=original',
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
             done();
         });
     });
-
 
     // -----------------------------------------------------
     // Panel stuff
@@ -349,10 +346,10 @@ describe('dataset resource basics', function () {
         var axes = ['time', 'acceleration:x', 'gps:speed'];
         server.inject({
             method: 'GET',
-            url: '/dataset/' + createdDataset.id
-            + '/csv?csPeriod=1000&axes=' + axes.join(',')
-            + '&startTime=' + (createdDataset.startTime + 1500)
-            + '&endTime=' + (createdDataset.endTime - 1500),
+            url: '/dataset/' + createdDataset.id +
+            '/csv?csPeriod=1000&axes=' + axes.join(',') +
+            '&startTime=' + (createdDataset.startTime + 1500) +
+            '&endTime=' + (createdDataset.endTime - 1500),
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
@@ -389,7 +386,8 @@ describe('dataset resource basics', function () {
             },
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result.title).to.equal('chances');
+            var payload = JSON.parse(response.payload).data;
+            expect(payload.title).to.equal('chances');
             done();
         });
     });

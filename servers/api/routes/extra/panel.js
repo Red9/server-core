@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Joi = require('joi');
 var _ = require('underscore')._;
@@ -11,6 +11,8 @@ var validators = require('../../support/validators');
 var panel = require('../../support/panel');
 
 var datasetRoute = require('./../models/dataset');
+
+var replyMetadata = require('../../support/replyMetadata');
 
 exports.init = function (server, models) {
     // ------------------------------------------------------------------------
@@ -37,7 +39,7 @@ exports.init = function (server, models) {
                     if (err) {
                         reply(err);
                     } else {
-                        reply(createdDataset);
+                        replyMetadata(request, reply, createdDataset);
                     }
                 });
             },

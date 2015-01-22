@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var nconf = require('nconf');
 var fs = require('fs');
@@ -25,17 +25,18 @@ var credentials = {
         email: 'basic@test.com',
         socpe: ['basic']
     }
-
 };
+
 exports.credentials = credentials;
 
-
 exports.createDataset = function (server, userId, doneCallback) {
-    var rncStream = fs.createReadStream(path.join(nconf.get('testDataPath'), rncName));
+    var rncStream = fs.createReadStream(
+        path.join(nconf.get('testDataPath'), rncName)
+    );
 
     var form = new FormData();
     form.append('title', 'test');
-    form.append('ownerId', userId);
+    form.append('userId', userId);
     form.append('rnc', rncStream);
     streamToPromise(form).then(function (payload) {
         server.inject({
@@ -47,10 +48,10 @@ exports.createDataset = function (server, userId, doneCallback) {
         }, function (response) {
             server.inject({
                 method: 'GET',
-                url: '/dataset/' + response.result.id,
+                url: '/dataset/' + JSON.parse(response.payload).data.id,
                 credentials: credentials.admin
             }, function (response2) {
-                doneCallback(null, response2.result);
+                doneCallback(null, JSON.parse(response2.payload).data);
             });
         });
     });
@@ -58,10 +59,10 @@ exports.createDataset = function (server, userId, doneCallback) {
 
 /**
  *
- * @param server {Object}
- * @param resourceURL {string}
- * @param newResource {Object}
- * @param callback {Function}
+ * @param {Object} server
+ * @param {String} resourceURL
+ * @param {Object} newResource
+ * @param {Function} callback
  */
 function createResource(server, resourceURL, newResource, callback) {
     server.inject({
@@ -72,10 +73,10 @@ function createResource(server, resourceURL, newResource, callback) {
     }, function (response) {
         server.inject({
             method: 'GET',
-            url: resourceURL + response.result.id,
+            url: resourceURL + JSON.parse(response.payload).data.id,
             credentials: credentials.admin
         }, function (response2) {
-            callback(null, response2.result);
+            callback(null, JSON.parse(response2.payload).data);
         });
     });
 }
@@ -111,23 +112,21 @@ exports.createVideo = function (server, datasetId, doneCallback) {
 
 exports.createComment = function (server, datasetId, userId, doneCallback) {
     var newComment = {
-        resourceType: 'dataset',
-        resourceId: datasetId,
-        authorId: userId,
+        datasetId: datasetId,
+        userId: userId,
         body: 'Hello, world'
     };
     createResource(server, '/comment/', newComment, doneCallback);
 };
 
-exports.createEvent = function (server, datasetId, startTime, endTime, doneCallback) {
-    var newEvent = {
-        startTime: startTime,
-        endTime: endTime,
-        datasetId: datasetId,
-        type: 'Wave',
-        source: {}
+exports.createEvent =
+    function (server, datasetId, startTime, endTime, doneCallback) {
+        var newEvent = {
+            startTime: startTime,
+            endTime: endTime,
+            datasetId: datasetId,
+            type: 'Wave',
+            source: {}
+        };
+        createResource(server, '/event/', newEvent, doneCallback);
     };
-    createResource(server, '/event/', newEvent, doneCallback);
-};
-
-

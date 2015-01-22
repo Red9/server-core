@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var validators = require('../../support/validators');
 var Joi = require('joi');

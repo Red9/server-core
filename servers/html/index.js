@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // default to development environment
 if (typeof process.env.NODE_ENV === 'undefined') {

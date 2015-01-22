@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var helpers = require('../support/helpers');
 
@@ -26,9 +26,9 @@ module.exports = function (sequelize, DataTypes) {
                         allowNull: false
                     }
                 });
-                dataset.hasMany(models.event, {constraints: true});
-                dataset.hasMany(models.comment, {constraints: true});
-                dataset.hasMany(models.video, {constraints: true});
+                dataset.hasMany(models.event, {constraints: true, onDelete: 'cascade'});
+                dataset.hasMany(models.comment, {constraints: true, onDelete: 'cascade'});
+                dataset.hasMany(models.video, {constraints: true, onDelete: 'cascade'});
             }
         },
         getterMethods: {

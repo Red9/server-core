@@ -1,10 +1,6 @@
 {
   "port": "3000",
   "listenIp": "0.0.0.0",
-  "cassandraHosts": ["localhost"],
-  "cassandraKeyspace": "test",
-  "cassandraUsername": "cassandra",
-  "cassandraPassword": "cassandra",
   "panelDataPath": "/home/clewis/Downloads/testRNC",
   "defaultCallbackUrl": "http://localhost:9532",
   "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated",
@@ -21,5 +17,11 @@
   },
   "eventFinderPath": "/home/clewis/consulting/red9/server-core/eventfinder",
   "eventFinderMainFile": "main.r",
+  "postgresql": {
+    "database": "test",
+    "username": "test",
+    "password": "test",
+    "host": "localhost"
+  },
   "testDataPath": "/home/clewis/consulting/red9/test-data"
 }

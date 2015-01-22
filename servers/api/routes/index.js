@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var _ = require('underscore')._;
 var validators = require('../support/validators');
@@ -43,12 +43,8 @@ module.exports.init = function (server, models) {
         .forEach(function (file) {
             var route = require(path.join(__dirname, 'models', file));
             addRoute(server, models, route);
-
-            console.log('Creating route ' + route.name);
             routes[route.name] = route;
         });
-
-    console.log('Loaded routes...');
 };
 
 function addRoute(server, models, route) {
@@ -65,7 +61,11 @@ function addRoute(server, models, route) {
                     where: {id: request.params.id}
                 })
                 .then(function (resource) {
-                    replyMetadata(request, reply, resource, {});
+                    if (resource) {
+                        replyMetadata(request, reply, resource, {});
+                    } else {
+                        reply(Boom.notFound(route.name + ' ' + request.params.id + ' not found'));
+                    }
                 })
                 .catch(function (err) {
                     reply(Boom.badRequest(err));
@@ -200,7 +200,7 @@ function addRoute(server, models, route) {
                         filters[key][searchComparison] = value;
                     }
                 });
-                
+
                 var resources;
                 var count;
                 var query = {
@@ -222,7 +222,6 @@ function addRoute(server, models, route) {
 
                         if (request.query.aggregateStatistics === true) {
                             meta.aggregateStatistics = aggregateStatistics(
-                                route.name,
                                 resources,
                                 request.query.aggregateStatisticsGroupBy
                             );
@@ -380,7 +379,7 @@ function addRoute(server, models, route) {
                             if (!resource) {
                                 reply(Boom.notFound(route.name + ' ' + request.params.id + ' not found'));
                             } else {
-                                resource[key] = _.difference(resource[key], request.payload[key])
+                                resource[key] = _.difference(resource[key], request.payload[key]);
                                 resource.save();
                                 replyMetadata(request, reply, {});
                             }

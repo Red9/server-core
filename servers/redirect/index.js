@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 if (typeof process.env.NODE_ENV === 'undefined') {
     throw new Error('Must provide a NODE_ENV');

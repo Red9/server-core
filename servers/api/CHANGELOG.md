@@ -1,5 +1,9 @@
 ### 2015-01-XX
 
+- Fixed the dataset POST not returning in metadata format.
+
+### 2015-01-21
+
 - All responses from the server are now in the following format:
 
 ```json

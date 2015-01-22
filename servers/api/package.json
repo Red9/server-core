@@ -25,7 +25,8 @@
     "handlebars": "latest",
     "pg": "latest",
     "pg-hstore": "latest",
-    "underscore": "latest"
+    "underscore": "latest",
+    "sleep": "latest"
   },
   "devDependencies": {
     "grunt": "latest",
@@ -34,7 +35,7 @@
     "grunt-lab": "latest",
     "grunt-contrib-jshint": "latest",
     "grunt-contrib-watch": "latest",
-    "grunt-shell": "latest",
+    "grunt-jscs": "latest",
     "rewire": "latest",
     "form-data": "latest",
     "stream-to-promise": "latest"

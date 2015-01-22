@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //var markdown = require('markdown').markdown;
 var Joi = require('joi');
