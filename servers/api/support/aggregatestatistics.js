@@ -150,6 +150,10 @@ function calculateTemporalStatistics(resourceList) {
 }
 
 function calculateForList(resourceList) {
+    if (!resourceList || resourceList.length === 0) {
+        return {};
+    }
+
     var resourcesSorted = _.sortBy(resourceList, 'startTime');
     return {
         compound: calculateCompoundStatistics(resourcesSorted),
