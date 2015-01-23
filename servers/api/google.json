@@ -16,7 +16,10 @@
       "allowRegex": true
     },
     "validateIndentation": 4,
-    "validateQuoteMarks": "'",
+    "validateQuoteMarks": {
+      "escape": true,
+      "mark": "'"
+    },
 
     "disallowMultipleLineStrings": true,
     "disallowMixedSpacesAndTabs": true,

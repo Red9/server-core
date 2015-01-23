@@ -13,7 +13,11 @@ module.exports = function (sequelize, DataTypes) {
         boundingCircle: DataTypes.JSON,
         boundingBox: DataTypes.JSON,
         gpsLock: DataTypes.JSON,
-        tags: {type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: []},
+        tags: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: false,
+            defaultValue: []
+        },
         createdAt: helpers.touchTimestamp(DataTypes, 'createdAt'),
         updatedAt: helpers.touchTimestamp(DataTypes, 'updatedAt')
     }, {
@@ -26,9 +30,15 @@ module.exports = function (sequelize, DataTypes) {
                         allowNull: false
                     }
                 });
-                dataset.hasMany(models.event, {constraints: true, onDelete: 'cascade'});
-                dataset.hasMany(models.comment, {constraints: true, onDelete: 'cascade'});
-                dataset.hasMany(models.video, {constraints: true, onDelete: 'cascade'});
+
+                var constraints = {
+                    constraints: true,
+                    onDelete: 'cascade'
+                };
+
+                dataset.hasMany(models.event, constraints);
+                dataset.hasMany(models.comment, constraints);
+                dataset.hasMany(models.video, constraints);
             }
         },
         getterMethods: {
@@ -40,4 +50,3 @@ module.exports = function (sequelize, DataTypes) {
 
     return dataset;
 };
-

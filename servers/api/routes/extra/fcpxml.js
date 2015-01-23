@@ -64,10 +64,14 @@ exports.init = function (server, models) {
                         reply({
                             template: templates,
                             videoType: videoTypes,
-                            eventType: _.chain(dataset.events).pluck('type').uniq().value()
+                            eventType: _.chain(dataset.events)
+                                .pluck('type')
+                                .uniq()
+                                .value()
                         });
                     } else {
-                        reply(Boom.notFound('dataset ' + request.params.id + ' not found'));
+                        reply(Boom.notFound('dataset ' + request.params.id +
+                        ' not found'));
                     }
                 })
                 .catch(function (err) {
@@ -82,7 +86,7 @@ exports.init = function (server, models) {
                 }
             },
             description: 'Get FCXML options',
-            notes: 'Get the detailed options that are available to a GET /dataset/{id}/fcpxml',
+            notes: 'Get the detailed options for GET /dataset/{id}/fcpxml',
             tags: ['api']/*,
              auth: {
              scope: 'admin'
@@ -103,9 +107,9 @@ exports.init = function (server, models) {
                 .then(function (dataset) {
                     if (dataset) {
                         if (dataset.videos.length === 0) {
-                            reply(Boom.badRequest('No videos associated with this dataset. Cannot generate FCPXML.'));
+                            reply(Boom.badRequest('No videos available.'));
                         } else if (dataset.events.length === 0) {
-                            reply(Boom.badRequest('No events associated with this dataset. Cannot generate FCPXML.'));
+                            reply(Boom.badRequest('No events available.'));
                         } else {
                             var fcpParameters = calculateParameters(
                                 videoTypes[request.query.videoType],
@@ -113,17 +117,23 @@ exports.init = function (server, models) {
                                 request.query.titleDuration,
                                 request.query.eventType,
                                 dataset.events,
-                                dataset.videos[0], // Hard coded for now, but should we really always use the first video?
+                                // Hard coded for now, but should we really
+                                // always use the first video?
+                                dataset.videos[0],
                                 dataset
                             );
 
-                            reply.view('fcpxml/' + request.query.template + '.fcpxml', fcpParameters)
-                                .header('content-disposition', 'attachment; filename=' + dataset.id + '.xml')
-                                .header('content-type', 'text/xml; charset=utf-8');
+                            reply.view('fcpxml/' + request.query.template +
+                            '.fcpxml', fcpParameters)
+                                .header('content-disposition',
+                                'attachment; filename=' + dataset.id + '.xml')
+                                .header('content-type', '' +
+                                'text/xml; charset=utf-8');
                         }
 
                     } else {
-                        reply(Boom.notFound('dataset ' + request.params.id + ' not found'));
+                        reply(Boom.notFound('dataset ' + request.params.id +
+                        ' not found'));
                     }
                 })
                 .catch(function (err) {
@@ -136,11 +146,22 @@ exports.init = function (server, models) {
                     id: datasetRoute.model.id.required()
                 },
                 query: {
-                    template: Joi.string().valid(templates).required().description('The template to use for output'),
-                    videoType: Joi.string().valid(Object.keys(videoTypes)).required().description('The type of video to generate for'),
-                    files: Joi.string().required().description('CSV list of file paths to the video'),
-                    eventType: Joi.string().required().description('Restrict output to events of specified type'),
-                    titleDuration: Joi.number().integer().min(0).default(3).description('The number of seconds to display the title at the beginning of an event. 0 removes titles entirely.')
+                    template: Joi.string().valid(templates)
+                        .required()
+                        .description('The template to use for output'),
+                    videoType: Joi.string().valid(Object.keys(videoTypes))
+                        .required()
+                        .description('The type of video to generate for'),
+                    files: Joi.string()
+                        .required()
+                        .description('CSV list of file paths to the video'),
+                    eventType: Joi.string()
+                        .required()
+                        .description('Restrict to only include events by type'),
+                    titleDuration: Joi.number().integer().min(0).default(3)
+                        .description('The number of seconds to display the ' +
+                        'title at the beginning of an event. 0 removes ' +
+                        'titles entirely.')
                 }
             },
             description: 'Dataset defined FCPXML file',
@@ -153,7 +174,8 @@ exports.init = function (server, models) {
     });
 };
 
-function calculateParameters(videoDefinition, files, titleDurationGiven, eventType, eventList, video, dataset) {
+function calculateParameters(videoDefinition, files, titleDurationGiven,
+                             eventType, eventList, video, dataset) {
     var framesPerVideo = videoDefinition.framesPerVideo;
     var numerator = videoDefinition.numerator;
     var denominator = videoDefinition.denominator;
@@ -191,8 +213,12 @@ function calculateParameters(videoDefinition, files, titleDurationGiven, eventTy
                 return event.startTime;
             })
             .map(function (event, index, list) {
-                var durationFrames = frameCorrected((event.endTime - event.startTime) / 1000 * denominator);
-                var startFramesTotal = frameCorrected((event.startTime - video.startTime) / 1000 * denominator);
+                var durationFrames =
+                    frameCorrected((event.endTime - event.startTime) /
+                    1000 * denominator);
+                var startFramesTotal =
+                    frameCorrected((event.startTime - video.startTime) /
+                    1000 * denominator);
 
                 // Find the asset. The list must be reversed for this
                 // to work correctly.
@@ -207,13 +233,6 @@ function calculateParameters(videoDefinition, files, titleDurationGiven, eventTy
                     return;
                 }
                 var startFrames = startFramesTotal - asset.start;
-
-                var distance = 'unknown';
-                try {
-                    //console.log('event.summaryStatistics.distance: ' + JSON.stringify(event.summaryStatistics.distance, null, '  '));
-                    distance = Math.round(event.summaryStatistics.distance.path);
-                } catch (e) {
-                }
 
                 var result = {
                     offsetFrames: runningOffset,

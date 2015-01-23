@@ -24,7 +24,7 @@ module.exports = function (grunt) {
             color: true
         },
         watch: {
-            files: ['<%= jshint.files %>'],
+            files: ['<%= jshint.files %>', '*/**/*.json'],
             tasks: ['default']
         }
     });
@@ -36,7 +36,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask('default',
         [
-            //'jscs',
+            'jscs',
             'jshint',
             'lab'
         ]);

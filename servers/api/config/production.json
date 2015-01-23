@@ -2,11 +2,9 @@
   "port": "8080",
   "listenIp": "0.0.0.0",
   "panelDataPath": "/ebs0/data/rnc",
-  "defaultCallbackUrl" : "http://my.redninesensor.com",
+  "defaultCallbackUrl": "http://my.redninesensor.com",
   "unauthorizedCallbackUrl": "http://my.redninesensor.com/page/unauthenticated",
-  "authorizationCookieDomain": ".api.redninesensor.com",
   "logFilePath": "/home/ubuntu/log/apiserver",
-  "authorizationCookieName": "r9session",
   "defaultUserPicture": "http://my.redninesensor.com/static/images/profile-default.png",
   "panelCacheOptions": {
     "expiresIn": 1000000
@@ -22,5 +20,10 @@
     "username": "api",
     "password": "likefirehorizon",
     "host": "production-database-1.c4keqqx9b75i.us-east-1.rds.amazonaws.com"
+  },
+  "cookie": {
+    "password": "867cfa6cal5-c80eouwvvrl-4aba4ad-92atueh2-e4c7randomString37otauh76e129a",
+    "domain": ".api.redninesensor.com",
+    "name": "r9session"
   }
 }

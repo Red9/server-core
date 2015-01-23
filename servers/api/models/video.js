@@ -33,7 +33,9 @@ module.exports = function (sequelize, DataTypes) {
                     .findOne({where: {id: video.datasetId}})
                     .then(function (dataset) {
                         if (video.startTime > dataset.endTime) {
-                            callback(Boom.badRequest('video startTime invalid in relation to dataset startTime/endTime'));
+                            callback(Boom.badRequest('video startTime ' +
+                            'invalid in relation to dataset ' +
+                            'startTime/endTime'));
                         } else {
                             callback(null, video);
                         }

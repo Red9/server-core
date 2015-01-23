@@ -52,7 +52,7 @@ exports.init = function (testing, doneCallback) {
             {
                 register: require('hapi-swagger'),
                 options: {
-                    apiVersion: nconf.get("apiVersion"),
+                    apiVersion: nconf.get('apiVersion'),
                     payloadType: 'form',
                     enableDocumentationPage: false
                 }

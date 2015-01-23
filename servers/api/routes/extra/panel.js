@@ -5,22 +5,61 @@ var _ = require('underscore')._;
 var nconf = require('nconf');
 var Boom = require('boom');
 var validators = require('../../support/validators');
-//var routeHelp = require('../support/routehelp');
-
 
 var panel = require('../../support/panel');
-
 var datasetRoute = require('./../models/dataset');
-
 var replyMetadata = require('../../support/replyMetadata');
 
 exports.init = function (server, models) {
-    // ------------------------------------------------------------------------
-    // Panel operations
-    // ------------------------------------------------------------------------
 
+    server.route(createPanelRoute(server, models));
+    server.route(csvPanelRoute());
+    server.route(jsonPanelRoute(server));
+    server.route(eventFindRoute(server, models));
+
+    server.method('getPanel',
+        function (resourceType, id, rows, callback) {
+            var datasetIdKey = {
+                event: 'datasetId',
+                dataset: 'id'
+            };
+
+            models.dataset
+                .findOne({where: {id: id}})
+                .then(function (resource) {
+                    if (resource) {
+                        getPanelBounded(
+                            server,
+                            resource[datasetIdKey[resourceType]],
+                            rows,
+                            resource.startTime,
+                            resource.endTime,
+                            callback);
+                    } else {
+                        callback(Boom.notFound());
+                    }
+                })
+                .catch(function (err) {
+                    callback(Boom.badRequest(err));
+                });
+        },
+        {cache: nconf.get('panelCacheOptions')});
+};
+
+function getPanelBounded(server, id, rows, startTime, endTime, callback) {
+    var options = {
+        rows: rows,
+        panel: {},
+        properties: {},
+        startTime: startTime,
+        endTime: endTime
+    };
+    panel.readPanelJSON(server, id, options, callback);
+}
+
+function createPanelRoute(server, models) {
     // TODO(SRLM): Should this route have a response model?
-    server.route({
+    return {
         method: 'POST',
         path: '/dataset/',
         config: {
@@ -35,13 +74,14 @@ exports.init = function (server, models) {
                     userId: request.payload.userId
                 };
 
-                panel.create(server, models, newDataset, request.payload.rnc, function (err, createdDataset) {
-                    if (err) {
-                        reply(err);
-                    } else {
-                        replyMetadata(request, reply, createdDataset);
-                    }
-                });
+                panel.create(server, models, newDataset, request.payload.rnc,
+                    function (err, createdDataset) {
+                        if (err) {
+                            reply(err);
+                        } else {
+                            replyMetadata(request, reply, createdDataset);
+                        }
+                    });
             },
             validate: {
                 payload: {
@@ -61,9 +101,11 @@ exports.init = function (server, models) {
                 scope: 'admin'
             }
         }
-    });
+    };
+}
 
-    server.route({
+function csvPanelRoute() {
+    return {
         method: 'GET',
         path: '/dataset/{id}/csv',
         handler: function (request, reply) {
@@ -74,7 +116,8 @@ exports.init = function (server, models) {
             if (_.has(request.query, 'frequency')) {
                 options.csPeriod = Math.round(1000 / request.query.frequency);
             }
-            if (_.has(request.query, 'startTime') && _.has(request.query, 'endTime')) {
+            if (_.has(request.query, 'startTime') &&
+                _.has(request.query, 'endTime')) {
                 options.startTime = request.query.startTime;
                 options.endTime = request.query.endTime;
             }
@@ -82,14 +125,14 @@ exports.init = function (server, models) {
                 options.axes = request.query.axes.split(',');
             }
 
-            panel.readPanelCSV(request.params.id, options, function (err, resultStream) {
-                if (err) {
-                    reply(err);
-                } else {
-                    reply(resultStream);
-                }
-            });
-
+            panel.readPanelCSV(request.params.id, options,
+                function (err, resultStream) {
+                    if (err) {
+                        reply(err);
+                    } else {
+                        reply(resultStream);
+                    }
+                });
         },
         config: {
             validate: {
@@ -99,59 +142,26 @@ exports.init = function (server, models) {
                 query: {
                     startTime: datasetRoute.model.startTime,
                     endTime: datasetRoute.model.endTime,
-                    csPeriod: Joi.number().integer().min(1).default(10).description('Period of the rows, in milliseconds'),
-                    frequency: Joi.number().integer().min(1).max(1000).description('Frequency in Hz. Rounded to the nearest even millisecond period.'),
-                    axes: Joi.string().description('CSV list of axes to return.')
+                    csPeriod: Joi.number().integer().min(1).default(10)
+                        .description('Period of the rows, in milliseconds'),
+                    frequency: Joi.number().integer().min(1).max(1000)
+                        .description('Frequency (Hz) Rounded to milliseconds'),
+                    axes: Joi.string()
+                        .description('CSV list of axes to return.')
                 }
             },
             description: 'Get CSV panel',
-            notes: 'Request a "raw" CSV panel. Note that transfer sizes can be very large (thousands of rows, in the MB)',
+            notes: 'Request a "raw" CSV panel. Large download (100s of MB)',
             tags: ['api'],
             auth: {
                 scope: 'trusted'
             }
         }
-    });
-
-    var getPanelBounded = function (id, rows, startTime, endTime, callback) {
-        var options = {
-            rows: rows,
-            panel: {},
-            properties: {},
-            startTime: startTime,
-            endTime: endTime
-        };
-        panel.readPanelJSON(server, id, options, callback);
     };
+}
 
-
-    var getPanel = function (resourceType, id, rows, callback) {
-        var datasetIdKey = {
-            event: 'datasetId',
-            dataset: 'id'
-        };
-
-        models.dataset
-            .findOne({where: {id: id}})
-            .then(function (resource) {
-                if (resource) {
-                    getPanelBounded(resource[datasetIdKey[resourceType]],
-                        rows,
-                        resource.startTime,
-                        resource.endTime,
-                        callback);
-                } else {
-                    callback(Boom.notFound());
-                }
-            })
-            .catch(function (err) {
-                callback(Boom.badRequest(err));
-            });
-    };
-    server.method('getPanel', getPanel, {cache: nconf.get('panelCacheOptions')});
-
-
-    server.route({
+function jsonPanelRoute(server) {
+    return {
         method: 'GET',
         path: '/{resourceType}/{id}/json',
         handler: function (request, reply) {
@@ -163,13 +173,16 @@ exports.init = function (server, models) {
                 }
             };
 
-            if (request.query.startTime && request.query.endTime && request.params.resourceType === 'dataset') {
+            if (request.query.startTime &&
+                request.query.endTime &&
+                request.params.resourceType === 'dataset') {
                 var rows = nconf.get('panelSizeMap')[request.query.size];
                 if (request.query.rows) {
                     rows = request.query.rows;
                 }
 
                 getPanelBounded(
+                    server,
                     request.params.id,
                     rows,
                     request.query.startTime,
@@ -188,45 +201,57 @@ exports.init = function (server, models) {
         config: {
             validate: {
                 params: {
-                    resourceType: Joi.string().valid(['dataset', 'event']).required().description('The resource type to get a panel for.'),
+                    resourceType: Joi.string().valid(['dataset', 'event'])
+                        .description('The resource type to get a panel for.'),
                     id: datasetRoute.model.id.required()
                 },
                 query: {
-                    size: Joi.string().valid(Object.keys(nconf.get('panelSizeMap'))).description('The resolution (result size) of the panel.'),
-                    rows: Joi.number().integer().min(1).max(10000).default(1000).description('The approximate number of output rows.'),
+                    size: Joi.string()
+                        .valid(Object.keys(nconf.get('panelSizeMap')))
+                        .description('The general resolution of the panel.'),
+                    rows: Joi.number().integer().min(1).max(10000)
+                        .default(1000)
+                        .description('The approximate number of output rows.'),
                     startTime: datasetRoute.model.startTime,
                     endTime: datasetRoute.model.endTime,
                     fields: validators.fields
                 }
             },
             description: 'Get JSON panel',
-            notes: 'Request a "processed" JSON panel. You can specify multiple algorithms to run, and each will be added under their own key. Note that if your frequency is too low then the result panel can be very large.',
+            notes: 'Request a "processed" JSON panel. You can specify ' +
+            'multiple algorithms to run, and each will be added under their ' +
+            'own key. Note that if your frequency is too low then the result ' +
+            'panel can be very large.',
             tags: ['api'],
             auth: {
                 scope: 'basic'
             }
         }
-    });
+    };
+}
 
-    server.route({
+function eventFindRoute(server, models) {
+    return {
         method: 'POST',
         path: '/dataset/{id}/eventfind',
         handler: function (request, reply) {
-
             models.dataset
                 .findOne({where: {id: request.params.id}})
                 .then(function (dataset) {
 
                     if (dataset) {
-                        panel.runEventFinder(server, models, dataset.id, dataset.startTime, dataset.endTime,
+                        panel.runEventFinder(server, models, dataset.id,
+                            dataset.startTime, dataset.endTime,
                             function (err, createdEvents) {
                                 if (err) {
-                                    request.log(['error'], 'runEventFinder error: ' + err);
+                                    request.log(['error'],
+                                        'runEventFinder error: ' + err);
                                 }
                             });
                         reply({message: 'processing started.'});
                     } else {
-                        reply(Boom.notFound('dataset ' + request.params.id + ' not found'));
+                        reply(Boom.notFound('dataset ' + request.params.id +
+                        ' not found'));
                     }
                 })
                 .catch(function (err) {
@@ -241,11 +266,14 @@ exports.init = function (server, models) {
                 }
             },
             description: 'Red9 Event Finding Algorithm',
-            notes: 'Run Red9 event finding algorithms on the given dataset. Since this operation typically takes quite a while (up to 500 seconds), this route gives a reply after some basic checks (panel exists, etc.) but before prcoessing has finished.',
+            notes: 'Run Red9 event finding algorithms on the given dataset. ' +
+            'Since this operation typically takes quite a while (up to 500 ' +
+            'seconds), this route gives a reply after some basic checks ' +
+            '(panel exists, etc.) but before prcoessing has finished.',
             tags: ['api'],
             auth: {
                 scope: 'admin'
             }
         }
-    });
-};
+    };
+}

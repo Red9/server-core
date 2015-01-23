@@ -11,8 +11,10 @@ var basicModel = {
 
     // Core keys
     title: Joi.string().description('A short title for this layout'),
-    description: Joi.string().description('Human readable description of this layout'),
-    for: Joi.array().includes(Joi.string()).description('Routes that this layout is applicable for'),
+    description: Joi.string()
+        .description('Human readable description of this layout'),
+    for: Joi.array().includes(Joi.string())
+        .description('Routes that this layout is applicable for'),
     layout: Joi.any().description('The actual layout description')
 };
 

@@ -58,7 +58,9 @@ module.exports = function (sequelize, DataTypes) {
 
                                 comment.endTime < comment.startTime
                             ) {
-                                callback(Boom.badRequest('comment startTime or endTime invalid, possibly in relation to dataset startTime/endTime'));
+                                callback(Boom.badRequest('comment startTime ' +
+                                'or endTime invalid, possibly in relation to ' +
+                                'dataset startTime/endTime'));
                             } else {
                                 callback(null, comment);
                             }

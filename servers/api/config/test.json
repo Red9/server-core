@@ -4,9 +4,7 @@
   "panelDataPath": "/home/clewis/Downloads/testRNC",
   "defaultCallbackUrl": "http://localhost:9532",
   "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated",
-  "authorizationCookieDomain": null,
   "logFilePath": "/home/clewis/Downloads/apiserver/apiserver",
-  "authorizationCookieName": "r9session",
   "defaultUserPicture": "http://localhost:9532/static/images/profile-default.png",
   "panelCacheOptions": {
     "expiresIn": 10000
@@ -23,5 +21,10 @@
     "password": "test",
     "host": "localhost"
   },
-  "testDataPath": "/home/clewis/consulting/red9/test-data"
+  "testDataPath": "/home/clewis/consulting/red9/test-data",
+  "cookie": {
+    "password": "whatever ...",
+    "domain": null,
+    "name": "again, whatever ..."
+  }
 }

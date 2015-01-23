@@ -119,7 +119,7 @@ exports.init = function (server) {
                 reply(eventTypes);
             },
             description: 'Get predefined event types',
-            notes: 'A list of predefined event types. This route is not stable, and will change in the future.',
+            notes: 'A list of predefined event types. This route is not stable',
             tags: ['api'],
             auth: {
                 scope: 'basic'

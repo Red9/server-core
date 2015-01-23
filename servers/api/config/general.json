@@ -12,5 +12,18 @@
     "findById": {
       "expiresIn": 1000
     }
+  },
+  "auth": {
+    "providers": {
+      "google": {
+        "clientId": "464191550717-i49tpiq3a2kvosd0ljn6rvk13ib3bv23.apps.googleusercontent.com",
+        "password": "cookie_encryption_password",
+        "clientSecret": "m6OYo8hpLAMaK-U-QBtItRJP",
+        "scope": [
+          "profile",
+          "email"
+        ]
+      }
+    }
   }
 }

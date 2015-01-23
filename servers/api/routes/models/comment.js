@@ -19,10 +19,12 @@ var basicModel = {
     // Core keys
     startTime: validators.timestamp,
     endTime: validators.timestamp,
-    body: Joi.string().description('The body of the comment, in markdown format'),
+    body: Joi.string()
+        .description('the body of the comment, in markdown format'),
 
     // Virtual keys
-    bodyHtml: Joi.string().description('The body of the comment, parsed as markdown and converted to HTML (response only)')
+    bodyHtml: Joi.string()
+        .description('comment body parsed as markdown and converted to HTML ')
 };
 
 var resourceName = 'comment';
@@ -32,7 +34,8 @@ module.exports = {
 
     model: basicModel,
     resultOptions: {
-        expand: Joi.array().includes(Joi.string().valid(expandOptions)).description('Expand a resource into the comment. Options are ' + expandOptions.join(', ')),
+        expand: Joi.array().includes(Joi.string().valid(expandOptions))
+            .description('Expand a resource into the comment')
     },
     resultModel: Joi.object(basicModel).options({className: resourceName}),
 
@@ -45,7 +48,6 @@ module.exports = {
     },
 
     operations: {
-
         create: Joi.object({
             datasetId: basicModel.datasetId.required(),
             userId: basicModel.userId.required(),
