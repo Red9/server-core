@@ -1,6 +1,7 @@
-### 2015-01-XX
+### 2015-01-23
 
 - Fixed the dataset POST not returning in metadata format.
+- Added a `init.sh` script to the project root. Run it after a git clone.
 
 ### 2015-01-21
 

@@ -7,7 +7,7 @@ var spawn = require('child_process').spawn;
 var execFile = require('child_process').execFile;
 var path = require('path');
 var fs = require('fs');
-var _ = require('underscore')._;
+var _ = require('lodash');
 var Boom = require('boom');
 var async = require('async');
 

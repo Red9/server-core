@@ -18,8 +18,6 @@ module.exports = function (sequelize, DataTypes) {
         boundingCircle: DataTypes.JSON,
         boundingBox: DataTypes.JSON,
         gpsLock: DataTypes.JSON,
-        // TODO: ordinalRank
-        cardinalRank: {type: DataTypes.INTEGER},
         createdAt: helpers.touchTimestamp(DataTypes, 'createdAt'),
         updatedAt: helpers.touchTimestamp(DataTypes, 'updatedAt')
     }, {

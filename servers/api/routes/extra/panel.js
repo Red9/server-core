@@ -1,7 +1,7 @@
 'use strict';
 
 var Joi = require('joi');
-var _ = require('underscore')._;
+var _ = require('lodash');
 var nconf = require('nconf');
 var Boom = require('boom');
 var validators = require('../../support/validators');

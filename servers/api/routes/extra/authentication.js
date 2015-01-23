@@ -2,7 +2,7 @@
 
 var Boom = require('boom');
 var nconf = require('nconf');
-var _ = require('underscore')._;
+var _ = require('lodash');
 
 /**
  * @param {Object} request

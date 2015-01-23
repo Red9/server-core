@@ -15,7 +15,7 @@ var expect = Code.expect;
 var requirePath = '../../index';
 var sut = require(requirePath);
 
-var _ = require('underscore')._;
+var _ = require('lodash');
 
 var utilities = require('../utilities');
 

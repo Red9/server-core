@@ -34,10 +34,6 @@ var basicModel = {
     boundingCircle: Joi.object(),
     boundingBox: Joi.object(),
     gpsLock: Joi.object(),
-    ordinalRank: validators.id
-        .description('Not used'),
-    cardinalRank: Joi.number().integer().min(0).max(5)
-        .description('Not used'),
 
     // Dynamic keys
     duration: validators.duration

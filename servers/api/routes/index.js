@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = require('underscore')._;
+var _ = require('lodash');
 var validators = require('../support/validators');
 var Boom = require('boom');
 

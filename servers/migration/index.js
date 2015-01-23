@@ -15,7 +15,7 @@ var models = require('../api/models');
 models.init(nconf);
 
 var request = require('request');
-var _ = require('underscore')._;
+var _ = require('lodash');
 var fs = require('fs');
 var path = require('path');
 var async = require('async');

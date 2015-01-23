@@ -2,7 +2,7 @@
 
 var Joi = require('joi');
 var validators = require('../../support/validators');
-var _ = require('underscore')._;
+var _ = require('lodash');
 var Boom = require('boom');
 var nconf = require('nconf');
 

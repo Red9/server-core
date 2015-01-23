@@ -25,7 +25,7 @@
     "handlebars": "latest",
     "pg": "latest",
     "pg-hstore": "latest",
-    "underscore": "latest",
+    "lodash": "latest",
     "sleep": "latest"
   },
   "devDependencies": {
