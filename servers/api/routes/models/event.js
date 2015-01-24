@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Boom = require('boom');
 var Joi = require('joi');
@@ -7,12 +7,14 @@ var validators = require('../../support/validators');
 var expandOptions = ['dataset'];
 
 var eventSource = Joi.object({
-    type: Joi.string().valid(['manual', 'auto']).default('auto').description('The type of the entity that made this event'),
-    createTime: validators.timestamp, // This is required on result, but not on input.
-    algorithm: Joi.string().description('the name of the algorithm that generated this event, if applicable'),
-    parameters: Joi.object().description('the algorithm specific parameters')
-}).description('describes what created this event').options({className: 'eventSource'});
-
+    type: Joi.string().valid(['manual', 'auto']).default('auto')
+        .description('The type of the entity that made this event'),
+    algorithm: Joi.string()
+        .description('the name of the algorithm that generated this event'),
+    parameters: Joi.object()
+        .description('the algorithm specific parameters')
+}).description('describes what created this event')
+    .options({className: 'eventSource'});
 
 var basicModel = {
     // Auto created keys
@@ -32,8 +34,6 @@ var basicModel = {
     boundingCircle: Joi.object(),
     boundingBox: Joi.object(),
     gpsLock: Joi.object(),
-    ordinalRank: validators.id.description('Link to previous (lower) event. This is a linked list within a single dataset'),
-    cardinalRank: Joi.number().integer().min(0).max(5).description('The event cardinal ranking (absolute score). 0 indicates no rank'),
 
     // Dynamic keys
     duration: validators.duration
@@ -48,12 +48,15 @@ module.exports = {
     resultModel: Joi.object(basicModel).options({className: resourceName}),
 
     resultOptions: {
-        expand: Joi.array().includes(Joi.string().valid(expandOptions)).single().description('Expand a resource into the dataset. Options are ' + expandOptions.join(', ')),
+        expand: Joi.array().includes(Joi.string().valid(expandOptions)).single()
+            .description('Expand a related resource into the dataset')
     },
 
     metaOptions: {
-        aggregateStatistics: Joi.boolean().description('include aggregate statistics on the result set'),
-        aggregateStatisticsGroupBy: Joi.string().valid(Object.keys(basicModel)).description('Optionally calculate aggregate statistics for each group')
+        aggregateStatistics: Joi.boolean()
+            .description('include aggregate statistics on the result set'),
+        aggregateStatisticsGroupBy: Joi.string().valid(Object.keys(basicModel))
+            .description('Calculate aggregate statistics for each group')
     },
 
     scopes: {
@@ -84,8 +87,10 @@ module.exports = {
             'dataset.userId': Joi.any(),
 
             startTime: basicModel.startTime,
-            'startTime.gt': basicModel.startTime.description('Select events whose timestamp is greater than'),
-            'startTime.lt': basicModel.startTime.description('Select events whose timestamp is less than'),
+            'startTime.gt': basicModel.startTime
+                .description('Select events whose timestamp is greater than'),
+            'startTime.lt': basicModel.startTime
+                .description('Select events whose timestamp is less than'),
             endTime: basicModel.endTime,
             'endTime.gt': basicModel.endTime,
             'endTime.lt': basicModel.endTime

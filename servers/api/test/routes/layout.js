@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Code = require('code');
 var Lab = require('lab');
@@ -42,11 +42,12 @@ describe('layout resource', function () {
             payload: newLayout,
             credentials: utilities.credentials.admin
         }, function (response) {
+            createdLayout = JSON.parse(response.payload).data;
 
-            expect(response.result).to.deep.include(newLayout);
-            expect(response.result.id).to.exist();
-            expect(response.result.createTime).to.exist();
-            createdLayout = response.result;
+            expect(createdLayout).to.deep.include(newLayout);
+            expect(createdLayout.id).to.exist();
+            expect(createdLayout.createdAt).to.exist();
+            expect(createdLayout.updatedAt).to.exist();
             done();
         });
     });
@@ -57,8 +58,10 @@ describe('layout resource', function () {
             url: '/layout/?idList=' + createdLayout.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            var payload = JSON.parse(response.payload);
-            expect(payload).to.be.array().and.to.have.length(1).and.to.deep.include(createdLayout);
+            var payload = JSON.parse(response.payload).data;
+            expect(payload).to.be.array()
+                .and.to.have.length(1)
+                .and.to.deep.include(createdLayout);
             done();
         });
     });
@@ -69,7 +72,7 @@ describe('layout resource', function () {
             url: '/layout/' + createdLayout.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            var payload = JSON.parse(response.payload);
+            var payload = JSON.parse(response.payload).data;
             expect(payload).to.be.deep.equal(createdLayout);
             done();
         });
@@ -78,7 +81,7 @@ describe('layout resource', function () {
     it('does not get non-existent layouts', function (done) {
         server.inject({
             method: 'GET',
-            url: '/layout/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            url: '/layout/1234',
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
@@ -96,7 +99,8 @@ describe('layout resource', function () {
             },
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result.title).to.equal('ABC');
+            var t = response.result.data.get({plain: true});
+            expect(t.title).to.equal('ABC');
             done();
         });
     });
@@ -112,6 +116,3 @@ describe('layout resource', function () {
         });
     });
 });
-
-
-

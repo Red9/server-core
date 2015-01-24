@@ -305,6 +305,19 @@ The temporal component of aggregate statistics describes the time relation of th
 ```
 
 
+## Resource Notes
+
+### User
+
+`displayName`: If set to 'unknown', it will automatically be updated with their Google display name.
+
+`email`: Considered a "second" primary key for a user. So no changes.
+
+
+### Event
+
+An event is immutable after creation.
+
 
 ## API Examples
 

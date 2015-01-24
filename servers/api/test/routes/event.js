@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Code = require('code');
 var Lab = require('lab');
@@ -23,23 +23,24 @@ describe('event resource basics', function () {
     var createdUser;
     var createdDataset;
 
-
     before(function (done) {
         sut.init(true, function (err, server_) {
             server = server_;
             utilities.createUser(server, function (err, createdUser_) {
                 createdUser = createdUser_;
-                utilities.createDataset(server, createdUser.id, function (err, createdDataset_) {
-                    createdDataset = createdDataset_;
-                    done();
-                });
+                utilities.createDataset(server, createdUser.id,
+                    function (err, createdDataset_) {
+                        createdDataset = createdDataset_;
+                        done();
+                    });
             });
         });
     });
 
     it('can create a minimal event', function (done) {
         var newEvent = {
-            startTime: createdDataset.startTime + 100, // Make sure it passes validation by being within the dataset
+            // Make sure it passes validation by being within the dataset
+            startTime: createdDataset.startTime + 100,
             endTime: createdDataset.startTime + 1000,
             type: 'Wave',
             datasetId: createdDataset.id,
@@ -51,10 +52,13 @@ describe('event resource basics', function () {
             payload: newEvent,
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result).to.deep.include(newEvent);
-            expect(response.result.id).to.exist();
-            expect(response.result.createTime).to.exist();
-            createdEvent = response.result;
+            createdEvent = JSON.parse(response.payload).data;
+
+            expect(createdEvent).to.deep.include(newEvent);
+            expect(createdEvent.id).to.exist();
+            expect(createdEvent.createdAt).to.exist();
+            expect(createdEvent.updatedAt).to.exist();
+
             done();
         });
     });
@@ -65,10 +69,16 @@ describe('event resource basics', function () {
             url: '/event/?idList=' + createdEvent.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            var payload = JSON.parse(response.payload);
+            var payload = JSON.parse(response.payload).data;
             expect(payload).to.be.array();
             expect(payload).to.have.length(1);
-            expect(payload[0]).to.include(Object.keys(createdEvent)); // Summary statistics are still being calculated
+            expect(payload[0]).to.include(Object.keys(createdEvent));
+            expect(payload[0]).to.include(
+                [
+                    'summaryStatistics',
+                    'boundingBox',
+                    'boundingCircle'
+                ]);
             done();
         });
     });
@@ -79,8 +89,9 @@ describe('event resource basics', function () {
             url: '/event/' + createdEvent.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result).to.include(Object.keys(createdEvent));
-            expect(response.result).to.include('duration');
+            var payload = JSON.parse(response.payload).data;
+            expect(payload).to.include(Object.keys(createdEvent));
+            expect(payload).to.include('duration');
             done();
         });
     });
@@ -88,7 +99,7 @@ describe('event resource basics', function () {
     it('does not get non-existent events', function (done) {
         server.inject({
             method: 'GET',
-            url: '/event/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            url: '/event/2',
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
@@ -104,7 +115,7 @@ describe('event resource basics', function () {
                 startTime: createdDataset.startTime + 100,
                 endTime: createdDataset.startTime + 1000,
                 type: 'Wave',
-                datasetId: 'd21c7d0e-c2cd-43c4-b017-dc89ea99ebca',
+                datasetId: '2',
                 source: {type: 'manual'}
             },
             {
@@ -162,7 +173,7 @@ describe('event resource basics', function () {
     // -----------------------------------------------------
     // Modifications
     // -----------------------------------------------------
-    it('can update event', function (done) {
+    it('events are immutable', function (done) {
         server.inject({
             method: 'PUT',
             url: '/event/' + createdEvent.id,
@@ -171,7 +182,7 @@ describe('event resource basics', function () {
             },
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result.type).to.equal('chances');
+            expect(response.statusCode).to.equal(404);
             done();
         });
     });
@@ -183,7 +194,25 @@ describe('event resource basics', function () {
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
-            done();
+
+            // It should NOT delete the associated resources
+            async.each([
+                    '/dataset/' + createdDataset.id,
+                    '/user/' + createdUser.id
+                ], function (url, callback) {
+                    server.inject({
+                        method: 'GET',
+                        url: url,
+                        credentials: utilities.credentials.admin
+                    }, function (response) {
+                        expect(response.statusCode).to.equal(200);
+                        callback(null);
+                    });
+                },
+                function (err) {
+                    expect(err).to.be.undefined();
+                    done();
+                });
         });
     });
 });

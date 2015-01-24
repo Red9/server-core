@@ -1,108 +1,108 @@
-"use strict";
+'use strict';
 
 var eventTypes = [
     {
-        name: "Default"
+        name: 'Default'
     },
     {
-        name: "Wave",
+        name: 'Wave',
         subtype: [
             {name: 'Left'},
             {name: 'Right'}
         ]
     },
     {
-        name: "Drop In"
+        name: 'Drop In'
     },
     {
-        name: "Bottom Turn"
+        name: 'Bottom Turn'
     },
     {
-        name: "Snap",
+        name: 'Snap',
         subtype: [
             {name: 'Closeout'}
         ]
     },
     {
-        name: "Turn"
+        name: 'Turn'
     },
     {
-        name: "Air Drop"
+        name: 'Air Drop'
     },
     {
-        name: "Cutback"
+        name: 'Cutback'
     },
     {
-        name: "Floater"
+        name: 'Floater'
     },
     {
-        name: "Carve"
+        name: 'Carve'
     },
     {
-        name: "Tail Slide"
+        name: 'Tail Slide'
     },
     {
-        name: "Pump"
+        name: 'Pump'
     },
     {
-        name: "360"
+        name: '360'
     },
     {
-        name: "Reverse"
+        name: 'Reverse'
     },
     {
-        name: "Air"
+        name: 'Air'
     },
     {
-        name: "Paddle for Wave"
+        name: 'Paddle for Wave'
     },
     {
-        name: "Paddle Out"
+        name: 'Paddle Out'
     },
     {
-        name: "Paddle In"
+        name: 'Paddle In'
     },
     {
-        name: "Paddle Left"
+        name: 'Paddle Left'
     },
     {
-        name: "Paddle Right"
+        name: 'Paddle Right'
     },
     {
-        name: "Paddle"
+        name: 'Paddle'
     },
     {
-        name: "Duck Dive"
+        name: 'Duck Dive'
     },
     {
-        name: "Wipe out"
+        name: 'Wipe out'
     },
     {
-        name: "Pearling"
+        name: 'Pearling'
     },
     {
-        name: "Session"
+        name: 'Session'
     },
     {
-        name: "Walk"
+        name: 'Walk'
     },
     {
-        name: "Run"
+        name: 'Run'
     },
     {
-        name: "Stationary"
+        name: 'Stationary'
     },
     {
-        name: "Dolphin"
+        name: 'Dolphin'
     },
     {
-        name: "Tap"
+        name: 'Tap'
     },
     {
-        name: "Swimming"
+        name: 'Swimming'
     },
     {
-        name: "Sync",
+        name: 'Sync',
         subtype: [
             {name: 'In'},
             {name: 'Out'}
@@ -122,7 +122,7 @@ exports.init = function (server) {
                 reply(eventTypes);
             },
             description: 'Get predefined event types',
-            notes: 'A list of predefined event types. This route is not stable, and will change in the future.',
+            notes: 'A list of predefined event types. This route is not stable',
             tags: ['api'],
             auth: {
                 scope: 'basic'

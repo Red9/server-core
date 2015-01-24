@@ -1,4 +1,9 @@
-### 2015-01-XX
+### 2015-01-23
+
+- Fixed the dataset POST not returning in metadata format.
+- Added a `init.sh` script to the project root. Run it after a git clone.
+
+### 2015-01-21
 
 - All responses from the server are now in the following format:
 
@@ -18,6 +23,7 @@
 - Aggregate statistics are available for event and dataset searches. Include the key `?aggregateStatistics=true` to calculate aggregate statistics. Statistics are calculated over the same objects that are returned, not all matching resources (eg, it won't include statistics outside of the skip and limit constraints). Optionally, calculate aggregate statistics for sets of resources grouped by a key value. Use the `?aggregateStatisticsGroupBy=<keyname>` parameter (eg, `=type` to group events by the event type).
 - Removed the aggregateStatistics option for events expanded in datasets. You'll need to make an explicit call to `/event/?datasetId=:id&aggregateStatistics=true&aggregateStatisticsGroupBy=type`
 - Added a search option for events: `?dataset.userId=1234`. You must also specify the `&expand[]=dataset` option for this to work.
+- Dataset `title` search in a query string is now a case insensitive comparison with wild cards on either side (`*value*`).
 
 ### 2015-01-18
 

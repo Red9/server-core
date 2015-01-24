@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Code = require('code');
 var Lab = require('lab');
@@ -27,10 +27,11 @@ describe('video resource basics', function () {
             server = server_;
             utilities.createUser(server, function (err, createdUser_) {
                 createdUser = createdUser_;
-                utilities.createDataset(server, createdUser.id, function (err, createdDataset_) {
-                    createdDataset = createdDataset_;
-                    done();
-                });
+                utilities.createDataset(server, createdUser.id,
+                    function (err, createdDataset_) {
+                        createdDataset = createdDataset_;
+                        done();
+                    });
             });
         });
     });
@@ -49,10 +50,11 @@ describe('video resource basics', function () {
             payload: newVideo,
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result).to.deep.include(newVideo);
-            expect(response.result.id).to.exist();
-            expect(response.result.createTime).to.exist();
-            createdVideo = response.result;
+            createdVideo = JSON.parse(response.payload).data;
+            expect(createdVideo).to.deep.include(newVideo);
+            expect(createdVideo.id).to.exist();
+            expect(createdVideo.createdAt).to.exist();
+            expect(createdVideo.updatedAt).to.exist();
             done();
         });
     });
@@ -63,29 +65,30 @@ describe('video resource basics', function () {
             url: '/video/?idList=' + createdVideo.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            var payload = JSON.parse(response.payload);
+            var payload = JSON.parse(response.payload).data;
             expect(payload).to.be.array();
             expect(payload).to.have.length(1);
             expect(payload[0]).to.deep.include(createdVideo);
             done();
         });
     });
-    
+
     it('can get a specific video', function (done) {
         server.inject({
             method: 'GET',
             url: '/video/' + createdVideo.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result).to.deep.include(createdVideo);
+            var payload = JSON.parse(response.payload).data;
+            expect(payload).to.deep.include(createdVideo);
             done();
         });
     });
-    
+
     it('does not get non-existent videos', function (done) {
         server.inject({
             method: 'GET',
-            url: '/video/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            url: '/video/2',
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
@@ -108,7 +111,7 @@ describe('video resource basics', function () {
                 startTime: createdDataset.startTime + 100,
                 host: 'YouTube',
                 hostId: 'ABC',
-                datasetId: 'c853692c-7a3c-40f9-a05f-d0a01acab43b'
+                datasetId: '2'
             },
             {
                 // Bad startTime
@@ -135,7 +138,7 @@ describe('video resource basics', function () {
                 done();
             });
     });
-    
+
     // -----------------------------------------------------
     // Modifications
     // -----------------------------------------------------
@@ -148,11 +151,12 @@ describe('video resource basics', function () {
             },
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result.hostId).to.equal('DEF');
+            var payload = JSON.parse(response.payload).data;
+            expect(payload.hostId).to.equal('DEF');
             done();
         });
     });
-    
+
     it('can delete videos', function (done) {
         server.inject({
             method: 'DELETE',
@@ -160,6 +164,26 @@ describe('video resource basics', function () {
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
+
+            // It should NOT delete the associated resources
+            async.each([
+                    '/dataset/' + createdDataset.id,
+                    '/user/' + createdUser.id
+                ], function (url, callback) {
+                    server.inject({
+                        method: 'GET',
+                        url: url,
+                        credentials: utilities.credentials.admin
+                    }, function (response) {
+                        expect(response.statusCode).to.equal(200);
+                        callback(null);
+                    });
+                },
+                function (err) {
+                    expect(err).to.be.undefined();
+                    done();
+                });
+
             done();
         });
     });

@@ -1,15 +1,15 @@
-"use strict";
+'use strict';
 
 var Boom = require('boom');
 var nconf = require('nconf');
-var _ = require('underscore')._;
-
+var _ = require('lodash');
 
 /**
- * @param request {Object}
- * @param models {Object}
- * @param providedUser {Object} with keys that match the user resource. At a minimum, it should have email.
- * @param callback {Function} (err, validUserObject)
+ * @param {Object} request
+ * @param {Object} models
+ * @param {Object} providedUser Object with keys that match the user resource.
+ *                               At a minimum, it should have email.
+ * @param {Function} callback (err, validUserObject)
  */
 function checkUserAuthentication(request, models, providedUser, callback) {
 
@@ -20,8 +20,9 @@ function checkUserAuthentication(request, models, providedUser, callback) {
                 callback(null);
             } else {
                 // Found a user.
-                // Now, update their profile with the most recently provided information.
-                // Allow the user to set a Red9 specific display name (we don't want to automatically update that)
+                // Now, update their profile with the most recently provided
+                // information. Allow the user to set a Red9 specific display
+                // name (we don't want to automatically update that)
                 if (user.displayName !== 'unknown') {
                     delete providedUser.displayName;
                 }
@@ -42,17 +43,16 @@ function checkUserAuthentication(request, models, providedUser, callback) {
         });
 }
 
-
 exports.init = function (server, models) {
     server.auth.strategy('session', 'cookie', {
-        password: '867cfa6cal5-c80eouwvvrl-4aba4ad-92atueh2-e4c737otauh76e129a', // random string
-        cookie: nconf.get('authorizationCookieName'),
+        password: nconf.get('cookie:password'), // random string
+        cookie: nconf.get('cookie:name'),
+        domain: nconf.get('cookie:domain'),
         clearInvalid: true,
         redirectTo: false,
         isSecure: false,
-        domain: nconf.get('authorizationCookieDomain'),
         validateFunc: function (session, callback) {
-            // TODO: Check database here for valid session (as opposed to just a valid user)
+            // TODO: Check database here for valid session (not just valid user)
             models.user.findOne({where: {id: session.id}})
                 .then(function (user) {
                     if (!user) {
@@ -72,13 +72,12 @@ exports.init = function (server, models) {
     // and the OAuth client credentials.
     server.auth.strategy('google', 'bell', {
         provider: 'google',
-        password: 'cookie_encryption_password',
-        clientId: '464191550717-i49tpiq3a2kvosd0ljn6rvk13ib3bv23.apps.googleusercontent.com',
-        clientSecret: 'm6OYo8hpLAMaK-U-QBtItRJP',
-        scope: ['profile', 'email'],
+        password: nconf.get('auth:providers:google:password'),
+        clientId: nconf.get('auth:providers:google:clientId'),
+        clientSecret: nconf.get('auth:providers:google:clientSecret'),
+        scope: nconf.get('auth:providers:google:scope'),
         isSecure: false     // Terrible idea but required if not using HTTPS
     });
-
 
     server.auth.default({
         mode: 'required',
@@ -92,48 +91,64 @@ exports.init = function (server, models) {
     // the local application account information.
     server.route({
         method: ['GET', 'POST'], // Must handle both GET and POST
-        path: '/auth/google',    // The callback endpoint registered with the provider
+        path: '/auth/google', // The callback endpoint registered with provider
         config: {
             auth: 'google',
             handler: function (request, reply) {
 
-                // Perform any account lookup or registration, setup local session,
-                // and redirect to the application. The third-party credentials are
-                // stored in request.auth.credentials. Any query parameters from
-                // the initial request are passed back via request.auth.credentials.query.
+                // Perform any account lookup or registration, setup local
+                // session, and redirect to the application. The third-party
+                // credentials are stored in request.auth.credentials. Any
+                // query parameters from the initial request are passed back
+                // via request.auth.credentials.query.
 
                 var normalizedUser = {
                     email: request.auth.credentials.profile.email,
+                    //jscs:disable
                     givenName: request.auth.credentials.profile.raw.given_name,
                     familyName: request.auth.credentials.profile.raw.family_name,
+                    //jscs:enable
                     displayName: request.auth.credentials.profile.displayName,
                     gender: request.auth.credentials.profile.raw.gender,
                     picture: request.auth.credentials.profile.raw.picture
                 };
 
-                checkUserAuthentication(request, models, normalizedUser, function (err, validUser) {
-                    var callbackUrl = nconf.get('defaultCallbackUrl');
-                    if (request.auth.credentials.query.callbackUrl) {
-                        callbackUrl = decodeURIComponent(request.auth.credentials.query.callbackUrl);
-                    }
+                checkUserAuthentication(request, models, normalizedUser,
+                    function (err, validUser) {
+                        var callbackUrl = nconf.get('defaultCallbackUrl');
+                        if (request.auth.credentials.query.callbackUrl) {
+                            callbackUrl = decodeURIComponent(
+                                request.auth.credentials.query.callbackUrl
+                            );
+                        }
 
-                    if (typeof validUser !== 'undefined') {
-                        request.auth.session.set({id: validUser.id});
-                        reply.redirect(callbackUrl);
-                    } else {
-                        request.auth.session.clear();
+                        if (typeof validUser !== 'undefined') {
+                            request.auth.session.set({id: validUser.id});
+                            reply.redirect(callbackUrl);
+                        } else {
+                            request.auth.session.clear();
 
-                        var error = Boom.unauthorized('User "' + normalizedUser.displayName + '" ( ' + normalizedUser.email + ' ) is not in our database.');
-                        reply.redirect(nconf.get('unauthorizedCallbackUrl') + '?attemptUrl=' + encodeURIComponent(callbackUrl) + '&error=' + JSON.stringify(error.output.payload));
-                    }
-                });
+                            var error = Boom.unauthorized('User "' +
+                            normalizedUser.displayName + '" ( ' +
+                            normalizedUser.email +
+                            ' ) is not in our database.');
+
+                            reply.redirect(
+                                nconf.get('unauthorizedCallbackUrl') +
+                                '?attemptUrl=' +
+                                encodeURIComponent(callbackUrl) +
+                                '&error=' +
+                                JSON.stringify(error.output.payload));
+                        }
+                    });
             },
             description: 'Perform Google+ Authentication',
-            notes: 'Returns HTML that should be displayed to the user, which is unique for this server. On success it will redirect to callbackURL. Do not POST this endpoint, only GET.',
+            notes: 'Returns HTML that should be displayed to the user, which ' +
+            'is unique for this server. On success it will redirect to ' +
+            'callbackURL. Do not POST this endpoint, only GET.',
             tags: ['api']
         }
     });
-
 
     server.route({
         method: 'POST',
@@ -173,7 +188,9 @@ exports.init = function (server, models) {
                 strategy: 'session'
             },
             description: 'Get the current logged in user',
-            notes: 'Returns the current user who is logged in, otherwise returns an unauthorized error. Uses the "' + nconf.get('authorizationCookieName') + '" cookie.',
+            notes: 'Returns the current user who is logged in, otherwise ' +
+            'returns an unauthorized error. Uses the "' +
+            nconf.get('authorizationCookieName') + '" cookie.',
             tags: ['api']
         }
     });

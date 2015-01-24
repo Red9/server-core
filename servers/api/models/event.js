@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Boom = require('boom');
 
@@ -18,8 +18,6 @@ module.exports = function (sequelize, DataTypes) {
         boundingCircle: DataTypes.JSON,
         boundingBox: DataTypes.JSON,
         gpsLock: DataTypes.JSON,
-        // TODO: ordinalRank
-        cardinalRank: {type: DataTypes.INTEGER},
         createdAt: helpers.touchTimestamp(DataTypes, 'createdAt'),
         updatedAt: helpers.touchTimestamp(DataTypes, 'updatedAt')
     }, {
@@ -30,7 +28,6 @@ module.exports = function (sequelize, DataTypes) {
 
                 event.belongsTo(models.dataset, {
                     constraints: true,
-                    //foreignKeyConstraint:true,
                     foreignKey: {
                         allowNull: false
                     }
@@ -52,7 +49,9 @@ module.exports = function (sequelize, DataTypes) {
                             event.startTime > dataset.endTime ||
                             event.endTime > dataset.endTime ||
                             event.endTime <= event.startTime) {
-                            callback(Boom.badRequest('event startTime or endTime invalid, possibly in relation to dataset startTime/endTime'));
+                            callback(Boom.badRequest('event startTime or ' +
+                            'endTime invalid, possibly in relation to ' +
+                            'dataset startTime/endTime'));
                         } else {
                             callback(null, event);
                         }
@@ -76,7 +75,6 @@ module.exports = function (sequelize, DataTypes) {
                 });
             }
         }
-
     });
 
     return event;

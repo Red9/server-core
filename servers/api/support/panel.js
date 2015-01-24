@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var nconf = require('nconf');
 
@@ -7,7 +7,7 @@ var spawn = require('child_process').spawn;
 var execFile = require('child_process').execFile;
 var path = require('path');
 var fs = require('fs');
-var _ = require('underscore')._;
+var _ = require('lodash');
 var Boom = require('boom');
 var async = require('async');
 
@@ -22,29 +22,34 @@ exports.init = function (nconf_) {
 
 /**
  *
- * @param id {String}
+ * @param {Number} id
  * @returns {String}
  */
 function createFilename(id) {
     return path.join(nconf.get('panelDataPath'), '' + id) + '.RNC';
 }
 
-/** A little helper function that makes it easier to always check for a panel before doing something.
+/** A little helper function that makes it easier to always check for a panel
+ * before doing something.
  *
  * Looks and checks to see if there is a valid panel in the data store.
  *
- * This function will call the error callback if the file doesn't exist or some other filesystem error.
+ * This function will call the error callback if the file doesn't exist or some
+ * other filesystem error.
  *
- * @param id {string}
- * @param errorCallback {function} Called if there is an error. This should go back to the client.
- * @param successCallback {function} Called if there's no errors
+ * @param {Number} id
+ * @param {Function} errorCallback Called if there is an error. This should go
+ *                  back to the client.
+ * @param {Function} successCallback Called if there's no errors
  */
 function checkForPanelHelper(id, errorCallback, successCallback) {
     fs.stat(createFilename(id), function (err, stats) {
         if (err) {
             errorCallback(err);
         } else if (!stats.isFile()) {
-            errorCallback(new Boom.badRequest('Panel with id ' + id + ' does not exist.'));
+            errorCallback(
+                new Boom.badRequest('Panel with id ' + id + ' does not exist.')
+            );
         } else {
             successCallback();
         }
@@ -53,12 +58,13 @@ function checkForPanelHelper(id, errorCallback, successCallback) {
 
 /**
  *
- * @param inputFilename {string}
- * @param outputFilename {string}
- * @param callback {function} (err)
+ * @param {String} inputFilename
+ * @param {String} outputFilename
+ * @param {Function} callback (err)
  */
 function correctFile(inputFilename, outputFilename, callback) {
-    // Open up the RNC and look at the start time. If it's valid, then do nothing
+    // Open up the RNC and look at the start time. If it's valid, then do
+    // nothing
     // If it's gibberish then replace it with the default time.
     // In the future we can go through and have it pull out the GPS time
     // and use that.
@@ -83,9 +89,11 @@ function correctFile(inputFilename, outputFilename, callback) {
  *
  * @warning this won't hesitate to overwrite an existing panel.
  *
- * @param id {string} The id of the dataset that this panel belongs to.
- * @param inputStream {stream} The file, as a stream. This will be written directly to disk.
- * @param callback {function} (err) Called once the file is written and corrected, or if an error occurs.
+ * @param {Number} id The id of the dataset that this panel belongs to.
+ * @param {Stream} inputStream The file, as a stream. This will be written
+ *                      directly to disk.
+ * @param {Function} callback (err) Called once the file is written and
+ *                      corrected, or if an error occurs.
  */
 function createPanel(id, inputStream, callback) {
     var uploadFilename = createFilename(id + '.upload');
@@ -102,14 +110,13 @@ function createPanel(id, inputStream, callback) {
 
 /** Takes care of the details of handling a panel and a dataset.
  *
- * @param server {Object}
- * @param models {Object}
- * @param newDataset {Object} The dataset object to store in the DB
- * @param panelStream {ReadableStream} A stream representing the panel data
- * @param callback {Function} (err, updatedDataset)
+ * @param {Object} server
+ * @param {Object} models
+ * @param {Object} newDataset The dataset object to store in the DB
+ * @param {ReadableStream} panelStream A stream representing the panel data
+ * @param {Function} callback (err, updatedDataset)
  */
 exports.create = function (server, models, newDataset, panelStream, callback) {
-    console.dir(newDataset);
     models.dataset
         .create(newDataset)
         .then(function (createdDataset) {
@@ -146,14 +153,14 @@ exports.create = function (server, models, newDataset, panelStream, callback) {
                             where: {id: createdDataset.id}
                         })
                         .then(function (updatedDataset) {
-                            // A bit of a hack to hard code these indicies, but that's how sequelize works with returning: true
+                            // A bit of a hack to hard code these indicies, but
+                            // that's how sequelize works with returning: true
                             callback(null, updatedDataset[1][0]);
                         })
                         .catch(function (err) {
                             server.log(['warning'], 'Error on update: ' + err);
                             callback(Boom.badRequest(err));
                         });
-
                 });
             });
         })
@@ -162,12 +169,11 @@ exports.create = function (server, models, newDataset, panelStream, callback) {
         });
 };
 
-
 /**
  *
- * @param id {string}
- * @param options {object}
- * @param callback {function} (err, ReadableStream)
+ * @param {Number} id
+ * @param {Object} options
+ * @param {Function} callback (err, ReadableStream)
  */
 exports.readPanelCSV = function (id, options, callback) {
     checkForPanelHelper(id, callback, function () {
@@ -194,7 +200,6 @@ exports.readPanelCSV = function (id, options, callback) {
             parameters.push(options.endTime);
         }
 
-
         var reader = spawn(nconf.get('RNCTools:processorPath'), parameters);
         reader.stdout.setEncoding('utf8');
         reader.stderr.setEncoding('utf8');
@@ -202,7 +207,8 @@ exports.readPanelCSV = function (id, options, callback) {
         reader.on('exit', function (code, signal) {
             if (code !== 0) {
                 // Throwing probably isn't the best option here...
-                throw Boom.badImplementation('Exit code invalid: ' + code + ' stderr: ' + reader.stderr.read());
+                throw Boom.badImplementation('Exit code invalid: ' + code +
+                ' stderr: ' + reader.stderr.read());
             }
         });
 
@@ -245,8 +251,9 @@ exports.readPanelCSV = function (id, options, callback) {
                         _.each(line, createIndexMap);
                     }
 
-                    outputStream.push(_.filter(line, indexMapFilter).join(',') + '\n');
-
+                    outputStream.push(
+                        _.filter(line, indexMapFilter).join(',') + '\n'
+                    );
                 }
                 buffer = lines.join('\n');
             });
@@ -263,39 +270,48 @@ exports.readPanelCSV = function (id, options, callback) {
     });
 };
 
-
 /** Get the JSON representation of the panel.
  *
- * @param server {Object} optionally null.
- * @param id {String}
- * @param options {Object} supported options are:
- * @param [options.csPeriod] {Number} the number of milliseconds to set the cross section to
- * @param [options.rows] {Number} the approximate number of output rows
- * @param [options.startTime] {Number} output rows whose timestamp is equal to or greater than this time
- * @param [options.endTime] {Number} output rows whose timestamp is equal to or less than this time
- * @param [options.properties] {Object} Specify if you want properties of the panel.
- * @param [options.panel] {Object} Specify if you want panel output.
- * @param [options.statistics] {Object} an object. Specify if you want panel summary statistics.
+ * @param {Object} server optionally null.
+ * @param {Number} id
+ * @param {Object} options supported options are:
+ * @param {Number} [options.csPeriod] the number of milliseconds to set the
+ *                           cross section to
+ * @param {Number} [options.rows] the approximate number of output rows
+ * @param {Number} [options.startTime] output rows whose timestamp is equal to
+ *                          or greater than this time
+ * @param {Number} [options.endTime] output rows whose timestamp is equal to or
+ *                          less than this time
+ * @param {Object} [options.properties] Specify if you want properties of the
+ *                          panel.
+ * @param {Object} [options.panel] Specify if you want panel output.
+ * @param {Object} [options.statistics] an object. Specify if you want panel
+ *                          summary statistics.
  *
- * @param callback {Function} (err, result) result is a JSON object.
+ * @param {Function} callback (err, result) result is a JSON object.
  */
 exports.readPanelJSON = function (server, id, options, callback) {
     // Check parameters
     if (_.has(options, 'csPeriod') && _.has(options, 'rows')) {
-        callback(Boom.badImplementation('Must provide only one of csPeriod or rows.'));
+        callback(
+            Boom.badImplementation('Must provide only one of csPeriod or rows.')
+        );
         return;
     }
 
     // If we specify one of startTime or endTime, we have to specify both.
     // If we specify rows then we have to to specify startTime and endTime.
-    // If they're not specified then we'll need to read it from the panel on the first time,
-    //  then use that to "inject" it into another call. This is sub optimal (it would be
-    //  faster if we used the dataset resource's startTime and endTime), but it's self contained
-    //  and simple.
-    if (_.has(options, 'startTime') !== _.has(options, 'endTime')
-        || (_.has(options, 'rows') && (!_.has(options, 'startTime') || !_.has(options, 'endTime')))) {
+    // If they're not specified then we'll need to read it from the panel on the
+    // first time, then use that to "inject" it into another call. This is sub
+    // optimal (it would be faster if we used the dataset resource's startTime
+    // and endTime), but it's self contained and simple.
+    if (_.has(options, 'startTime') !== _.has(options, 'endTime') ||
+        (_.has(options, 'rows') &&
+        (!_.has(options, 'startTime') || !_.has(options, 'endTime')))) {
 
-        callback(Boom.badImplementation('Must provide startTime and/or end time.'));
+        callback(
+            Boom.badImplementation('Must provide startTime and/or end time.')
+        );
         return;
     }
 
@@ -350,7 +366,8 @@ exports.readPanelJSON = function (server, id, options, callback) {
                     output = JSON.parse(stdout);
                 } catch (e) {
                     if (server) {
-                        server.log(['error'], 'readPanelJSON parsing error: ' + e);
+                        server.log(['error'],
+                            'readPanelJSON parsing error: ' + e);
                     } else {
                         console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
                         console.log('readPanelJSON parsing error: ' + e);
@@ -363,28 +380,28 @@ exports.readPanelJSON = function (server, id, options, callback) {
     });
 };
 
-
 /**
  *
- * @param id {string}
- * @param callback {Function} (err)
+ * @param {Number} id
+ * @param {Function} callback (err)
  */
 exports.deletePanel = function (id, callback) {
     checkForPanelHelper(id, callback, function () {
         // For some reason it appears that unlink doesn't call it's callback.
         // So, we'll just assume things went peachy.
-        // Or, maybe it was a bad paren placement? This comment may be out of date.
-        fs.unlink(createFilename(id), function (err) {
+        fs.unlink(createFilename(id, function (err) {
             if (err) {
-                throw Boom.wrap(err, 500, 'The unexpected happened: fs.unlink gave an error!');
+                throw Boom.wrap(err, 500,
+                    'The unexpected: fs.unlink gave an error!');
             }
-        });
+        }));
 
-        fs.unlink(createFilename(id + '.upload'), function (err) {
+        fs.unlink(createFilename(id + '.upload', function (err) {
             if (err) {
-                throw Boom.wrap(err, 500, 'The unexpected happened: fs.unlink gave an error! On .upload');
+                throw Boom.wrap(err, 500,
+                    'The unexpected: fs.unlink gave an error! On .upload');
             }
-        });
+        }));
 
         callback(null);
     });
@@ -460,25 +477,25 @@ var eventFinderCommands = [
         }
     },
     {
-        command: "exit"
+        command: 'exit'
     }
 ];
 
 /**
- * @param server {Object}
- * @param models {Object}
- * @param id {string}
- * @param startTime {number}
- * @param endTime {number}
- * @param doneCallback {function} (err)
+ * @param {Object} server
+ * @param {Object} models
+ * @param {Number} id
+ * @param {Number} startTime
+ * @param {Number} endTime
+ * @param {Function} doneCallback (err)
  */
-exports.runEventFinder = function (server, models, id, startTime, endTime, doneCallback) {
+exports.runEventFinder = function (server, models, id, startTime, endTime,
+                                   doneCallback) {
     var functionStartTime = new Date().getTime();
     checkForPanelHelper(id, doneCallback, function () {
         var parameters = [
             nconf.get('eventFinderMainFile')
         ];
-
 
         var process = execFile('Rscript', parameters, {
             cwd: nconf.get('eventFinderPath'),
@@ -486,13 +503,16 @@ exports.runEventFinder = function (server, models, id, startTime, endTime, doneC
             timeout: 1200000 /* timeout in milliseconds */
         }, function (err, stdout, stderr) {
             if (err) {
-                console.log('Rscript error: ' + err + ', stderr: ' + stderr);
-                server.log(['warning'], 'Rscript error: ' + err + ', stderr: ' + stderr);
+                server.log(['warning'], 'Rscript error: ' + err +
+                ', stderr: ' + stderr);
                 doneCallback(err);
             } else {
                 var resultLines = stdout.trim().split('\n');
                 if (resultLines.length !== eventFinderCommands.length - 1) {
-                    server.log(['error'], Boom.badImplementation('Incorrect number of result lines on stdout', stdout));
+                    server.log(['error'],
+                        Boom.badImplementation(
+                            'Incorrect number of result lines on stdout', stdout
+                        ));
                 } else {
 
                     var eventList =
@@ -517,7 +537,8 @@ exports.runEventFinder = function (server, models, id, startTime, endTime, doneC
                             .value();
 
                     var rscriptStopTime = new Date().getTime();
-                    server.log(['debug'], 'Rscript execution time: ' + ( (rscriptStopTime - functionStartTime) / 1000));
+                    server.log(['debug'], 'Rscript execution time: ' +
+                    ((rscriptStopTime - functionStartTime) / 1000));
 
                     async.mapLimit(eventList, maximumEventsCreatedInParallel,
                         function (event, cb) {
@@ -532,10 +553,18 @@ exports.runEventFinder = function (server, models, id, startTime, endTime, doneC
                             if (err) {
                                 doneCallback(err);
                             } else {
-                                server.log(['debug'], 'Made ' + results.length + ' events');
+                                server.log(['debug'], 'Made ' + results.length +
+                                ' events');
+
                                 var functionEndTime = new Date().getTime();
-                                server.log(['debug'], 'Event creation execution time: ' + ( (functionEndTime - rscriptStopTime) / 1000));
-                                server.log(['debug'], 'Total execution time: ' + ( (functionEndTime - functionStartTime) / 1000));
+
+                                server.log(['debug'],
+                                    'Event creation execution time: ' +
+                                    ((functionEndTime - rscriptStopTime) /
+                                    1000));
+
+                                server.log(['debug'], 'Total execution time: ' +
+                                ((functionEndTime - functionStartTime) / 1000));
                                 doneCallback(null, results);
                             }
                         });
@@ -568,7 +597,8 @@ exports.runEventFinder = function (server, models, id, startTime, endTime, doneC
                 chunk = previousChunk + chunk;
                 var lines = chunk.split('\n');
 
-                // Save the last (possibly incomplete) line for the next time around.
+                // Save the last (possibly incomplete) line for the next time
+                // around.
                 while (totalLines < maximumLines && lines.length > 1) {
                     writeToStdin(lines.shift() + '\n');
                     totalLines++;
@@ -585,8 +615,3 @@ exports.runEventFinder = function (server, models, id, startTime, endTime, doneC
         });
     });
 };
-
-
-
-
-

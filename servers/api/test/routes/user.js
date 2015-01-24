@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Code = require('code');
 var Lab = require('lab');
@@ -37,10 +37,11 @@ describe('user resource basics', function () {
             payload: newUser,
             credentials: utilities.credentials.admin
         }, function (response) {
-            var payload = JSON.parse(response.payload);
+            var payload = JSON.parse(response.payload).data;
             expect(payload).to.deep.include(newUser);
             expect(payload.id).to.exist();
-            expect(payload.createTime).to.exist();
+            expect(payload.createdAt).to.exist();
+            expect(payload.updatedAt).to.exist();
             expect(payload.preferredLayout).to.exist().and.to.be.object();
             createdUser = payload;
             done();
@@ -53,7 +54,7 @@ describe('user resource basics', function () {
             url: '/user/?idList=' + createdUser.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            var payload = JSON.parse(response.payload);
+            var payload = JSON.parse(response.payload).data;
             expect(payload).to.be.array();
             expect(payload).to.have.length(1);
             expect(payload[0]).to.deep.include(createdUser);
@@ -67,7 +68,7 @@ describe('user resource basics', function () {
             url: '/user/' + createdUser.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            var payload = JSON.parse(response.payload);
+            var payload = JSON.parse(response.payload).data;
             expect(payload).to.deep.include(createdUser);
             done();
         });
@@ -76,7 +77,7 @@ describe('user resource basics', function () {
     it('does not get non-existent users', function (done) {
         server.inject({
             method: 'GET',
-            url: '/user/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            url: '/user/1234',
             credentials: utilities.credentials.admin
         }, function (response) {
             var payload = JSON.parse(response.payload);
@@ -95,7 +96,8 @@ describe('user resource basics', function () {
             },
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result.displayName).to.equal('Jon');
+            var payload = JSON.parse(response.payload).data;
+            expect(payload.displayName).to.equal('Jon');
             done();
         });
     });
@@ -121,29 +123,29 @@ describe('user detailed tests', function () {
         });
     });
 
-    it('checks to make sure the email is not in use before creating new user', function (done) {
-        var newUser = {
-            email: 'first@user.com'
-        };
-
-        server.inject({
-            method: 'POST',
-            url: '/user/',
-            payload: newUser,
-            credentials: utilities.credentials.admin
-        }, function (response) {
-            expect(response.statusCode).to.equal(200);
+    it('checks to make sure the email is not in use before creating new user',
+        function (done) {
+            var newUser = {
+                email: 'first@user.com'
+            };
 
             server.inject({
                 method: 'POST',
                 url: '/user/',
                 payload: newUser,
                 credentials: utilities.credentials.admin
-            }, function (response2) {
-                expect(response2.statusCode).to.equal(400);
-                done();
+            }, function (response) {
+                expect(response.statusCode).to.equal(200);
+
+                server.inject({
+                    method: 'POST',
+                    url: '/user/',
+                    payload: newUser,
+                    credentials: utilities.credentials.admin
+                }, function (response2) {
+                    expect(response2.statusCode).to.equal(400);
+                    done();
+                });
             });
         });
-    });
 });
-

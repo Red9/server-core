@@ -1,8 +1,7 @@
-"use strict";
+'use strict';
 
 var validators = require('../../support/validators');
 var Joi = require('joi');
-
 
 var basicModel = {
     // Auto created keys
@@ -15,8 +14,10 @@ var basicModel = {
 
     // Core keys
     startTime: validators.timestamp,
-    host: Joi.string().valid(['YouTube']).description('The hosting service for this video'),
-    hostId: Joi.string().description('The hosting service identifier for this video.')
+    host: Joi.string().valid(['YouTube'])
+        .description('The hosting service for this video'),
+    hostId: Joi.string()
+        .description('The hosting service identifier for this video.')
 };
 
 var resourceName = 'video';

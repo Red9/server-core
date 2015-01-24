@@ -1,0 +1,13 @@
+{
+  "name": "rednineservercore",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "grunt hub"
+  },
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-hub": "latest"
+  }
+}
+

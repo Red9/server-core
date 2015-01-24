@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var helpers = require('../support/helpers');
 
@@ -18,7 +18,11 @@ module.exports = function (sequelize, DataTypes) {
         city: {type: DataTypes.STRING},
         state: {type: DataTypes.STRING},
         sport: DataTypes.JSON,
-        scope: {type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: []},
+        scope: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: false,
+            defaultValue: []
+        },
         createdAt: helpers.touchTimestamp(DataTypes, 'createdAt'),
         updatedAt: helpers.touchTimestamp(DataTypes, 'updatedAt')
     }, {
@@ -33,4 +37,3 @@ module.exports = function (sequelize, DataTypes) {
     });
     return user;
 };
-

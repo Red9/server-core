@@ -1,11 +1,10 @@
-// Handlebars helper
-// takes a number 3456 and return 3,456
+'use strict';
 
-module.exports = function(number) {
-    if(number){
+module.exports = function (number) {
+    if (number) {
         number = number.toString();
-        return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }else{
+        return number.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    } else {
         return number;
     }
-}
+};

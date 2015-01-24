@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Code = require('code');
 var Lab = require('lab');
@@ -27,19 +27,19 @@ describe('comment resource basics', function () {
             server = server_;
             utilities.createUser(server, function (err, createdUser_) {
                 createdUser = createdUser_;
-                utilities.createDataset(server, createdUser.id, function (err, createdDataset_) {
-                    createdDataset = createdDataset_;
-                    done();
-                });
+                utilities.createDataset(server, createdUser.id,
+                    function (err, createdDataset_) {
+                        createdDataset = createdDataset_;
+                        done();
+                    });
             });
         });
     });
 
     it('can create a minimal comment', function (done) {
         var newComment = {
-            resourceType: 'dataset',
-            resourceId: createdDataset.id,
-            authorId: createdUser.id,
+            datasetId: createdDataset.id,
+            userId: createdUser.id,
             body: 'Keeps the fire from burning out'
         };
         server.inject({
@@ -48,11 +48,13 @@ describe('comment resource basics', function () {
             payload: newComment,
             credentials: utilities.credentials.admin
         }, function (response) {
+            var payload = JSON.parse(response.payload).data;
             expect(response.statusCode).to.equal(200);
-            expect(response.result).to.deep.include(newComment);
-            expect(response.result.id).to.exist();
-            expect(response.result.createTime).to.exist();
-            createdComment = response.result;
+            expect(payload).to.deep.include(newComment);
+            expect(payload.id).to.exist();
+            expect(payload.createdAt).to.exist();
+            expect(payload.updatedAt).to.exist();
+            createdComment = payload;
             done();
         });
     });
@@ -63,7 +65,7 @@ describe('comment resource basics', function () {
             url: '/comment/?idList=' + createdComment.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            var payload = JSON.parse(response.payload);
+            var payload = JSON.parse(response.payload).data;
             expect(payload).to.be.array();
             expect(payload).to.have.length(1);
             expect(payload[0]).to.deep.include(createdComment);
@@ -77,8 +79,9 @@ describe('comment resource basics', function () {
             url: '/comment/' + createdComment.id,
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result).to.deep.include(createdComment);
-            expect(response.result).to.include('bodyHtml');
+            var payload = JSON.parse(response.payload).data;
+            expect(payload).to.deep.include(createdComment);
+            expect(payload).to.include('bodyHtml');
             done();
         });
     });
@@ -86,7 +89,7 @@ describe('comment resource basics', function () {
     it('does not get non-existent comments', function (done) {
         server.inject({
             method: 'GET',
-            url: '/comment/c853692c-7a3c-40f9-a05f-d0a01acab43b',
+            url: '/comment/2',
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.result).to.include('statusCode');
@@ -98,51 +101,45 @@ describe('comment resource basics', function () {
     it('fails if checks do not pass', function (done) {
         var badComments = [
             {
-                // Bad authorId
-                resourceType: 'dataset',
-                resourceId: createdDataset.id,
-                authorId: 'd21c7d0e-c2cd-43c4-b017-dc89ea99ebca',
+                // Bad userId
+                datasetId: createdDataset.id,
+                userId: '12345',
                 body: 'Non existent user id'
             },
             {
-                // Bad resourceId
-                resourceType: 'dataset',
-                resourceId: 'd21c7d0e-c2cd-43c4-b017-dc89ea99ebca',
-                authorId: createdUser.id,
-                body: 'Non existent user id'
+                // Bad datasetId
+                datasetId: '123',
+                userId: createdUser.id,
+                body: 'Bad dataset id'
             },
             {
                 // Bad startTime
-                resourceType: 'dataset',
-                resourceId: createdDataset.id,
-                authorId: createdUser.id,
+                datasetId: createdDataset.id,
+                userId: createdUser.id,
                 body: 'Keeps the fire from burning out',
                 startTime: createdDataset.startTime - 10,
                 endTime: createdDataset.startTime + 100
             },
             {
                 // Bad endTime
-                resourceType: 'dataset',
-                resourceId: createdDataset.id,
-                authorId: createdUser.id,
+                datasetId: createdDataset.id,
+                userId: createdUser.id,
                 body: 'Keeps the fire from burning out',
                 startTime: createdDataset.startTime + 10,
                 endTime: createdDataset.endTime + 100
             },
             {
                 // Bad startTime and endTime combination
-                resourceType: 'dataset',
-                resourceId: createdDataset.id,
-                authorId: createdUser.id,
+                datasetId: createdDataset.id,
+                userId: createdUser.id,
                 body: 'Keeps the fire from burning out',
                 startTime: createdDataset.startTime + 100,
                 endTime: createdDataset.startTime + 50
             },
             {
                 // Bad body
-                resourceType: 'dataset',
-                resourceId: createdDataset.id,
-                authorId: createdUser.id,
+                datasetId: createdDataset.id,
+                userId: createdUser.id,
                 body: ''
             }
         ];
@@ -167,15 +164,15 @@ describe('comment resource basics', function () {
     it('can expand properly', function (done) {
         server.inject({
             method: 'GET',
-            url: '/comment/' + createdComment.id + '?expand[]=author',
+            url: '/comment/' + createdComment.id + '?expand[]=user',
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result).to.deep.include(createdComment);
-            expect(response.result.author).to.deep.include(createdUser);
+            var payload = JSON.parse(response.payload).data;
+            expect(payload).to.deep.include(createdComment);
+            expect(payload.user).to.deep.include(createdUser);
             done();
         });
     });
-
 
     // -----------------------------------------------------
     // Modifications
@@ -189,7 +186,8 @@ describe('comment resource basics', function () {
             },
             credentials: utilities.credentials.admin
         }, function (response) {
-            expect(response.result.body).to.equal('chances');
+            var payload = JSON.parse(response.payload).data;
+            expect(payload.body).to.equal('chances');
             done();
         });
     });
@@ -201,7 +199,25 @@ describe('comment resource basics', function () {
             credentials: utilities.credentials.admin
         }, function (response) {
             expect(response.statusCode).to.equal(200);
-            done();
+
+            // It should NOT delete the associated resources
+            async.each([
+                    '/dataset/' + createdDataset.id,
+                    '/user/' + createdUser.id
+                ], function (url, callback) {
+                    server.inject({
+                        method: 'GET',
+                        url: url,
+                        credentials: utilities.credentials.admin
+                    }, function (response) {
+                        expect(response.statusCode).to.equal(200);
+                        callback(null);
+                    });
+                },
+                function (err) {
+                    expect(err).to.be.undefined();
+                    done();
+                });
         });
     });
 });
