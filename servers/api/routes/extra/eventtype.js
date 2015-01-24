@@ -109,7 +109,7 @@ var eventTypes = [
         ]
     },
     {
-        name: "Turtle"
+        name: 'Turtle'
     }
 ];
 
