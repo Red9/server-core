@@ -11,6 +11,8 @@ var datasetSource = Joi.object().description('the RNC source information')
 var tagSingle = Joi.string();
 var expandOptions = ['user', 'event', 'video', 'comment'];
 
+var sportList = require('../extra/sport').sportList;
+
 var basicModel = {
     // Auto created keys
     id: validators.id,
@@ -34,6 +36,7 @@ var basicModel = {
     boundingBox: Joi.object(),
     gpsLock: Joi.object(),
     tags: Joi.array().includes(tagSingle),
+    sport: Joi.string().valid(sportList).description('the sport category'),
 
     // Dynamic keys
     duration: validators.duration
@@ -73,7 +76,8 @@ module.exports = {
         // No create, since that's a special case
         update: Joi.object({
             userId: basicModel.userId,
-            title: basicModel.title
+            title: basicModel.title,
+            sport: basicModel.sport
         }).options({className: resourceName + '.update'}),
         updateCollection: {
             tags: basicModel.tags
@@ -85,6 +89,7 @@ module.exports = {
             userId: validators.idCSV,
             title: basicModel.title,
             tags: basicModel.tags,
+            sport: basicModel.sport,
 
             startTime: basicModel.startTime,
             'startTime.gt': basicModel.startTime

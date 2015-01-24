@@ -33,6 +33,7 @@ module.exports.init = function (server, models) {
     require('./extra/eventtype').init(server);
     require('./extra/fcpxml').init(server, models);
     require('./extra/documentation').init(server, models);
+    require('./extra/sport').init(server, models);
 
     fs
         .readdirSync(path.join(__dirname, 'models'))

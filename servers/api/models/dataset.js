@@ -7,6 +7,10 @@ module.exports = function (sequelize, DataTypes) {
         startTime: helpers.createTimeField(DataTypes, 'startTime'),
         endTime: helpers.createTimeField(DataTypes, 'endTime'),
         title: {type: DataTypes.STRING},
+        sport: {
+            type: DataTypes.STRING,
+            defaultValue: 'none'
+        },
         summaryStatistics: DataTypes.JSON,
         timezone: {type: DataTypes.STRING},
         source: DataTypes.JSON,
