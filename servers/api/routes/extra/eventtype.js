@@ -107,6 +107,9 @@ var eventTypes = [
             {name: 'In'},
             {name: 'Out'}
         ]
+    },
+    {
+        name: 'Turtle'
     }
 ];
 
