@@ -1,3 +1,8 @@
+### 2015-01-25
+
+- Updates on User can now set fields to null (no value). Note that this messes up the Swagger documentation.
+- Removed `frequency` and `dutyCycle` from aggregateStatistics. Aggregate statistics will need a major overhaul due to critical design flaw.
+
 ### 2015-01-23
 
 - Fixed the dataset POST not returning in metadata format.

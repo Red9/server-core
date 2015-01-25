@@ -9,6 +9,10 @@ Datasets, events, videos, comments, users.
 
 ## Technical Details
 
+### `null` Values
+
+A `null` value indicates "no data". `undefined` is not an option is JSON.
+
 ### Timestamps
 
 All timestamps are milliseconds since Unix Epoch in UTC time. It is the client's responsibility to convert that to the appropriate local time (either user local or dataset local, depending on the resource and field).
