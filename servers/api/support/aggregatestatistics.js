@@ -148,9 +148,6 @@ function calculateTemporalStatistics(resourceList) {
     intervalStatistic.average = intervalStatistic.sum /
     (resourceList.length - 1);
 
-    var coveredTime = resourceList[resourceList.length - 1].endTime -
-        resourceList[0].startTime;
-
     if (resourceList.length < 2) {
         // Can't have an interval with less than 2 times
         intervalStatistic = undefined;
@@ -158,10 +155,7 @@ function calculateTemporalStatistics(resourceList) {
 
     return {
         interval: intervalStatistic,
-        duration: durationStatistic,
-        coveredTime: coveredTime,
-        // Milliseconds to seconds, for Hz.
-        frequency: resourceList.length / coveredTime * 1000
+        duration: durationStatistic
     };
 }
 

@@ -12,12 +12,16 @@ var stateList = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
 
 var sport = {
     surf: Joi.object().keys({
-        stance: Joi.string().valid('regular', 'goofy', 'switch')
+        stance: Joi.string().allow(null)
+            .valid('regular', 'goofy', 'switch')
             .description('Stance on the board'),
-        startDate: validators.timestamp,
-        localBreak: Joi.string().description('free form string'),
-        favoriteShop: Joi.string().description('free form string'),
-        favoriteBoard: Joi.string().description('free form string')
+        startDate: validators.timestamp.allow(null),
+        localBreak: Joi.string().allow(null)
+            .description('free form string'),
+        favoriteShop: Joi.string().allow(null)
+            .description('free form string'),
+        favoriteBoard: Joi.string().allow(null)
+            .description('free form string')
     })
 };
 
@@ -42,17 +46,17 @@ var basicModel = {
         .description('link to a profile picture. Set from Google.'),
     gender: Joi.string().valid('male', 'female', 'other')
         .description('gender. Set from Google.'),
-    height: Joi.number().min(1).max(3)
+    height: Joi.number().min(1).max(3).allow(null)
         .description('user height in meters.'),
-    weight: Joi.number().min(20).max(180)
+    weight: Joi.number().min(20).max(180).allow(null)
         .description('user weight in kilograms.'),
-    tagline: Joi.string()
+    tagline: Joi.string().allow(null)
         .description('A short descriptive quip for the user.'),
-    city: Joi.string()
+    city: Joi.string().allow(null)
         .description("The user's home city."),
-    state: Joi.string().valid(stateList)
+    state: Joi.string().valid(stateList).allow(null)
         .description('User home state.'),
-    sport: Joi.object().keys(sport)
+    sport: Joi.object().keys(sport).allow(null)
         .description('Information about the sports a user participates in'),
     scope: validators.scope
 };
