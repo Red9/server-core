@@ -36,7 +36,7 @@ function calculateSingleCompound(statistics, sumDuration, resource,
 
             if (axisValue.maximum !== -Number.MAX_VALUE &&
                 (!_.has(axisStats, 'maximum') ||
-                axisStats.maximum.value > axisValue.maximum)) {
+                axisStats.maximum.value < axisValue.maximum)) {
                 axisStats.maximum = {
                     value: axisValue.maximum,
                     id: resource.id
@@ -160,9 +160,8 @@ function calculateTemporalStatistics(resourceList) {
         interval: intervalStatistic,
         duration: durationStatistic,
         coveredTime: coveredTime,
-        dutyCycle: durationStatistic.sum / coveredTime,
         // Milliseconds to seconds, for Hz.
-        frequency: resourceList.length / coveredTime / 1000
+        frequency: resourceList.length / coveredTime * 1000
     };
 }
 
