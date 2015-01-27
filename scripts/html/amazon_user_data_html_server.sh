@@ -58,3 +58,5 @@ git clone --recursive git@bitbucket.org:rednine/server-core.git
 cd server-core/servers/html
 npm install
 
+export NODE_ENV=production
+

@@ -19,7 +19,7 @@
     "database": "production",
     "username": "api",
     "password": "likefirehorizon",
-    "host": "production-database-1.c4keqqx9b75i.us-east-1.rds.amazonaws.com"
+    "host": "production.cwknyptospdm.us-west-1.rds.amazonaws.com"
   },
   "cookie": {
     "password": "867cfa6cal5-c80eouwvvrl-4aba4ad-92atueh2-e4c7randomString37otauh76e129a",
