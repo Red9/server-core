@@ -56,23 +56,20 @@ cd /home/ubuntu/server-core/servers/api
 npm install
 grunt
 
+export NODE_ENV=production
+
 
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080
 sudo iptables-save
 
-
-
-
 # Format the attached EBS store
 # But comment out since we only want to do that the first time...
-# sudo mkfs -t ext4 /dev/xvdb 
+#sudo mkfs -t ext4 /dev/xvdf
 # Then mount. Again, we only want to do all this the first time.
-# sudo mkdir /ebs0
-# echo "/dev/xvdb /ebs0 ext4 defaults 1 2" | sudo tee -a /etc/fstab
-# sudo mount /ebs0
-# sudo chown -R ${USER}:${USER} /ebs0
-# sudo mkdir -p /ebs0/data/rnc
-# sudo chown -R ${USER}:${USER} /ebs0/data
-
-
+#sudo mkdir /ebs0
+#echo "/dev/xvdf /ebs0 ext4 defaults 1 2" | sudo tee -a /etc/fstab
+#sudo mount /ebs0
+#sudo chown -R ${USER}:${USER} /ebs0
+#sudo mkdir -p /ebs0/data/rnc
+#sudo chown -R ${USER}:${USER} /ebs0/data
 

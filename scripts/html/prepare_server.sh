@@ -10,9 +10,10 @@ DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -
 add-apt-repository -y ppa:chris-lea/node.js
 apt-get update
 
-apt-get -y --force-yes install iotop git nodejs htop tmux
+apt-get -y --force-yes install iotop git nodejs htop tmux sysstat
 
 sudo npm install -g grunt-cli
+sudo npm install -g nodemon
 
 # Make sure to clean up the mess that npm leaves
 rm -rf /home/ubuntu/tmp
