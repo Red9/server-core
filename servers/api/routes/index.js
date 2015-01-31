@@ -8,7 +8,7 @@ var fs = require('fs');
 var path = require('path');
 var routes = {};
 
-var replyMetadata = require('../support/replyMetadata');
+var utilities = require('./utilities');
 
 var aggregateStatistics = require('../support/aggregatestatistics');
 
@@ -34,6 +34,8 @@ module.exports.init = function (server, models) {
     require('./extra/fcpxml').init(server, models);
     require('./extra/documentation').init(server, models);
     require('./extra/sport').init(server, models);
+    require('./extra/compoundstatistics').init(server, models);
+    require('./extra/flatevent').init(server, models);
 
     fs
         .readdirSync(path.join(__dirname, 'models'))
@@ -82,10 +84,6 @@ function addRoute(server, models, route) {
     }
 }
 
-function notFoundError(route, request) {
-    return Boom.notFound(route.name + ' ' + request.params.id + ' not found');
-}
-
 function getRoute(models, route) {
     return {
         method: 'GET',
@@ -99,9 +97,9 @@ function getRoute(models, route) {
                 })
                 .then(function (resource) {
                     if (resource) {
-                        replyMetadata(request, reply, resource, {});
+                        utilities.replyMetadata(request, reply, resource, {});
                     } else {
-                        reply(notFoundError(route, request));
+                        reply(utilities.notFoundError(route, request));
                     }
                 })
                 .catch(function (err) {
@@ -151,9 +149,9 @@ function deleteRoute(models, route) {
                 })
                 .then(function (deleteCount) {
                     if (deleteCount === 0) {
-                        reply(notFoundError(route, request));
+                        reply(utilities.notFoundError(route, request));
                     } else {
-                        replyMetadata(request, reply, {});
+                        utilities.replyMetadata(request, reply, {});
                     }
                 })
                 .catch(function (err) {
@@ -181,74 +179,15 @@ function searchRoute(models, route) {
         method: 'GET',
         path: '/' + route.name + '/',
         handler: function (request, reply) {
-            var filters = {};
 
             var expand = extractExpandOption(request, models);
-
-            // Make sure that we only iterate over search keys
-            _.each(_.pick(request.query, _.keys(route.operations.search)),
-                function (value, key) {
-                    // This little hack works around the fact that we could have
-                    // two named id path parameters: /resource/:id, and ?id=...
-                    // It's mostly a server side hack for Angular's $Resource.
-                    // so, that's that.
-                    if (key === 'idList') {
-                        key = 'id';
-                    }
-
-                    // Search queries to Sequelize require Dates
-                    // for the timestamps. So we need to pull the metadata
-                    // about the search key and see if it's a timestamp. If it
-                    // is we'll preemptively convert it to a date here.
-                    // It's a bit hacky that we have to get index [0]. I suppose
-                    // that's a joi thing... We'll see if it bites me.
-
-                    var searchOptions = ['gt', 'lt', 'gte', 'lte'];
-                    var searchComparison;
-                    var searchJoi = route.operations.search[key];
-                    if (searchJoi.describe().meta) {
-                        if (searchJoi.describe().meta[0].timestamp === true) {
-                            value = new Date(value);
-                        } else if (searchJoi.describe().meta[0].textSearch ===
-                            true) {
-                            searchComparison = 'ilike';
-                            value = '%' + value + '%';
-                        }
-                    }
-
-                    var keyParts = key.split('.');
-                    if (searchOptions
-                            .indexOf(keyParts[keyParts.length - 1]) !== -1) {
-                        searchComparison = keyParts[keyParts.length - 1];
-                        key = keyParts.slice(0, -1).join('.');
-                    }
-
-                    if (!searchComparison) {
-                        if (_.isArray(value)) {
-                            filters[key] = {
-                                overlap: value
-                            };
-                        } else if (_.isString(value) &&
-                            value.split(',').length > 1) { // CSV list
-                            filters[key] = {
-                                in: value.split(',')
-                            };
-                        } else {
-                            filters[key] = value;
-                        }
-                    } else if (searchComparison) {
-                        if (!filters.hasOwnProperty(key)) {
-                            filters[key] = {};
-                        }
-                        filters[key][searchComparison] = value;
-                    }
-                });
 
             var resources;
             var count;
             var query = {
                 include: expand,
-                where: filters
+                where: utilities
+                    .pickSearch(request.query, route.operations.search)
             };
 
             models[route.name].findAll(query)
@@ -269,7 +208,7 @@ function searchRoute(models, route) {
                         );
                     }
 
-                    replyMetadata(request, reply, resources, meta);
+                    utilities.replyMetadata(request, reply, resources, meta);
                 })
                 .catch(function (err) {
                     reply(Boom.badRequest(err));
@@ -293,7 +232,6 @@ function searchRoute(models, route) {
             auth: {
                 scope: route.scopes.search
             }
-            //response: {schema: resultModelList}
         }
     };
 }
@@ -305,7 +243,7 @@ function createRoute(models, route) {
         handler: function (request, reply) {
             models[route.name].create(request.payload)
                 .then(function (resource) {
-                    replyMetadata(request, reply, resource);
+                    utilities.replyMetadata(request, reply, resource);
                 })
                 .catch(function (err) {
                     reply(Boom.badRequest(err));
@@ -344,9 +282,10 @@ function updateRoute(models, route) {
                     var affectedCount = response[0];
                     var affectedResource = response[1][0];
                     if (affectedCount === 0) {
-                        reply(notFoundError(route, request));
+                        reply(utilities.notFoundError(route, request));
                     } else {
-                        replyMetadata(request, reply, affectedResource);
+                        utilities
+                            .replyMetadata(request, reply, affectedResource);
                     }
                 })
                 .catch(function (err) {
@@ -379,12 +318,12 @@ function addToCollection(models, route, payloadValidation, key) {
                 .findOne({where: {id: request.params.id}})
                 .then(function (resource) {
                     if (!resource) {
-                        reply(notFoundError(route, request));
+                        reply(utilities.notFoundError(route, request));
                     } else {
                         resource[key] =
                             resource[key].concat(request.payload[key]);
                         resource.save();
-                        replyMetadata(request, reply, {});
+                        utilities.replyMetadata(request, reply, {});
                     }
                 })
                 .catch(function (err) {
@@ -417,12 +356,12 @@ function removeFromCollection(models, route, payloadValidation, key) {
                 .findOne({where: {id: request.params.id}})
                 .then(function (resource) {
                     if (!resource) {
-                        reply(notFoundError(route, request));
+                        reply(utilities.notFoundError(route, request));
                     } else {
                         resource[key] =
                             _.difference(resource[key], request.payload[key]);
                         resource.save();
-                        replyMetadata(request, reply, {});
+                        utilities.replyMetadata(request, reply, {});
                     }
                 })
                 .catch(function (err) {

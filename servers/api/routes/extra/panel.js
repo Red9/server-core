@@ -8,7 +8,7 @@ var validators = require('../../support/validators');
 
 var panel = require('../../support/panel');
 var datasetRoute = require('./../models/dataset');
-var replyMetadata = require('../../support/replyMetadata');
+var utilities = require('../utilities');
 
 exports.init = function (server, models) {
 
@@ -71,7 +71,8 @@ function createPanelRoute(server, models) {
             handler: function (request, reply) {
                 var newDataset = {
                     title: request.payload.title,
-                    userId: request.payload.userId
+                    userId: request.payload.userId,
+                    sport: request.payload.sport
                 };
 
                 panel.create(server, models, newDataset, request.payload.rnc,
@@ -79,7 +80,8 @@ function createPanelRoute(server, models) {
                         if (err) {
                             reply(err);
                         } else {
-                            replyMetadata(request, reply, createdDataset);
+                            utilities
+                                .replyMetadata(request, reply, createdDataset);
                         }
                     });
             },
@@ -91,7 +93,8 @@ function createPanelRoute(server, models) {
                     // to hard code the requirements.
                     rnc: validators.stream.required(),
                     title: datasetRoute.model.title.required(),
-                    userId: datasetRoute.model.userId.required()
+                    userId: datasetRoute.model.userId.required(),
+                    sport: datasetRoute.model.sport
                 }
             },
             description: 'Create new dataset',

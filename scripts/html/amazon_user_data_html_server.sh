@@ -53,10 +53,6 @@ cd /home/ubuntu/clients-core/data-client/
 npm install
 grunt
 
-cd /home/ubuntu
-git clone --recursive git@bitbucket.org:rednine/server-core.git
-cd server-core/servers/html
-npm install
-
+# This export doesn't actually make it out...
 export NODE_ENV=production
 

@@ -31,6 +31,9 @@ module.exports = function (sequelize, DataTypes) {
             associate: function (models) {
                 user.hasMany(models.dataset, {constraints: false});
                 user.hasMany(models.comment, {constraints: false});
+            },
+            getAssociations: function () {
+                return ['dataset', 'comment'];
             }
         }
 

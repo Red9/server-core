@@ -7,6 +7,27 @@ var panel = require('../support/panel');
 
 var models; // Set dynamically in the associate.
 
+function calculateStatistics(event, options, callback) {
+    panel.readPanelJSON(null, event.datasetId, {
+        statistics: {},
+        properties: {},
+        startTime: event.startTime,
+        endTime: event.endTime,
+        csPeriod: 10000
+    }, function (err, panelResult) {
+        if (err) {
+            console.log(err);
+        } else {
+            event.summaryStatistics = panelResult.summaryStatistics;
+            event.boundingBox = panelResult.boundingBox;
+            event.boundingCircle = panelResult.boundingCircle;
+            event.gpsLock = panelResult.gpsLock;
+            event.save();
+        }
+        callback(err, event);
+    });
+}
+
 module.exports = function (sequelize, DataTypes) {
     var event = sequelize.define('event', {
         startTime: helpers.createTimeField(DataTypes, 'startTime'),
@@ -23,6 +44,7 @@ module.exports = function (sequelize, DataTypes) {
     }, {
         freezeTableName: true,
         classMethods: {
+            calculateStatistics: calculateStatistics,
             associate: function (models_) {
                 models = models_;
 
@@ -32,6 +54,9 @@ module.exports = function (sequelize, DataTypes) {
                         allowNull: false
                     }
                 });
+            },
+            getAssociations: function () {
+                return ['dataset'];
             }
         },
         getterMethods: {
@@ -58,22 +83,7 @@ module.exports = function (sequelize, DataTypes) {
                     })
                     .catch(callback);
             },
-            afterCreate: function (event, options, callback) {
-                panel.readPanelJSON(null, event.datasetId, {
-                    statistics: {},
-                    properties: {},
-                    startTime: event.startTime,
-                    endTime: event.endTime,
-                    csPeriod: 10000
-                }, function (err, panelResult) {
-                    event.summaryStatistics = panelResult.summaryStatistics;
-                    event.boundingBox = panelResult.boundingBox;
-                    event.boundingCircle = panelResult.boundingCircle;
-                    event.gpsLock = panelResult.gpsLock;
-                    event.save();
-                    callback(err, event);
-                });
-            }
+            afterCreate: calculateStatistics
         }
     });
 

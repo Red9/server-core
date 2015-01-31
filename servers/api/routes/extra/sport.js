@@ -29,6 +29,15 @@ var sports = [
     },
     {
         name: 'paddleboard'
+    },
+    {
+        name: 'swim'
+    },
+    {
+        name: 'sail'
+    },
+    {
+        name: 'experiment'
     }
 ];
 

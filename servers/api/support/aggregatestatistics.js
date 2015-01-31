@@ -121,7 +121,7 @@ function calculateCompoundStatistics(resourceList) {
     return compoundStatistics;
 }
 
-function calculateTemporalStatistics(resourceList) {
+function calculateTemporalStatistics(resourceList, parentDuration) {
 
     var durationStatistic = {
         sum: 0
@@ -153,13 +153,20 @@ function calculateTemporalStatistics(resourceList) {
         intervalStatistic = undefined;
     }
 
-    return {
+    var result = {
         interval: intervalStatistic,
         duration: durationStatistic
     };
+
+    if (parentDuration) {
+        result.frequency = resourceList.length / // frequency in Hz
+        (parentDuration / 1000);                // Convert from ms to seconds
+    }
+
+    return result;
 }
 
-function calculateForList(resourceList) {
+function calculateForList(resourceList, parentDuration) {
     if (!resourceList || resourceList.length === 0) {
         return {};
     }
@@ -167,34 +174,35 @@ function calculateForList(resourceList) {
     var resourcesSorted = _.sortBy(resourceList, 'startTime');
     return {
         compound: calculateCompoundStatistics(resourcesSorted),
-        temporal: calculateTemporalStatistics(resourcesSorted),
+        temporal: calculateTemporalStatistics(resourcesSorted, parentDuration),
         count: resourcesSorted.length,
         idList: _.pluck(resourcesSorted, 'id')
     };
 }
 
-function calculateGroupedBy(resourceList, groupByKey) {
-    return _.chain(resourceList).groupBy(groupByKey).reduce(
-        function (memo, resources, eventType) {
-            memo[eventType] = calculateForList(resources);
-            return memo;
-        }, {}).value();
+function calculateGroupedBy(resourceList, parentDuration) {
+    return _.chain(resourceList).groupBy('type').mapValues(
+        function (resources, eventType) {
+            console.log('Calculating for event type ' + eventType);
+            return calculateForList(resources, parentDuration);
+        }).value();
 }
 
-/** Calculate aggregate statistics.
+/** Calculate aggregateStatistics
  *
- * @param {Array} resourceList - Objects with summaryStatistics.
- * @param {String} [groupByKey] - Calculate aggregate statistics for each set
- *                                  in the group.
- * @returns {Object}
+ * @param {Array} resourceList Objs with summaryStatistics, startTime, endTime.
+ * @param {Object}  [options]
+ * @param {Boolean} [options.groupEvents]    true to get events grouped by type
+ * @param {Number}  [options.parentDuration] The parent's duration
+ * @returns {Object} aggregate statistics
  */
-module.exports = function (resourceList, groupByKey) {
-    if (groupByKey) {
-        return {
-            groupedBy: calculateGroupedBy(resourceList, groupByKey),
-            all: calculateForList(resourceList)
-        };
+module.exports = function (resourceList, options) {
+
+    var t = options && options.parentDuration ?
+        options.parentDuration : undefined;
+    if (options && options.groupEvents) {
+        return calculateGroupedBy(resourceList, t);
     } else {
-        return calculateForList(resourceList);
+        return calculateForList(resourceList, t);
     }
 };

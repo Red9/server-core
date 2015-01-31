@@ -34,6 +34,9 @@ module.exports = function (sequelize, DataTypes) {
                         },
                         onDelete: 'cascade'
                     });
+                },
+                getAssociations: function () {
+                    return ['dataset', 'user'];
                 }
             },
             getterMethods: {

@@ -1,3 +1,11 @@
+### 2015-01-30
+
+- Cleaned up summary statistics so that all unknown values are represented as `null`. You should translate this as `NaN`.
+
+### 2015-01-27
+
+- Move the HTML server into clients-core. It doesn't really belong here anyways.
+
 ### 2015-01-25
 
 - Updates on User can now set fields to null (no value). Note that this messes up the Swagger documentation.
