@@ -2,7 +2,9 @@
 
 var _ = require('lodash');
 
-/**
+/** Pick out the query string search options
+ *
+ * Safely ignores non-search query options.
  *
  * @param {Object} query The query string parameters from Hapi
  * @param {Object} searchObject The object of Joi validators that apply to the search
@@ -34,16 +36,14 @@ module.exports = function (query, searchObject) {
             if (searchJoi.describe().meta) {
                 if (searchJoi.describe().meta[0].timestamp === true) {
                     value = new Date(value);
-                } else if (searchJoi.describe().meta[0].textSearch ===
-                    true) {
+                } else if (searchJoi.describe().meta[0].textSearch === true) {
                     searchComparison = 'ilike';
                     value = '%' + value + '%';
                 }
             }
 
             var keyParts = key.split('.');
-            if (searchOptions
-                    .indexOf(keyParts[keyParts.length - 1]) !== -1) {
+            if (searchOptions.indexOf(keyParts[keyParts.length - 1]) !== -1) {
                 searchComparison = keyParts[keyParts.length - 1];
                 key = keyParts.slice(0, -1).join('.');
             }
@@ -53,8 +53,8 @@ module.exports = function (query, searchObject) {
                     filters[key] = {
                         overlap: value
                     };
-                } else if (_.isString(value) &&
-                    value.split(',').length > 1) { // CSV list
+                } else if (_.isString(value) && value.split(',').length > 1) {
+                    // CSV list
                     filters[key] = {
                         in: value.split(',')
                     };

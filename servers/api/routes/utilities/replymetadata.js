@@ -2,12 +2,12 @@
 
 var hoek = require('hoek');
 
-/**
+/** Standardized response for Red9 metadata format
  *
- * @param {Object} request
- * @param {Object} reply
- * @param {Object} data
- * @param {Object} [extraValues] Extra values to add to the metadata
+ * @param {Object} request Hapi request object
+ * @param {Function} reply Hapi response function
+ * @param {Object|Array} data The REST result resource object(s)
+ * @param {Object} [extraValues] Extra key/values to add to the metadata
  */
 module.exports = function (request, reply, data, extraValues) {
 

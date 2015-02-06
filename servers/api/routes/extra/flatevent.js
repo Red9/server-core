@@ -45,7 +45,8 @@ exports.init = function (server, models) {
                         'dataset.sport': 'surf'
                     },
                     include: [{
-                        model: models.dataset, include: [models.user]
+                        model: models.dataset,
+                        include: [models.user]
                         /*, attributes: []*/
                     }]//,
                     //attributes: fields

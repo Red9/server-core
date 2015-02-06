@@ -1,9 +1,5 @@
 'use strict';
 
-var rewire = require('rewire');
-
-var async = require('async');
-
 var Code = require('code');
 var Lab = require('lab');
 var lab = exports.lab = Lab.script();
@@ -50,6 +46,7 @@ describe('splitString', function () {
         done();
     });
 });
+
 
 describe('splitField', function () {
     var sut = require(requirePath).splitField;
@@ -124,3 +121,119 @@ describe('stringToObject', function () {
         done();
     });
 });
+
+var modelsMock = {
+    a: {
+        associations: ['b']
+    },
+    b: {
+        associations: ['a']
+    },
+    c: {
+        associations: ['a', 'b']
+    }
+};
+
+describe('extractFields', function () {
+    var sut = require(requirePath);
+    it('handles a basic case', function (done) {
+        var result = {
+            'attributes': [],
+            'include': [
+                {
+                    'model': {
+                        'associations': [
+                            'b'
+                        ]
+                    },
+                    'attributes': [],
+                    'include': []
+                },
+                {
+                    'model': {
+                        'associations': [
+                            'a'
+                        ]
+                    },
+                    'attributes': [],
+                    'include': []
+                }
+            ]
+        };
+
+        expect(sut(modelsMock, '', ['a', 'b'])).to.deep.equal(result);
+        done();
+    });
+// Inclusion tree
+    it('handles nested case', function (done) {
+        var result = {
+            attributes: [],
+            include: [
+                {
+                    model: {
+                        associations: [
+                            'a',
+                            'b'
+                        ]
+                    },
+                    attributes: [],
+                    include: [
+                        {
+                            model: {
+                                associations: [
+                                    'b'
+                                ]
+                            },
+                            attributes: [],
+                            include: []
+                        },
+                        {
+                            model: {
+                                associations: [
+                                    'a'
+                                ]
+                            },
+                            attributes: [],
+                            include: []
+                        }
+                    ]
+                }
+            ]
+        };
+
+        expect(sut(modelsMock, '', ['c.a', 'c.b'])).to.deep.equal(result);
+        done();
+    });
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

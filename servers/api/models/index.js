@@ -3,7 +3,6 @@
 var Sequelize = require('sequelize');
 var fs = require('fs');
 var path = require('path');
-var sleep = require('sleep');
 var db = {};
 
 module.exports = db;

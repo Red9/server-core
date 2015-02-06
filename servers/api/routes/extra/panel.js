@@ -58,7 +58,6 @@ function getPanelBounded(server, id, rows, startTime, endTime, callback) {
 }
 
 function createPanelRoute(server, models) {
-    // TODO(SRLM): Should this route have a response model?
     return {
         method: 'POST',
         path: '/dataset/',

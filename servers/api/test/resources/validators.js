@@ -1,7 +1,5 @@
 'use strict';
 
-var rewire = require('rewire');
-
 var async = require('async');
 
 var Code = require('code');
@@ -10,8 +8,6 @@ var lab = exports.lab = Lab.script();
 
 var describe = lab.describe;
 var it = lab.it;
-var before = lab.before;
-var after = lab.after;
 var expect = Code.expect;
 
 var requirePath = '../../support/validators.js';
