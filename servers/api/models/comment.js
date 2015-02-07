@@ -37,7 +37,8 @@ module.exports = function (sequelize, DataTypes) {
                 },
                 getAssociations: function () {
                     return ['dataset', 'user'];
-                }
+                },
+                sortOptions: {}
             },
             getterMethods: {
                 bodyHtml: function () {

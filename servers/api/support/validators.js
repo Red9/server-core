@@ -49,3 +49,12 @@ exports.scope = Joi.array()
     .includes(Joi.string()
         .valid('basic', 'trusted', 'admin'))
     .description('The permission scope for this user');
+
+exports.paging = function (sortOptions) {
+    return {
+        offset: Joi.number().integer().min(0).description('Start location within the result set for paginated returns. This is the zero-based ordinal number of the search return.'),
+        limit: Joi.number().integer().min(1).description('The number of results to return'),
+        sort: Joi.string().valid(sortOptions).description('Order the results by'),
+        sortDirection: Joi.string().valid('asc', 'desc').default('desc')
+    };
+};

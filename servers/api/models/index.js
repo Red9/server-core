@@ -3,7 +3,6 @@
 var Sequelize = require('sequelize');
 var fs = require('fs');
 var path = require('path');
-var sleep = require('sleep');
 var db = {};
 
 module.exports = db;
@@ -16,7 +15,7 @@ db.init = function (nconf, callback) {
         {
             host: nconf.get('postgresql:host'),
             dialect: 'postgres',
-            logging: false,
+            //logging: false,
             omitNull: true
         }
     );

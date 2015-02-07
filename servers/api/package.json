@@ -26,7 +26,6 @@
     "pg": "latest",
     "pg-hstore": "latest",
     "lodash": "latest",
-    "sleep": "latest",
     "moment": "latest",
     "lodash-contrib": "latest"
   },

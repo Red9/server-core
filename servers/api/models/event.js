@@ -57,7 +57,8 @@ module.exports = function (sequelize, DataTypes) {
             },
             getAssociations: function () {
                 return ['dataset'];
-            }
+            },
+            sortOptions: {}
         },
         getterMethods: {
             duration: function () {

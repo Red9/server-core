@@ -76,6 +76,10 @@ module.exports = function (sequelize, DataTypes) {
             },
             getAssociations: function () {
                 return ['user', 'event', 'comment', 'video'];
+            },
+            sortOptions: {
+                startTime: ['startTime', 'DESC'],
+                createdAt: ['createdAt', 'DESC']
             }
         },
         getterMethods: {

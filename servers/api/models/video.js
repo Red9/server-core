@@ -28,7 +28,8 @@ module.exports = function (sequelize, DataTypes) {
             },
             getAssociations: function () {
                 return ['video'];
-            }
+            },
+            sortOptions: {}
         },
         hooks: {
             beforeCreate: function (video, options, callback) {

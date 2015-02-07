@@ -18,7 +18,8 @@ module.exports = function (sequelize, DataTypes) {
             },
             getAssociations: function () {
                 return [];
-            }
+            },
+            sortOptions: {}
         }
     });
     return layout;

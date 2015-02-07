@@ -190,13 +190,17 @@ function searchRoute(models, route) {
                     .pickSearch(request.query, route.operations.search)
             };
 
-            models[route.name].findAll(query)
-                .then(function (resources_) {
-                    resources = resources_;
-                    return models[route.name].count(query);
-                })
+            models[route.name].count(query)
                 .then(function (count_) {
                     count = count_;
+
+                    // Prepare for the next query, actually finding the results
+                    _.extend(query, utilities.pickPaging(request.query));
+
+                    return models[route.name].findAll(query);
+                }).then(function (resources_) {
+                    resources = resources_;
+
                     var meta = {
                         total: count
                     };
@@ -223,7 +227,8 @@ function searchRoute(models, route) {
                     {
                         fields: validators.fields,
                         metaformat: validators.metaformat
-                    }
+                    },
+                    validators.paging(Object.keys(models[route.name].sortOptions))
                 )
             },
             description: 'Get ' + route.name + 's',

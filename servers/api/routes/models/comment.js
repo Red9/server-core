@@ -39,6 +39,7 @@ module.exports = {
     },
     resultModel: Joi.object(basicModel).options({className: resourceName}),
 
+
     scopes: {
         create: 'trusted',
         read: 'basic',
