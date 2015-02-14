@@ -35,6 +35,7 @@ var basicModel = {
     email: Joi.string().email()
         .description('user email address. Used as "second" primary key'),
     displayName: Joi.string()
+        .meta({textSearch: true})
         .description("user's preferred public handle."),
     givenName: Joi.string()
         .description('first name. Set from Google'),

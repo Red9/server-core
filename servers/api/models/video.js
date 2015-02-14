@@ -28,7 +28,14 @@ module.exports = function (sequelize, DataTypes) {
             },
             getAssociations: function () {
                 return ['video'];
-            }
+            },
+            sortOptions: [
+                'createdAt',
+                'updatedAt',
+                'startTime',
+                'userId',
+                'host'
+            ]
         },
         hooks: {
             beforeCreate: function (video, options, callback) {
