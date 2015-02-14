@@ -125,43 +125,8 @@ exports.create = function (server, models, newDataset, panelStream, callback) {
                     callback(err);
                     return;
                 }
-                exports.readPanelJSON(server, createdDataset.id, {
-                    properties: {},
-                    statistics: {}
-                }, function (err, result) {
-                    if (err) {
-                        callback(err);
-                        return;
-                    }
-
-                    var updateTemp = {
-                        startTime: result.startTime,
-                        endTime: result.endTime,
-                        summaryStatistics: result.summaryStatistics,
-                        boundingBox: result.boundingBox,
-                        boundingCircle: result.boundingCircle,
-                        gpsLock: result.gpsLock,
-                        source: {
-                            scad: result.source
-                        }
-                    };
-
-                    models.dataset
-                        .update(updateTemp,
-                        {
-                            returning: true,
-                            where: {id: createdDataset.id}
-                        })
-                        .then(function (updatedDataset) {
-                            // A bit of a hack to hard code these indicies, but
-                            // that's how sequelize works with returning: true
-                            callback(null, updatedDataset[1][0]);
-                        })
-                        .catch(function (err) {
-                            server.log(['warning'], 'Error on update: ' + err);
-                            callback(Boom.badRequest(err));
-                        });
-                });
+                models.dataset.calculateStatistics(createdDataset, null,
+                    callback);
             });
         })
         .catch(function (err) {

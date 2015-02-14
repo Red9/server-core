@@ -2,6 +2,13 @@
 
 var hoek = require('hoek');
 
+/**
+ *
+ * @param {Object} request
+ * @param {Object} reply
+ * @param {Object} data
+ * @param {Object} [extraValues] Extra values to add to the metadata
+ */
 module.exports = function (request, reply, data, extraValues) {
 
     var meta = {

@@ -24,16 +24,16 @@ module.exports = function (grunt) {
         },
         lab: {
             files: ['test/**/*.js', '!test/utilities.js'],
-            coverage: true,
-            minCoverage: 88,
+            //coverage: true,
+            //minCoverage: 88,
             color: true
         },
         watch: {
             files: ['<%= jshint.files %>', '*/**/*.json'],
             tasks: [
                 'jshint',
-                'jscs',
-                'lab'
+                'lab',
+                'jscs'
             ]
         },
         plato: {

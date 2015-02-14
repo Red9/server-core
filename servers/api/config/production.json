@@ -5,7 +5,7 @@
   "defaultCallbackUrl": "http://my.redninesensor.com",
   "unauthorizedCallbackUrl": "http://my.redninesensor.com/page/unauthenticated",
   "logFilePath": "/home/ubuntu/log/apiserver",
-  "defaultUserPicture": "http://my.redninesensor.com/static/images/profile-default.png",
+  "defaultUserPicture": "http://my.redninesensor.com/images/profile-default.png",
   "panelCacheOptions": {
     "expiresIn": 1000000
   },

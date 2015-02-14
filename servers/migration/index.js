@@ -12,10 +12,9 @@ var panelInputDir = nconf.get('panelInputDir');
 console.log('panelDataPath: ' + nconf.get('panelDataPath'));
 
 var models = require('../api/models');
-models.init(nconf);
 
 var request = require('request');
-var _ = require('lodash');
+var _ = require('underscore');
 var fs = require('fs');
 var path = require('path');
 var async = require('async');
@@ -31,8 +30,12 @@ var idMap = {
     video: {}
 };
 
+// TODO(SRLM): Add check to make sure that GET requests go through without error.
+
+// TODO(SRLM): User profile migration needs work (special fields)
+
 var requestHeaders = {
-    Cookie: nconf.get('cookie')
+    Cookie: nconf.get('cookie') // Should be of format --cookie r9session=Fe26.2**f260f...
 };
 
 
@@ -51,21 +54,22 @@ function loadDatasets(datasetList, doneCallback) {
         console.log('Uploading ' + oldDataset.id);
         var readStream = fs.createReadStream(path.join(panelInputDir, oldDataset.id + '.upload.RNC'));
 
-        // Key change from "ownerId" to "userId"
-        oldDataset.userId = idMap.user[oldDataset.ownerId];
+        oldDataset.userId = idMap.user[oldDataset.userId];
 
         var oldId = oldDataset.id;
         delete oldDataset.id;
 
         var newDataset = {
             userId: oldDataset.userId,
-            title: oldDataset.title
+            title: oldDataset.title,
+            sport: oldDataset.sport
         };
 
         panel.create(null, models, newDataset, readStream, function (err, createdDataset) {
             if (err) {
-                console.log('Error: ' + err);
+                console.log('Panel create error: ' + err);
                 console.log(err.stack);
+                console.log(err);
                 callback(err);
             } else {
                 idMap.dataset[oldId] = createdDataset.id;
@@ -96,7 +100,7 @@ function mapTime(newDatasetStart, oldDatasetStart, oldTime) {
 function migrateLayouts(doneCallback) {
     var migratedLayouts = [];
     request({
-        url: 'http://betaapi.redninesensor.com/layout/',
+        url: 'http://api.redninesensor.com/layout/?metaformat=none',
         headers: requestHeaders,
         json: true
     }, function (err, response, layoutList) {
@@ -106,15 +110,17 @@ function migrateLayouts(doneCallback) {
         async.eachSeries(layoutList,
             function (layout, callback) {
 
+                //console.log('Migrating layout: ' + layout);
                 var oldId = layout.id;
                 delete layout.id;
+                //console.dir(Object.keys(models));
                 models.layout.create(layout)
                     .then(function (createdLayout) {
                         idMap.layout[oldId] = createdLayout.id;
                         migratedLayouts.push(createdLayout.id);
                     })
                     .catch(function (err) {
-                        console.log('Error: ' + err);
+                        console.log('Migrate layouts error: ' + err);
                     })
                     .finally(function () {
                         setImmediate(callback);
@@ -131,7 +137,7 @@ function migrateLayouts(doneCallback) {
 function migrateUsers(doneCallback) {
     var migratedUsers = [];
     request({
-        url: 'http://betaapi.redninesensor.com/user/',
+        url: 'http://api.redninesensor.com/user/?metaformat=none',
         headers: requestHeaders,
         json: true
     }, function (err, response, userList) {
@@ -177,7 +183,7 @@ function migrateUsers(doneCallback) {
                         migratedUsers.push(createdUser.id);
                     })
                     .catch(function (err) {
-                        console.log('Error: ' + err);
+                        console.log('Migrate users error: ' + err);
                     })
                     .finally(function () {
                         setImmediate(callback);
@@ -193,7 +199,7 @@ function migrateVideos(datasets, doneCallback) {
     var unmigratedVideos = [];
     var migratedVideos = [];
     request({
-        url: 'http://betaapi.redninesensor.com/video/',
+        url: 'http://api.redninesensor.com/video/?metaformat=none',
         headers: requestHeaders,
         json: true
     }, function (err, response, videoList) {
@@ -221,7 +227,7 @@ function migrateVideos(datasets, doneCallback) {
                             migratedVideos.push(createdVideo.id);
                         })
                         .catch(function (err) {
-                            console.log(err);
+                            console.log('Migrate videos error: ' + err);
                         })
                         .finally(function () {
                             setImmediate(callback);
@@ -243,7 +249,7 @@ function migrateComments(datasets, doneCallback) {
     var unmigratedComments = [];
     var migratedComments = [];
     request({
-        url: 'http://betaapi.redninesensor.com/comment/',
+        url: 'http://api.redninesensor.com/comment/?metaformat=none',
         headers: requestHeaders,
         json: true
     }, function (err, response, commentList) {
@@ -253,15 +259,14 @@ function migrateComments(datasets, doneCallback) {
         async.eachSeries(commentList,
             function (comment, callback) {
 
-                // Get rid of the generic "resourceId". We're going for comments on datasets only.
-                comment.datasetId = idMap.dataset[comment.resourceId];
+                comment.datasetId = idMap.dataset[comment.datasetId];
 
                 if (_.has(datasets, comment.datasetId)) {
 
                     var oldId = comment.id;
                     delete comment.id;
 
-                    comment.userId = idMap.user[comment.authorId];
+                    comment.userId = idMap.user[comment.userId];
 
                     if (comment.startTime !== 0) {
                         comment.startTime = mapTime(datasets[comment.datasetId].new.startTime,
@@ -281,7 +286,7 @@ function migrateComments(datasets, doneCallback) {
                             migratedComments.push(createdComment.id);
                         })
                         .catch(function (err) {
-                            console.log(err);
+                            console.log('Migrate comments error: ' + err);
                         })
                         .finally(function () {
                             setImmediate(callback);
@@ -303,7 +308,7 @@ function migrateEvents(datasets, doneCallback) {
     var unmigratedEvents = [];
     var migratedEvents = [];
     request({
-        url: 'http://betaapi.redninesensor.com/event/',
+        url: 'http://api.redninesensor.com/event/?metaformat=none',
         headers: requestHeaders,
         json: true
     }, function (err, response, eventList) {
@@ -362,12 +367,12 @@ function getUploadableDatasets(callback) {
 
 
     request({
-        url: 'http://betaapi.redninesensor.com/dataset/',
+        url: 'http://api.redninesensor.com/dataset/?metaformat=none',
         headers: requestHeaders,
         json: true
     }, function (err, response, datasetList) {
         if (err) {
-            console.log('Error: ' + err);
+            console.log('Get uploadable datasets error: ' + err);
         }
 
         // Figure out which datasets from the database have a local RNC panel
@@ -375,7 +380,7 @@ function getUploadableDatasets(callback) {
             return dataset.createTime;
         }).each(function (dataset, index) {
             var outputLine = index + ': ' + dataset.id;
-            if (panelList.indexOf(dataset.id) !== -1) {
+            if (panelList.indexOf(dataset.id + '') !== -1) {
                 outputLine += ' +++ ';
                 uploadableDatasets.push(dataset);
             } else {
@@ -392,26 +397,28 @@ function getUploadableDatasets(callback) {
 }
 
 // Need to set timeout for remote server, since there isn't enough time from the instant
-// that the tables are created until we start bombarding it with requsets.
-setTimeout(function() {
-    migrateLayouts(function (err, migratedLayouts) {
-        migrateUsers(function (err, migratedUsers) {
-            getUploadableDatasets(function (err, uploadableDatasets, unmigratedDatasets) {
-                loadDatasets(uploadableDatasets, function (err, migratedDatasets) {
-                    console.log('Migrated ' + _.size(migratedDatasets) + ' datasets');
-                    console.log('Could not migrate ' + unmigratedDatasets.length + ' datasets');
-                    migrateVideos(migratedDatasets, function (err, migratedVideos, unmigratedVideos) {
-                        migrateComments(migratedDatasets, function (err, migratedComments, unmigratedComments) {
-                            migrateEvents(migratedDatasets, function (err, migratedEvents, unmigratedEvents) {
-                                fs.writeFileSync(nconf.get('migrationMapPath'), JSON.stringify(idMap, null, 4), {flag: 'w'});
-                                process.exit(0);
+// that the tables are created until we start bombarding it with requests.
+models.init(nconf, function () {
+    setTimeout(function () {
+        migrateLayouts(function (err, migratedLayouts) {
+            migrateUsers(function (err, migratedUsers) {
+                getUploadableDatasets(function (err, uploadableDatasets, unmigratedDatasets) {
+                    loadDatasets(uploadableDatasets, function (err, migratedDatasets) {
+                        console.log('Migrated ' + _.size(migratedDatasets) + ' datasets');
+                        console.log('Could not migrate ' + unmigratedDatasets.length + ' datasets');
+                        migrateVideos(migratedDatasets, function (err, migratedVideos, unmigratedVideos) {
+                            migrateComments(migratedDatasets, function (err, migratedComments, unmigratedComments) {
+                                migrateEvents(migratedDatasets, function (err, migratedEvents, unmigratedEvents) {
+                                    fs.writeFileSync(nconf.get('migrationMapPath'), JSON.stringify(idMap, null, 4), {flag: 'w'});
+                                    process.exit(0);
+                                });
                             });
                         });
                     });
                 });
             });
         });
-    });
-}, 5000);
+    }, 5000);
+});
 
 

@@ -87,28 +87,46 @@ void StatisticsGPSPath::process(StreamItem *item) {
 
 void StatisticsGPSPath::writeResults(rapidjson::Writer<rapidjson::StringBuffer> &writer) {
 
-    double greatCircleDistance = haversineInM(previousLatitude, previousLongitude, firstLatitude, firstLongitude);
+    if (pathSpeed.getCount() != 0) {
+        double greatCircleDistance = haversineInM(previousLatitude, previousLongitude, firstLatitude, firstLongitude);
 
-    writer.Key("distance");
-    writer.StartObject();
-    writer.Key("path");
-    writer.Double(sumDistance);
-    writer.Key("greatCircle");
-    writer.Double(greatCircleDistance);
-    writer.EndObject();
+        writer.Key("distance");
+        writer.StartObject();
+        writer.Key("path");
+        writer.Double(sumDistance);
+        writer.Key("greatCircle");
+        writer.Double(greatCircleDistance);
+        writer.EndObject();
 
-    writer.Key("speed");
-    writer.StartObject();
-    writer.Key("path");
-    writer.StartObject();
+        writer.Key("speed");
+        writer.StartObject();
+        writer.Key("path");
+        writer.StartObject();
 
-    pathSpeed.writeResults(writer);
-    writer.EndObject(); // path
-    writer.Key("greatCircle");
-    writer.Double(greatCircleDistance / ((previousTime - firstTime) / 1000000)); // microseconds to milliseconds
-    writer.EndObject(); // speed
+        pathSpeed.writeResults(writer);
+        writer.EndObject(); // path
+        writer.Key("greatCircle");
+        writer.Double(greatCircleDistance / ((previousTime - firstTime) / 1000000)); // microseconds to milliseconds
+        writer.EndObject(); // speed
+    } else {
+        // First time through. No data to show.
+        writer.Key("distance");
+        writer.StartObject();
+        writer.Key("path");
+        writer.Null();
+        writer.Key("greatCircle");
+        writer.Null();
+        writer.EndObject();
 
-    //std::cout << ((previousTime - firstTime) / 1000000) << std::endl;
+        writer.Key("speed");
+        writer.StartObject();
+        writer.Key("path");
+        writer.StartObject();
 
-
+        pathSpeed.writeResults(writer);
+        writer.EndObject(); // path
+        writer.Key("greatCircle");
+        writer.Null();
+        writer.EndObject(); // speed
+    }
 }

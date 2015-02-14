@@ -8,7 +8,7 @@ AxisStatistics::AxisStatistics() {
 }
 
 void AxisStatistics::process(double value) {
-    if(!isnan(value)) {
+    if (!isnan(value)) {
         sum += value;
         count++;
         if (value > maximum) {
@@ -21,12 +21,22 @@ void AxisStatistics::process(double value) {
 }
 
 void AxisStatistics::writeResults(rapidjson::Writer<rapidjson::StringBuffer> &writer) {
-    writer.Key("minimum");
-    writer.Double(minimum);
-    writer.Key("maximum");
-    writer.Double(maximum);
-    writer.Key("average");
-    writer.Double(sum / count);
+    if (count != 0) {
+        writer.Key("minimum");
+        writer.Double(minimum);
+        writer.Key("maximum");
+        writer.Double(maximum);
+        writer.Key("average");
+        writer.Double(sum / count);
+    }else{
+        writer.Key("minimum");
+        writer.Null();
+        writer.Key("maximum");
+        writer.Null();
+        writer.Key("average");
+        writer.Null();
+    }
+
     writer.Key("count");
     writer.Int(count);
 }
@@ -41,4 +51,8 @@ double AxisStatistics::getMaximum() {
 
 double AxisStatistics::getAverage() {
     return sum / count;
+}
+
+int AxisStatistics::getCount(){
+    return count;
 }

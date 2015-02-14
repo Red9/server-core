@@ -41,7 +41,9 @@ module.exports.touchTimestamp = function (DataTypes, key) {
     return {
         type: DataTypes.DATE,
         get: function () {
-            return this.getDataValue(key).getTime();
+            // Sometimes this the key is undefined? Maybe with attribute selection?
+            return this.getDataValue(key) ?
+                this.getDataValue(key).getTime() : this.getDataValue(key);
         }
     };
 };

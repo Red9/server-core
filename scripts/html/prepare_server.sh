@@ -12,8 +12,7 @@ apt-get update
 
 apt-get -y --force-yes install iotop git nodejs htop tmux sysstat
 
-sudo npm install -g grunt-cli
-sudo npm install -g nodemon
+sudo npm install -g grunt-cli nodemon bower
 
 # Make sure to clean up the mess that npm leaves
 rm -rf /home/ubuntu/tmp

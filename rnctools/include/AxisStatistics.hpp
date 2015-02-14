@@ -30,6 +30,8 @@ public:
     double getMaximum();
 
     double getAverage();
+
+    int getCount();
 };
 
 
