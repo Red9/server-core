@@ -77,10 +77,20 @@ module.exports = function (sequelize, DataTypes) {
             getAssociations: function () {
                 return ['user', 'event', 'comment', 'video'];
             },
-            sortOptions: {
-                startTime: ['startTime', 'DESC'],
-                createdAt: ['createdAt', 'DESC']
-            }
+            sortOptions: [
+                'createdAt',
+                'updatedAt',
+                'startTime',
+                'userId',
+                {
+                    key: 'duration',
+                    orderFunction: sequelize.condition(
+                        sequelize.col('endTime'),
+                        '-',
+                        sequelize.col('startTime'))
+                },
+                'title'
+            ]
         },
         getterMethods: {
             duration: function () {

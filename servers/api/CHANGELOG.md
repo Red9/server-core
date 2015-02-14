@@ -1,3 +1,7 @@
+### 2015-02-07
+
+- Added `sort`, `sortDirection`, `limit`, and `offset` options for the result. See the documentation for more.
+
 ### 2015-01-30
 
 - Cleaned up summary statistics so that all unknown values are represented as `null`. You should translate this as `NaN`.

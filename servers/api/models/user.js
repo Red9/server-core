@@ -35,13 +35,15 @@ module.exports = function (sequelize, DataTypes) {
             getAssociations: function () {
                 return ['dataset', 'comment'];
             },
-            sortOptions: {
-                createdAt: 'createdAt',
-                updatedAt: 'updatedAt',
-                email: 'email',
-                displayName: 'displayName',
-                familyName: 'familyName'
-            }
+            sortOptions: [
+                'createdAt',
+                'updatedAt',
+                'email',
+                'displayName',
+                'familyName',
+                'givenName',
+                'state'
+            ]
         }
 
     });

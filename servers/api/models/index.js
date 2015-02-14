@@ -15,7 +15,7 @@ db.init = function (nconf, callback) {
         {
             host: nconf.get('postgresql:host'),
             dialect: 'postgres',
-            //logging: false,
+            logging: false,
             omitNull: true
         }
     );

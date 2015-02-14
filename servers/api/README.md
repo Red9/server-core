@@ -52,19 +52,28 @@ There are a few GET query options that operate across most resources.
 
 For searches, these options will work on each item in the result list.
 
-### `expand`
+### Related Resource Expansion
 
 You can request that the server eagerly load associated resources in a single request by including the expand CSV option. For example, a dataset has a number of events associated with it. By include `?expand=event` in your query string you instruct the server to get the dataset and all events with the matching `datasetId`, and put the results under a new `events` key in the dataset.
 
 Note that a hasMany relationship will result in an array, while a belongsTo relationship will result in an object.
 
-### `fields`
+### Result Field Selection
 
 A specific request may not need every value in a particular resource. Therefore, to reduce the download size, you can request that the server only send a whitelist of keys.
 
-### orderBy, skip, limit
+### Result Sorting and Paging
 
-Coming soon.
+You can choose an order for your results, with optional paging. Sorting and paging are only available on resource searches.
+
+key           | description
+--------------|------------
+sort          | Choose a sort by key. Each route has a specific set of sortable keys (or meta-keys). See the particular route documentation for a list of options.
+sortDirection | `asc` (ascending) or `desc` (descending). Defaults to `desc`.
+offset        | Start location within the result set for paginated returs. This is the zero-based ordinal number of the search return, not the number of the page. To see the second page of 10 results per page, specify 10, not 1. Ranges are specified with a starting index and a number of results (`count`) to return. The default value is 0.
+limit         | The number of results to return.
+
+
 
 ## Authorization
 

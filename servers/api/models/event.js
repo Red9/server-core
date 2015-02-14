@@ -58,7 +58,20 @@ module.exports = function (sequelize, DataTypes) {
             getAssociations: function () {
                 return ['dataset'];
             },
-            sortOptions: {}
+            sortOptions: [
+                'createdAt',
+                'updatedAt',
+                'startTime',
+                'datasetId',
+                {
+                    key: 'duration',
+                    orderFunction: sequelize.condition(
+                        sequelize.col('endTime'),
+                        '-',
+                        sequelize.col('startTime'))
+                },
+                'type'
+            ]
         },
         getterMethods: {
             duration: function () {

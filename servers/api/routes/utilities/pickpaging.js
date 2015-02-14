@@ -2,21 +2,35 @@
 
 var _ = require('lodash');
 
-module.exports = function (query) {
+module.exports = function (sortOptions, query) {
     var result = {
         offset: query.offset,
         limit: query.limit
     };
 
     if (_.has(query, 'sort')) {
+
         var sortDirection = query.sortDirection ? query.sortDirection : 'desc';
 
-        result.order = [[query.sort, sortDirection]];
+        var match = _.find(sortOptions, function (sortOption) {
+            return sortOption === query.sort || // is it a straight up key
+                sortOption.key === query.sort; // or an search object?
+        });
+
+        result.order = [];
+
+        if (_.isString(match)) {
+            result.order.push([
+                match,
+                sortDirection
+            ]);
+        } else {
+            result.order.push([
+                match.orderFunction,
+                sortDirection
+            ]);
+        }
     }
-
-
-
-    console.dir(result);
 
     return result;
 };

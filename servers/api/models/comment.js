@@ -38,7 +38,18 @@ module.exports = function (sequelize, DataTypes) {
                 getAssociations: function () {
                     return ['dataset', 'user'];
                 },
-                sortOptions: {}
+                sortOptions: [
+                    'createdAt',
+                    'updatedAt',
+                    'startTime',
+                    'datasetId',
+                    'userId',
+                    {
+                        key: 'length',
+                        orderFunction: sequelize.fn('char_length',
+                            sequelize.col('body'))
+                    }
+                ]
             },
             getterMethods: {
                 bodyHtml: function () {

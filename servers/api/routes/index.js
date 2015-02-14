@@ -195,7 +195,8 @@ function searchRoute(models, route) {
                     count = count_;
 
                     // Prepare for the next query, actually finding the results
-                    _.extend(query, utilities.pickPaging(request.query));
+                    _.extend(query, utilities.pickPaging(
+                        models[route.name].sortOptions, request.query));
 
                     return models[route.name].findAll(query);
                 }).then(function (resources_) {
@@ -215,6 +216,8 @@ function searchRoute(models, route) {
                     utilities.replyMetadata(request, reply, resources, meta);
                 })
                 .catch(function (err) {
+                    console.log(err);
+                    console.log(err.stack);
                     reply(Boom.badRequest(err));
                 });
         },
@@ -228,7 +231,7 @@ function searchRoute(models, route) {
                         fields: validators.fields,
                         metaformat: validators.metaformat
                     },
-                    validators.paging(Object.keys(models[route.name].sortOptions))
+                    validators.paging(models[route.name].sortOptions)
                 )
             },
             description: 'Get ' + route.name + 's',

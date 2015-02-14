@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash');
 var Joi = require('joi');
 
 // A bit of a hack for now while we move to Postgresql.
@@ -51,10 +52,16 @@ exports.scope = Joi.array()
     .description('The permission scope for this user');
 
 exports.paging = function (sortOptions) {
+    var sortKeys = _.map(sortOptions, function (option) {
+        return _.isObject(option) ? option.key : option;
+    });
+
     return {
-        offset: Joi.number().integer().min(0).description('Start location within the result set for paginated returns. This is the zero-based ordinal number of the search return.'),
-        limit: Joi.number().integer().min(1).description('The number of results to return'),
-        sort: Joi.string().valid(sortOptions).description('Order the results by'),
+        offset: Joi.number().integer().min(0)
+            .description('O indexed start location within the result set.'),
+        limit: Joi.number().integer().min(1)
+            .description('The number of results to return'),
+        sort: Joi.string().valid(sortKeys).description('Order the results by'),
         sortDirection: Joi.string().valid('asc', 'desc').default('desc')
     };
 };
