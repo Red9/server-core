@@ -18,7 +18,12 @@ module.exports = function (sequelize, DataTypes) {
             },
             getAssociations: function () {
                 return [];
-            }
+            },
+            sortOptions: [
+                'createdAt',
+                'updatedAt',
+                'title'
+            ]
         }
     });
     return layout;
