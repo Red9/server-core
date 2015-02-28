@@ -1,0 +1,29 @@
+{
+  "port": "8080",
+  "listenIp": "0.0.0.0",
+  "panelDataPath": "/ebs0/data/rnc",
+  "defaultCallbackUrl": "http://staging.redninesensor.com",
+  "unauthorizedCallbackUrl": "http://staging.redninesensor.com/page/unauthenticated",
+  "logFilePath": "/home/ubuntu/log/apiserver",
+  "defaultUserPicture": "http://staging.redninesensor.com/images/profile-default.png",
+  "panelCacheOptions": {
+    "expiresIn": 1000000
+  },
+  "RNCTools": {
+    "processorPath": "/home/ubuntu/server-core/rnctools/build/rncprocessor",
+    "correctPath": "/home/ubuntu/server-core/rnctools/build/correctrnc"
+  },
+  "eventFinderPath": "/home/ubuntu/server-core/eventfinder",
+  "eventFinderMainFile": "main.r",
+  "postgresql": {
+    "database": "staging",
+    "username": "ghost",
+    "password": "nationwidenose",
+    "host": "staging.cwknyptospdm.us-west-1.rds.amazonaws.com"
+  },
+  "cookie": {
+    "password": "867ctohucal5-c80tnshoul-4aba4ad-92atnhouh2-eotnu7randomString3snshoule129a",
+    "domain": ".ghost.redninesensor.com",
+    "name": "r9session"
+  }
+}

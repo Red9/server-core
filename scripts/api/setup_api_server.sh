@@ -52,9 +52,8 @@ mkdir -p log/apiserver
 
 # Get our repository
 git clone --recursive git@bitbucket.org:rednine/server-core.git
-cd /home/ubuntu/server-core/servers/api
-npm install
-grunt
+cd /home/ubuntu/server-core/
+./init.sh
 
 export NODE_ENV=production
 

@@ -320,7 +320,7 @@ exports.readPanelJSON = function (server, id, options, callback) {
         }
 
         execFile(nconf.get('RNCTools:processorPath'), parameters, {
-            maxBuffer: 1024 * 1024,
+            maxBuffer: 1024 * 1024 * 10, // 10 MB
             timeout: 120000 /* timeout in milliseconds */
         }, function (err, stdout, stderr) {
             if (err) {
