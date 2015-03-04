@@ -40,12 +40,15 @@ double SensorEstimator::calculateLinearValue(int64_t time, int64_t x0, double y0
 
 void SensorEstimator::getEstimate(int64_t atTime, CrossSection *cs) {
     if (isReady()) {
+        // For each axis
         for (unsigned int i = 0; i < sensor->labels.size(); i++) {
             double value;
             if (count > 3) {
                 value = sumValues[i] / count;
             } else if (fullyLoaded()) {
-                value = calculateLinearValue(atTime, p0->getTimestamp(), (*p0)[i], p1->getTimestamp(), (*p1)[i]);
+                // See DW-334 (better interpolation)
+                value = (*p1)[i];
+                //value = calculateLinearValue(atTime, p0->getTimestamp(), (*p0)[i], p1->getTimestamp(), (*p1)[i]);
             } else {
                 value = NAN;
             }

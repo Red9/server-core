@@ -51,6 +51,7 @@ cd /home/ubuntu/
 git clone --recursive git@bitbucket.org:rednine/clients-core.git
 cd /home/ubuntu/clients-core/data-client/
 npm install
+
 bower install
 grunt build
 
