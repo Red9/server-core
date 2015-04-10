@@ -133,7 +133,11 @@ function csvPanelRoute() {
                     if (err) {
                         reply(err);
                     } else {
-                        reply(resultStream);
+                        reply(resultStream)
+                            .header('Content-Type', 'text/csv')
+                            .header('Content-Disposition', 'attachment; filename="dataset_' +
+                            request.params.id +
+                            '.csv"');
                     }
                 });
         },
