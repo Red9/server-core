@@ -24,7 +24,7 @@ exports.init = function (server, models) {
                 dataset: 'id'
             };
 
-            models.dataset
+            models[resourceType]
                 .findOne({where: {id: id}})
                 .then(function (resource) {
                     if (resource) {
@@ -133,7 +133,11 @@ function csvPanelRoute() {
                     if (err) {
                         reply(err);
                     } else {
-                        reply(resultStream);
+                        reply(resultStream)
+                            .header('Content-Type', 'text/csv')
+                            .header('Content-Disposition', 'attachment; filename="dataset_' +
+                            request.params.id +
+                            '.csv"');
                     }
                 });
         },
@@ -211,6 +215,7 @@ function jsonPanelRoute(server) {
                 query: {
                     size: Joi.string()
                         .valid(Object.keys(nconf.get('panelSizeMap')))
+                        .default('lg')
                         .description('The general resolution of the panel.'),
                     rows: Joi.number().integer().min(1).max(10000)
                         .default(1000)
