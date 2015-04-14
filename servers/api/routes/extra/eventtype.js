@@ -113,6 +113,8 @@ var eventTypes = [
     }
 ];
 
+exports.types = eventTypes;
+
 exports.init = function (server) {
     server.route({
         method: 'GET',
