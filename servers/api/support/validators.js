@@ -51,6 +51,10 @@ exports.scope = Joi.array()
         .valid('basic', 'trusted', 'admin'))
     .description('The permission scope for this user');
 
+exports.eventTypes = Joi.string()
+    .valid(_.pluck(require('../routes/extra/eventtype').types, 'name'))
+    .description('A valid, accepted event type string');
+
 exports.paging = function (sortOptions) {
     var sortKeys = _.map(sortOptions, function (option) {
         return _.isObject(option) ? option.key : option;

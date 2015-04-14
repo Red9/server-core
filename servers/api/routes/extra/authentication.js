@@ -47,7 +47,9 @@ exports.init = function (server, models) {
     server.auth.strategy('session', 'cookie', {
         password: nconf.get('cookie:password'), // random string
         cookie: nconf.get('cookie:name'),
-        domain: nconf.get('cookie:domain'),
+        // It seems that browsers need to have the "localhost" cookie set to null,
+        // not to "localhost". See http://stackoverflow.com/a/1188145/2557842.
+        domain: nconf.get('cookie:domain') === 'localhost' ? null : nconf.get('cookie.domain'),
         clearInvalid: true,
         redirectTo: false,
         isSecure: false,

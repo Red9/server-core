@@ -36,6 +36,7 @@ module.exports.init = function (server, models) {
     require('./extra/sport').init(server, models);
     require('./extra/compoundstatistics').init(server, models);
     require('./extra/flatevent').init(server, models);
+    require('./extra/render').init(server, models);
 
     fs
         .readdirSync(path.join(__dirname, 'models'))
