@@ -13,6 +13,8 @@ public:
     int bytesPerAxis;
     bool scalable;
 
+    bool magnitudable;
+
     bool canParse(const unsigned char c);
     int readValue(std::istream *input, int numBytes);
     Element *parse(RNCState *state, std::istream *input);

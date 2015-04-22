@@ -129,7 +129,7 @@ int main(int argc, const char *argv[]) {
     int64_t minimumGPSLockTime = GPSLockTimeLong * 60 * 1000 * 1000; // Convert from minutes to microseconds
 
     RNCReader reader(inputFilename);
-    RNCState *state = reader.processHeader();
+    RNCState *state = reader.processHeader(std::map<std::string, double >());
 
     PrefixValidator prefix(3);
     PostfixValidator postfix(3);
@@ -146,7 +146,8 @@ int main(int argc, const char *argv[]) {
 
     reader.processBody(state);
 
-    time_t rawtime = state->estimateCorrectedBasetime(defaultTimestamp) / (1000 * 1000); // convert from microseconds to seconds
+    time_t rawtime =
+            state->estimateCorrectedBasetime(defaultTimestamp) / (1000 * 1000); // convert from microseconds to seconds
     struct tm *ptm = gmtime(&rawtime);
 
     char resultTimeString[30];

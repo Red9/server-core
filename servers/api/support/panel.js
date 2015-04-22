@@ -252,6 +252,9 @@ exports.readPanelCSV = function (id, options, callback) {
  * @param {Object} [options.panel] Specify if you want panel output.
  * @param {Object} [options.statistics] an object. Specify if you want panel
  *                          summary statistics.
+ * @param {Object|Number} [options.filters] Specific any low pass filter alpha
+ *                          values. Keynames are sensor types, values are
+ *                          0.0 - 1.0 alpha values for the low pass filter.
  *
  * @param {Function} callback (err, result) result is a JSON object.
  */
@@ -317,6 +320,13 @@ exports.readPanelJSON = function (server, id, options, callback) {
 
         if (_.has(options, 'panel')) {
             parameters.push('--jsonPanel');
+        }
+
+        if (_.has(options, 'filters')) {
+            _.each(options.filters, function (value, name) {
+                parameters.push('--filter');
+                parameters.push(name + ',' + value);
+            });
         }
 
         execFile(nconf.get('RNCTools:processorPath'), parameters, {
@@ -423,24 +433,25 @@ var eventFinderCommands = [
             minLength: 5
         }
     },
-    {
-        command: 'duckdive',
-        parameters: {
-            eventType: 'Duck Dive',
-            windowSize: 256,
-            overlapStep: 50,
-            dThresholdDirection: 'above',
-            dThreshold: 0.8,
-            dMergeThreshold: 100,
-            lowThX: 0.4,
-            hiThX: 0.3,
-            lowThZ: 0.3,
-            hiThZ: 0.5,
-            minLengthX: 30,
-            varLength: 10,
-            minLengthZ: 20
-        }
-    },
+    // Remove duck dive finding since it appears to be rather inaccurate.
+    //{
+    //    command: 'duckdive',
+    //    parameters: {
+    //        eventType: 'Duck Dive',
+    //        windowSize: 256,
+    //        overlapStep: 50,
+    //        dThresholdDirection: 'above',
+    //        dThreshold: 0.8,
+    //        dMergeThreshold: 100,
+    //        lowThX: 0.4,
+    //        hiThX: 0.3,
+    //        lowThZ: 0.3,
+    //        hiThZ: 0.5,
+    //        minLengthX: 30,
+    //        varLength: 10,
+    //        minLengthZ: 20
+    //    }
+    //},
     {
         command: 'exit'
     }
