@@ -73,7 +73,8 @@ function createPanelRoute(server, models) {
                 var newDataset = {
                     title: request.payload.title,
                     userId: request.payload.userId,
-                    sport: request.payload.sport
+                    sport: request.payload.sport,
+                    tags: request.payload.tags
                 };
 
                 panel.create(server, models, newDataset, request.payload.rnc,
@@ -95,7 +96,8 @@ function createPanelRoute(server, models) {
                     rnc: validators.stream.required(),
                     title: datasetRoute.model.title.required(),
                     userId: datasetRoute.model.userId.required(),
-                    sport: datasetRoute.model.sport
+                    sport: datasetRoute.model.sport,
+                    tags: datasetRoute.model.tags
                 }
             },
             description: 'Create new dataset',

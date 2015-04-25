@@ -35,7 +35,7 @@ var basicModel = {
     boundingCircle: Joi.object(),
     boundingBox: Joi.object(),
     gpsLock: Joi.object(),
-    tags: Joi.array().includes(tagSingle),
+    tags: Joi.array().includes(tagSingle).description('flexible tags to segment datasets into groups'),
     sport: Joi.string().valid(sportList).description('the sport category'),
 
     // Dynamic keys

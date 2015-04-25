@@ -18,6 +18,9 @@ var eventTypes = [
         name: 'Bottom Turn'
     },
     {
+      name: 'Top Turn'
+    },
+    {
         name: 'Snap',
         subtype: [
             {name: 'Closeout'}
@@ -110,6 +113,12 @@ var eventTypes = [
     },
     {
         name: 'Turtle'
+    },
+    {
+        name: 'Tack'
+    },
+    {
+        name: 'Jibe'
     }
 ];
 

@@ -126,7 +126,22 @@ exports.create = function (server, models, newDataset, panelStream, callback) {
                     return;
                 }
                 models.dataset.calculateStatistics(createdDataset, null,
-                    callback);
+                    function (err, dataset) {
+                        callback(err, dataset);
+
+                        // Let's go ahead and event find if appropriate.
+                        if (!err && dataset.sport === 'surf') {
+                            server.log(['debug'], 'Starting upload prompted event finding');
+                            exports.runEventFinder(server, models, dataset.id, dataset.startTime, dataset.endTime, function (err) {
+                                if (err) {
+                                    server.log(['error'], 'Error in auto event finding on upload.');
+                                    server.log(['error'], err);
+                                } else {
+                                    server.log(['debug'], 'Upload prompted event finding complete.');
+                                }
+                            });
+                        }
+                    });
             });
         })
         .catch(function (err) {
