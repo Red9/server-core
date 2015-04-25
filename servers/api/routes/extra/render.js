@@ -171,7 +171,12 @@ exports.init = function (server) {
                 tags: ['api'],
                 auth: {
                     scope: 'basic'
+                },
+                cache: {
+                    expiresIn: 1000 * 60 * 10,
+                    privacy: 'private'
                 }
+
             }
         });
     });
