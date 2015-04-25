@@ -126,7 +126,21 @@ exports.init = function (server) {
         clientFilename: function (query) {
             return 'session_' + query.datasetId + '_share';
         }
-    }];
+    },
+        {
+            name: 'map',
+            width: 1080,
+            height: 720,
+            url: '/fragments/map/map.html',
+            query: {
+                datasetId: validators.id.required()
+            },
+            clientFilename: function (query) {
+                return 'map_' + query.datasetId;
+            }
+
+        }
+    ];
 
     _.each(fragments, function (fragment) {
         console.log('Setting up fragment ' + fragment.name + ' route');
