@@ -131,15 +131,21 @@ exports.create = function (server, models, newDataset, panelStream, callback) {
 
                         // Let's go ahead and event find if appropriate.
                         if (!err && dataset.sport === 'surf') {
-                            server.log(['debug'], 'Starting upload prompted event finding');
-                            exports.runEventFinder(server, models, dataset.id, dataset.startTime, dataset.endTime, function (err) {
-                                if (err) {
-                                    server.log(['error'], 'Error in auto event finding on upload.');
-                                    server.log(['error'], err);
-                                } else {
-                                    server.log(['debug'], 'Upload prompted event finding complete.');
-                                }
-                            });
+                            server.log(['debug'],
+                                'Starting upload prompted event finding');
+
+                            exports.runEventFinder(server, models, dataset.id,
+                                dataset.startTime, dataset.endTime,
+                                function completeFunction(err) {
+                                    if (err) {
+                                        server.log(['error'],
+                                            'Error in upload auto event find.');
+                                        server.log(['error'], err);
+                                    } else {
+                                        server.log(['debug'],
+                                            'Event finding complete.');
+                                    }
+                                });
                         }
                     });
             });

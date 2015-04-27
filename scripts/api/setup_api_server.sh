@@ -64,6 +64,26 @@ export NODE_ENV=production
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080
 sudo iptables-save
 
+
+# Install Redis
+# taken from http://redis.io/topics/quickstart
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+sudo make install
+sudo mkdir /etc/redis
+sudo mkdir /var/redis
+sudo cp utils/redis_init_script /etc/init.d/redis_6379
+sudo cp redis.conf /etc/redis/6379.conf
+sudo mkdir /var/redis/6379
+sudo update-rc.d redis_6379 defaults
+
+# To start the service manually, run:
+# sudo /etc/init.d/redis_6379 start
+
+
+
 # Format the attached EBS store
 # But comment out since we only want to do that the first time...
 #sudo mkfs -t ext4 /dev/xvdf

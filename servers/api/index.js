@@ -28,7 +28,15 @@ exports.init = function (testing, doneCallback) {
                         credentials: true
                     }
                 }
-            }
+            },
+            cache: [
+                {
+                    name: 'redisCache', //By commenting, replace default cache
+                    engine: require('catbox-redis'),
+                    host: '127.0.0.1',
+                    partition: 'cache'
+                }
+            ]
         });
 
         server.connection({
@@ -49,6 +57,7 @@ exports.init = function (testing, doneCallback) {
         var plugins = [
             require('bell'),
             require('hapi-auth-cookie'),
+            require('hapi-auth-bearer-token'),
             {
                 register: require('hapi-swagger'),
                 options: {

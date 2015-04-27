@@ -46,7 +46,8 @@ exports.init = function (server, models) {
         });
 };
 
-function getPanelBounded(server, id, rows, startTime, endTime, filters, callback) {
+function getPanelBounded(server, id, rows, startTime, endTime, filters,
+                         callback) {
     var options = {
         rows: rows,
         panel: {},
@@ -138,9 +139,8 @@ function csvPanelRoute() {
                     } else {
                         reply(resultStream)
                             .header('Content-Type', 'text/csv')
-                            .header('Content-Disposition', 'attachment; filename="dataset_' +
-                            request.params.id +
-                            '.csv"');
+                            .header('Content-Disposition', 'attachment; ' +
+                            'filename="dataset_' + request.params.id + '.csv"');
                     }
                 });
         },
@@ -197,9 +197,6 @@ function jsonPanelRoute(server) {
                 filters = filters || {};
                 filters.magneticfield = request.query.filtermagneticfield;
             }
-
-            console.log('Filters: "' + filters + '"');
-
 
             if (request.query.startTime &&
                 request.query.endTime &&

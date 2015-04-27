@@ -1,6 +1,6 @@
 {
   "name": "rednineapi",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "scripts": {
     "start": "nodejs index.js",
@@ -10,11 +10,13 @@
     "async": "latest",
     "bell": "latest",
     "boom": "latest",
+    "catbox-redis": "1.0.x",
     "good": "latest",
     "good-console": "latest",
     "good-file": "latest",
     "handlebars": "latest",
     "hapi": "latest",
+    "hapi-auth-bearer-token": "3.1.x",
     "hapi-auth-cookie": "latest",
     "hapi-swagger": "latest",
     "highlight.js": "latest",

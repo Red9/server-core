@@ -1,6 +1,6 @@
 {
   "name": "rednineapi",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "dependencies": {
     "async": {
       "version": "0.9.0",
@@ -28,6 +28,18 @@
       "version": "2.6.1",
       "from": "boom@latest",
       "resolved": "https://registry.npmjs.org/boom/-/boom-2.6.1.tgz"
+    },
+    "catbox-redis": {
+      "version": "1.0.4",
+      "from": "catbox-redis@",
+      "resolved": "https://registry.npmjs.org/catbox-redis/-/catbox-redis-1.0.4.tgz",
+      "dependencies": {
+        "redis": {
+          "version": "0.10.3",
+          "from": "redis@0.10.x",
+          "resolved": "https://registry.npmjs.org/redis/-/redis-0.10.3.tgz"
+        }
+      }
     },
     "good": {
       "version": "5.1.1",
@@ -352,6 +364,11 @@
           "resolved": "https://registry.npmjs.org/wreck/-/wreck-5.0.1.tgz"
         }
       }
+    },
+    "hapi-auth-bearer-token": {
+      "version": "3.1.1",
+      "from": "hapi-auth-bearer-token@",
+      "resolved": "https://registry.npmjs.org/hapi-auth-bearer-token/-/hapi-auth-bearer-token-3.1.1.tgz"
     },
     "hapi-auth-cookie": {
       "version": "2.0.0",

@@ -47,9 +47,11 @@ exports.init = function (server, models) {
     server.auth.strategy('session', 'cookie', {
         password: nconf.get('cookie:password'), // random string
         cookie: nconf.get('cookie:name'),
-        // It seems that browsers need to have the "localhost" cookie set to null,
-        // not to "localhost". See http://stackoverflow.com/a/1188145/2557842.
-        domain: nconf.get('cookie:domain') === 'localhost' ? null : nconf.get('cookie.domain'),
+        // It seems that browsers need to have the "localhost" cookie set to
+        // null, not to "localhost".
+        // See http://stackoverflow.com/a/1188145/2557842.
+        domain: nconf.get('cookie:domain') === 'localhost' ?
+            null : nconf.get('cookie.domain'),
         clearInvalid: true,
         redirectTo: false,
         isSecure: false,
@@ -81,9 +83,29 @@ exports.init = function (server, models) {
         isSecure: false     // Terrible idea but required if not using HTTPS
     });
 
+    // This strategy is for local connections only. It's intended to be an
+    // Alternative to Cookies for the rendering process.
+    var globalToken = require('crypto').randomBytes(64).toString('hex');
+    exports.globalToken = globalToken;
+    server.auth.strategy('local', 'bearer-access-token', {
+        allowQueryToken: false,
+        allowMultipleHeaders: false,
+        validateFunc: function (token, callback) {
+            var request = this;
+
+            if (token === globalToken &&
+                request.info.remoteAddress === '127.0.0.1' &&
+                request.info.hostname === '127.0.0.1') {
+                callback(null, true, {scope: ['basic', 'trusted', 'admin']});
+            } else {
+                callback(null, false, {});
+            }
+        }
+    });
+
     server.auth.default({
         mode: 'required',
-        strategy: 'session'
+        strategies: ['session', 'local']
     });
 
     // Use the 'twitter' authentication strategy to protect the
