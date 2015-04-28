@@ -73,10 +73,16 @@ function createPanelRoute(server, models) {
             handler: function (request, reply) {
                 var newDataset = {
                     title: request.payload.title,
-                    userId: request.payload.userId,
-                    sport: request.payload.sport,
-                    tags: request.payload.tags
+                    userId: request.payload.userId
                 };
+
+                if (request.payload.sport) {
+                    newDataset.sport = request.payload.sport;
+                }
+
+                if (request.payload.tags) {
+                    newDataset.tags = request.payload.tags;
+                }
 
                 panel.create(server, models, newDataset, request.payload.rnc,
                     function (err, createdDataset) {
@@ -186,7 +192,6 @@ function jsonPanelRoute(server) {
             var filters = null;
             if (request.query.filteracceleration) {
                 filters = filters || {};
-                console.log('Setting acceleration filter');
                 filters.acceleration = request.query.filteracceleration;
             }
             if (request.query.filterrotationrate) {

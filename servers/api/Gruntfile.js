@@ -58,7 +58,7 @@ module.exports = function (grunt) {
         [
             'jshint',
             'jscs',
-         //   'lab',
+            'lab',
             'plato'
         ]);
 };

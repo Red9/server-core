@@ -9,8 +9,7 @@ nconf
     .argv()
     .env()
     .file('general', {file: 'config/general.json'})
-    .file('deployment', {file: 'config/' + process.env.NODE_ENV + '.json'})
-    .file('common', {file: '../config/' + process.env.NODE_ENV + '.json'});
+    .file('deployment', {file: 'config/' + process.env.NODE_ENV + '.json'});
 
 var Hapi = require('hapi');
 var Joi = require('joi');

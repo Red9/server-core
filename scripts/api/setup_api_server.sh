@@ -67,6 +67,7 @@ sudo iptables-save
 
 # Install Redis
 # taken from http://redis.io/topics/quickstart
+cd /home/ubuntu
 wget http://download.redis.io/redis-stable.tar.gz
 tar xvzf redis-stable.tar.gz
 cd redis-stable
@@ -75,6 +76,9 @@ sudo make install
 sudo mkdir /etc/redis
 sudo mkdir /var/redis
 sudo cp utils/redis_init_script /etc/init.d/redis_6379
+
+# Assumes redis.conf is in the home dir
+cd /home/ubuntu
 sudo cp redis.conf /etc/redis/6379.conf
 sudo mkdir /var/redis/6379
 sudo update-rc.d redis_6379 defaults

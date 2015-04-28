@@ -1,4 +1,10 @@
 {
+  "apiUrl": "ghost.redninesensor.com",
+  "htmlUrl": "staging.redninesensor.com",
+  "htmlOrigin": [
+    "http://staging.redninesensor.com",
+    "http://localhost:9532"
+  ],
   "port": "8080",
   "listenIp": "0.0.0.0",
   "panelDataPath": "/ebs0/data/rnc",
@@ -6,9 +12,6 @@
   "unauthorizedCallbackUrl": "http://staging.redninesensor.com/page/unauthenticated",
   "logFilePath": "/home/ubuntu/log/apiserver",
   "defaultUserPicture": "http://staging.redninesensor.com/images/profile-default.png",
-  "panelCacheOptions": {
-    "expiresIn": 1000000
-  },
   "RNCTools": {
     "processorPath": "/home/ubuntu/server-core/rnctools/build/rncprocessor",
     "correctPath": "/home/ubuntu/server-core/rnctools/build/correctrnc"
