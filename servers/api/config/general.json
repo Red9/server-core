@@ -10,11 +10,6 @@
     "xxl": 10000,
     "xxxl": 20000
   },
-  "cache": {
-    "findById": {
-      "expiresIn": 1000
-    }
-  },
   "auth": {
     "providers": {
       "google": {

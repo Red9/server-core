@@ -2,6 +2,7 @@
 
 NumberSensor::NumberSensor() {
     processedScale = false;
+    magnitudable = false;
 }
 
 bool NumberSensor::canParse(const unsigned char c) {
@@ -47,7 +48,7 @@ Element *NumberSensor::parse(RNCState *state, std::istream *input) {
 //        }
 
         // Process scale element
-        for (unsigned int i = 0; i < axes.size(); i++) {
+        for (unsigned int i = 0; i < scale.size(); i++) {
             int t = readValue(input, 4);
             float temp = reinterpret_cast<float &> (t);
             values[i] = (double) temp;
@@ -60,13 +61,26 @@ Element *NumberSensor::parse(RNCState *state, std::istream *input) {
 
     } else {
         //printf(".");
-        for (unsigned int i = 0; i < axes.size(); i++) {
+        for (unsigned int i = 0; i < scale.size(); i++) {
             values[i] = (double) readValue(input, bytesPerAxis);
             // Apply scale
             if (scalable) {
                 values[i] *= scale[i];
             }
+
+            if (filters.size() > 0) { // Has filters
+                values[i] = filters[i].process(values[i]);
+            }
         }
+
+        if (magnitudable) {
+            double sum = 0;
+            for (unsigned int i = 0; i < scale.size(); i++) {
+                sum += values[i] * values[i];
+            }
+            values[axes.size() - 1] = sqrt(sum);
+        }
+
     }
 
     if (time == 0) {

@@ -8,8 +8,11 @@
 #include "Element.hpp"
 #include "RNCState.hpp"
 
+#include "FilterExponentialMovingAverage.hpp"
+
 class Element; // Forward declare for the circular dependency problem
 class RNCState;
+
 class Sensor {
 public:
     std::string longName;
@@ -19,6 +22,7 @@ public:
     std::vector<std::string> axes;
     std::vector<std::string> units;
     std::vector<std::string> labels;
+    std::vector<FilterExponentialMovingAverage> filters;
 
     virtual bool canParse(const unsigned char c) = 0;
 

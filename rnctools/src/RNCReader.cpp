@@ -2,7 +2,8 @@
 
 const char RNCReader::bufferEnd[] = "||||||||";
 
-Sensor *RNCReader::parseSensor(const std::string &name, const rapidjson::Value &description) {
+Sensor *RNCReader::parseSensor(const std::string &name, const rapidjson::Value &description,
+                               double filter) {
     Sensor *result;
 
     std::string measurementName = measurementNameMap[name];
@@ -22,6 +23,11 @@ Sensor *RNCReader::parseSensor(const std::string &name, const rapidjson::Value &
             t->scale.push_back(1.0);
 
             t->labels.push_back(measurementName + ":" + axis);
+
+            if (isnan(filter) == false) {
+                //std::cout << "Adding filter for " << axis << " with value " << filter << std::endl;
+                t->filters.push_back(FilterExponentialMovingAverage(filter));
+            }
         }
 
         for (rapidjson::Value::ConstValueIterator itr = description["processor"]["numbers"]["units"].Begin();
@@ -30,9 +36,17 @@ Sensor *RNCReader::parseSensor(const std::string &name, const rapidjson::Value &
             t->units.push_back(itr->GetString());
         }
 
+        if (measurementName == "acceleration") {
+            t->magnitudable = true;
+            t->axes.push_back("magnitude");
+            t->labels.push_back(measurementName + ":magnitude");
+            t->units.push_back(t->units[0]); // Hacky!
+        }
+
+
         result = t;
     } else if (description["processor"].HasMember("gpsString")) {
-        GPSSensor *t = new GPSSensor(name);
+        GPSSensor *t = new GPSSensor(measurementName);
         t->frequency = description["processor"]["gpsString"]["frequency"].GetInt();
         result = t;
     } else {
@@ -49,7 +63,8 @@ Sensor *RNCReader::parseSensor(const std::string &name, const rapidjson::Value &
     return result;
 }
 
-RNCState *RNCReader::parseHeader(rapidjson::Document &header) {
+RNCState *RNCReader::parseHeader(rapidjson::Document &header,
+                                 std::map<std::string, double> filters) {
     int clkfreq = header["timestampFormat"]["frequency"].GetInt();
     int bitsPerTimestamp = header["timestampFormat"]["bitsPerTimestamp"].GetInt();
 
@@ -59,7 +74,7 @@ RNCState *RNCReader::parseHeader(rapidjson::Document &header) {
     int64_t baseTime = RNCState::kDefaultBaseTime; // Default
     std::string createTimeString = header["createTime"]["brokenTime"].GetString();
     struct tm timeDate;
-    if(strptime(createTimeString.c_str(), "%FT%T%z", &timeDate) != NULL){
+    if (strptime(createTimeString.c_str(), "%FT%T%z", &timeDate) != NULL) {
         baseTime = timegm(&timeDate);
         baseTime = baseTime * 1000 * 1000; // Convert to microseconds
     }
@@ -69,7 +84,13 @@ RNCState *RNCReader::parseHeader(rapidjson::Document &header) {
     for (rapidjson::Value::ConstMemberIterator sensor = header["sensors"].MemberBegin();
          sensor != header["sensors"].MemberEnd();
          ++sensor) {
-        state->addSensor(parseSensor(sensor->name.GetString(), sensor->value));
+
+        double filter = NAN;
+        if (filters.count(measurementNameMap[sensor->name.GetString()]) > 0) {
+            filter = filters[measurementNameMap[sensor->name.GetString()]];
+        }
+
+        state->addSensor(parseSensor(sensor->name.GetString(), sensor->value, filter));
     }
 
     return state;
@@ -94,16 +115,16 @@ RNCReader::~RNCReader() {
 }
 
 
-RNCState *RNCReader::processHeader() {
+RNCState *RNCReader::processHeader(std::map<std::string, double> filters) {
     rnc = new std::ifstream(filename, std::ios::in | std::ios::binary);
     if (!rnc->good()) {
         throw std::runtime_error("Input file not good");
     }
 
-    rapidjson::Document * d = new rapidjson::Document;
+    rapidjson::Document *d = new rapidjson::Document;
     ExtractHeader::extractHeader("||||||||", 8, *d, rnc);
 
-    RNCState *state = parseHeader(*d);
+    RNCState *state = parseHeader(*d, filters);
     state->setDocument(d);
 
     if (!rnc->good()) {
@@ -122,7 +143,7 @@ void RNCReader::processBody(RNCState *state) {
         unsigned char nextIdentifier = rnc->peek();
 
         bool foundParser = false;
-        for(int index = 0; index < state->sensorsSize(); index++){
+        for (int index = 0; index < state->sensorsSize(); index++) {
             auto sensor = state->getSensor(index);
             if (sensor->canParse(nextIdentifier)) {
                 foundParser = true;
@@ -143,7 +164,8 @@ void RNCReader::processBody(RNCState *state) {
         if (foundParser == false) {
 
             std::ostringstream message;
-            message << "Did not find parser for byte 0x" << std::hex << std::setw(2) << std::setfill('0') << (int) nextIdentifier;
+            message << "Did not find parser for byte 0x" << std::hex << std::setw(2) << std::setfill('0') <<
+            (int) nextIdentifier;
             StreamItem *temp = new StreamItem(rnc->tellg(), false, new std::string(message.str()));
             //std::cout << "Warning: " << temp->getErrorMessage() << std::endl;
 

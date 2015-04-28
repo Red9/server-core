@@ -1,4 +1,10 @@
 {
+  "apiUrl": "api.redninesensor.com",
+  "htmlUrl": "my.redninesensor.com",
+  "htmlOrigin": [
+    "http://my.redninesensor.com",
+    "http://localhost:9532"
+  ],
   "port": "8080",
   "listenIp": "0.0.0.0",
   "panelDataPath": "/ebs0/data/rnc",
@@ -6,9 +12,6 @@
   "unauthorizedCallbackUrl": "http://my.redninesensor.com/page/unauthenticated",
   "logFilePath": "/home/ubuntu/log/apiserver",
   "defaultUserPicture": "http://my.redninesensor.com/images/profile-default.png",
-  "panelCacheOptions": {
-    "expiresIn": 1000000
-  },
   "RNCTools": {
     "processorPath": "/home/ubuntu/server-core/rnctools/build/rncprocessor",
     "correctPath": "/home/ubuntu/server-core/rnctools/build/correctrnc"
@@ -25,5 +28,14 @@
     "password": "867cfa6cal5-c80eouwvvrl-4aba4ad-92atueh2-e4c7randomString37otauh76e129a",
     "domain": ".api.redninesensor.com",
     "name": "r9session"
+  },
+  "ssl": {
+    "keyPath": "/home/ubuntu/certificates/redninesensor.pem",
+    "certPath": "/home/ubuntu/certificates/redninesensor.crt",
+    "ca": {
+      "1": "/home/ubuntu/certificates/ca1.crt",
+      "2": "/home/ubuntu/certificates/ca2.crt",
+      "3": "/home/ubuntu/certificates/ca3.crt"
+    }
   }
 }

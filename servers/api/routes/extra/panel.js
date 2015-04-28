@@ -18,7 +18,7 @@ exports.init = function (server, models) {
     server.route(eventFindRoute(server, models));
 
     server.method('getPanel',
-        function (resourceType, id, rows, callback) {
+        function (resourceType, id, rows, filters, callback) {
             var datasetIdKey = {
                 event: 'datasetId',
                 dataset: 'id'
@@ -34,6 +34,7 @@ exports.init = function (server, models) {
                             rows,
                             resource.startTime,
                             resource.endTime,
+                            filters,
                             callback);
                     } else {
                         callback(Boom.notFound());
@@ -42,17 +43,18 @@ exports.init = function (server, models) {
                 .catch(function (err) {
                     callback(Boom.badRequest(err));
                 });
-        },
-        {cache: nconf.get('panelCacheOptions')});
+        });
 };
 
-function getPanelBounded(server, id, rows, startTime, endTime, callback) {
+function getPanelBounded(server, id, rows, startTime, endTime, filters,
+                         callback) {
     var options = {
         rows: rows,
         panel: {},
         properties: {},
         startTime: startTime,
-        endTime: endTime
+        endTime: endTime,
+        filters: filters
     };
     panel.readPanelJSON(server, id, options, callback);
 }
@@ -71,9 +73,16 @@ function createPanelRoute(server, models) {
             handler: function (request, reply) {
                 var newDataset = {
                     title: request.payload.title,
-                    userId: request.payload.userId,
-                    sport: request.payload.sport
+                    userId: request.payload.userId
                 };
+
+                if (request.payload.sport) {
+                    newDataset.sport = request.payload.sport;
+                }
+
+                if (request.payload.tags) {
+                    newDataset.tags = request.payload.tags;
+                }
 
                 panel.create(server, models, newDataset, request.payload.rnc,
                     function (err, createdDataset) {
@@ -94,7 +103,8 @@ function createPanelRoute(server, models) {
                     rnc: validators.stream.required(),
                     title: datasetRoute.model.title.required(),
                     userId: datasetRoute.model.userId.required(),
-                    sport: datasetRoute.model.sport
+                    sport: datasetRoute.model.sport,
+                    tags: datasetRoute.model.tags
                 }
             },
             description: 'Create new dataset',
@@ -135,9 +145,8 @@ function csvPanelRoute() {
                     } else {
                         reply(resultStream)
                             .header('Content-Type', 'text/csv')
-                            .header('Content-Disposition', 'attachment; filename="dataset_' +
-                            request.params.id +
-                            '.csv"');
+                            .header('Content-Disposition', 'attachment; ' +
+                            'filename="dataset_' + request.params.id + '.csv"');
                     }
                 });
         },
@@ -180,6 +189,20 @@ function jsonPanelRoute(server) {
                 }
             };
 
+            var filters = null;
+            if (request.query.filteracceleration) {
+                filters = filters || {};
+                filters.acceleration = request.query.filteracceleration;
+            }
+            if (request.query.filterrotationrate) {
+                filters = filters || {};
+                filters.rotationrate = request.query.filterrotationrate;
+            }
+            if (request.query.filtermagneticfield) {
+                filters = filters || {};
+                filters.magneticfield = request.query.filtermagneticfield;
+            }
+
             if (request.query.startTime &&
                 request.query.endTime &&
                 request.params.resourceType === 'dataset') {
@@ -194,6 +217,7 @@ function jsonPanelRoute(server) {
                     rows,
                     request.query.startTime,
                     request.query.endTime,
+                    filters,
                     finalHandler
                 );
             } else {
@@ -201,6 +225,7 @@ function jsonPanelRoute(server) {
                     request.params.resourceType,
                     request.params.id,
                     nconf.get('panelSizeMap')[request.query.size],
+                    filters,
                     finalHandler
                 );
             }
@@ -212,7 +237,7 @@ function jsonPanelRoute(server) {
                         .description('The resource type to get a panel for.'),
                     id: datasetRoute.model.id.required()
                 },
-                query: {
+                query: _.extend({}, {
                     size: Joi.string()
                         .valid(Object.keys(nconf.get('panelSizeMap')))
                         .default('lg')
@@ -223,7 +248,11 @@ function jsonPanelRoute(server) {
                     startTime: datasetRoute.model.startTime,
                     endTime: datasetRoute.model.endTime,
                     fields: validators.fields
-                }
+                }, {
+                    filteracceleration: Joi.number().min(0).max(1),
+                    filterrotationrate: Joi.number().min(0).max(1),
+                    filtermagneticfield: Joi.number().min(0).max(1)
+                })
             },
             description: 'Get JSON panel',
             notes: 'Request a "processed" JSON panel. You can specify ' +

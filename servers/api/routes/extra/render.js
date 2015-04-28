@@ -8,40 +8,36 @@ var nconf = require('nconf');
 var validators = require('../../support/validators');
 var tmp = require('tmp');
 var fs = require('fs');
-var child_process = require('child_process');
+var childProcess = require('child_process');
+
+var globalToken = require('./authentication').globalToken;
 
 exports.init = function (server) {
 
     // TODO: When upgrading to Node 0.12, change this to "execSync"
     // Safety check, since we require phantomjs 2.0, which has to be manually
     //   installed.
-    child_process.exec('phantomjs --version', {
+    childProcess.exec('phantomjs --version', {
         timeout: 1000
     }, function (err) {
         if (err) {
-            console.log('phantomjs not found!');
-            console.dir(err);
+            server.log(['error'], 'phantomjs not found!');
+            server.log(['error'], JSON.stringify(err));
             process.exit(1);
         }
     });
 
     var tmpDir = tmp.dirSync({unsafeCleanup: true}).name;
-    console.log('render tmp dir: ' + tmpDir);
 
-    function renderPage(request, reply, url, width, height, clientFilename) {
+    server.log(['debug'], 'render tmp dir: ' + tmpDir);
+
+    function renderPage(url, width, height, callback) {
         var filename = tmpDir + '/' + encodeURIComponent(url) + '.png';
 
-        phantom.create(function (ph) {
-            // Copy the cookies over to the new requests.
-            _.each(request.headers.cookie.split('; '), function (cookie) {
-                var parts = cookie.split('=');
-                //console.log('Adding cookie "' + parts[0] + '" === "' + parts[1] + '"');
-                ph.addCookie(
-                    parts[0], // name
-                    parts[1], // value
-                    nconf.get('cookie:domain')
-                );
-            });
+        // Ignore SSL errors so that connection back to self work. Is this
+        // safe? Should probably check. At the very least, it's a loop straight
+        // on localhost with no outside parties. So probably safe to ignore.
+        phantom.create('--ignore-ssl-errors=yes', function (ph) {
 
             ph.createPage(function (page) {
                 page.set('viewportSize', {
@@ -58,28 +54,45 @@ exports.init = function (server) {
                 var outstandingResources = 0;
 
                 function onPageReady() {
-
                     page.render(filename, function () {
-                        console.log('Done rendering file to ' + filename);
-                        reply.file(filename)
-                            .header('Content-Disposition', 'filename="' + clientFilename + '.png"');
+                        fs.readFile(filename, function (err, fileBuffer) {
+                            callback(err, fileBuffer);
 
-                        ph.exit();
-
-                        // Clean up the rendered file. But wait! Literally. The
-                        //   reply handler takes time to execute, and if we
-                        //   immediately delete the image then the reply()
-                        //   returns with a 404. So give it plenty of time.
-                        setTimeout(function () {
+                            // Clean up the rendered file
                             fs.unlink(filename, function () {
                             });
-                        }, 10000);
+                        });
+
+                        ph.exit();
                     });
                 }
 
-                page.set('onResourceRequested', function () {
-                    outstandingResources++;
-                });
+                page.onResourceRequested(
+                    // This function executes in context of the PhantomJS
+                    // system, So we don't actually have closure here. We need
+                    // to pass in our variables
+                    function (requestData, request, console, fromHost,
+                              bearerToken, toPort) {
+                        var match = requestData.url.match(fromHost);
+                        if (match !== null) {
+                            var newUrl = requestData.url.replace(fromHost,
+                                '127.0.0.1:' + toPort);
+
+                            request.changeUrl(newUrl);
+                            request.setHeader('Authorization', 'Bearer ' +
+                            bearerToken);
+                        }
+                    },
+                    // This function executes in the local context.
+                    function (requestData) {
+                        outstandingResources++;
+                    },
+                    // These variables are passed in to the first function.
+                    console,
+                    nconf.get('apiUrl'),
+                    globalToken,
+                    nconf.get('port')
+                );
 
                 page.set('onResourceReceived', function (response) {
                     if (response.stage === 'end') {
@@ -89,7 +102,9 @@ exports.init = function (server) {
 
                 page.open(url, function (status) {
                     if (status !== 'success') {
-                        reply(Boom.badImplementation('Failure to open target url ' + url));
+                        callback(Boom.badImplementation(
+                                'Failure to open target url ' + url)
+                        );
                         return;
                     }
 
@@ -98,38 +113,81 @@ exports.init = function (server) {
                     function checkOutstandingResources() {
                         if (outstandingResources === 0) {
                             noChangeInterval++;
-                            if (noChangeInterval === nconf.get('render:noChangeIntervalMax')) {
+                            if (noChangeInterval ===
+                                nconf.get('render:noChangeIntervalMax')) {
                                 onPageReady();
                                 return;
                             }
                         } else {
                             noChangeInterval = 0;
                         }
-                        setTimeout(checkOutstandingResources, nconf.get('render:checkPeriod'));
+                        setTimeout(checkOutstandingResources,
+                            nconf.get('render:checkPeriod'));
                     }
 
-                    setTimeout(checkOutstandingResources, nconf.get('render:checkPeriod'));
+                    setTimeout(checkOutstandingResources,
+                        nconf.get('render:checkPeriod'));
                 });
             });
         });
     }
 
-
-    var fragments = [{
-        name: 'sessionshare',
-        width: 950,
-        height: 700,
-        url: '/fragments/sessionshare/sessionshare.html',
-        query: {
-            datasetId: validators.id.required()
+    var fragments = [
+        {
+            name: 'sessionshare',
+            width: 950,
+            height: 700,
+            url: '/fragments/sessionshare/sessionshare.html',
+            query: {
+                datasetId: validators.id.required()
+            },
+            clientFilename: function (query) {
+                return 'session_' + query.datasetId + '_share';
+            },
+            cache: {
+                cache: 'redisCache',
+                expiresIn: 1000 * 60 * 60 * 24, // 1 day
+                staleIn: 1000 * 60, // 1 minute
+                staleTimeout: 1 // Effectively, don't wait
+            },
+            clientCache: {
+                expiresIn: 1000 * 60, // 1 minute
+                privacy: 'private'
+            }
         },
-        clientFilename: function (query) {
-            return 'session_' + query.datasetId + '_share';
+        {
+            name: 'map',
+            width: 1080,
+            height: 720,
+            url: '/fragments/map/map.html',
+            query: {
+                datasetId: validators.id.required()
+            },
+            clientFilename: function (query) {
+                return 'map_' + query.datasetId;
+            },
+            cache: {
+                cache: 'redisCache',
+                expiresIn: 1000 * 60 * 60 * 24 * 30, // 1 month
+                staleIn: 1000 * 60 * 3, // 3 minutes
+                staleTimeout: 1 // Effectively, don't wait
+            },
+            clientCache: {
+                expiresIn: 1000 * 60, // 1 minute
+                privacy: 'private'
+            }
         }
-    }];
+    ];
 
     _.each(fragments, function (fragment) {
-        console.log('Setting up fragment ' + fragment.name + ' route');
+        server.log(['debug'], 'Preparing fragment ' + fragment.name + ' route');
+
+        // Each fragment gets it's own copy of the method so that we can have
+        // different caching policies for each.
+        server.method('renderPage' + fragment.name, renderPage, {
+            cache: fragment.cache
+        });
+
         server.route({
             method: 'GET',
             path: '/render/' + fragment.name,
@@ -146,7 +204,19 @@ exports.init = function (server) {
                 });
                 targetUrl += queryString;
 
-                renderPage(request, reply, targetUrl, fragment.width, fragment.height, fragment.clientFilename(request.query));
+                server.methods['renderPage' + fragment.name](targetUrl,
+                    fragment.width, fragment.height, function (err, result) {
+                        if (err) {
+                            reply(err);
+                        } else {
+                            var clientFilename =
+                                fragment.clientFilename(request.query);
+                            reply(new Buffer(result))
+                                .header('Content-Type', 'image/png')
+                                .header('Content-Disposition', 'filename="' +
+                                clientFilename + '.png"');
+                        }
+                    });
             },
             config: {
                 validate: {
@@ -157,7 +227,8 @@ exports.init = function (server) {
                 tags: ['api'],
                 auth: {
                     scope: 'basic'
-                }
+                },
+                cache: fragment.clientCache
             }
         });
     });

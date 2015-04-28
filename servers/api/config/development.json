@@ -1,4 +1,9 @@
 {
+  "apiUrl": "localhost:3000",
+  "htmlUrl": "localhost:9532",
+  "htmlOrigin": [
+    "http://localhost:9532"
+  ],
   "port": "3000",
   "listenIp": "0.0.0.0",
   "panelDataPath": "/home/clewis/consulting/red9/panels",
@@ -6,9 +11,6 @@
   "unauthorizedCallbackUrl": "http://localhost:9532/page/unauthenticated",
   "logFilePath": "/home/clewis/Downloads/apiserver/apiserver",
   "defaultUserPicture": "http://localhost:9532/static/images/profile-default.png",
-  "panelCacheOptions": {
-    "expiresIn": 10000
-  },
   "RNCTools": {
     "processorPath": "/home/clewis/consulting/red9/server-core/rnctools/build/rncprocessor",
     "correctPath": "/home/clewis/consulting/red9/server-core/rnctools/build/correctrnc"
@@ -25,5 +27,14 @@
     "password": "867cfa6cal5-c80eouwvvrl-4aba4ad-92atueh2-e4c7randomString37otauh76e129a",
     "domain": "localhost",
     "name": "r9session"
+  },
+  "ssl": {
+    "keyPath": "config/certificates/development/key.pem",
+    "certPath": "config/certificates/development/cert.pem",
+    "ca": {
+      "1": "../../../ssl/ca1.crt",
+      "2": "../../../ssl/ca2.crt",
+      "3": "../../../ssl/ca3.crt"
+    }
   }
 }

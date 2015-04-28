@@ -1,3 +1,13 @@
+### 2015-04-27
+
+- Added a `/render/{type}` route to render certain data into images. Caching is done by Redis.
+- Uploads can now include tags.
+- If an uploaded RNC has a sport type of Surf it's automatically event detected.
+- Added acceleration magnitude, and the option to add a low pass filter to raw panel requests.
+- Removed migration and redirect servers
+- Cleaned up the repository, `packages.json`, and so on.
+- Upgraded to https.
+
 ### 2015-02-07
 
 - Added `sort`, `sortDirection`, `limit`, and `offset` options for the result. See the documentation for more.

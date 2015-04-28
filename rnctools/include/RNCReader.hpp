@@ -10,11 +10,13 @@
 #include "ExtractHeader.hpp"
 #include "RNCStreamProcessor.hpp"
 
+#include "FilterExponentialMovingAverage.hpp"
+
 class RNCReader : public RNCStreamProcessor {
 public:
     RNCReader(std::string filename);
 
-    RNCState *processHeader();
+    RNCState *processHeader(std::map<std::string,  double > filters);
 
     void processBody(RNCState *state);
 
@@ -33,11 +35,9 @@ private:
 
     std::map<std::string, std::string> measurementNameMap;
 
-    RNCState *parseHeader(rapidjson::Document &header);
+    RNCState *parseHeader(rapidjson::Document &header, std::map<std::string,  double>  filters);
 
-//    void readHeader(rapidjson::Document &d, std::ifstream *rnc);
-
-    Sensor *parseSensor(const std::string &name, const rapidjson::Value &description);
+    Sensor *parseSensor(const std::string &name, const rapidjson::Value &description, double filter);
 };
 
 

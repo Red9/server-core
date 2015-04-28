@@ -125,6 +125,15 @@ void buildOptions(ez::ezOptionParser &opt) {
             "--endTime"
     );
 
+    opt.add(
+            "",
+            0,
+            2,
+            ',',
+            "Specify filters for an XYZ axis. First argument is the measurement type, then 1 numbers (which is applied to each axis). Uses sensor name! Example: '--filter accelerometer,0.21'",
+            "--filter"
+    );
+
     /*opt.add(
             "", // Default
             1, // Required
@@ -166,7 +175,7 @@ int parserBoilerplate(ez::ezOptionParser &opt) {
     }
 
     if (opt.isSet("--csvOutput")
-            && (opt.isSet("--jsonPanel")
+        && (opt.isSet("--jsonPanel")
             || opt.isSet("--jsonProperties")
             || opt.isSet("--jsonStatistics"))) {
         std::cerr << "ERROR: May not specify both CSV output and JSON output." << std::endl << std::endl;
@@ -174,21 +183,21 @@ int parserBoilerplate(ez::ezOptionParser &opt) {
     }
 
     if (!(opt.isSet("--csvOutput")
-            || opt.isSet("--jsonPanel")
-            || opt.isSet("--jsonProperties")
-            || opt.isSet("--jsonStatistics"))) {
+          || opt.isSet("--jsonPanel")
+          || opt.isSet("--jsonProperties")
+          || opt.isSet("--jsonStatistics"))) {
         std::cerr << "ERROR: Must specify at least one output type." << std::endl << std::endl;
         return 1;
     }
 
     if ((opt.isSet("--startTime") && !opt.isSet("--endTime"))
-            || (!opt.isSet("--startTime") && opt.isSet("--endTime"))) {
+        || (!opt.isSet("--startTime") && opt.isSet("--endTime"))) {
         std::cerr << "ERROR: Must specify both --startTime and --endTime." << std::endl << std::endl;
         return 1;
     }
 
     if (opt.isSet("--startTime") && opt.isSet("--endTime")
-            && getTimestampFromOpt(opt, "--startTime") >= getTimestampFromOpt(opt, "--endTime")) {
+        && getTimestampFromOpt(opt, "--startTime") >= getTimestampFromOpt(opt, "--endTime")) {
         std::cerr << "ERROR: --startTime must be less than --endTime." << std::endl << std::endl;
         return 1;
     }
@@ -199,7 +208,7 @@ int parserBoilerplate(ez::ezOptionParser &opt) {
     }
 
     if ((opt.isSet("--jsonPanel") || opt.isSet("--csvOutput"))
-            && !(opt.isSet("--csPeriod") || opt.isSet("--rows"))) {
+        && !(opt.isSet("--csPeriod") || opt.isSet("--rows"))) {
         std::cerr << "ERROR: must specify --csPeriod or --rows when using cross sections." << std::endl << std::endl;
         return 1;
     }
@@ -236,8 +245,24 @@ int main(int argc, const char *argv[]) {
         // Nothing .If we get to this point then we don't actually need the csPeriod
     }
 
+    std::map<std::string, double> filters;
+
+    if (opt.isSet("--filter")) {
+        std::vector<std::vector<std::string> > filtersRaw;
+        opt.get("--filter")->getMultiStrings(filtersRaw);
+
+        for (auto &rawFilter : filtersRaw) {
+            std::string type = rawFilter[0];
+
+            double alpha = stod(rawFilter[1]);
+
+            filters.insert({type, alpha});
+        }
+    }
+
+
     RNCReader reader(inputFilename);
-    RNCState *state = reader.processHeader();
+    RNCState *state = reader.processHeader(filters);
 
     PrefixValidator prefix(3);
     PostfixValidator postfix(3);
@@ -252,7 +277,7 @@ int main(int argc, const char *argv[]) {
 
     if (opt.isSet("--startTime") && opt.isSet("--endTime")) {
         TimeWindow *window = new TimeWindow(getTimestampFromOpt(opt, "--startTime"),
-                getTimestampFromOpt(opt, "--endTime"));
+                                            getTimestampFromOpt(opt, "--endTime"));
         lastRNCProcessor->setNext(window);
         lastRNCProcessor = window;
     }

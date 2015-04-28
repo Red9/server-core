@@ -41,7 +41,7 @@ var basicModel = {
         .description('first name. Set from Google'),
     familyName: Joi.string()
         .description('last name. Set from Google.'),
-    preferredLayout: Joi.object().options({className: 'preferredLayout'})
+    preferredLayout: Joi.object().meta({className: 'preferredLayout'})
         .default({}).description('layouts for user'),
     picture: Joi.string()
         .description('link to a profile picture. Set from Google.'),
@@ -68,7 +68,7 @@ module.exports = {
     name: resourceName,
 
     model: basicModel,
-    resultModel: Joi.object(basicModel).options({className: resourceName}),
+    resultModel: Joi.object(basicModel).meta({className: resourceName}),
 
     scopes: {
         create: 'admin',
@@ -94,7 +94,7 @@ module.exports = {
             state: basicModel.state,
             sport: basicModel.sport,
             scope: basicModel.scope
-        }).options({className: resourceName + '.create'}),
+        }).meta({className: resourceName + '.create'}),
         update: Joi.object({
             // Can't update email, since that's a "primary key"
             //email: basicModel.email,
@@ -107,7 +107,7 @@ module.exports = {
             state: basicModel.state,
             sport: basicModel.sport,
             scope: basicModel.scope
-        }).options({className: resourceName + '.update'}),
+        }).meta({className: resourceName + '.update'}),
         search: {
             id: validators.idCSV,
             idList: validators.idCSV,

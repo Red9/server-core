@@ -26,7 +26,7 @@ module.exports = {
     name: resourceName,
 
     model: basicModel,
-    resultModel: Joi.object(basicModel).options({className: resourceName}),
+    resultModel: Joi.object(basicModel).meta({className: resourceName}),
 
     scopes: {
         create: 'admin',
@@ -42,13 +42,13 @@ module.exports = {
             host: basicModel.host.required(),
             hostId: basicModel.hostId.required(),
             datasetId: basicModel.datasetId.required()
-        }).options({className: resourceName + '.create'}),
+        }).meta({className: resourceName + '.create'}),
         update: Joi.object({
             startTime: basicModel.startTime,
             host: basicModel.host,
             hostId: basicModel.hostId,
             datasetId: basicModel.datasetId
-        }).options({className: resourceName + '.update'}),
+        }).meta({className: resourceName + '.update'}),
         search: {
             id: validators.idCSV,
             idList: validators.idCSV,
