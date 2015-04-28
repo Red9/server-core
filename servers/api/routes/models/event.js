@@ -14,7 +14,7 @@ var eventSource = Joi.object({
     parameters: Joi.object()
         .description('the algorithm specific parameters')
 }).description('describes what created this event')
-    .options({className: 'eventSource'});
+    .meta({className: 'eventSource'});
 
 var basicModel = {
     // Auto created keys
@@ -45,10 +45,10 @@ module.exports = {
     name: resourceName,
 
     model: basicModel,
-    resultModel: Joi.object(basicModel).options({className: resourceName}),
+    resultModel: Joi.object(basicModel).meta({className: resourceName}),
 
     resultOptions: {
-        expand: Joi.array().includes(Joi.string().valid(expandOptions)).single()
+        expand: Joi.array().items(Joi.string().valid(expandOptions)).single()
             .description('Expand a related resource into the dataset')
     },
 
@@ -75,7 +75,7 @@ module.exports = {
             type: basicModel.type.required(),
             subtype: basicModel.subtype,
             source: basicModel.source.required()
-        }).options({className: resourceName + '.create'}),
+        }).meta({className: resourceName + '.create'}),
         search: {
             id: validators.idCSV,
             idList: validators.idCSV,

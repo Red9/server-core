@@ -76,22 +76,22 @@ exports.init = function (testing, doneCallback) {
                     reporters: [
                         {
                             reporter: require('good-console'),
-                            args: [{
+                            events: {
                                 log: '*',
                                 response: '*',
                                 error: '*'
-                            }]
+                            }
                         },
                         {
                             reporter: require('good-file'),
-                            args: [
-                                {path: nconf.get('logFilePath')},
-                                {
-                                    log: '*',
-                                    response: '*',
-                                    error: '*'
-                                }
-                            ]
+                            events: {
+                                log: '*',
+                                response: '*',
+                                error: '*'
+                            },
+                            config: {
+                                path: nconf.get('logFilePath')
+                            }
                         }
                     ]
                 }

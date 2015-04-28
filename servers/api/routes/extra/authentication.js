@@ -50,10 +50,12 @@ exports.init = function (server, models) {
         // It seems that browsers need to have the "localhost" cookie set to
         // null, not to "localhost".
         // See http://stackoverflow.com/a/1188145/2557842.
+        // Setting to undefined so that hapi-auth-cookie defaults to null.
+        // Prefer to set to null once npm is updated. See
+        // https://github.com/hapijs/hapi-auth-cookie/issues/64
         domain: nconf.get('cookie:domain') === 'localhost' ?
-            null : nconf.get('cookie.domain'),
+            undefined : nconf.get('cookie.domain'),
         clearInvalid: true,
-        redirectTo: false,
         isSecure: false,
         validateFunc: function (session, callback) {
             // TODO: Check database here for valid session (not just valid user)

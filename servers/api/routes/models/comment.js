@@ -34,10 +34,10 @@ module.exports = {
 
     model: basicModel,
     resultOptions: {
-        expand: Joi.array().includes(Joi.string().valid(expandOptions))
+        expand: Joi.array().items(Joi.string().valid(expandOptions))
             .description('Expand a resource into the comment')
     },
-    resultModel: Joi.object(basicModel).options({className: resourceName}),
+    resultModel: Joi.object(basicModel).meta({className: resourceName}),
 
     scopes: {
         create: 'trusted',
@@ -55,7 +55,7 @@ module.exports = {
             startTime: basicModel.startTime.default(0),
             endTime: basicModel.endTime.default(0),
             body: basicModel.body.required()
-        }).options({className: resourceName + '.create'}),
+        }).meta({className: resourceName + '.create'}),
         update: Joi.object({
             datasetId: basicModel.datasetId,
             userId: basicModel.userId,
@@ -63,7 +63,7 @@ module.exports = {
             startTime: basicModel.startTime,
             endTime: basicModel.endTime,
             body: basicModel.body
-        }).options({className: resourceName + '.update'}),
+        }).meta({className: resourceName + '.update'}),
         search: {
             id: validators.idCSV,
             idList: validators.idCSV,

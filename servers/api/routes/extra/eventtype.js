@@ -18,7 +18,7 @@ var eventTypes = [
         name: 'Bottom Turn'
     },
     {
-      name: 'Top Turn'
+        name: 'Top Turn'
     },
     {
         name: 'Snap',

@@ -28,13 +28,13 @@ exports.metaformat = Joi.string().valid('none', 'default', 'only')
     .description('Set the response format with or without metadata');
 
 exports.multiArray = function (single) {
-    return Joi.alternatives(single, Joi.array().includes(single))
+    return Joi.alternatives(single, Joi.array().items(single))
         .description('multiple keys or array of ' + single._description);
 };
 
 exports.summaryStatistics = Joi.object()
     .description('numerically summarizes a period of time from a panel')
-    .options({
+    .meta({
         className: 'summaryStatistics'
     });
 
@@ -47,7 +47,7 @@ exports.fields = Joi.string()
     .description('specify a CSV list of the object keys to return');
 
 exports.scope = Joi.array()
-    .includes(Joi.string()
+    .items(Joi.string()
         .valid('basic', 'trusted', 'admin'))
     .description('The permission scope for this user');
 

@@ -4,7 +4,7 @@ var validators = require('../../support/validators');
 var Joi = require('joi');
 
 var datasetSource = Joi.object().description('the RNC source information')
-    .options({className: 'datasetSource'});
+    .meta({className: 'datasetSource'});
 
 // TODO: Add axes here
 
@@ -35,7 +35,7 @@ var basicModel = {
     boundingCircle: Joi.object(),
     boundingBox: Joi.object(),
     gpsLock: Joi.object(),
-    tags: Joi.array().includes(tagSingle)
+    tags: Joi.array().items(tagSingle)
         .description('flexible tags to segment datasets into groups'),
     sport: Joi.string().valid(sportList).description('the sport category'),
 
@@ -50,7 +50,7 @@ module.exports = {
 
     model: basicModel,
     resultOptions: {
-        expand: Joi.array().includes(Joi.string().valid(expandOptions))
+        expand: Joi.array().items(Joi.string().valid(expandOptions))
             .single().description('Expand a resource into the dataset')
     },
     metaOptions: {
@@ -59,7 +59,7 @@ module.exports = {
         aggregateStatisticsGroupBy: Joi.string().valid(Object.keys(basicModel))
             .description('calculate aggregate statistics for each group')
     },
-    resultModel: Joi.object(basicModel).options({className: resourceName}),
+    resultModel: Joi.object(basicModel).meta({className: resourceName}),
 
     scopes: {
         create: 'admin',
@@ -79,7 +79,7 @@ module.exports = {
             userId: basicModel.userId,
             title: basicModel.title,
             sport: basicModel.sport
-        }).options({className: resourceName + '.update'}),
+        }).meta({className: resourceName + '.update'}),
         updateCollection: {
             tags: basicModel.tags
         },
