@@ -28,5 +28,14 @@
     "password": "whatever ...",
     "domain": null,
     "name": "again, whatever ..."
+  },
+  "ssl": {
+    "keyPath": "config/certificates/development/key.pem",
+    "certPath": "config/certificates/development/cert.pem",
+    "ca": {
+      "1": "../../../ssl/ca1.crt",
+      "2": "../../../ssl/ca2.crt",
+      "3": "../../../ssl/ca3.crt"
+    }
   }
 }

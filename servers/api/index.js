@@ -29,6 +29,9 @@ exports.init = function (testing, doneCallback) {
                     cors: {
                         origin: nconf.get('htmlOrigin'),
                         credentials: true
+                    },
+                    security: {
+                        hsts: 1000 * 60 * 60 * 24 * 365
                     }
                 }
             },
@@ -47,7 +50,32 @@ exports.init = function (testing, doneCallback) {
             port: nconf.get('port'),
             tls: {
                 key: fs.readFileSync(nconf.get('ssl:keyPath')),
-                cert: fs.readFileSync(nconf.get('ssl:certPath'))
+                cert: fs.readFileSync(nconf.get('ssl:certPath')),
+                ca: [
+                    fs.readFileSync(nconf.get('ssl:ca:1')),
+                    fs.readFileSync(nconf.get('ssl:ca:2')),
+                    fs.readFileSync(nconf.get('ssl:ca:3'))
+                ],
+                // default node 0.12 ciphers with RC4 disabled
+                ciphers: [
+                    'ECDHE-RSA-AES256-SHA384',
+                    'DHE-RSA-AES256-SHA384',
+                    'ECDHE-RSA-AES256-SHA256',
+                    'DHE-RSA-AES256-SHA256',
+                    'ECDHE-RSA-AES128-SHA256',
+                    'DHE-RSA-AES128-SHA256',
+                    'HIGH',
+                    '!aNULL',
+                    '!eNULL',
+                    '!EXPORT',
+                    '!DES',
+                    '!RC4',
+                    '!MD5',
+                    '!PSK',
+                    '!SRP',
+                    '!CAMELLIA'
+                ].join(':'),
+                honorCipherOrder: true
             }
         });
 

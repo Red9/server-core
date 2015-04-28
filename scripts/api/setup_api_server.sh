@@ -58,10 +58,11 @@ git clone --recursive git@bitbucket.org:rednine/server-core.git
 cd /home/ubuntu/server-core/
 ./init.sh
 
-export NODE_ENV=production
+
+# export NODE_ENV=production
 
 
-sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8080
+sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 8080
 sudo iptables-save
 
 
@@ -86,7 +87,7 @@ sudo update-rc.d redis_6379 defaults
 # To start the service manually, run:
 # sudo /etc/init.d/redis_6379 start
 
-
+echo "Don't forget to install the server SSL certificates in /home/ubuntu/certificates/!"
 
 # Format the attached EBS store
 # But comment out since we only want to do that the first time...

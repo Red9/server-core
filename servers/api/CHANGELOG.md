@@ -6,6 +6,7 @@
 - Added acceleration magnitude, and the option to add a low pass filter to raw panel requests.
 - Removed migration and redirect servers
 - Cleaned up the repository, `packages.json`, and so on.
+- Upgraded to https.
 
 ### 2015-02-07
 

@@ -31,6 +31,11 @@
   },
   "ssl": {
     "keyPath": "/home/ubuntu/certificates/redninesensor.pem",
-    "certPath": "/home/ubuntu/certificates/redninesensor.crt"
+    "certPath": "/home/ubuntu/certificates/redninesensor.crt",
+    "ca": {
+      "1": "/home/ubuntu/certificates/ca1.crt",
+      "2": "/home/ubuntu/certificates/ca2.crt",
+      "3": "/home/ubuntu/certificates/ca3.crt"
+    }
   }
 }

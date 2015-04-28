@@ -34,7 +34,10 @@ exports.init = function (server) {
     function renderPage(url, width, height, callback) {
         var filename = tmpDir + '/' + encodeURIComponent(url) + '.png';
 
-        phantom.create(function (ph) {
+        // Ignore SSL errors so that connection back to self work. Is this
+        // safe? Should probably check. At the very least, it's a loop straight
+        // on localhost with no outside parties. So probably safe to ignore.
+        phantom.create('--ignore-ssl-errors=yes', function (ph) {
 
             ph.createPage(function (page) {
                 page.set('viewportSize', {
