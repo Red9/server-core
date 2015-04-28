@@ -27,5 +27,9 @@
     "password": "867cfa6cal5-c80eouwvvrl-4aba4ad-92atueh2-e4c7randomString37otauh76e129a",
     "domain": "localhost",
     "name": "r9session"
+  },
+  "ssl": {
+    "keyPath": "config/certificates/development/key.pem",
+    "certPath": "config/certificates/development/cert.pem"
   }
 }
