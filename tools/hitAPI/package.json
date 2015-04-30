@@ -4,9 +4,7 @@
   "private": true,
   "main": "hitApi.js",
   "dependencies": {
-    "request": "latest",
-    "underscore": "latest",
-    "async": "latest"
+    "async": "0.9.x",
+    "request": "2.55.x"
   }
 }
-

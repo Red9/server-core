@@ -12,7 +12,7 @@ apt-get update
 
 apt-get -y --force-yes install iotop git nodejs htop tmux sysstat
 
-sudo npm install -g grunt-cli nodemon forever bower
+sudo npm install -g grunt-cli nodemon forever bower pm2
 
 # Make sure to clean up the mess that npm leaves
 rm -rf /home/ubuntu/tmp

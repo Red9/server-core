@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# TODO: Check for the required files before running script.
+# Required files:
+#  - redis.conf
+#  - certificates/*
+
 SSHKEY="-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAyzEOhza5cBIJz61+XhZy81IzSQT7DX+5j6GzlJbmTWSsXVsB
 4YKo77bz5J5pPt+yti2O1ux8q76/GCXPn+rx88whoeB3fOPbMMbTBl/pSdG5Iiow
@@ -35,8 +40,8 @@ sudo apt-get -y --force-yes install r-base-core postgresql-client cmake
 # throw an error if we can't, or figure out where they keep the old
 # stuff.
 cd /tmp
-wget http://cran.r-project.org/src/contrib/jsonlite_0.9.14.tar.gz
-sudo R CMD INSTALL jsonlite_0.9.14.tar.gz
+wget http://cran.r-project.org/src/contrib/jsonlite_0.9.16.tar.gz
+sudo R CMD INSTALL jsonlite_0.9.16.tar.gz
 wget http://cran.r-project.org/src/contrib/signal_0.7-4.tar.gz
 sudo R CMD INSTALL signal_0.7-4.tar.gz
 
@@ -58,11 +63,8 @@ git clone --recursive git@bitbucket.org:rednine/server-core.git
 cd /home/ubuntu/server-core/
 ./init.sh
 
-
-# export NODE_ENV=production
-
-
 sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j REDIRECT --to-port 8080
+# TODO: This iptables-save doesn't actually save for reboot.
 sudo iptables-save
 
 
@@ -85,8 +87,9 @@ sudo mkdir /var/redis/6379
 sudo update-rc.d redis_6379 defaults
 
 # To start the service manually, run:
-# sudo /etc/init.d/redis_6379 start
+sudo /etc/init.d/redis_6379 start
 
+echo "Don't forget to install phantomjs (2.0)! Is it in /home/clewis/bin/phantomjs? It should be installed in /usr/local/bin/phantomjs"
 echo "Don't forget to install the server SSL certificates in /home/ubuntu/certificates/!"
 
 # Format the attached EBS store
