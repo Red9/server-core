@@ -169,11 +169,11 @@ exports.init = function (server) {
             cache: {
                 cache: 'redisCache',
                 expiresIn: 1000 * 60 * 60 * 24 * 30, // 1 month
-                staleIn: 1000 * 60 * 3, // 3 minutes
+                staleIn: 1000 * 60 * 10, // 10 minutes
                 staleTimeout: 1 // Effectively, don't wait
             },
             clientCache: {
-                expiresIn: 1000 * 60, // 1 minute
+                expiresIn: 1000 * 60 * 2, // 2 minutes
                 privacy: 'private'
             }
         }

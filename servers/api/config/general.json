@@ -25,6 +25,6 @@
   },
   "render": {
     "checkPeriod": 100,
-    "noChangeIntervalMax": 5
+    "noChangeIntervalMax": 20
   }
 }

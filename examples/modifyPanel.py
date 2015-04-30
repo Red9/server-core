@@ -14,7 +14,7 @@ import argparse
 # server.
 #
 # Example:
-# $> python modifyPanel.py --apiDomain http://api.redninesensor.com --datasetId ef2ef6fa-6a5a-bed7-b60a-0180bcd7ad42
+# $> python modifyPanel.py --apiDomain https://api.redninesensor.com --datasetId 392
 #
 #
 # If you're testing you can comment out the last lines of this script so that
