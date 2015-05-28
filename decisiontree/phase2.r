@@ -1,18 +1,21 @@
 ############ Takes a saved cforest from phase1 and estimates events. Stopwatch times blocks.
 
 source("featureLibrary.r")
+source("errorCodes.r")
 suppressMessages(library(jsonlite))
 suppressMessages(library(party))
 closeAllConnections()
 
 ## Input block
     ptm <- proc.time()
-con <- stdin()
+con <- file("stdin")
 events <- fromJSON(readLines(con,n=1))
+    errorcode.read(events,"events")
 t.full <- read.csv(con,skip=1)
+    errorcode.read(t.full,"data")
 load(paste(model))
     stopwatch <- proc.time() - ptm
-    write(paste("Time to load files and read in data: ",round(stopwatch[3],4),sep=""),stderr())
+    write(paste("Time to read in data: ",round(stopwatch[3],4),sep=""),stderr())
 
 ## Event trimming
 events$events$type[which(events$events$type=="Paddle Out"|events$events$type=="Paddle for Wave")] <- "Paddle" #one type of paddling
@@ -41,4 +44,4 @@ expanded.prediction <- labelExpand(t.full,prediction[[2]])
 predictionJSON.df <- createEventJSON(t.full.formatted,expanded.prediction)
 eventJSON <- toJSON(predictionJSON.df)
 
-return(eventJSON)
+cat(eventJSON,"\n")

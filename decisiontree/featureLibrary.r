@@ -1,4 +1,4 @@
-############ This file contains functions to compute various features over arbitrary windows time-series data.
+############ This file contains functions to compute various features over arbitrary windows time-series data. Functions are features or utilities to help compute them.
 
 suppressMessages(library(stringr))
 suppressMessages(library(zoo))

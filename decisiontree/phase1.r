@@ -2,17 +2,21 @@
 
     ptm <- proc.time()
 source("featureLibrary.r")
+source("errorCodes.r")
 suppressMessages(library(jsonlite))
 suppressMessages(library(party))
 closeAllConnections()
+
 
 ## Input block
     ptm <- proc.time()
 con <- stdin()
 events <- fromJSON(readLines(con,n=1))
+    errorcode.read(events,"events")
 f.full <- read.csv(con,skip=1)
+    errocode.read(f.full,"data")
     stopwatch <- proc.time() - ptm
-    write(paste("Time to load files and read in data:",round(stopwatch[3],4),"seconds",sep=" "),stderr())
+    write(paste("Time to read in data:",round(stopwatch[3],4),"seconds",sep=" "),stderr())
 
 ## Event trimming
 events$events$type[which(events$events$type=="Paddle Out"|events$events$type=="Paddle for Wave")] <- "Paddle" #one type of paddling
