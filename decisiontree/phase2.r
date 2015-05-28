@@ -1,4 +1,4 @@
-############ Takes a saved decision tree from phase1 and estimates events
+############ Takes a saved cforest from phase1 and estimates events. Stopwatch times blocks.
 
 source("featureLibrary.r")
 suppressMessages(library(jsonlite))
@@ -6,26 +6,39 @@ suppressMessages(library(party))
 closeAllConnections()
 
 ## Input block
-con <- file("test.csv")
-t.full <- read.csv(con)
-load("sample_tree.rda")
+    ptm <- proc.time()
+con <- stdin()
+events <- fromJSON(readLines(con,n=1))
+t.full <- read.csv(con,skip=1)
+load(paste(model))
+    stopwatch <- proc.time() - ptm
+    write(paste("Time to load files and read in data: ",round(stopwatch[3],4),sep=""),stderr())
 
-#phase2 <- function(panel) {
+## Event trimming
+events$events$type[which(events$events$type=="Paddle Out"|events$events$type=="Paddle for Wave")] <- "Paddle" #one type of paddling
+events$events <- events$events[which(events$events$type=="Wave"|events$events$type=="Paddle"|events$events$type=="Stationary"),] #paddle, wave or stationary
+
 ## Formatting block
-filler <- rep(0,length(t.full[,1]))
-t.full.formatted <- as.data.frame(cbind(filler,t.full$time,t.full$acceleration.x,t.full$acceleration.y,t.full$acceleration.z,filler,filler,filler,filler,filler,filler,filler,filler,filler,filler,filler,filler,t.full$rotationrate.x,t.full$rotationrate.y,t.full$rotationrate.z))
-names(t.full.formatted) <- c("filler","time", "acceleration.x", "acceleration.y", "acceleration.z","filler","filler","filler","filler","filler","filler","filler","filler","filler","filler","filler","filler","rotationrate.x","rotationrate.y","rotationrate.z")
+#t.full.formatted <- formatDataset(t.full)
+t.full.formatted <- t.full
 
 ## Feature creation
-t.features <- as.data.frame(listToMatrix(features(t.full.formatted)))
+    ptm <- proc.time()
+t.features.list <- features(t.full.formatted)
+t.features <- as.data.frame(listToMatrix(t.features.list))
+    stopwatch <- proc.time() - ptm
+    write(paste("Time to compute features:",round(stopwatch[3],4),"seconds",sep=" "),stderr())
 
 ## Prediction
-prediction <- predict(tree,newdata=t.features)
+    ptm <- proc.time()
+prediction <- list()
+prediction[[1]] <- predict(model.list[[1]],newdata=t.features)
+    stopwatch <- proc.time() - ptm
+    write(paste("Time to compute predictions:",round(stopwatch[3],4),"seconds",sep=" "),stderr())
 
 ## Prediction formatting
-expanded.prediction <- labelExpand(t.full,prediction)
+expanded.prediction <- labelExpand(t.full,prediction[[2]])
 predictionJSON.df <- createEventJSON(t.full.formatted,expanded.prediction)
 eventJSON <- toJSON(predictionJSON.df)
 
-#return(eventJSON)
-#}
+return(eventJSON)

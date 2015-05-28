@@ -98,7 +98,7 @@ for id in config['idList']:
 
     # Prepare and write output
     output_json = {}
-    output_json['evens'] = event_list
+    output_json['events'] = event_list
     output_json['rowCount'] = panelLines
     output_filename = os.path.join(output_path, str(id) + '.txt')
     with open(output_filename, 'w') as output_file:

@@ -1,7 +1,10 @@
 ############ This file contains functions to compute various features over arbitrary windows time-series data.
 
 suppressMessages(library(stringr))
+suppressMessages(library(zoo))
+suppressMessages(library(sandwich))
 
+## all the features
 zeroCrossings <- function(panel) {
     crosser <- matrix(0,nrow=dim(panel)[1],ncol=dim(panel)[2])
     for (i in 1:dim(panel)[2]) {
@@ -12,13 +15,17 @@ zeroCrossings <- function(panel) {
     crosserReg <- rbind(zeros,crosser)
     crosserShift <- rbind(crosser,zeros)
     crosserDiff <- crosserReg + crosserShift
-    crossings <- c(length(which(crosserDiff[,1]==0)),length(which(crosserDiff[,2]==0)),length(which(crosserDiff[,3]==0)),length(which(crosserDiff[,4]==0)),length(which(crosserDiff[,5]==0)),length(which(crosserDiff[,6]==0)))
-    names(crossings) <- c("acc.x.zerocrossings","acc.y.zerocrossings","acc.z.zerocrossings","rotr.x.zerocrossings","rotr.y.zerocrossings","rotr.z.zerocrossings")
+    crossings <- rep(0,dim(panel)[2])
+    for (i in 1:length(crossings)) {
+        crossings[i] <- length(which(crosserDiff[,i]==0))
+    }
+    names(crossings) <- c("acc.x.zerocrossings","acc.y.zerocrossings","acc.z.zerocrossings","rotr.x.zerocrossings","rotr.y.zerocrossings","rotr.z.zerocrossings","resid.adr.zerocrossings","resid.rgr.zerocrossings")
     return(crossings)
 }
 
-meanCrossings <- function(panel) {
-    panelmean <- colMeans(panel)
+meanCrossings <- function(panel,means) {
+    #windowmean <- colMeans(panel)
+    panelmean <- means
     crosser <- matrix(0,nrow=dim(panel)[1],ncol=dim(panel)[2])
     for (i in 1:dim(panel)[2]) {
         crosser[,i][which(panel[,i]>panelmean[i])] <- 1
@@ -28,8 +35,11 @@ meanCrossings <- function(panel) {
     crosserReg <- rbind(zeros,crosser)
     crosserShift <- rbind(crosser,zeros)
     crosserDiff <- crosserReg + crosserShift
-    crossings <- c(length(which(crosserDiff[,1]==0)),length(which(crosserDiff[,2]==0)),length(which(crosserDiff[,3]==0)),length(which(crosserDiff[,4]==0)),length(which(crosserDiff[,5]==0)),length(which(crosserDiff[,6]==0)))
-    names(crossings) <- c("acc.x.meancrossings","acc.y.meancrossings","acc.z.meancrossings","rotr.x.meancrossings","rotr.y.meancrossings","rotr.z.meancrossings")
+    crossings <- rep(0,dim(panel)[2])
+    for (i in 1:length(crossings)) {
+        crossings[i] <- length(which(crosserDiff[,i]==0))
+    }
+    names(crossings) <- c("acc.x.meancrossings","acc.y.meancrossings","acc.z.meancrossings","rotr.x.meancrossings","rotr.y.meancrossings","rotr.z.meancrossings","resid.adr.meancrossings","resid.rgr.meancrossings")
     return(crossings)
 }
 
@@ -46,16 +56,71 @@ elementRanges <- function(panel) {
 }
 
 enmo <- function(panel) {
-    enmo <- (sqrt(rowSums(cbind(panel[3]^2,panel[4]^2,panel[5]^2)))-9.80665)/9.80665
+    enmo <- (sqrt(rowSums(cbind(panel[1]^2,panel[2]^2,panel[3]^2)))-9.80665)/9.80665
     names(enmo) <- c("enmo")
     return(enmo)
 }
 
+# Acceleration decomposition regression. acc:mag ~ acc:x + acc:y + acc:z
+ADR <- function(panel) {
+    X <- as.data.frame(cbind(panel[,1],panel[,2],panel[,3]))
+    names(X) <- c("ax","ay","az")
+    Y <- panel[,7]
+    model <- lm(Y ~ ax + ay + az, data=X)
+    return(model)
+}
+
+# Regresses acc:mag ~ rotr:x + rotr:y + rotr:z
+RGR <- function(panel) {
+    X <- as.data.frame(cbind(panel[,4],panel[,5],panel[,6]))
+    names(X) <- c("rx","ry","rz")
+    Y <- panel[,7]
+    model <- lm(Y ~ rx + ry + rz, data=X)
+    return(model)
+}
+
+# Regresses depvar ~ rotr:x + rotr:y + rotr:z
+iRAR <- function(panel,depvar) {
+    X <- as.data.frame(cbind(panel[,4],panel[,5],panel[,6]))
+    names(X) <- c("rx","ry","rz")
+    Y <- panel[,depvar]
+    model <- lm(Y ~ rx + ry + rz, data=X)
+    return(model)
+}
+
+# Returns vector of coefficients from arbitrary regression with model name
+getBetas <- function(model,model.name) {
+    model.betas <- coefficients(model)
+    for (i in 1:length(names(model.betas))) {
+        names(model.betas)[i] <- paste(model.name,names(model.betas)[i],sep=".")
+    }
+    return(model.betas)
+}
+
+# Returns vector of covariances from arbitrary regression with model name
+getVcov <- function(model,model.name) {
+    model.vcov <- vcovHC(model,type="HC3")
+    model.vcov.line <- model.vcov[upper.tri(model.vcov,diag=TRUE)]
+    namelist <- list()
+    for (j in 1:dim(model.vcov)[2]) {
+        for (i in 1:j) {
+            namelist <- c(namelist,paste(model.name,"v",rownames(model.vcov)[i],colnames(model.vcov)[j],sep="."))
+        }
+    }
+    namelist <- as.character(namelist)
+    names(model.vcov.line) <- namelist
+    return(model.vcov.line)
+}
+
+
+
+
+## all the utilities
 # creates a full-size label vector from a panel and event list
 createLabel <- function(panel,events) {
     events.full <- rep("Other",length(panel[,1]))
     for (i in 1:length(events$events$type)) {
-        events.full[which(panel$time>=events$events$startTime[i]&panel$time<=events$events$endTime[i])] <- events$events$type[i]
+        events.full[which(panel$time>=events$events$startTime[i]&panel$time<=events$events$endTime[i])] <- as.character(events$events$type[i])
     }
     return(events.full)
 }
@@ -101,19 +166,26 @@ labelExpand <- function(panel,label) {
 	return(expand.label)
 }
 
-
 # shrinks a full-size label vector to length of feature vector
-labelShrink <- function(panel,label) {
-	shrunk.label<-rep("Other",length(panel[,1]))
-	shrink.factor<-floor(length(label)/length(panel[,1]))
+labelShrink <- function(outputlength,label) {
+	shrunk.label<-rep("Other",outputlength)
+	shrink.factor<-floor(length(label)/outputlength)
 
-	for(i in 0:length(panel[,1])-1) {
+	for(i in 0:(outputlength-1)) {
 		events <- table(label[((i*shrink.factor)+1):(shrink.factor*(i+1))])
         mostCommon <- names(which.max(events))
         shrunk.label[i+1] <- mostCommon
 	}
 
 	return(shrunk.label)
+}
+
+# takes a potentially-multinomial label vector and a "string" and turns it into a binary label vector where events of type "string" are 1
+numifyLabel <- function(label,string) {
+    num.label <- rep(0,length(label))
+    num.label[label==paste(string)] <- 1
+    
+    return(num.label)
 }
 
 # converts a matrix of lists to a matrix of numerics
@@ -127,26 +199,65 @@ listToMatrix <- function(panel.list) {
     return(panel.matrix)
 }
 
+# takes an dataset downloaded from the website and formats it for features
+formatDataset <- function(panel) {
+    filler <- rep(0,length(panel[,1]))
+    panel.formatted <- as.data.frame(cbind(filler,panel$time,panel$acceleration.x,panel$acceleration.y,panel$acceleration.z,filler,filler,filler,filler,filler,filler,filler,filler,filler,filler,filler,filler,panel$rotationrate.x,panel$rotationrate.y,panel$rotationrate.z))
+    names(panel.formatted) <- c("filler","time", "acceleration.x", "acceleration.y", "acceleration.z","filler","filler","filler","filler","filler","filler","filler","filler","filler","filler","filler","filler","rotationrate.x","rotationrate.y","rotationrate.z")
+    
+    return(panel.formatted)
+}
 
+# calculates all features. applies global transformations including sensor element selection first, window transformations over all data and global transformations
 features <- function(panel){
-    n <- length(panel[,3])
-    win.length <- 100
+    n <- dim(panel)[1]
+    win.length <- 200
     nwindows <- floor(n/win.length)
     feature.panel <- list()
-         
+    
+    ## global features
+    selected.panel <- as.data.frame(cbind(panel$acceleration.x,panel$acceleration.y,panel$acceleration.z,panel$rotationrate.x,panel$rotationrate.y,panel$rotationrate.z,panel$acceleration.magnitude))
+    colnames(selected.panel) <- c("acceleration.x","acceleration.y","acceleration.z","rotationrate.x","rotationrate.y","rotationrate.z","acc.magnitude")
+    
+    resid.ADR <- as.data.frame(residuals(ADR(selected.panel)))
+    names(resid.ADR) <- c("resid.ADR")
+    
+    resid.RGR <- as.data.frame(residuals(RGR(selected.panel)))
+    names(resid.RGR) <- c("resid.RGR")
+        
+    panel.means <- colMeans(selected.panel)
+    names(panel.means) <- c("mean.acc.x","mean.acc.y","mean.acc.z","mean.rotr.x","mean.rotr.y","mean.rotr.z","mean.acc.mag")
+     
+    panel <- as.data.frame(cbind(selected.panel,resid.ADR,resid.RGR))
+    
+    ## window features
+    write(paste("Computing features..."),stderr())
     for (i in 0:(nwindows-1)) {
-        write(paste("Window", i),stderr())
-        window.panel <- cbind(panel$acceleration.x[(i*win.length+1):(i*win.length+win.length)],panel$acceleration.y[(i*win.length+1):(i*win.length+win.length)],panel$acceleration.z[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.x[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.y[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.z[(i*win.length+1):(i*win.length+win.length)])
+        window.panel <- cbind(panel$acceleration.x[(i*win.length+1):(i*win.length+win.length)],panel$acceleration.y[(i*win.length+1):(i*win.length+win.length)],panel$acceleration.z[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.x[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.y[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.z[(i*win.length+1):(i*win.length+win.length)],panel$resid.ADR[(i*win.length+1):(i*win.length+win.length)],panel$resid.RGR[(i*win.length+1):(i*win.length+win.length)])
+        
         feature.1 <- colMeans(window.panel)
-        names(feature.1) <- c("mean.acc.x","mean.acc.y","mean.acc.z","mean.rotr.x","mean.rotr.y","mean.rotr.z")
+        names(feature.1) <- c("wmean.acc.x","wmean.acc.y","wmean.acc.z","wmean.rotr.x","wmean.rotr.y","wmean.rotr.z","wmean.resid.ADR","wmean.resid.RGR")
         feature.2 <- zeroCrossings(window.panel)
-        feature.3 <- meanCrossings(window.panel)
+        feature.3 <- meanCrossings(window.panel,panel.means)
         feature.4 <- rangeDiffs(window.panel)
         feature.5 <- elementRanges(window.panel)
         feature.6 <- enmo(window.panel)
-        feature.row <- c(feature.1,feature.2,feature.3,feature.4,feature.5,feature.6)
+        
+        iRARx.model <- iRAR(window.panel,1)
+        iRARy.model <- iRAR(window.panel,2)
+        iRARz.model <- iRAR(window.panel,3)
+        ADR.model <- ADR(window.panel)
+        
+        feature.7 <- c(getBetas(iRARx.model,"iRARx"),getVcov(iRARx.model,"iRARx"))
+        feature.8 <- c(getBetas(iRARy.model,"iRARy"),getVcov(iRARy.model,"iRARy"))
+        feature.9 <- c(getBetas(iRARz.model,"iRARz"),getVcov(iRARz.model,"iRARz"))
+        feature.10 <- c(getBetas(ADR.model,"ADR"),getVcov(ADR.model,"ADR"))
+        
+        feature.row <- c(feature.1,feature.2,feature.3,feature.4,feature.5,feature.6,feature.7,feature.8,feature.9,feature.10)
         feature.panel <- rbind(feature.panel,feature.row)
     }
-
+    write(paste("Done."),stderr())
+    
 return(feature.panel)
 }
+
