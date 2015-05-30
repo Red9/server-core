@@ -40,7 +40,7 @@ prediction[[1]] <- predict(model.list[[1]],newdata=t.features)
     write(paste("Time to compute predictions:",round(stopwatch[3],4),"seconds",sep=" "),stderr())
 
 ## Prediction formatting
-expanded.prediction <- labelExpand(t.full,prediction[[2]])
+expanded.prediction <- labelExpand(t.full,prediction[[1]])
 predictionJSON.df <- createEventJSON(t.full.formatted,expanded.prediction)
 eventJSON <- toJSON(predictionJSON.df)
 
