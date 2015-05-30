@@ -16,7 +16,7 @@ import os
 def PrepareArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('--outputpath',
-                        help='Folder to save results to. Contents may be overwritten.')
+                        help='File to save results to. Contents may be overwritten.')
     parser.add_argument('--configpath', help='Path to the config JSON.',
                         type=str)
     parser.add_argument('--cookie', help='The r9session cookie value',
@@ -73,38 +73,54 @@ with open(config_path) as config_file:
     config = json.load(config_file)
     manual_events = config['manualEvents']
 
+
+
 # Loop through each datasetId in the list
-for id in config['idList']:
-    print('###########')
-    print('Getting events and panel from dataset ' + str(id))
-
-    # Read the events
-    r = HitAPI('/event/?datasetId=' + str(id), cookies)
+print('Opening output file ' + output_path)
+with open(output_path, 'w') as output_file:
+    print('Getting events and panels for all datasets')
     event_list = []
-    for event in r.json()['data']:
-        if not manual_events or event['source']['type'] == 'manual':
-            min_event = {}
-            min_event['id'] = event['id']
-            min_event['type'] = event['type']
-            min_event['startTime'] = event['startTime']
-            min_event['endTime'] = event['endTime']
-            event_list.append(min_event)
-    print('Prepared ' + str(len(event_list)) + ' events')
+    panel_list = []
+    panel_header = ''
+    totalPanelLines = 0
+    for id in config['idList']:
+        print('###########')
+        print('Getting events and panel from dataset ' + str(id))
 
-    # Read the panel
-    r = HitAPI('/dataset/' + str(id) + '/csv', cookies)
-    panel = r.text
-    panelLines = panel.count('\n') - 1  # First row is the header
+        # Read the events
+        r = HitAPI('/event/?datasetId=' + str(id), cookies)
 
-    # Prepare and write output
+        for event in r.json()['data']:
+            if not manual_events or event['source']['type'] == 'manual':
+                min_event = {}
+                min_event['id'] = event['id']
+                min_event['type'] = event['type']
+                min_event['startTime'] = event['startTime']
+                min_event['endTime'] = event['endTime']
+                min_event['datasetId'] = event['datasetId']
+                event_list.append(min_event)
+        print('Prepared ' + str(len(event_list)) + ' events for dataset ' + str(
+            id))
+
+        # Read the panel
+        r = HitAPI('/dataset/' + str(id) + '/csv', cookies)
+        panelComplete = r.text.split('\n', 1)
+        # First row is the header. Sloppy, but overwrite previous value
+        panel_header = panelComplete[0]
+        panelLines = panelComplete[1].count('\n')
+        totalPanelLines += panelLines
+        panel_list.append(panelComplete[1].replace('\n', ',' + str(id) + '\n'))
+        print('Loaded ' + str(panelLines) + ' lines for panel ' + str(id))
+
+    # After loop
     output_json = {}
-    output_json['evens'] = event_list
-    output_json['rowCount'] = panelLines
-    output_filename = os.path.join(output_path, str(id) + '.txt')
-    with open(output_filename, 'w') as output_file:
-        output_file.write(json.dumps(output_json))
-        output_file.write('\n')
-        output_file.write(panel)
+    output_json['events'] = event_list
+    output_json['rowCount'] = totalPanelLines
+    output_json['forestFilePath'] = 'forest.rda'  # Some placeholder
 
-    print('Lines in panel: ' + str(panelLines))
-    print('Wrote training data to ' + output_filename)
+    print('Wrote training data to ' + output_path)
+    output_file.write(json.dumps(output_json))
+    output_file.write('\n')
+    output_file.write(panel_header + ',datasetId\n')
+    for panel in panel_list:
+        output_file.write(panel)
