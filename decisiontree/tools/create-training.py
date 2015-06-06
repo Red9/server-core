@@ -84,21 +84,25 @@ with open(output_path, 'w') as output_file:
 
     # Save tags as a flat list
     # tags_list = []
+    # user_list = []
     # OR
     tags_list = {}
+    user_list = {}
 
     panel_header = ''
     totalPanelLines = 0
     for id in config['idList']:
         print('###########')
 
-        r = HitAPI('/dataset/' + str(id), cookies)
+        r = HitAPI('/dataset/' + str(id) + '?expand=user', cookies)
 
         # Save tags as a flat list
         # tags_list += r.json()['data']['tags']
+        # user_list += r.json()['data']['user']['displayName']
         # OR
         # Save tags keyed by dataset
         tags_list[id] = r.json()['data']['tags']
+        user_list[id] = r.json()['data']['user']['displayName']
 
         print('Getting events and panel from dataset ' + str(id))
 
@@ -130,6 +134,7 @@ with open(output_path, 'w') as output_file:
     # After loop
     output_json = {}
     output_json['tags'] = tags_list
+    output_json['users'] = user_list
     output_json['events'] = event_list
     output_json['rowCount'] = totalPanelLines
     output_json['forestFilePath'] = 'forest.rda'  # Some placeholder
