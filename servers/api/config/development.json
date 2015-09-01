@@ -10,7 +10,7 @@
   "defaultCallbackUrl": "https://localhost:8000",
   "unauthorizedCallbackUrl": "https://localhost:8000/page/unauthenticated",
   "logFilePath": "/home/clewis/Downloads/apiserver/apiserver",
-  "defaultUserPicture": "https://localhost:8000/static/images/profile-default.png",
+  "defaultUserPicture": "https://localhost:8000/images/profile-default.png",
   "RNCTools": {
     "processorPath": "/home/clewis/consulting/red9/server-core/rnctools/build/rncprocessor",
     "correctPath": "/home/clewis/consulting/red9/server-core/rnctools/build/correctrnc"

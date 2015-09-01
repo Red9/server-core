@@ -41,8 +41,6 @@ var basicModel = {
         .description('first name. Set from Google'),
     familyName: Joi.string()
         .description('last name. Set from Google.'),
-    preferredLayout: Joi.object().meta({className: 'preferredLayout'})
-        .default({}).description('layouts for user'),
     picture: Joi.string()
         .description('link to a profile picture. Set from Google.'),
     gender: Joi.string().valid('male', 'female', 'other')
@@ -86,7 +84,7 @@ module.exports = {
         create: Joi.object({
             email: basicModel.email.required(),
             displayName: basicModel.displayName,
-            preferredLayout: basicModel.preferredLayout,
+            picture: basicModel.picture,
             height: basicModel.height,
             weight: basicModel.weight,
             tagline: basicModel.tagline,
@@ -99,7 +97,7 @@ module.exports = {
             // Can't update email, since that's a "primary key"
             //email: basicModel.email,
             displayName: basicModel.displayName,
-            preferredLayout: basicModel.preferredLayout,
+            picture: basicModel.picture,
             height: basicModel.height,
             weight: basicModel.weight,
             tagline: basicModel.tagline,
