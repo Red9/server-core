@@ -192,7 +192,7 @@ exports.init = function (server) {
             method: 'GET',
             path: '/render/' + fragment.name,
             handler: function (request, reply) {
-                var targetUrl = 'http://' + nconf.get('htmlUrl') + fragment.url;
+                var targetUrl = 'https://' + nconf.get('htmlUrl') + fragment.url;
                 var queryString = '';
                 _.each(request.query, function (value, key) {
                     if (queryString.length === 0) {

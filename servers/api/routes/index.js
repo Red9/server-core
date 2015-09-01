@@ -37,6 +37,7 @@ module.exports.init = function (server, models) {
     require('./extra/compoundstatistics').init(server, models);
     require('./extra/flatevent').init(server, models);
     require('./extra/render').init(server, models);
+    require('./extra/random').init(server, models);
 
     fs
         .readdirSync(path.join(__dirname, 'models'))
@@ -45,29 +46,29 @@ module.exports.init = function (server, models) {
         })
         .forEach(function (file) {
             var route = require(path.join(__dirname, 'models', file));
-            addRoute(server, models, route);
+            addModelRoute(server, models, route);
             routes[route.name] = route;
         });
 };
 
-function addRoute(server, models, route) {
+function addModelRoute(server, models, route) {
 
     // All routes can get a resource by id
-    server.route(getRoute(models, route));
+    server.route(modelGetRoute(models, route));
 
     // All routes can delete a resource by id
-    server.route(deleteRoute(models, route));
+    server.route(modelDeleteRoute(models, route));
 
     if (route.operations.hasOwnProperty('search')) {
-        server.route(searchRoute(models, route));
+        server.route(modelSearchRoute(models, route));
     }
 
     if (route.operations.hasOwnProperty('create')) {
-        server.route(createRoute(models, route));
+        server.route(modelCreateRoute(models, route));
     }
 
     if (route.operations.hasOwnProperty('update')) {
-        server.route(updateRoute(models, route));
+        server.route(modelUpdateRoute(models, route));
     }
 
     if (route.operations.hasOwnProperty('updateCollection')) {
@@ -76,16 +77,16 @@ function addRoute(server, models, route) {
             payloadValidation[key] = validator.required();
 
             server.route(
-                addToCollection(models, route, payloadValidation, key)
+                modelRouteAddToCollection(models, route, payloadValidation, key)
             );
             server.route(
-                removeFromCollection(models, route, payloadValidation, key)
+                modelRouteRemoveFromCollection(models, route, payloadValidation, key)
             );
         });
     }
 }
 
-function getRoute(models, route) {
+function modelGetRoute(models, route) {
     return {
         method: 'GET',
         path: '/' + route.name + '/{id}',
@@ -137,7 +138,7 @@ function getRoute(models, route) {
     };
 }
 
-function deleteRoute(models, route) {
+function modelDeleteRoute(models, route) {
     return {
         method: 'DELETE',
         path: '/' + route.name + '/{id}',
@@ -175,7 +176,7 @@ function deleteRoute(models, route) {
     };
 }
 
-function searchRoute(models, route) {
+function modelSearchRoute(models, route) {
     return {
         method: 'GET',
         path: '/' + route.name + '/',
@@ -245,7 +246,7 @@ function searchRoute(models, route) {
     };
 }
 
-function createRoute(models, route) {
+function modelCreateRoute(models, route) {
     return {
         method: 'POST',
         path: '/' + route.name + '/',
@@ -272,7 +273,7 @@ function createRoute(models, route) {
     };
 }
 
-function updateRoute(models, route) {
+function modelUpdateRoute(models, route) {
     return {
         method: 'PUT',
         path: '/' + route.name + '/{id}',
@@ -318,7 +319,7 @@ function updateRoute(models, route) {
     };
 }
 
-function addToCollection(models, route, payloadValidation, key) {
+function modelRouteAddToCollection(models, route, payloadValidation, key) {
     return {
         method: 'PUT',
         path: '/' + route.name + '/{id}/' + key,
@@ -356,7 +357,7 @@ function addToCollection(models, route, payloadValidation, key) {
     };
 }
 
-function removeFromCollection(models, route, payloadValidation, key) {
+function modelRouteRemoveFromCollection(models, route, payloadValidation, key) {
     return {
         method: 'PATCH',
         path: '/' + route.name + '/{id}/' + key,

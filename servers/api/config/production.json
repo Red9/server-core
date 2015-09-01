@@ -8,10 +8,10 @@
   "port": "8080",
   "listenIp": "0.0.0.0",
   "panelDataPath": "/ebs0/data/rnc",
-  "defaultCallbackUrl": "http://my.redninesensor.com",
-  "unauthorizedCallbackUrl": "http://my.redninesensor.com/page/unauthenticated",
+  "defaultCallbackUrl": "https://my.redninesensor.com",
+  "unauthorizedCallbackUrl": "https://my.redninesensor.com/page/unauthenticated",
   "logFilePath": "/home/ubuntu/log/apiserver",
-  "defaultUserPicture": "http://my.redninesensor.com/images/profile-default.png",
+  "defaultUserPicture": "https://my.redninesensor.com/images/profile-default.png",
   "RNCTools": {
     "processorPath": "/home/ubuntu/server-core/rnctools/build/rncprocessor",
     "correctPath": "/home/ubuntu/server-core/rnctools/build/correctrnc"
