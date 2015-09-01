@@ -12,6 +12,51 @@ var eventTypes = [
         ]
     },
     {
+        name: 'Wave - Failed'
+    },
+    {
+        name: 'Paddle'
+    },
+    {
+        name: 'Stationary'
+    },
+    {
+        name: 'Wipe out'
+    },
+    {
+        name: 'Inverted'
+    },
+    {
+        name: 'Surfer - Laying'
+    },
+    {
+        name: 'Surfer - Sitting'
+    },
+    {
+        name: 'Surfer - Hanging'
+    },
+    {
+        name: 'Surfer - Standing'
+    },
+    {
+        name: 'Surfer - Not on board'
+    },
+    {
+        name: 'Surfer - Pulling'
+    },
+    {
+        name: 'Pop Up'
+    },
+    {
+        name: 'Drop'
+    },
+    {
+        name: 'Paddle Out'
+    },
+    {
+        name: 'Duck Dive'
+    },
+    {
         name: 'Drop In'
     },
     {
@@ -60,9 +105,6 @@ var eventTypes = [
         name: 'Paddle for Wave'
     },
     {
-        name: 'Paddle Out'
-    },
-    {
         name: 'Paddle In'
     },
     {
@@ -70,15 +112,6 @@ var eventTypes = [
     },
     {
         name: 'Paddle Right'
-    },
-    {
-        name: 'Paddle'
-    },
-    {
-        name: 'Duck Dive'
-    },
-    {
-        name: 'Wipe out'
     },
     {
         name: 'Pearling'
@@ -91,9 +124,6 @@ var eventTypes = [
     },
     {
         name: 'Run'
-    },
-    {
-        name: 'Stationary'
     },
     {
         name: 'Dolphin'
