@@ -2,15 +2,15 @@
   "apiUrl": "localhost:3000",
   "htmlUrl": "localhost:8000",
   "htmlOrigin": [
-    "http://localhost:8000"
+    "https://localhost:8000"
   ],
   "port": "3000",
   "listenIp": "0.0.0.0",
   "panelDataPath": "/home/clewis/Downloads/testRNC",
-  "defaultCallbackUrl": "http://localhost:8000",
-  "unauthorizedCallbackUrl": "http://localhost:8000/page/unauthenticated",
+  "defaultCallbackUrl": "https://localhost:8000",
+  "unauthorizedCallbackUrl": "https://localhost:8000/page/unauthenticated",
   "logFilePath": "/home/clewis/Downloads/apiserver/apiserver",
-  "defaultUserPicture": "http://localhost:8000/static/images/profile-default.png",
+  "defaultUserPicture": "https://localhost:8000/static/images/profile-default.png",
   "RNCTools": {
     "processorPath": "/home/clewis/consulting/red9/server-core/rnctools/build/rncprocessor",
     "correctPath": "/home/clewis/consulting/red9/server-core/rnctools/build/correctrnc"
