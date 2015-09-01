@@ -1,6 +1,7 @@
 'use strict';
 
 var helpers = require('../support/helpers');
+var nconf = require('nconf');
 
 module.exports = function (sequelize, DataTypes) {
     var user = sequelize.define('user', {
@@ -10,7 +11,10 @@ module.exports = function (sequelize, DataTypes) {
         givenName: {type: DataTypes.STRING},
         familyName: {type: DataTypes.STRING},
         preferredLayout: DataTypes.JSON,
-        picture: {type: DataTypes.STRING},
+        picture: {
+            type: DataTypes.STRING,
+            defaultValue: nconf.get('defaultUserPicture')
+        },
         gender: {type: DataTypes.STRING},
         height: {type: DataTypes.FLOAT},
         weight: {type: DataTypes.FLOAT},
