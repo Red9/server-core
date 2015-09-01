@@ -45,6 +45,12 @@ var eventTypes = [
         name: 'Surfer - Pulling'
     },
     {
+        name: 'Pop Up'
+    },
+    {
+        name: 'Drop'
+    },
+    {
         name: 'Paddle Out'
     },
     {

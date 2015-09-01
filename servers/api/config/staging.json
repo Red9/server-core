@@ -2,8 +2,8 @@
   "apiUrl": "ghost.redninesensor.com",
   "htmlUrl": "staging.redninesensor.com",
   "htmlOrigin": [
-    "http://staging.redninesensor.com",
-    "http://localhost:9532"
+    "https://staging.redninesensor.com",
+    "https://localhost:8000"
   ],
   "port": "8080",
   "listenIp": "0.0.0.0",
