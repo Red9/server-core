@@ -5,8 +5,6 @@ suppressMessages(library(jsonlite))
 suppressMessages(library(party))
 closeAllConnections()
 
-filename <- "phase1inputdata_small.txt"
-
 ## Input block
 ptm <- proc.time()
 write("Reading STDIN",stderr())
