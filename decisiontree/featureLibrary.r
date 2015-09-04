@@ -166,7 +166,7 @@ createEventJSON <- function(panel,expand.label) {
     ends[length(ends)+1] <- length(expand.label)
     
     for(i in 1:length(event.types)) {
-        eventJSON[,1] <- expand.label[which(transitions>=1)]
+        eventJSON[,1] <- expand.label[which(transitions!=0)]
         eventJSON[,2] <- panel$time[starts]
         eventJSON[,3] <- panel$time[ends]
     }
