@@ -158,7 +158,7 @@ createEventJSON <- function(panel,expand.label) {
     }
     event.cat.shifted <- shiftOneForward(event.cat)
     transitions <- event.cat - event.cat.shifted 
-    eventJSON <- matrix(nrow=length(which(transitions>=1)),ncol=3)
+    eventJSON <- matrix(nrow=length(which(transitions!=0)),ncol=3)
     
     starts <- which(transitions!=0)
     ends <- which(transitions!=0)-1
