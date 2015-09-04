@@ -113,7 +113,21 @@ getVcov <- function(model,model.name) {
 }
 
 
-
+# calculate roll first and then pitch
+roll.pitch <- function(panel) {
+    angle <- rep(0,length=dim(panel)[1])
+    ax <- panel$acceleration.x/panel$acceleration.magnitude
+    ay <- panel$acceleration.y/panel$acceleration.magnitude
+    az <- panel$acceleration.z/panel$acceleration.magnitude
+    epsilon <- 0.01
+    roll <- rep(0,length=length(az))
+    roll[which(az>epsilon)] <- atan(ay[which(az>epsilon)]/az[which(az>epsilon)])
+    roll[which(az<=epsilon)] <- 0
+    # get pitch using atan and roll
+    pitch <- atan(ax/sqrt((ay*sin(roll))^2 + (az*cos(roll))^2))
+    angles <- cbind(roll,pitch)
+    return(angles)
+}
 
 ## all the utilities
 # creates a full-size label vector from a panel and event list
@@ -136,16 +150,26 @@ shiftOneForward <- function(bvector) {
 
 # creates a stringified JSON line with events from a prediction vector and panel
 createEventJSON <- function(panel,expand.label) {
-    event.binary <- rep(0,length(expand.label))
-    event.binary <- ifelse(expand.label!="Other",1,0)
-    event.binary.shifted <- shiftOneForward(event.binary)
+    event.cat <- rep(0,length(expand.label))
+    event.types <- levels(as.factor(expand.label))
     
-    transitions <- event.binary - event.binary.shifted #+1 is start, -1 is end. start and end are shifted one forward from the truth.
+    for (i in 1:length(event.types)) {
+        event.cat[which(expand.label==event.types[i])] <- i  
+    }
+    event.cat.shifted <- shiftOneForward(event.cat)
+    transitions <- event.cat - event.cat.shifted 
+    eventJSON <- matrix(nrow=length(which(transitions>=1)),ncol=3)
     
-    eventJSON <- matrix(nrow=length(which(transitions==1)),ncol=3)
+    starts <- which(transitions>=1)
+    ends <- which(transitions>=1)-1
+    ends <- ends[-1]
+    ends[length(ends)+1] <- length(expand.label)
     
-    eventJSON[,1] <- expand.label[which(transitions==1)]
-    eventJSON[,2] <- panel$time[which(transitions==1)]
+    for(i in 1:length(event.types)) {
+        eventJSON[,1] <- expand.label[which(transitions>=1)]
+        eventJSON[,2] <- panel$time[starts]
+        eventJSON[,3] <- panel$time[ends]
+    }
     
     colnames(eventJSON) <- c("type","startTime","endTime")
     eventJSON <- as.data.frame(eventJSON)
@@ -232,7 +256,7 @@ features <- function(panel){
     ## window features
     write(paste("Computing features..."),stderr())
     for (i in 0:(nwindows-1)) {
-        window.panel <- cbind(panel$acceleration.x[(i*win.length+1):(i*win.length+win.length)],panel$acceleration.y[(i*win.length+1):(i*win.length+win.length)],panel$acceleration.z[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.x[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.y[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.z[(i*win.length+1):(i*win.length+win.length)],panel$resid.ADR[(i*win.length+1):(i*win.length+win.length)],panel$resid.RGR[(i*win.length+1):(i*win.length+win.length)])
+        window.panel <- as.data.frame(cbind(panel$acceleration.x[(i*win.length+1):(i*win.length+win.length)],panel$acceleration.y[(i*win.length+1):(i*win.length+win.length)],panel$acceleration.z[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.x[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.y[(i*win.length+1):(i*win.length+win.length)],panel$rotationrate.z[(i*win.length+1):(i*win.length+win.length)],panel$resid.ADR[(i*win.length+1):(i*win.length+win.length)],panel$resid.RGR[(i*win.length+1):(i*win.length+win.length)]))
         
         feature.1 <- colMeans(window.panel)
         names(feature.1) <- c("wmean.acc.x","wmean.acc.y","wmean.acc.z","wmean.rotr.x","wmean.rotr.y","wmean.rotr.z","wmean.resid.ADR","wmean.resid.RGR")
@@ -252,7 +276,9 @@ features <- function(panel){
         feature.9 <- c(getBetas(iRARz.model,"iRARz"),getVcov(iRARz.model,"iRARz"))
         feature.10 <- c(getBetas(ADR.model,"ADR"),getVcov(ADR.model,"ADR"))
         
-        feature.row <- c(feature.1,feature.2,feature.3,feature.4,feature.5,feature.6,feature.7,feature.8,feature.9,feature.10)
+        feature.11 <- roll.pitch(window.panel)
+        
+        feature.row <- c(feature.1,feature.2,feature.3,feature.4,feature.5,feature.6,feature.7,feature.8,feature.9,feature.10,feature.11)
         feature.panel <- rbind(feature.panel,feature.row)
     }
     write(paste("Done."),stderr())

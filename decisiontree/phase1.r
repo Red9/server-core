@@ -5,11 +5,13 @@ suppressMessages(library(jsonlite))
 suppressMessages(library(party))
 closeAllConnections()
 
+filename <- "phase1inputdata_small.txt"
 
 ## Input block
 ptm <- proc.time()
 write("Reading STDIN",stderr())
-con <- file("stdin")
+#con <- file("stdin")
+con <- filename
 write("Reading JSON",stderr())
 parameters <- fromJSON(readLines(con,n=1))
 write("Reading CSV",stderr())
@@ -19,14 +21,8 @@ write(paste("Time to read in data:",round(stopwatch[3],4),"seconds",sep=" "),std
 write("Assigning forestFilePath",stderr())
 forestFilePath <- parameters$forestFilePath
 
-## Event trimming
-write("Event trimming",stderr())
-parameters$events$type[which(parameters$events$type=="Paddle Out"|parameters$events$type=="Paddle for Wave")] <- "Paddle" #only look for one type of paddling
-parameters$events <- parameters$events[which(parameters$events$type=="Wave"|parameters$events$type=="Paddle"|parameters$events$type=="Stationary"),] #only look for "Paddle", "Wave" or "Stationary"
-
 ## Feature creation
 ptm <- proc.time()
-write("Creating features",stderr())
 f.features.list <- features(f.full) # compute features
 stopwatch <- proc.time() - ptm
 write(paste("Time to compute features:",round(stopwatch[3],4),"seconds",sep=" "),stderr())
