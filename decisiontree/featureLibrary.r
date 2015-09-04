@@ -124,7 +124,7 @@ roll.pitch <- function(panel) {
     roll[which(az>epsilon)] <- atan(ay[which(az>epsilon)]/az[which(az>epsilon)])
     roll[which(az<=epsilon)] <- 0
     # get pitch using atan and roll
-    pitch <- atan(ax/sqrt((ay*sin(roll))^2 + (az*cos(roll))^2))
+    pitch <- atan(-ax/sqrt((ay*sin(roll))^2 + (az*cos(roll))^2))
     angles <- cbind(roll,pitch)
     return(angles)
 }
@@ -160,8 +160,8 @@ createEventJSON <- function(panel,expand.label) {
     transitions <- event.cat - event.cat.shifted 
     eventJSON <- matrix(nrow=length(which(transitions>=1)),ncol=3)
     
-    starts <- which(transitions>=1)
-    ends <- which(transitions>=1)-1
+    starts <- which(transitions!=0)
+    ends <- which(transitions!=0)-1
     ends <- ends[-1]
     ends[length(ends)+1] <- length(expand.label)
     
