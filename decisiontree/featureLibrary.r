@@ -146,7 +146,6 @@ createEventJSON <- function(panel,expand.label) {
     
     eventJSON[,1] <- expand.label[which(transitions==1)]
     eventJSON[,2] <- panel$time[which(transitions==1)]
-    eventJSON[,3] <- panel$time[which(transitions==-1)-1]
     
     colnames(eventJSON) <- c("type","startTime","endTime")
     eventJSON <- as.data.frame(eventJSON)

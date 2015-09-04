@@ -1,10 +1,6 @@
 {
   "idList": [
-    252,
-    244,
-    212,
-    138,
-    359
+    163
   ],
-  "manualEvents": false
+  "manualEvents": true
 }

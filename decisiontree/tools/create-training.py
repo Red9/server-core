@@ -101,10 +101,11 @@ with open(output_path, 'w') as output_file:
         # user_list += r.json()['data']['user']['displayName']
         # OR
         # Save tags keyed by dataset
+        print('Getting tags and user data for dataset ' + str(id))
         tags_list[id] = r.json()['data']['tags']
         user_list[id] = r.json()['data']['user']['displayName']
 
-        print('Getting events and panel from dataset ' + str(id))
+        print('Getting events and panel for dataset ' + str(id))
 
         # Read the events
         r = HitAPI('/event/?datasetId=' + str(id), cookies)
