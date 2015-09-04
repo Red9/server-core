@@ -10,8 +10,9 @@ filename <- "phase1inputdata_small.txt"
 ## Input block
 ptm <- proc.time()
 write("Reading STDIN",stderr())
-#con <- file("stdin")
-con <- filename
+con <- file("tools/phase1inputdata_small.txt")
+open(con)
+#con <- filename
 write("Reading JSON",stderr())
 parameters <- fromJSON(readLines(con,n=1))
 write("Reading CSV",stderr())
